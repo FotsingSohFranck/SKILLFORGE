@@ -9,7 +9,7 @@ PostgreSQL 18 (UUID v7), Flyway. Front **React + Vite (TypeScript)**.
 - Spécification : [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md)
 - Architecture & ADR : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/adr/`](docs/adr)
 - Modèle de données : [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md)
-- Backlog : [`BACKLOG.md`](BACKLOG.md) · Règles de travail : [`CLAUDE.md`](CLAUDE.md)
+- Backlog : [`BACKLOG.md`](BACKLOG.md)
 
 ## Démarrage en une commande (Docker Compose)
 
