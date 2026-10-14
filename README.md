@@ -11,6 +11,30 @@ PostgreSQL 18 (UUID v7), Flyway. Front **React + Vite (TypeScript)**.
 - Modèle de données : [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md)
 - Backlog : [`BACKLOG.md`](BACKLOG.md)
 
+## Aperçu
+
+Identité sobre « inspiration Apple » (gris neutres, accent noir), mode clair et sombre.
+
+### Page d'accueil
+| Clair | Sombre |
+|:---:|:---:|
+| ![Accueil, mode clair](docs/screenshots/accueil-light.jpg) | ![Accueil, mode sombre](docs/screenshots/accueil-dark.jpg) |
+
+### Connexion
+| Clair | Sombre |
+|:---:|:---:|
+| ![Connexion, mode clair](docs/screenshots/login-light.jpg) | ![Connexion, mode sombre](docs/screenshots/login-dark.jpg) |
+
+### Catalogue de parcours
+| Clair | Sombre |
+|:---:|:---:|
+| ![Catalogue, mode clair](docs/screenshots/catalogue-light.jpg) | ![Catalogue, mode sombre](docs/screenshots/catalogue-dark.jpg) |
+
+### Leçon (contenu, code colorisé, quiz)
+| Clair | Sombre |
+|:---:|:---:|
+| ![Leçon, mode clair](docs/screenshots/lecon-light.jpg) | ![Leçon, mode sombre](docs/screenshots/lecon-dark.jpg) |
+
 ## Démarrage en une commande (Docker Compose)
 
 Le plus simple : PostgreSQL 18 + backend + frontend en une commande.
