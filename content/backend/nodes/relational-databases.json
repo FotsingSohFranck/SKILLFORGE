@@ -1,0 +1,484 @@
+{
+  "node": "relational-databases",
+  "lessons": [
+    {
+      "slug": "le-modele-relationnel",
+      "title": "Le modèle relationnel",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Tables, lignes, colonnes",
+          "body": "Une **base de données** est un endroit organisé où une application range ses informations pour les retrouver plus tard (les comptes, les commandes, les messages...). Le modèle **relationnel** est la façon la plus répandue d'organiser ces informations : on les range dans des **tables**.\n\nUne **table**, c'est un tableau à deux dimensions, exactement comme une feuille de calcul :\n- chaque **ligne** (aussi appelée *enregistrement*) représente **une chose** : un utilisateur, un livre, une commande ;\n- chaque **colonne** (aussi appelée *attribut*) représente **une information** sur cette chose : l'email, la date de création...\n\n👉 **Analogie** : pense à une feuille **Excel**. L'onglet « Clients » est une table ; chaque ligne est un client ; les colonnes sont « nom », « email », « ville ». Une base relationnelle, c'est ça, mais en beaucoup plus rigoureux et rapide.\n\nCe qui distingue une vraie table d'un tableur, c'est que chaque colonne a un **type** imposé : `email` contient du **texte**, `created_at` contient une **date-heure**, `age` contient un **entier**. Ce plan fixé à l'avance (les colonnes et leurs types) s'appelle le **schéma**. Grâce à lui, toutes les lignes ont la même forme : impossible d'écrire « bonjour » dans une colonne prévue pour une date. **Exemple concret** : une table `users` avec les colonnes `email` (texte), `display_name` (texte), `created_at` (date-heure). Cette rigueur rend les données prévisibles et vérifiables."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le modele relationnel : des tables (lignes, colonnes), structurees et typees.",
+          "body": "/images/lessons/le-modele-relationnel-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Clés & relations",
+          "body": "Dès qu'on a plusieurs tables, deux questions se posent : comment **désigner** une ligne précise sans ambiguïté, et comment **relier** les tables entre elles ?\n\n**La clé primaire** (en anglais *primary key*, souvent abrégée **PK**) est la colonne qui **identifie une ligne de façon unique** : deux lignes ne peuvent pas avoir la même, et elle n'est jamais vide. C'est la carte d'identité de la ligne. 👉 **Analogie** : c'est le **numéro de client** d'un magasin ; deux clients peuvent s'appeler « Jean Martin », mais leurs numéros diffèrent, donc on ne les confond jamais. Ici la clé primaire est souvent une colonne `id`.\n\n**La clé étrangère** (en anglais *foreign key*, abrégée **FK**) est une colonne qui **pointe vers la clé primaire d'une autre table**. Elle crée un **lien** (une *relation*, d'où le nom « relationnel »). **Exemple concret** : une table `enrollments` (les inscriptions) a une colonne `user_id` qui contient l'`id` d'une ligne de `users`. Ainsi chaque inscription « sait » à quel utilisateur elle appartient.\n\n👉 **L'idée clé** : on ne **recopie pas** les données, on les **relie**. L'utilisateur « Ada » existe **une seule fois** dans `users` ; ses dix inscriptions ne répètent pas son nom et son email, elles pointent toutes vers sa ligne via `user_id`. Si Ada change d'email, on ne le corrige qu'à un seul endroit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les cles (primaire, etrangere) relient les tables entre elles de maniere fiable.",
+          "body": "/images/lessons/le-modele-relationnel-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Une relation un-à-plusieurs",
+          "diagramFormat": "MERMAID",
+          "body": "erDiagram\n  USERS ||--o{ ENROLLMENTS : possede\n  USERS {\n    uuid id PK\n    varchar email\n  }\n  ENROLLMENTS {\n    uuid id PK\n    uuid user_id FK\n    varchar roadmap\n  }"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Pourquoi le relationnel domine encore",
+          "body": "Depuis les années 2010, on entend beaucoup parler du **NoSQL** : une famille de bases qui rangent les données autrement que dans des tables reliées (en documents, en clé-valeur, en graphe...). On les verra plus loin. Pourtant, le relationnel reste le **choix par défaut** de la plupart des applications. Pourquoi ?\n\n- **Cohérence forte** : le moteur de la base fait **lui-même** respecter des règles (une **contrainte**, par exemple « un email ne peut pas être en double »). Peu importe le code qui écrit, la règle tient. 👉 **Analogie** : c'est un **videur** à l'entrée qui vérifie chaque donnée, plutôt que d'espérer que chaque visiteur se comporte bien.\n- **Requêtes flexibles** : on interroge les données sous **n'importe quel angle** grâce au **SQL** (*Structured Query Language*, le langage standard pour parler aux bases relationnelles). **Exemple** : « tous les utilisateurs inscrits ce mois-ci », puis demain « le parcours le plus suivi » : la même base répond aux deux, sans qu'on ait prévu ces questions à l'avance.\n- **Transactions fiables** : plusieurs opérations peuvent être regroupées en un **tout ou rien** (on détaillera ce mot plus tard), ce qui évite les états incohérents.\n\n👉 **En résumé** : on **modélise une fois** (les tables et leurs liens), et on **interroge de mille façons**. D'autres modèles, eux, exigent souvent de connaître à l'avance comment on lira les données. Voilà pourquoi le relationnel domine encore."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le relationnel domine encore : garanties ACID, langage SQL mature, integrite forte.",
+          "body": "/images/lessons/le-modele-relationnel-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "On veut stocker des auteurs et leurs livres (un auteur écrit plusieurs livres). Combien de tables, et quelle colonne relie les deux ?",
+          "solution": "Deux tables : authors (id PK, name) et books (id PK, title, author_id FK vers authors.id). La clé étrangère author_id dans books relie chaque livre à son auteur (relation un-à-plusieurs). On ne recopie pas le nom de l'auteur dans chaque livre : on le référence."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Le modèle relationnel",
+          "quizRef": "relational-databases-modele-check"
+        }
+      ]
+    },
+    {
+      "slug": "postgresql-le-serveur",
+      "title": "PostgreSQL, le serveur de bases",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un SGBD client/serveur",
+          "body": "Jusqu'ici on a parlé du **modèle** relationnel (l'idée des tables reliées). Il faut maintenant un **logiciel** qui range vraiment ces tables sur le disque, les protège et répond aux questions : c'est un **SGBD** (Système de Gestion de Bases de Données ; en anglais *DBMS*). **PostgreSQL** est l'un des plus réputés : **open source** (gratuit, code ouvert, maintenu par une large communauté), robuste et très riche en fonctionnalités. C'est le SGBD de cette plateforme (version PostgreSQL 18).\n\nPostgreSQL fonctionne en **client/serveur**. Décortiquons ces deux mots :\n- le **serveur** est un programme qui tourne en permanence, détient les données et **écoute** les demandes sur une porte réseau appelée **port** (par défaut le **5432**) ;\n- un **client** est n'importe quel programme qui **se connecte** à ce serveur pour lui envoyer des ordres : ton application, ou l'outil en ligne de commande **`psql`**.\n\nCes ordres sont des **requêtes SQL** (des phrases dans le langage SQL, du type « donne-moi tous les utilisateurs »). 👉 **Analogie** : le serveur est un **restaurant** dont la cuisine reste ouverte ; les clients passent **commande** (les requêtes) par un guichet (le port 5432) ; la cuisine prépare et renvoie le plat (le résultat). Plusieurs clients peuvent commander en même temps."
+        },
+        {
+          "type": "IMAGE",
+          "title": "PostgreSQL est un SGBD client/serveur : les applications s'y connectent par le reseau.",
+          "body": "/images/lessons/postgresql-le-serveur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Se connecter avec psql",
+          "codeLanguage": "bash",
+          "body": "# Client en ligne de commande\npsql -h localhost -p 5432 -U skillforge -d skillforge\n\n# Quelques méta-commandes utiles :\n#   \\l         lister les bases\n#   \\dt        lister les tables\n#   \\d users   décrire la table users\n#   \\q         quitter"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Bases, schémas, rôles",
+          "body": "Un même serveur PostgreSQL n'héberge pas qu'un seul ensemble de données ; il s'organise en niveaux emboîtés.\n- Une **base** (en anglais *database*) est un grand conteneur isolé pour un projet donné (par exemple la base `skillforge`). Un serveur peut en héberger plusieurs, étanches entre elles.\n- À l'intérieur, un **schéma** est un **espace de noms** (un sous-dossier logique) qui regroupe des tables ; celui par défaut s'appelle `public`.\n- L'accès est gouverné par des **rôles** (les utilisateurs de la base) à qui on accorde des **privilèges** (droits de lire, d'écrire, de créer...).\n\n👉 **Analogie** : le serveur est un **immeuble**, chaque **base** est un appartement, chaque **schéma** est une pièce, et les **tables** sont les meubles dans la pièce.\n\n👉 **Règle de sécurité importante, le moindre privilège** : on ne donne à chaque rôle **que** les droits dont il a strictement besoin. Le compte utilisé par l'application peut lire et écrire **ses** tables, mais n'est **jamais** un **super-utilisateur** (un rôle tout-puissant). **Pourquoi ?** Si ce compte est compromis (mot de passe volé, faille), les dégâts restent limités à ce qu'il pouvait faire, au lieu de donner les pleins pouvoirs sur tout le serveur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Bases, schemas et roles organisent les donnees et les droits d'acces.",
+          "body": "/images/lessons/postgresql-le-serveur-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Des types riches (niveau expert)",
+          "body": "PostgreSQL ne se limite pas aux types basiques comme `int` (entier) ou `text` (texte). Rappel : un **type** dit quelle sorte de valeur une colonne accepte. PostgreSQL en propose de plus puissants, qui évitent de bricoler des solutions bancales côté application :\n- **`uuid`** : un identifiant unique universel, une longue suite comme `018f...`, idéale comme clé primaire. 👉 C'est une **plaque d'immatriculation** unique pour chaque ligne.\n- **`timestamptz`** : une date-heure **avec fuseau horaire** (stockée en UTC). À **toujours** préférer à `timestamp` sans fuseau, sous peine de bugs dès qu'on a plusieurs pays ou l'heure d'été.\n- **`numeric`** : un nombre décimal **exact**, indispensable pour l'**argent** (les types à virgule flottante arrondissent et font perdre des centimes).\n- **`jsonb`** : du **JSON** stocké de façon binaire et **indexable**. Parfait pour du **semi-structuré**, c'est-à-dire des données dont la forme varie d'une ligne à l'autre (une configuration, des métadonnées).\n- plus encore : **tableaux**, types géométriques, `enum` (une liste fermée de valeurs autorisées).\n\n**Exemple concret** : cette plateforme utilise `uuid DEFAULT uuidv7()` comme clés primaires et `jsonb` pour certaines configurations. Tirer parti de ces types, c'est laisser la base faire un travail fiable qu'on ferait mal à la main."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des types riches : JSONB, tableaux, intervalles, geometrie ; bien plus que des chaines et des nombres.",
+          "body": "/images/lessons/postgresql-le-serveur-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Pour stocker un montant monétaire, pourquoi éviter `float`/`double` et préférer `numeric` ? Et pour une date, pourquoi `timestamptz` plutôt que `timestamp` ?",
+          "solution": "float/double sont approximatifs (erreurs d'arrondi binaire), donc inacceptables pour de l'argent ; numeric est décimal exact. timestamptz stocke l'instant en tenant compte du fuseau (converti en UTC), ce qui évite les ambiguïtés ; timestamp \"sans fuseau\" mène à des bugs dès qu'on a plusieurs zones ou l'heure d'été."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : PostgreSQL, le serveur",
+          "quizRef": "relational-databases-serveur-check"
+        }
+      ]
+    },
+    {
+      "slug": "creer-des-tables",
+      "title": "Créer des tables (DDL)",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "DDL vs DML",
+          "body": "Le langage **SQL** se range en deux grandes familles de commandes, et bien les distinguer aide à s'y retrouver.\n- Le **DDL** (*Data Definition Language*, langage de **définition** des données) sert à créer et modifier la **structure** : `CREATE` (créer une table), `ALTER` (la modifier), `DROP` (la supprimer). 👉 **Analogie** : le DDL, c'est **construire les rayonnages** d'une bibliothèque (leur nombre, leur taille).\n- Le **DML** (*Data Manipulation Language*, langage de **manipulation** des données) sert à travailler les **données** elles-mêmes : `INSERT` (ajouter une ligne), `UPDATE` (la modifier), `DELETE` (la supprimer), `SELECT` (la lire). 👉 C'est **ranger et consulter les livres** dans les rayonnages.\n\n**L'ordre logique** : on définit d'abord le **schéma** (les tables et leurs règles, avec le DDL), puis on y insère et on interroge des données (avec le DML). On ne range pas des livres avant d'avoir monté l'étagère."
+        },
+        {
+          "type": "IMAGE",
+          "title": "DDL definit la structure (tables, colonnes) ; DML manipule les donnees (insert, update).",
+          "body": "/images/lessons/creer-des-tables-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une table bien définie",
+          "codeLanguage": "sql",
+          "body": "CREATE TABLE users (\n    id         uuid PRIMARY KEY DEFAULT uuidv7(),\n    email      varchar(255) NOT NULL UNIQUE,\n    display_name varchar(120) NOT NULL,\n    created_at timestamptz NOT NULL DEFAULT now(),\n    updated_at timestamptz NOT NULL DEFAULT now()\n);"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Insérer et lire",
+          "codeLanguage": "sql",
+          "body": "INSERT INTO users (email, display_name)\nVALUES ('ada@dev', 'Ada Lovelace')\nRETURNING id, created_at;      -- récupère les valeurs générées\n\nSELECT id, email FROM users WHERE email = 'ada@dev';"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Valeurs par défaut & génération",
+          "body": "Certaines colonnes se remplissent **toutes seules** grâce à une **valeur par défaut** (mot-clé `DEFAULT`) : si tu ne fournis pas la valeur à l'insertion, le serveur la **calcule** pour toi.\n- `DEFAULT now()` met automatiquement la **date-heure courante** (pratique pour `created_at`).\n- `DEFAULT uuidv7()` génère un nouvel identifiant **`uuid`** unique (la fonction `uuidv7()` est native dans PostgreSQL 18).\n\n👉 **Pourquoi laisser la base le faire** plutôt que l'application ? Parce qu'il n'y a alors qu'**une seule source de vérité** : impossible d'oublier de remplir le champ, et toutes les insertions (même une requête tapée à la main) restent cohérentes. 👉 **Analogie** : c'est le **tampon dateur** automatique du guichet, qui date chaque document sans que personne ait à écrire la date à la main.\n\nEnfin, la clause **`RETURNING`** demande à `INSERT` de **renvoyer** les valeurs qui viennent d'être générées (l'`id`, les `timestamps`) dans la foulée. **Exemple** : `INSERT ... RETURNING id, created_at` te rend l'identifiant tout neuf **sans** avoir à faire une seconde requête pour aller le relire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Valeurs par defaut et colonnes generees remplissent automatiquement certains champs.",
+          "body": "/images/lessons/creer-des-tables-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Faire évoluer le schéma (niveau expert)",
+          "body": "Le schéma d'une base **évolue** avec le produit : on ajoute une colonne, une table, une contrainte. Règle d'or : on ne modifie **jamais** une base de production **à la main**. On écrit des **migrations**.\n\nUne **migration** est un petit fichier de commandes SQL **versionné** (numéroté) qui décrit **une** évolution du schéma. Ici on utilise l'outil **Flyway** : les fichiers sont nommés `V1__...`, `V2__...`, et Flyway les applique dans l'ordre au démarrage, **une seule fois chacun**, en gardant la trace de ce qui a déjà été joué.\n\n👉 **Analogie** : c'est comme les **commits** de Git, mais pour la structure de la base. Chaque changement est une étape datée et rejouable ; on obtient exactement le même schéma sur la machine de chaque développeur et en production.\n\n**Deux règles à retenir** : (1) toute évolution (`ALTER TABLE ... ADD COLUMN`) devient une **nouvelle** migration ; (2) on n'**édite jamais** une migration déjà appliquée (on en ajoute une nouvelle par-dessus). Ainsi la structure reste reproductible et auditée, comme du code."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Faire evoluer le schema via des migrations versionnees, jamais a la main en prod.",
+          "body": "/images/lessons/creer-des-tables-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Tu dois ajouter une colonne `phone` à `users` en production. Décris la bonne pratique (pas la commande exacte).",
+          "solution": "Créer une NOUVELLE migration versionnée (ex. V10__add_phone.sql) contenant ALTER TABLE users ADD COLUMN phone varchar(30), puis l'appliquer via l'outil de migration (Flyway) au démarrage. On ne modifie jamais une migration déjà appliquée, ni la base à la main : chaque changement est tracé et reproductible."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : Créer des tables (DDL)",
+          "quizRef": "relational-databases-tables-check"
+        }
+      ]
+    },
+    {
+      "slug": "contraintes-et-integrite",
+      "title": "Contraintes & intégrité",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le moteur garde vos invariants",
+          "body": "Une **contrainte** est une **règle** que la base fait respecter **elle-même**, à chaque écriture, quelle que soit l'application qui écrit. On parle d'**invariant** : quelque chose qui doit **toujours** rester vrai dans les données. Les principales :\n- **PRIMARY KEY** : identité **unique** de la ligne (vu précédemment).\n- **UNIQUE** : interdit les **doublons** dans une colonne (par exemple deux comptes avec le même email).\n- **NOT NULL** : la valeur est **obligatoire** (la colonne ne peut pas être vide).\n- **CHECK** : impose une **règle sur la valeur** (par exemple `age >= 0`).\n- **FOREIGN KEY** : garantit qu'une **référence** pointe vers une ligne qui **existe vraiment** (l'intégrité référentielle).\n\n👉 **Analogie** : ce sont les **règles d'un formulaire** imposées par le guichetier : « champ obligatoire », « une seule réponse », « âge entre 0 et 120 ». Peu importe qui remplit le formulaire, le guichetier refuse tout ce qui viole les règles.\n\n👉 **Pourquoi en base et pas seulement dans le code ?** Parce que déléguer ces garanties au **moteur** est **bien plus sûr** que d'espérer que **chaque** morceau de code applicatif (présent et futur) pense à les vérifier. La base est le point de passage obligé : la règle y est infranchissable."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les contraintes (NOT NULL, UNIQUE, CHECK, FK) font respecter vos invariants par le moteur.",
+          "body": "/images/lessons/contraintes-et-integrite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Clé étrangère & intégrité référentielle",
+          "codeLanguage": "sql",
+          "body": "CREATE TABLE enrollments (\n    id      uuid PRIMARY KEY DEFAULT uuidv7(),\n    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n    roadmap varchar(80) NOT NULL,\n    UNIQUE (user_id, roadmap),                 -- pas deux inscriptions identiques\n    progress numeric(5,2) NOT NULL DEFAULT 0\n        CHECK (progress BETWEEN 0 AND 100)     -- règle métier garantie\n);"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "ON DELETE : que faire des enfants",
+          "body": "Que se passe-t-il quand on **supprime** une ligne à laquelle d'autres lignes font référence ? Par exemple, on efface un utilisateur qui a des inscriptions. La **clé étrangère** décide du sort de ces lignes **filles** (celles qui pointent vers la ligne **parente** supprimée), via la clause `ON DELETE` :\n- **`CASCADE`** : supprime **aussi** les lignes filles (efface l'utilisateur **et** ses inscriptions).\n- **`SET NULL`** : **casse le lien** en mettant la clé étrangère à vide (l'inscription survit mais n'appartient plus à personne).\n- **`RESTRICT`** / **`NO ACTION`** (le comportement par défaut) : **interdit** la suppression tant qu'il reste des lignes filles.\n\n👉 **Analogie** : tu fermes un compte client. Faut-il supprimer aussi toutes ses commandes (`CASCADE`), les garder mais anonymisées (`SET NULL`), ou refuser la fermeture tant qu'il a des commandes en cours (`RESTRICT`) ? Il n'y a pas de bon choix universel, d'où l'importance de **choisir consciemment**.\n\nChoisir au hasard mène à deux catastrophes symétriques : des **orphelins** (des lignes qui pointent vers une ligne disparue, un lien mort) d'un côté, ou une **suppression en cascade accidentelle** (on efface un utilisateur et, sans le vouloir, des années de données) de l'autre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ON DELETE : que faire des enfants quand on supprime le parent (cascade, restrict, set null).",
+          "body": "/images/lessons/contraintes-et-integrite-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "La contrainte comme dernière ligne de défense (niveau expert)",
+          "body": "On valide déjà les entrées **côté application**, tout au bord (dès la réception d'une requête web). Alors pourquoi **aussi** des contraintes en base ? Parce que la contrainte est le **filet ultime** : elle attrape ce qui passe **entre les mailles** de la validation applicative : un bug dans le code, une requête tapée directement en base, ou une **condition de course**.\n\nUne **condition de course** (en anglais *race condition*) survient quand deux opérations s'exécutent **en même temps** et se marchent dessus. **Exemple concret** : deux requêtes simultanées veulent inscrire le **même** utilisateur au **même** parcours. Chacune vérifie d'abord « existe-t-il déjà ? » (non, pas encore), puis chacune insère : résultat, un **doublon** que la vérification applicative n'a pas su empêcher.\n\n👉 **La contrainte règle le problème** : `UNIQUE (user_id, roadmap)` fait **rejeter** la seconde insertion par le moteur, avec une erreur de conflit que l'application traduit en réponse HTTP **409** (Conflict). 👉 **Analogie** : la validation applicative, c'est le **vigile** à l'entrée ; la contrainte, c'est le **tourniquet** qui, lui, ne laisse **physiquement** pas passer deux personnes sur le même ticket, même si le vigile a cligné des yeux."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La contrainte est la derniere ligne de defense : meme un bug applicatif ne pourra pas corrompre.",
+          "body": "/images/lessons/contraintes-et-integrite-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Deux requêtes concurrentes vérifient « cet email existe-t-il ? » (non), puis insèrent le même email. Sans contrainte, quel est le résultat, et comment la contrainte le corrige-t-elle ?",
+          "solution": "Sans contrainte, les deux INSERT réussissent, ce qui crée deux comptes avec le même email (doublon). Avec UNIQUE sur email, la seconde insertion échoue avec une violation de contrainte, que l'application traduit en conflit (409). La base garantit l'unicité même sous concurrence, ce qu'un SELECT-puis-INSERT applicatif ne peut pas."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Contraintes & intégrité",
+          "quizRef": "relational-databases-contraintes-check"
+        }
+      ]
+    },
+    {
+      "slug": "sous-le-capot-postgresql",
+      "title": "Sous le capot de PostgreSQL",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "MVCC : lecteurs et écrivains ne se bloquent pas",
+          "body": "Comment PostgreSQL fait-il pour que **beaucoup** d'utilisateurs lisent et écrivent **en même temps** sans se bloquer ? Grâce au **MVCC** (*Multi-Version Concurrency Control*, contrôle de concurrence multi-version). Décortiquons :\n- la **concurrence**, c'est plusieurs opérations qui se déroulent **simultanément** ;\n- un **verrou** (*lock*), c'est un panneau « occupé » qui force les autres à attendre.\n\nL'idée du MVCC : quand tu **modifies** une ligne, PostgreSQL ne l'**écrase pas**. Il crée une **nouvelle version** de la ligne à côté, et garde l'ancienne un moment. Du coup, une requête qui **lit** continue de voir l'ancienne version, pendant qu'une autre **écrit** la nouvelle : les **lecteurs ne bloquent pas les écrivains**, et inversement.\n\n👉 **Analogie** : un document collaboratif où, au lieu de verrouiller la page pendant qu'une personne écrit, chacun voit une **photo cohérente** du document à l'instant où il a commencé à lire. Personne n'attend derrière une porte fermée. C'est ce qui permet à PostgreSQL une **forte concurrence** sans verrouillage massif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "MVCC : lecteurs et ecrivains ne se bloquent pas, chacun voit une version coherente.",
+          "body": "/images/lessons/sous-le-capot-postgresql-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "MVCC : une écriture crée une nouvelle version",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  U[\"UPDATE d'une ligne\"] --> N[\"Nouvelle version de la ligne\"]\n  U --> A[\"Ancienne version conservee\"]\n  N --> RN[\"Nouveau lecteur : voit la nouvelle\"]\n  A --> RA[\"Lecteur deja en cours : voit l'ancienne\"]\n  A -. devient un tuple mort .-> V[\"VACUUM la recyclera plus tard\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "VACUUM : le ménage des versions mortes",
+          "body": "Le MVCC a un **revers** : à force de créer de nouvelles versions, les **anciennes** s'accumulent. Une version de ligne qui n'est plus visible par personne s'appelle un **tuple mort** (*dead tuple* ; « tuple » est le mot technique pour « ligne »). Il faut faire le ménage.\n\nC'est le rôle du **VACUUM** (« aspirateur » en anglais), un processus le plus souvent **automatique** (l'**autovacuum**). Il fait deux choses : il **récupère l'espace** des tuples morts (pour le réutiliser) et il **met à jour les statistiques** que le **planificateur** utilise pour choisir la façon la plus rapide d'exécuter une requête.\n\n👉 **Analogie** : c'est le **service de nettoyage** qui passe régulièrement vider les corbeilles. Si on l'empêche de passer, les déchets s'entassent.\n\n**Le piège à connaître, le *bloat*** : sur une base **très écrite**, si le VACUUM ne suit pas le rythme, les tuples morts s'accumulent, les tables **gonflent** (c'est le *bloat*) et tout **ralentit**. Beaucoup de mystères de performance sur PostgreSQL s'expliquent par un autovacuum mal réglé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "VACUUM fait le menage des versions mortes laissees par MVCC.",
+          "body": "/images/lessons/sous-le-capot-postgresql-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Connexions : chères, donc mutualisées",
+          "body": "Se connecter à PostgreSQL n'est pas gratuit. Chaque **connexion** ouverte devient, côté serveur, un **processus** du système d'exploitation (un programme à part entière avec sa propre mémoire). Ouvrir et fermer coûte du temps, et **trop** de connexions simultanées **saturent** la base (chaque processus consomme des ressources).\n\nLa solution : un **pool de connexions** (littéralement une « réserve »). Plutôt que d'ouvrir une connexion neuve à chaque requête puis de la jeter, on maintient un **petit nombre** de connexions déjà ouvertes qu'on **réutilise** en boucle. Ce pool vit soit dans l'application, soit dans un intermédiaire dédié comme **PgBouncer** (un proxy placé devant la base).\n\n👉 **Analogie** : une flotte de **voitures partagées**. On ne rachète pas une voiture pour chaque trajet : on en prend une libre, on l'utilise, on la rend. Bien plus efficace que d'en acheter et revendre sans arrêt.\n\n👉 **Contre-intuitif mais crucial** : sur-dimensionner le pool **écroule** la base plus qu'il ne l'aide (trop de processus se disputent le processeur et la mémoire). La bonne taille ne se devine pas : elle se **mesure**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les connexions sont cheres : on les mutualise via un pool plutot que d'en ouvrir sans cesse.",
+          "body": "/images/lessons/sous-le-capot-postgresql-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Étendre PostgreSQL & quand choisir le relationnel (niveau expert)",
+          "body": "Deux idées pour finir. D'abord, PostgreSQL est **extensible** : on peut lui **ajouter** des capacités via des **extensions** (des modules qu'on active), sans changer de logiciel. Quelques exemples : la **recherche plein texte** (chercher des mots dans du texte), le **géospatial** avec **PostGIS** (calculs de distances, de zones), le **vectoriel** avec **pgvector** (recherche par similarité, utile pour l'IA). Résultat : souvent, la base « spécialisée » qu'on croyait devoir ajouter est en fait une simple extension de PostgreSQL.\n\nEnsuite, **quand choisir le relationnel ?** Il s'impose dès qu'on a des **données structurées et reliées**, un besoin de **transactions** (des opérations tout-ou-rien fiables) et des requêtes **variées**. On lui préfère du **NoSQL** (les nœuds suivants du parcours) dans des cas **ciblés** : un débit clé-valeur extrême, du semi-structuré en très grande masse, ou un modèle de **graphe**. 👉 **À retenir** : ce sont des **exceptions** motivées par un besoin précis, pas la règle par défaut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "PostgreSQL s'etend (extensions) ; le relationnel reste le bon choix par defaut.",
+          "body": "/images/lessons/sous-le-capot-postgresql-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Sur une base PostgreSQL très sollicitée en écriture, les performances se dégradent et les tables grossissent anormalement. Quel mécanisme est probablement en cause, et quelle piste explorer ?",
+          "solution": "Le MVCC accumule des versions mortes de lignes ; si le VACUUM (autovacuum) ne suit pas le rythme des écritures, les tables gonflent (bloat) et ralentissent. Piste : vérifier/ajuster l'autovacuum, surveiller le bloat, et éventuellement lancer des VACUUM plus agressifs sur les tables très écrites."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz : Bases relationnelles & PostgreSQL",
+          "quizRef": "relational-postgres"
+        }
+      ]
+    },
+    {
+      "slug": "postgresql-avance",
+      "title": "PostgreSQL avancé : logique dans la base",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Fonctions & procédures (PL/pgSQL)",
+          "body": "Jusqu'ici, la base **stockait** les données et l'application **contenait** la logique. Mais PostgreSQL sait aussi **exécuter de la logique directement dans la base**, grâce à un langage de programmation intégré : **PL/pgSQL**. On y écrit des **fonctions** et des **procédures** (des blocs de code réutilisables) avec des variables, des conditions (`IF`) et des boucles.\n\n👉 **Analogie** : au lieu de rapatrier les ingrédients chez soi pour cuisiner (faire le calcul côté application), on cuisine **directement dans la réserve** (au plus près des données). Pour certaines tâches, c'est bien plus rapide et sûr.\n\n**Quand est-ce utile ?** Pour des opérations qui gagnent à être **atomiques** (tout-ou-rien) et **proches des données** : calculs d'agrégats, validations complexes, migrations de données volumineuses.\n\n**Attention, à doser** : mettre **trop** de métier dans la base **disperse** la logique (une partie dans le code, une partie en base) et complique les tests. On y met **seulement** ce qui gagne vraiment à être au plus près des données, pas tout."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Fonctions et procedures (PL/pgSQL) deplacent de la logique au plus pres des donnees.",
+          "body": "/images/lessons/postgresql-avance-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une fonction & un trigger",
+          "codeLanguage": "sql",
+          "body": "-- Met à jour updated_at à chaque modification\nCREATE FUNCTION set_updated_at() RETURNS trigger AS $$\nBEGIN\n    NEW.updated_at := now();\n    RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql;\n\nCREATE TRIGGER trg_users_updated\n  BEFORE UPDATE ON users\n  FOR EACH ROW EXECUTE FUNCTION set_updated_at();"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Triggers & LISTEN/NOTIFY",
+          "body": "Un **trigger** (« déclencheur ») est une fonction qui s'exécute **automatiquement** quand un événement survient sur une table : un `INSERT`, un `UPDATE` ou un `DELETE`. 👉 **Analogie** : un **détecteur de mouvement** qui allume la lumière tout seul dès que quelqu'un entre. Tu n'as rien à appeler explicitement : l'action se déclenche d'elle-même. C'est idéal pour l'**audit** (garder une trace des modifications), la **cohérence dérivée** (recalculer un total) ou l'**horodatage** (remplir `updated_at`, comme dans l'exemple de code précédent).\n\n**LISTEN/NOTIFY** est un autre mécanisme : la base peut **émettre une notification** (`NOTIFY`) qu'une ou plusieurs applications **écoutent** (`LISTEN`). C'est un mini **bus d'événements** (un canal par lequel des messages circulent) **sans broker** (sans logiciel de messagerie dédié à installer). Pratique, par exemple, pour **rafraîchir un cache** (une copie rapide de données gardée en mémoire) ou déclencher un traitement dès qu'une donnée change.\n\n**Attention** : les triggers **cachent** de la logique (l'action ne se voit pas dans le code applicatif, ce qui surprend au débogage). On les **documente** et on les garde **simples**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Triggers et LISTEN/NOTIFY reagissent automatiquement aux changements.",
+          "body": "/images/lessons/postgresql-avance-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "jsonb : semi-structuré indexable",
+          "codeLanguage": "sql",
+          "body": "-- Stocker et interroger du JSON, avec index GIN\nCREATE TABLE events (id uuid PRIMARY KEY DEFAULT uuidv7(), payload jsonb);\nCREATE INDEX idx_events_payload ON events USING GIN (payload);\n\nSELECT id FROM events\nWHERE payload @> '{\"type\": \"login\"}'      -- contient\n  AND payload->>'ip' LIKE '10.%';         -- extraction de champ"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Row-Level Security & extensions (niveau expert)",
+          "body": "Deux capacités avancées pour finir.\n\nLa **Row-Level Security** (RLS, « sécurité au niveau de la ligne ») applique des règles d'accès **ligne par ligne**, imposées par le **moteur** lui-même. On définit une **policy** (une règle de filtrage), et un utilisateur ne voit alors **que ses propres lignes**, **même si le code applicatif a un bug**. C'est particulièrement puissant en **multi-tenant** : une seule base héberge les données de plusieurs clients (les *tenants*), et la RLS garantit qu'aucun ne voit les lignes d'un autre. 👉 **Analogie** : un **coffre-fort** partagé où chacun n'ouvre que **son** tiroir, la serrure étant contrôlée par la banque et non par la confiance mutuelle.\n\nLes **extensions** (déjà croisées) enrichissent PostgreSQL sans outil externe : `pg_trgm` (recherche **floue**, par similarité de texte), `pgvector` (recherche **vectorielle**, sémantique, pour l'IA), `PostGIS` (**géospatial**), `pg_stat_statements` (**profiling**, mesure des requêtes les plus coûteuses). 👉 **À retenir** : très souvent, la « bonne » base NoSQL dont on croyait avoir besoin est en réalité une **extension** de PostgreSQL."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Row-Level Security filtre les lignes visibles selon l'utilisateur, directement dans la base.",
+          "body": "/images/lessons/postgresql-avance-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Dans une application multi-tenant, comment garantir qu'un tenant ne puisse JAMAIS lire les lignes d'un autre, même en cas de bug applicatif ?",
+          "solution": "Activer la Row-Level Security (RLS) sur les tables concernées avec une policy filtrant par tenant_id (ex. USING (tenant_id = current_setting('app.tenant')::uuid)). Le filtrage est alors imposé par le moteur à chaque requête, indépendamment du code applicatif : même un SELECT sans WHERE ne renverra que les lignes du tenant courant. C'est une garantie de sécurité de fond, pas seulement une convention applicative."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : PostgreSQL avancé",
+          "quizRef": "relational-databases-avance-check"
+        }
+      ]
+    },
+    {
+      "slug": "exploiter-postgresql",
+      "title": "Exploiter PostgreSQL en production",
+      "position": 6,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Réplication & haute disponibilité",
+          "body": "En production, faire tourner la base sur **un seul serveur** est risqué : s'il tombe, tout s'arrête, et une panne disque perd les données. D'où la **haute disponibilité** (en anglais *high availability*, **HA**) : rester debout malgré les pannes.\n\nLe pilier, c'est la **réplication** : on **copie** en continu les données du serveur **primaire** (celui qui reçoit les écritures) vers un ou plusieurs **réplicas** (des copies sur d'autres serveurs). La **réplication en streaming** envoie en flux le **WAL** (le journal des écritures, détaillé juste après) du primaire vers les réplicas. 👉 **Analogie** : un **secrétaire** qui recopie en direct tout ce que dit le patron, pour qu'un remplaçant puisse prendre le relais à tout instant.\n\nDeux bénéfices :\n- des réplicas en **lecture** pour **répartir la charge** (les requêtes de lecture ne tapent plus toutes le primaire) ;\n- une **bascule** (*failover*) : si le primaire tombe, on **promeut** un réplica en nouveau primaire. Des outils comme **Patroni** automatisent cette promotion.\n\nUne variante, la **réplication logique** (table par table, et même entre versions de PostgreSQL), sert surtout aux **migrations** et à la synchronisation sélective."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Replication et haute disponibilite : des copies pretes a prendre le relais en cas de panne.",
+          "body": "/images/lessons/exploiter-postgresql-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Sauvegardes : dump & PITR",
+          "codeLanguage": "bash",
+          "body": "# Sauvegarde logique (portable, une base)\npg_dump -Fc skillforge > skillforge.dump\npg_restore -d skillforge skillforge.dump\n\n# Point-In-Time Recovery : base sauvegarde + archivage du WAL\n# permet de restaurer à un instant précis (avant une erreur humaine).\n# On teste RÉGULIÈREMENT la restauration : une sauvegarde jamais\n# restaurée n'est pas une sauvegarde."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Comprendre le WAL",
+          "body": "Le **WAL** (*Write-Ahead Log*, « journal d'écriture anticipée ») est le concept central de la fiabilité de PostgreSQL. Le principe : **avant** de modifier les vrais fichiers de données, PostgreSQL **écrit d'abord** la modification dans un **journal** (une liste ordonnée de tout ce qui va changer).\n\n👉 **Analogie** : un **livre de comptes** où on note chaque opération **avant** de déplacer l'argent. Même si une panne survient au mauvais moment, le journal dit exactement ce qui devait être fait, donc rien n'est perdu ni laissé à moitié.\n\n**Pourquoi c'est fondamental :**\n- il garantit la **durabilité** (le **D** de **ACID**, les quatre propriétés d'une transaction fiable) : une fois confirmée, une écriture **survit** à un crash. Après un plantage, PostgreSQL **rejoue** le WAL pour retrouver un état cohérent ;\n- il rend possibles la **réplication** (on envoie le WAL aux réplicas) et le **PITR** (*Point-In-Time Recovery*, la restauration à un **instant précis**, vu dans l'exemple de code).\n\n**Le piège à connaître** : un WAL mal archivé, c'est **pas de PITR** ; un WAL qui **s'accumule** (un réplica en retard, un *slot* de réplication orphelin qui retient le journal) remplit le disque, un incident classique à savoir diagnostiquer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le WAL journalise chaque ecriture avant de l'appliquer : durabilite et point de reprise.",
+          "body": "/images/lessons/exploiter-postgresql-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Tuning : autovacuum, connexions, mémoire (niveau expert)",
+          "body": "Trois **leviers** d'exploitation qu'on ajuste sur une base de production. Retiens surtout le principe final.\n- **Autovacuum** (déjà vu) : sur une base très écrite, il doit **suivre le rythme** des écritures, sinon *bloat* et ralentissements. On ajuste sa fréquence (`autovacuum_vacuum_scale_factor`) et on surveille le gonflement des tables.\n- **Connexions** (déjà vu) : chaque connexion est un **processus** coûteux. Au-delà de quelques centaines, on place **PgBouncer** devant (mise en commun des connexions, en mode transaction).\n- **Mémoire** : `shared_buffers` (le cache principal des données en RAM), `work_mem` (la mémoire allouée **par opération** de tri ou de hachage : la mettre trop haut, multipliée par beaucoup de connexions, peut provoquer un **OOM**, un plantage par manque de mémoire), `effective_cache_size` (une estimation donnée au planificateur).\n\n👉 **La règle d'or** : on règle ces valeurs par la **mesure** sur sa propre charge, **jamais** en copiant des chiffres trouvés sur un blog. Ce qui marche ailleurs peut écrouler ta base."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tuning : autovacuum, connexions, memoire ; regler la base selon la charge reelle.",
+          "body": "/images/lessons/exploiter-postgresql-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Votre équipe possède une sauvegarde `pg_dump` quotidienne mais n'a jamais testé de restauration. Pourquoi est-ce un risque majeur, et que faut-il mettre en place ?",
+          "solution": "Une sauvegarde jamais restaurée peut être corrompue, incomplète ou irrestaurable (mauvaise version, dépendances manquantes) ; on ne le découvre qu'au pire moment, en plein incident. Il faut tester régulièrement la restauration (idéalement automatisée, dans un environnement isolé), vérifier l'intégrité, et documenter la procédure. On peut aussi ajouter le PITR (WAL archivé) pour restaurer à un instant précis avant une erreur, pas seulement au dernier dump."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "La **documentation officielle PostgreSQL** est exceptionnelle (chapitres MVCC, index, planner, WAL, réplication : à lire, pas seulement à consulter). Le livre *PostgreSQL: Up and Running* pour l'exploitation, *The Art of PostgreSQL* pour le SQL applicatif. Outils à connaître : **pgAdmin**/psql, **pg_stat_statements** + **pgBadger** (analyse de logs), **explain.dalibo.com** pour visualiser un plan, **Patroni**/**pgBackRest** pour la HA et les sauvegardes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir PostgreSQL.",
+          "body": "/images/lessons/exploiter-postgresql-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz : PostgreSQL (niveau expert)",
+          "quizRef": "postgres-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "ref": "containerization-souscapot-check",
+  "node": "containerization",
+  "lesson": "sous-le-capot-images-production",
+  "title": "Quiz, Sous le capot & images de production",
+  "description": "Namespaces/cgroups, ordre des couches et cache, SIGTERM, durcissement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels mécanismes du noyau Linux isolent la vue d'un conteneur et limitent ses ressources ?",
+      "justification": "Les namespaces isolent ce que le processus voit (PID, réseau, montages) ; les cgroups limitent ce qu'il consomme (CPU, mémoire).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les namespaces isolent ce qu'il voit ; les cgroups limitent ce qu'il consomme",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un hyperviseur et une machine virtuelle",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le pare-feu et l'antivirus",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Chaque build Docker retélécharge toutes les dépendances alors que tu n'as changé qu'une ligne de code. Le Dockerfile fait `COPY . .` avant d'installer les dépendances. Que corriger ?",
+      "justification": "Il faut copier d'abord le fichier de dépendances et les installer, puis copier le code source : ce qui change souvent (le code) doit venir après ce qui change rarement (les dépendances), pour préserver le cache.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Copier d'abord le fichier de dépendances et les installer, puis copier le code source",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Utiliser l'image de base :latest",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Mettre COPY . . tout en haut du Dockerfile",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une application conteneurisée doit-elle intercepter le signal SIGTERM ?",
+      "justification": "SIGTERM déclenche l'arrêt gracieux (finir les requêtes en cours, fermer proprement les connexions) avant le SIGKILL brutal envoyé après un délai.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Pour un arrêt gracieux (finir les requêtes en cours, fermer proprement) avant le SIGKILL brutal",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour démarrer plus vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour empêcher tout arrêt du conteneur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle pratique durcit une image pour la production ?",
+      "justification": "Exécuter en non-root, partir d'une base minimale et ne jamais mettre de secret dans l'image réduisent le rayon d'explosion en cas de compromission.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Exécuter en utilisateur non-root, avec une base minimale et sans secret dans l'image",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tourner en root avec tous les outils système inclus",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Écrire les mots de passe en dur dans le Dockerfile",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

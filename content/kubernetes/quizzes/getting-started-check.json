@@ -1,0 +1,63 @@
+{
+  "ref": "getting-started-check",
+  "node": "getting-started",
+  "lesson": "premier-deploiement",
+  "title": "Mise en place & première appli",
+  "description": "Cluster local, kubectl, contextes, apply/describe/logs, namespaces.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil permet de créer un cluster Kubernetes local pour apprendre ?",
+      "justification": "kind (ou minikube, k3d) crée un cluster local rapide à jeter ; le même kubectl/manifestes fonctionnent aussi en managé.",
+      "position": 0,
+      "options": [
+        { "label": "kind (Kubernetes-in-Docker)", "correct": true, "position": 0 },
+        { "label": "docker build", "correct": false, "position": 1 },
+        { "label": "etcd", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande donne les détails et surtout les Events d'un pod pour diagnostiquer un démarrage raté ?",
+      "justification": "kubectl describe pod : la section Events révèle presque toujours la cause (image, ressources, montage...).",
+      "position": 1,
+      "options": [
+        { "label": "kubectl describe pod <nom>", "correct": true, "position": 0 },
+        { "label": "kubectl apply", "correct": false, "position": 1 },
+        { "label": "kubectl delete", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment s'assurer de viser le bon cluster avant une commande destructive ?",
+      "justification": "Vérifier/fixer le contexte courant (config current-context / use-context) : la cause classique d'incident est d'agir sur le mauvais cluster.",
+      "position": 2,
+      "options": [
+        { "label": "Vérifier et fixer le contexte kubectl courant", "correct": true, "position": 0 },
+        { "label": "Redémarrer le cluster", "correct": false, "position": 1 },
+        { "label": "Supprimer etcd", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un pod est bloqué en ImagePullBackOff. Que signifie-t-il ?",
+      "justification": "Kubernetes n'arrive pas à télécharger l'image (nom/tag erroné, registre privé sans secret, rate limit, mauvaise arch) et réessaie.",
+      "position": 3,
+      "options": [
+        { "label": "L'image ne peut pas être téléchargée (pull échoué)", "correct": true, "position": 0 },
+        { "label": "Le pod manque de mémoire", "correct": false, "position": 1 },
+        { "label": "Le réseau du cluster est cassé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les namespaces cloisonnent un cluster partagé et servent de périmètre aux quotas et au RBAC.",
+      "justification": "Vrai : ils isolent les noms et délimitent quotas de ressources et droits d'accès ; on structure ses namespaces dès qu'un cluster est partagé.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "third-party-images-check",
+  "node": "third-party-images",
+  "lesson": "choisir-une-image-de-confiance",
+  "title": "Utiliser des images tierces",
+  "description": "Services jetables, configuration par env, confiance, versions épinglées.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment les images officielles (postgres, mysql...) se configurent-elles au démarrage ?",
+      "justification": "Par des variables d'environnement documentées (POSTGRES_PASSWORD, MYSQL_ROOT_PASSWORD...), application du principe 12-factor.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par des variables d'environnement documentées",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En éditant leur code source",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elles ne sont pas configurables",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi éviter le tag `latest` en production ?",
+      "justification": "latest est mouvant : deux pulls à des dates différentes peuvent donner des images différentes, cassant la reproductibilité.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il est mouvant : le contenu peut changer entre deux déploiements",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est plus lent à télécharger",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est payant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelles images privilégier pour limiter le risque d'exécuter du code malveillant ?",
+      "justification": "Les Docker Official Images et Verified Publisher : maintenues et vérifiées ; on se méfie des images obscures et du typosquatting.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Les images officielles / Verified Publisher",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Celles avec le moins de téléchargements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "N'importe laquelle, c'est sans risque",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil scanne les vulnérabilités (CVE) d'une image avant de l'adopter ?",
+      "justification": "docker scout ou Trivy analysent les couches et remontent les CVE connues, une image tierce fait partie de votre chaîne d'approvisionnement.",
+      "position": 3,
+      "options": [
+        {
+          "label": "docker scout ou Trivy",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker stop",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Exécuter une image inconnue depuis un registre public revient à exécuter du code arbitraire sur sa machine.",
+      "justification": "Vrai : une image contient du code qui s'exécute ; d'où l'importance de la confiance (images officielles, scan, non-root).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "node": "message-brokers",
+  "lesson": "garanties-de-livraison",
+  "title": "Rendre un consommateur idempotent",
+  "statement": "Un broker at-least-once peut relivrer le même message. Complète la méthode `handle` pour la rendre **idempotente** : si le message (identifié par `message.getId()`) a **déjà été traité**, il faut l'**ignorer** ; sinon, exécuter `process(message)` **puis** mémoriser son id comme traité. On dispose d'un `Set<String> processedIds` (les ids déjà traités) et d'une méthode `process(Message message)`.",
+  "skeleton": "public void handle(Message message) {\n    // 1. si l'id a déjà été traité -> ignorer (return)\n    // 2. sinon : traiter le message, puis mémoriser son id\n}",
+  "solution": "public void handle(Message message) {\n    if (processedIds.contains(message.getId())) {\n        return; // doublon deja traite : on ignore (idempotence)\n    }\n    process(message);\n    processedIds.add(message.getId()); // on memorise l'id traite\n}",
+  "keyPoints": [
+    "processedIds.contains",
+    "return",
+    "process(message)",
+    "processedIds.add"
+  ],
+  "language": "java"
+}

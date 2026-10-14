@@ -1,0 +1,96 @@
+{
+  "ref": "messaging-styles-check",
+  "node": "messaging-styles",
+  "lesson": "communiquer-par-messages",
+  "title": "Quiz, Styles par messages",
+  "description": "Événementiel, publish-subscribe, défis de l'asynchrone.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte principalement une architecture événementielle ?",
+      "justification": "Un fort découplage : l'émetteur publie un fait sans connaître les consommateurs, qu'on ajoute sans le modifier, au prix de l'asynchrone.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un fort découplage entre émetteur et consommateurs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une exécution toujours synchrone et immédiate",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La suppression de toute base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans publish-subscribe, quel rôle joue le broker ?",
+      "justification": "Il route les messages d'un topic des publishers vers les subscribers, sans qu'ils se connaissent, avec durabilité et réessais.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Router les messages entre publishers et subscribers découplés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Compiler le code des consommateurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Remplacer la logique métier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi l'idempotence est-elle importante dans un système à messages ?",
+      "justification": "Un même message peut être livré plus d'une fois ; le consommateur doit produire le même effet sans doublon (ex. ne pas facturer deux fois).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un message peut arriver plusieurs fois, le traitement ne doit pas doubler l'effet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour accélérer le réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour chiffrer les messages",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Passer en événementiel supprime tout compromis : on gagne le découplage sans nouveau défi.",
+      "justification": "Faux : on doit gérer la cohérence à terme, l'idempotence, l'ordre et un flux implicite plus difficile à observer.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

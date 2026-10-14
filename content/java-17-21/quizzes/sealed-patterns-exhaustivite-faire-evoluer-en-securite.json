@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-patterns-exhaustivite-faire-evoluer-en-securite",
+  "node": "sealed-patterns-exhaustivite",
+  "lesson": "faire-evoluer-en-securite",
+  "title": "Quiz : faire evoluer en securite",
+  "description": "Ce qui se passe quand on ajoute un sous type a un domaine scelle.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "On ajoute Losange a permits et on cree son record, mais un switch expression exhaustif sans default ne le traite pas. Que fait le compilateur ?",
+      "justification": "Le switch n'est plus exhaustif et il n'y a pas de default : le compilateur refuse de compiler et signale le cas manquant.",
+      "position": 0,
+      "options": [
+        { "label": "Il refuse de compiler et signale que tous les cas ne sont pas couverts.", "correct": true, "position": 0 },
+        { "label": "Il compile et ignore silencieusement le Losange.", "correct": false, "position": 1 },
+        { "label": "Il ajoute automatiquement le calcul d'aire du Losange.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Le meme switch avait un default a la place de l'exhaustivite. On ajoute Losange sans toucher au switch. Quel est le risque ?",
+      "justification": "Avec un default, le code compile toujours et le Losange tombe dans le default, peut etre traite de travers : le bug devient silencieux au lieu d'etre signale.",
+      "position": 1,
+      "options": [
+        { "label": "Le code compile quand meme et le Losange est avale par le default, cachant un possible bug.", "correct": true, "position": 0 },
+        { "label": "Le compilateur refuse le code a cause du default.", "correct": false, "position": 1 },
+        { "label": "Le Losange est automatiquement interdit par le default.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour un domaine scelle que tu controles, eviter le default rend plus sur l'ajout futur d'une variante, car le compilateur t'oblige a traiter le nouveau cas.",
+      "justification": "Sans default, toute variante ajoutee casse les switch non exhaustifs, ce qui transforme un oubli en erreur de compilation immediate.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

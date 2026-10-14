@@ -1,0 +1,10 @@
+{
+  "node": "key-concepts",
+  "lesson": "modele-declaratif-reconciliation",
+  "title": "Lire un manifeste : spec vs status",
+  "statement": "Voici un manifeste Deployment. En te basant sur la structure uniforme des objets Kubernetes, réponds en texte à ces trois questions : (1) quel est le `kind` (le type d'objet) ? (2) combien de répliques sont DÉSIRÉES, et dans quel champ cette valeur est-elle écrite ? (3) si `kubectl get` affichait « 2/3 ready », dans quel champ cette information « 2 sur 3 » vivrait-elle, et qui l'écrit : toi ou Kubernetes ?\n\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 3\n  template:\n    spec:\n      containers:\n        - name: web\n          image: nginx:1.27",
+  "skeleton": "1) kind : \n2) répliques désirées et champ : \n3) champ du « 2/3 » et qui l'écrit : ",
+  "solution": "1) Le kind est Deployment : c'est le type d'objet décrit par ce manifeste. 2) Il y a 3 répliques désirées, et cette valeur est écrite dans le champ spec (spec.replicas: 3). Le spec décrit l'état DÉSIRÉ, c'est la partie que TOI tu écris. 3) L'information « 2 sur 3 prêtes » vit dans le champ status (l'état RÉEL). Ce n'est pas toi qui l'écris : c'est Kubernetes, via ses contrôleurs, qui remplit et met à jour le status en continu. Le principe : tu écris le spec (état désiré), Kubernetes écrit le status (état réel) et travaille à faire converger le status vers le spec par la boucle de réconciliation.",
+  "keyPoints": ["Deployment", "spec", "3", "status", "Kubernetes"],
+  "language": "text"
+}

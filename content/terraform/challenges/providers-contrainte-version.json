@@ -1,0 +1,10 @@
+{
+  "node": "providers",
+  "lesson": "gerer-les-versions",
+  "title": "Choisir la bonne contrainte de version",
+  "statement": "Une équipe subit des casses « toutes seules » : sur une machine neuve, `terraform init` prend parfois une version majeure cassante du provider AWS. Écris le bloc `required_providers` qui autorise les mises à jour 5.x (correctifs et petites nouveautés) mais BLOQUE le passage automatique à la 6.0. Ajoute aussi `required_version = \">= 1.5\"` pour épingler Terraform lui-même. En commentaire, explique en une phrase quel autre fichier finit de garantir la reproductibilité.",
+  "skeleton": "terraform {\n  # required_version = ...\n  required_providers {\n    # aws = { ... }\n  }\n}",
+  "solution": "terraform {\n  required_version = \">= 1.5\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n# L'opérateur pessimiste ~> 5.0 autorise 5.x mais bloque 6.0 (version majeure cassante).\n# Le fichier .terraform.lock.hcl, committé dans Git, fige ensuite la version EXACTE\n# choisie pour que toute l'équipe et la CI installent strictement la même.",
+  "keyPoints": ["required_version", ">= 1.5", "~> 5.0", "hashicorp/aws", ".terraform.lock.hcl"],
+  "language": "hcl"
+}

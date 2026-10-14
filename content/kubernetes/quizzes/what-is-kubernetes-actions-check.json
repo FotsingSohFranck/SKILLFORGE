@@ -1,0 +1,96 @@
+{
+  "ref": "what-is-kubernetes-actions-check",
+  "node": "what-is-kubernetes",
+  "lesson": "ce-que-fait-kubernetes",
+  "title": "Quiz, Ce que fait Kubernetes",
+  "description": "Modèle déclaratif, boucle de réconciliation, rolling update, découverte de services.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le modèle déclaratif de Kubernetes ?",
+      "justification": "On déclare l'état désiré (ex. 5 répliques) et Kubernetes réconcilie en continu l'état réel vers cet état désiré, au lieu de recevoir des ordres étape par étape.",
+      "position": 0,
+      "options": [
+        {
+          "label": "On décrit l'état désiré ; Kubernetes ajuste en continu l'état réel pour y correspondre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "On donne une suite d'ordres précis, étape par étape",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On laisse chaque conteneur se débrouiller sans coordination",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un « rolling update » (déploiement sans coupure) ?",
+      "justification": "Remplacer l'ancienne version par la nouvelle progressivement, réplique par réplique, pour que le service ne s'arrête jamais ; un rollback permet de revenir en arrière.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Remplacer les répliques progressivement, l'une après l'autre, sans interrompre le service",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Arrêter toutes les répliques puis démarrer la nouvelle version d'un coup",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer définitivement l'application",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton front doit appeler ton API, mais les répliques de l'API sont recréées sans cesse et changent d'adresse. Quelle fonctionnalité de Kubernetes règle ce problème ?",
+      "justification": "La découverte de services permet de joindre l'API par un nom stable, et l'équilibrage de charge répartit le trafic entre les répliques disponibles.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La découverte de services (joindre l'API par nom) et l'équilibrage de charge entre répliques",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Coder en dur l'adresse IP de chaque réplique dans le front",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Redémarrer le front à chaque changement d'adresse",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le scaling horizontal consiste à donner plus de CPU et de RAM à une seule réplique.",
+      "justification": "Faux : le scaling horizontal ajoute (ou retire) des répliques identiques. Donner plus de puissance à une seule copie, c'est le scaling vertical.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

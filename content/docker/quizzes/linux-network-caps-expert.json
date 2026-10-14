@@ -1,0 +1,119 @@
+{
+  "ref": "linux-network-caps-expert",
+  "node": "linux-fundamentals",
+  "lesson": "reseau-linux-capabilities",
+  "title": "Réseau Linux & capabilities, expert",
+  "description": "ip/ss, docker0/veth/iptables, capabilities et moindre privilège.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande moderne liste les ports TCP en écoute et le processus associé ?",
+      "justification": "ss -tlnp (remplace netstat) ; ip gère interfaces/adresses/routes. Ce sont les outils de diagnostic réseau à connaître.",
+      "position": 0,
+      "options": [
+        {
+          "label": "ss -tlnp",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "chmod +x",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quelles primitives Linux repose la publication de ports (-p) de Docker ?",
+      "justification": "Sur iptables (NAT), un pont docker0 et des paires veth : la connaissance de ces primitives démystifie le réseau Docker.",
+      "position": 1,
+      "options": [
+        {
+          "label": "iptables (NAT), le pont docker0 et les paires veth",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le système de fichiers en union",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le registre d'images",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une capability Linux ?",
+      "justification": "Une unité de privilège découpée depuis root (ex. CAP_NET_BIND_SERVICE), attribuable séparément, fondation du moindre privilège en conteneur.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une unité de privilège root isolée, attribuable séparément",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une limite de mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un type de volume",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle capability permet à un processus non-root d'écouter sur le port 80 ?",
+      "justification": "CAP_NET_BIND_SERVICE autorise le bind sur un port < 1024 sans être root, application concrète du moindre privilège.",
+      "position": 3,
+      "options": [
+        {
+          "label": "CAP_NET_BIND_SERVICE",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "CAP_SYS_ADMIN",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune, il faut être root",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le durcissement d'un conteneur consiste à retirer toutes les capabilities (--cap-drop ALL) puis n'ajouter que le strict nécessaire.",
+      "justification": "Vrai : c'est le moindre privilège appliqué aux capabilities ; on n'accorde que ce dont l'application a réellement besoin.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

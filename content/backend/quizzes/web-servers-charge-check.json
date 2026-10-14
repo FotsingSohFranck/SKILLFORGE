@@ -1,0 +1,96 @@
+{
+  "ref": "web-servers-charge-check",
+  "node": "web-servers",
+  "lesson": "equilibrage-de-charge",
+  "title": "Quiz, Équilibrage de charge",
+  "description": "Plusieurs instances, health checks, sans état, sticky session.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle condition rend possible l'équilibrage entre plusieurs instances ?",
+      "justification": "L'application doit être sans état (stateless) : n'importe quelle instance doit pouvoir traiter n'importe quelle requête, sinon l'équilibreur ne peut pas répartir librement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une application sans état (n'importe quelle instance traite n'importe quelle requête)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une session gardée dans la mémoire locale de chaque instance",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un seul serveur très puissant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment l'équilibreur évite-t-il d'envoyer du trafic à une instance tombée en panne ?",
+      "justification": "Grâce aux health checks : il sonde régulièrement chaque instance et retire du pool celles qui ne répondent plus, pour ne router que vers les instances saines.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Grâce à des health checks qui retirent les instances qui ne répondent plus",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ne peut pas, il continue d'envoyer du trafic à l'instance morte",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En redémarrant automatiquement la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une application garde la session de connexion de chaque utilisateur dans la mémoire locale de l'instance qui l'a servi. Que se passe-t-il quand on ajoute des instances derrière un équilibreur, et quel est le bon remède ?",
+      "justification": "L'utilisateur est collé à l'instance qui détient sa session : s'il est envoyé sur une autre, elle ne le connaît pas et il est déconnecté. Le vrai remède est d'externaliser l'état (base, cache partagé, jeton stateless), pas seulement le sticky session.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'utilisateur est déconnecté s'il change d'instance ; il faut externaliser l'état (cache partagé, jeton stateless)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien, la session se recopie toute seule sur toutes les instances",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les performances doublent automatiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le sticky session (renvoyer toujours un utilisateur vers la même instance) est le vrai remède au problème d'état.",
+      "justification": "Faux : le sticky session est un pansement (si l'instance tombe, la session est perdue et la répartition devient inégale). Le vrai remède est le sans-état : externaliser la session hors des instances.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

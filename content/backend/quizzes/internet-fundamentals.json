@@ -1,0 +1,142 @@
+{
+  "ref": "internet-fundamentals",
+  "node": "internet",
+  "lesson": "cycle-complet-dune-requete",
+  "title": "Internet & le Web, l'essentiel",
+  "description": "Réseau, HTTP, DNS, hébergement et cycle d'une requête.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle couche garantit l'ordre et la retransmission des paquets perdus ?",
+      "justification": "TCP ajoute la fiabilité (ordre, retransmission, contrôle de flux) au-dessus d'IP, qui ne garantit rien. UDP renonce à ces garanties.",
+      "position": 0,
+      "options": [
+        {
+          "label": "TCP",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "IP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "UDP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle méthode HTTP n'est PAS idempotente ?",
+      "justification": "POST n'est pas idempotent : le rejouer peut créer plusieurs ressources. GET, PUT et DELETE le sont.",
+      "position": 1,
+      "options": [
+        {
+          "label": "POST",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "PUT",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "DELETE",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un client envoie un jeton invalide. Quel code de statut est le plus approprié ?",
+      "justification": "401 Unauthorized signale un défaut d'authentification (identité non prouvée). 403 = authentifié mais non autorisé ; 400 = requête malformée.",
+      "position": 2,
+      "options": [
+        {
+          "label": "401 Unauthorized",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "500 Internal Server Error",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "404 Not Found",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel enregistrement DNS associe un nom de domaine à une adresse IPv4 ?",
+      "justification": "L'enregistrement A pointe vers une IPv4 ; AAAA vers une IPv6 ; CNAME est un alias vers un autre nom.",
+      "position": 3,
+      "options": [
+        {
+          "label": "A",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "MX",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "CNAME",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Abaisser le TTL d'un enregistrement DNS la veille d'une migration accélère la bascule vers la nouvelle IP.",
+      "justification": "Un TTL plus court fait expirer l'ancienne valeur plus vite des caches, réduisant le temps de propagation lors du changement.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une chronologie montre DNS 5 ms, connexion 20 ms, TTFB 1,8 s, transfert 30 ms. Où chercher ?",
+      "justification": "Le TTFB élevé (temps avant le premier octet) désigne le traitement serveur/base, pas le réseau.",
+      "position": 5,
+      "options": [
+        {
+          "label": "Côté backend / base de données",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans la résolution DNS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans la négociation TLS",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

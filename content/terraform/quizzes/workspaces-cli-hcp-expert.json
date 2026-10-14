@@ -1,0 +1,96 @@
+{
+  "ref": "workspaces-cli-hcp-expert",
+  "node": "workspaces",
+  "lesson": "cli-vs-hcp-workspaces",
+  "title": "Workspaces CLI vs HCP, expert",
+  "description": "CLI workspace (état alternatif) vs HCP workspace (unité de gestion complète).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un CLI workspace (terraform workspace) ?",
+      "justification": "Plusieurs états pour un même code dans un même backend : le workspace n'est qu'une clé d'état alternative, le reste est partagé.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un état alternatif léger pour un même code (même backend)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une unité avec ses propres variables et runs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un provider",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un HCP workspace ?",
+      "justification": "Une unité de gestion complète : état, variables/secrets propres, config VCS, runs à distance, RBAC, historique, bien plus qu'un état alternatif.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une unité complète (état + variables + VCS + runs + RBAC)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un simple préfixe d'état",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une commande de la CLI",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi un HCP workspace correspond-il plutôt ?",
+      "justification": "À un répertoire séparé + backend distinct + config propre, l'équivalent HCP du découpage en périmètres, pas un CLI workspace léger.",
+      "position": 2,
+      "options": [
+        {
+          "label": "À un répertoire séparé + backend distinct + config propre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À un CLI workspace identique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À un module",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En HCP, les variables et secrets sont définis par workspace, pas globalement comme dans un CLI workspace partagé.",
+      "justification": "Vrai : chaque HCP workspace a ses variables/secrets propres ; confondre les deux modèles mène à des architectures bancales.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

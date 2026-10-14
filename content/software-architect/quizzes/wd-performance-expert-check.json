@@ -1,0 +1,96 @@
+{
+  "ref": "wd-performance-expert-check",
+  "node": "working-with-data",
+  "lesson": "performance-et-flux-donnees",
+  "title": "Quiz, Performance & flux de données (expert)",
+  "description": "Index/EXPLAIN/N+1/pooling, caching, CDC/streaming, Lakehouse.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Charger une liste puis une requête par élément (des centaines d'appels) est le problème… ?",
+      "justification": "N+1 : fréquent avec le lazy loading d'un ORM ; on le résout par jointure, eager loading ou batching, et on vérifie avec EXPLAIN.",
+      "position": 0,
+      "options": [
+        {
+          "label": "N+1",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Cache stampede",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Sharding",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À l'expiration d'une clé de cache très demandée, une avalanche de requêtes frappe la base : c'est… ?",
+      "justification": "Le cache stampede : on le contre par un verrou de regénération, un refresh anticipé, un TTL avec jitter ou du stale-while-revalidate.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un cache stampede",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un dirty read",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un phantom read",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment alimenter un entrepôt analytique en quasi temps réel sans surcharger la base de prod ?",
+      "justification": "Le Change Data Capture (Debezium) capture les changements du journal et les propage en flux (Kafka), sans requêtes lourdes ni modif applicative.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le CDC (capture des changements) + streaming",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "De gros rapports sur la base de prod",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rien, c'est impossible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un Lakehouse (Delta Lake, Iceberg) combine la flexibilité d'un data lake et la fiabilité ACID d'un data warehouse.",
+      "justification": "Vrai : sur un stockage objet, il évite de dupliquer entre lake et warehouse ; le NewSQL (Spanner, CockroachDB) offre du SQL distribué scalable et cohérent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

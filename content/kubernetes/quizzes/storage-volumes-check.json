@@ -1,0 +1,119 @@
+{
+  "ref": "storage-volumes-check",
+  "node": "storage-volumes",
+  "lesson": "csi-et-stateful",
+  "title": "Stockage & volumes",
+  "description": "emptyDir, PV/PVC, StorageClass, CSI, modes d'accès, StatefulSet + PVC.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que monte un pod pour obtenir du stockage persistant ?",
+      "justification": "Un PersistentVolumeClaim (PVC), une demande de stockage, pas le PersistentVolume directement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un PersistentVolumeClaim (PVC)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Directement le disque physique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un ConfigMap",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une StorageClass ?",
+      "justification": "Au provisionnement dynamique : Kubernetes crée automatiquement le PV (le disque) quand un PVC réclame cette classe.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Provisionner dynamiquement les PV à la demande",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Router le trafic",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le CSI ?",
+      "justification": "Container Storage Interface : l'interface standard qui permet à tout fournisseur de stockage de fournir un driver, rendant K8s extensible.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'interface standard branchant tout backend de stockage",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un type de Service",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un plugin réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel objet associe à chaque pod son propre volume persistant qui le suit ?",
+      "justification": "Un StatefulSet avec volumeClaimTemplate : chaque pod (db-0, db-1...) obtient son PVC dédié, réattaché où qu'il soit replanifié.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Un StatefulSet avec volumeClaimTemplate",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un Deployment",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un DaemonSet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Faire tourner une base de données dans Kubernetes est exigeant ; beaucoup d'équipes préfèrent un service managé et ne gardent que les charges sans état.",
+      "justification": "Vrai : persistance distribuée, sauvegardes et HA d'une base sont difficiles ; le managé (RDS/Cloud SQL) est souvent plus sage sans opérateur mûr.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,304 @@
+{
+  "node": "caching",
+  "lessons": [
+    {
+      "slug": "pourquoi-cacher",
+      "title": "Pourquoi cacher",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Servir le chaud sans recalculer",
+          "body": "Quand ton application répond à une requête, elle fait parfois un **travail coûteux** : interroger la base de données, appeler un autre service, ou effectuer un gros calcul. Si mille personnes demandent **exactement la même chose**, refaire ce travail mille fois est un gaspillage.\n\nUn **cache** (de l'anglais *to cache* = mettre de côté) est un **espace mémoire rapide** où l'on **garde le résultat** d'un travail coûteux pour le **resservir tel quel** la prochaine fois, sans le refaire. On y range chaque donnée sous une **clé** (une étiquette de texte pour la retrouver), et on la relit en une fraction de milliseconde.\n\n👉 **Analogie** : c'est le **plat du jour déjà préparé** en cuisine. Le premier client attend qu'on le cuisine ; les suivants sont servis **immédiatement** parce qu'il est prêt sous la lampe chauffante. On ne recuisine pas à chaque commande.\n\n**Exemple concret** : ta page d'accueil affiche « les 10 articles les plus populaires ». Calculer ce classement demande une requête lourde en base. Plutôt que de la relancer pour chaque visiteur, tu la calcules **une fois**, tu ranges le résultat dans le cache, et pendant 5 minutes tous les visiteurs lisent la version en cache.\n\nDeux mots de vocabulaire à retenir tout de suite. La **latence**, c'est le **temps d'attente** entre la question et la réponse (comme le délai avant d'être servi au restaurant) : un cache la **réduit** fortement. La **base** (sous-entendu la base de données, là où tes données sont stockées durablement) est **soulagée**, puisqu'on l'interroge moins souvent.\n\n⚠️ Un cache est un **multiplicateur** de performance, mais qui s'applique **après** avoir assaini la base (index, correction des N+1). Cacher une requête mal écrite **masque** le problème sans le régler : le jour où le cache expire, la lenteur revient d'un coup."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cacher, c'est servir le resultat deja pret sans le recalculer a chaque fois.",
+          "body": "/images/lessons/pourquoi-cacher-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le vrai sujet : l'invalidation",
+          "body": "Ajouter un cache est **facile**. Le vrai défi, c'est de le **garder cohérent** avec la réalité : c'est ce qu'on appelle l'**invalidation**, l'action de rendre une entrée du cache « non valide » quand la donnée d'origine a changé, pour ne plus servir l'ancienne.\n\nPourquoi c'est difficile ? Parce qu'une donnée cachée est une **photo** prise à un instant T. Si la vraie donnée change ensuite, la photo devient **périmée** (en anglais *stale* = éventé, plus frais). Un cache mal géré sert alors des informations **fausses**, ce qui est parfois **pire** qu'une réponse simplement lente.\n\n👉 **Analogie** : le cache, c'est le **menu imprimé** d'un restaurant. Tant que rien ne change, il rend service. Mais si la cuisine change un prix et qu'on oublie de réimprimer le menu, le client lit un **prix faux**. Réimprimer le menu au bon moment, c'est exactement ça, l'invalidation.\n\nOn cite souvent cette blague d'informaticiens : « Il n'y a que deux problèmes difficiles en informatique : l'invalidation de cache et le nommage des choses. » C'est exagéré, mais ça dit vrai : savoir **quand** vider une entrée est étonnamment délicat (on y consacrera plusieurs leçons).\n\nEnfin, un cache ne se justifie que s'il **sert souvent**. On mesure son **taux de hit** (*hit ratio*) : la proportion de requêtes trouvées dans le cache. Un **hit** signifie « trouvé dans le cache » (réponse instantanée) ; un **miss** signifie « absent, il faut aller le chercher à la source ». **Exemple** : sur 100 requêtes, 90 hits et 10 miss donnent un taux de hit de 90 %, ce qui est excellent. À l'inverse, un cache à **5 %** de hit ajoute de la complexité pour presque aucun gain : mieux vaut alors s'en passer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le vrai sujet du cache n'est pas le stockage mais l'invalidation : savoir quand jeter le perime.",
+          "body": "/images/lessons/pourquoi-cacher-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une API lente à cause d'un N+1 : faut-il d'abord ajouter un cache ou corriger le N+1 ? Justifiez.",
+          "solution": "Corriger le N+1 d'abord : c'est la cause, la correction est simple et durable (une jointure). Cacher par-dessus masque le problème, ajoute la complexité d'invalidation et laisse la requête sous-jacente inefficace. On cache ce qui est chaud APRÈS avoir assaini la base."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Pourquoi cacher",
+          "quizRef": "caching-pourquoi-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-niveaux-de-cache",
+      "title": "Les niveaux de cache",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Du client au serveur",
+          "body": "Le cache n'existe pas à un seul endroit : on peut intercepter une demande **à plusieurs étages**, du plus proche de l'utilisateur au plus proche de la donnée. Plus on intercepte **tôt**, moins on sollicite les étages suivants.\n\n**1. Le cache navigateur (côté client).** Le **client**, c'est le programme de l'utilisateur (le plus souvent son **navigateur** web). Il peut **garder** une copie des fichiers déjà téléchargés (images, feuilles de style) pour ne pas les redemander. Le serveur pilote cela avec un **en-tête HTTP** (une petite ligne d'information jointe à la réponse) nommé **`Cache-Control`**, qui dit par exemple « tu peux réutiliser ce fichier pendant 1 heure ».\n\n**2. Le CDN.** Un **CDN** (*Content Delivery Network*, « réseau de diffusion de contenu ») est un ensemble de serveurs **répartis dans le monde** qui gardent des copies de ton contenu **au plus près** des utilisateurs. Un visiteur à Tokyo est servi depuis un serveur au Japon plutôt que depuis ta machine en France.\n\n**3. Le cache serveur.** Dans ton application elle-même, tu peux garder des résultats **en mémoire** pour ne pas refaire un calcul ou une requête en base.\n\n👉 **Analogie** : pour boire, tu préfères la **bouteille sur ton bureau** (le navigateur), sinon le **frigo de la cuisine** (le CDN, proche), et seulement en dernier recours la **source à la montagne** (le serveur d'origine, loin). Chaque étage t'évite le voyage vers le suivant.\n\n**Exemple concret** : le logo de ton site est mis en cache par le navigateur (il ne le retélécharge pas à chaque page), servi par le CDN pour les nouveaux visiteurs, et jamais recalculé côté serveur. Les trois niveaux **se combinent**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cache existe a plusieurs niveaux : navigateur, CDN, proxy, application, base.",
+          "body": "/images/lessons/les-niveaux-de-cache-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "ETag & 304 Not Modified",
+          "body": "Parfois, le client a **déjà** une copie mais ne sait pas si elle est encore à jour. HTTP propose un mécanisme malin pour vérifier **sans re-télécharger** : le cache **conditionnel**.\n\nQuand le serveur envoie une ressource, il y joint un **`ETag`** (*Entity Tag*) : une courte **empreinte** de la ressource, une sorte d'**empreinte digitale** de son contenu. Si le contenu change, l'ETag change.\n\nÀ la requête suivante, le client renvoie cet ETag dans un en-tête **`If-None-Match`**, qui signifie « donne-moi la ressource **seulement si** elle a changé par rapport à cette empreinte ». Deux cas :\n- rien n'a changé : le serveur répond **`304 Not Modified`**, une réponse **sans corps** (donc minuscule) qui veut dire « réutilise ta copie » ;\n- ça a changé : le serveur renvoie normalement la nouvelle version, avec un nouvel ETag.\n\n👉 **Analogie** : tu demandes à un ami « est-ce que le document a changé depuis la version dont l'empreinte est *a1b2* ? ». S'il répond « non, garde la tienne » (le 304), tu t'épargnes de le recopier en entier.\n\n**Exemple concret** : une image de 2 Mo déjà en cache. Au lieu de la re-télécharger, le navigateur envoie son ETag ; le serveur répond `304` en quelques octets. Bande passante économisée, latence réduite, et **zéro risque de périmé**, puisque la vérification a lieu à chaque fois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ETag + 304 Not Modified : si rien n'a change, le serveur evite de renvoyer le contenu.",
+          "body": "/images/lessons/les-niveaux-de-cache-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Local vs distribué (niveau expert)",
+          "body": "Quand le cache est **dans le serveur**, deux options existent, et le choix devient crucial dès que l'application grandit.\n\nD'abord un mot de vocabulaire : une **instance** est **une copie de ton application en train de tourner**. Pour encaisser plus de trafic, on lance **plusieurs instances identiques** en parallèle et on répartit les requêtes entre elles : c'est le **scale horizontal** (« passer à l'échelle en largeur », en ajoutant des machines plutôt qu'en grossissant une seule).\n\n**Cache en mémoire locale** : chaque instance garde ses données cachées **dans sa propre mémoire vive**. C'est le **plus rapide** (aucun réseau à traverser), mais **chaque instance a son coin à elle** : ce que l'instance A a caché, l'instance B ne le voit pas. Avec plusieurs instances, leurs caches **divergent**.\n\n**Cache distribué** : un service **séparé et partagé** (typiquement **Redis**, un serveur de cache en mémoire que toutes les instances interrogent) détient **un seul** cache commun. Un peu plus lent (un aller-retour réseau), mais **cohérent** pour tout le monde.\n\n👉 **Analogie** : le cache local, c'est le **carnet de notes personnel** de chaque employé (rapide, mais chacun le sien, vite désynchronisé). Le cache distribué, c'est le **tableau blanc commun** de la salle : un aller-retour pour aller le lire, mais **tout le monde voit la même chose**.\n\n**Exemple concret** : avec 4 instances et un cache local, un utilisateur qui modifie son profil peut voir l'ancienne valeur une fois sur quatre (selon l'instance qui le sert). Un cache distribué partagé règle le problème. On choisit donc selon la **topologie** (une seule instance ou plusieurs ?) et la **tolérance à l'incohérence**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cache local : rapide mais par instance ; cache distribue (Redis) : partage mais reseau.",
+          "body": "/images/lessons/les-niveaux-de-cache-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Une application tourne en 4 instances, chacune avec un cache en mémoire locale. Un utilisateur met à jour une donnée et voit parfois l'ancienne valeur. Pourquoi, et quelle solution ?",
+          "solution": "Chaque instance a SON cache local : l'instance qui a écrit invalide le sien, mais les 3 autres servent encore l'ancienne valeur cachée. Solution : un cache distribué partagé (Redis) invalidé une fois pour toutes, ou une invalidation propagée entre instances (pub/sub). Le cache local seul ne convient pas au scale horizontal."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Les niveaux de cache",
+          "quizRef": "caching-niveaux-check"
+        }
+      ]
+    },
+    {
+      "slug": "redis-et-invalidation",
+      "title": "Redis & stratégies d'invalidation",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Redis & Memcached",
+          "body": "Pour un cache **partagé** entre plusieurs instances, on utilise un serveur de cache dédié. Les deux grands classiques sont **Redis** et **Memcached** : des caches **en mémoire** (les données vivent dans la RAM, d'où une lecture en **moins d'une milliseconde**) et **distribués** (un service à part que toutes tes instances interrogent).\n\n**Memcached** est un pur cache **clé-valeur** : tu ranges une valeur sous une clé (comme un immense dictionnaire `clé → valeur`) et tu la relis par sa clé. Simple et efficace, mais rien de plus.\n\n**Redis** va beaucoup plus loin. En plus du clé-valeur, il offre :\n- des **structures riches** (listes, ensembles, compteurs), pas seulement du texte ;\n- l'**expiration par clé** : chaque entrée peut recevoir une durée de vie (on y revient avec le TTL) ;\n- le **pub/sub** (*publish/subscribe*, « publier / s'abonner ») : un mécanisme de messages où un émetteur publie et des abonnés reçoivent, pratique pour prévenir toutes les instances qu'une donnée a changé ;\n- une **persistance optionnelle** (survivre à un redémarrage).\n\n👉 **Analogie** : Memcached est une **consigne à casiers** (tu déposes, tu récupères par numéro, point final). Redis est un **couteau suisse** : la consigne, plus des outils pour trier, compter, expirer et diffuser des annonces.\n\n**Exemple concret** : grâce à sa richesse, Redis sert souvent à la fois de cache, de stock de **sessions** utilisateur, de **file** de tâches et de **compteur** pour limiter le débit (*rate limiting*). Pour un cache applicatif partagé, **Redis est le choix par défaut** aujourd'hui."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Redis et Memcached gardent les donnees en memoire : acces en microsecondes.",
+          "body": "/images/lessons/redis-et-invalidation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Trois stratégies d'invalidation",
+          "body": "« Invalider », c'est décider **quand** une entrée du cache doit disparaître ou être rafraîchie. Voici trois stratégies de base, qu'on **combine** selon les besoins.\n\n**1. Le TTL** (*Time To Live*, « durée de vie ») : on donne à chaque entrée une **date de péremption**. Passé ce délai, elle disparaît automatiquement et sera rechargée au prochain accès. Simple, et surtout ça **borne** la durée pendant laquelle une donnée peut être périmée. 👉 **Analogie** : la **date limite de consommation** sur un yaourt : au-delà, on jette.\n\n**2. L'éviction sur écriture** (*write invalidation*) : dès que la donnée d'origine **change**, on **retire** immédiatement l'entrée correspondante du cache. Fraîcheur **stricte** : on ne sert jamais l'ancienne valeur. 👉 **Analogie** : dès que le chef change une recette, on **retire aussitôt** l'ancienne fiche du classeur.\n\n**3. La taille bornée / LRU** : la mémoire du cache n'est pas infinie. Quand elle est pleine, il faut **évincer** (retirer) des entrées pour faire de la place. La politique **LRU** (*Least Recently Used*, « la moins récemment utilisée ») jette celle dont on ne s'est pas servi depuis le plus longtemps. 👉 **Analogie** : un placard plein ; on jette d'abord ce qu'on n'a **pas touché depuis des mois**.\n\n**Exemple concret** : un **catalogue** de produits tolère bien un **TTL de 60 s** (voir un prix vieux d'une minute n'est pas grave). Le **solde** d'un compte bancaire, lui, exige une **éviction sur écriture** (aucune tolérance à l'ancienne valeur). Et LRU tourne en arrière-plan dans les deux cas, pour ne pas saturer la mémoire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois strategies d'invalidation : expiration (TTL), suppression a l'ecriture, ou re-calcul.",
+          "body": "/images/lessons/redis-et-invalidation-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Patterns de cache (niveau expert)",
+          "body": "Comment le code et le cache **collaborent-ils** concrètement ? Voici les trois grands schémas (*patterns*).\n\n**Cache-aside** (« cache sur le côté », le plus courant) : l'application interroge **d'abord** le cache. Si la donnée y est (**hit**), elle la renvoie. Si elle est absente (**miss**, « raté »), l'application va la chercher **en base**, la **range dans le cache** au passage, puis la renvoie. Le cache est « à côté » : c'est le code qui le remplit. 👉 **Analogie** : tu cherches un mot d'abord dans **tes notes** ; s'il n'y est pas, tu ouvres le **dictionnaire** et tu **recopies** la définition dans tes notes pour la prochaine fois.\n\n**Write-through** (« écriture au travers ») : à chaque écriture, on écrit **en même temps** en base **et** dans le cache. Le cache reste toujours à jour, au prix d'une écriture double.\n\n**Write-behind** (« écriture différée ») : on écrit **seulement dans le cache**, et la base est mise à jour **plus tard**, en différé. Très **rapide**, mais **risqué** : si le cache tombe avant d'avoir recopié en base, on perd des écritures.\n\n⚠️ Un piège classique du cache-aside : le **cache stampede** (« ruée sur le cache », aussi appelé *thundering herd*, « troupeau tonitruant »). Quand une clé **très demandée expire**, des milliers de requêtes font *miss* **au même instant** et rechargent la base **toutes ensemble**, qui s'effondre. On l'atténue par un **verrou** (une seule requête recharge, les autres attendent) ou un **rafraîchissement anticipé** (recharger juste avant l'expiration). On y revient en détail dans une leçon dédiée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Patterns de cache : cache-aside, read-through, write-through, write-behind.",
+          "body": "/images/lessons/redis-et-invalidation-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Le profil utilisateur est caché avec un TTL de 10 min. L'utilisateur change son nom, mais l'ancien s'affiche encore. Quelle stratégie ajouter, et pourquoi le seul TTL ne suffit pas ici ?",
+          "solution": "Ajouter l'éviction sur écriture : retirer (ou mettre à jour) l'entrée du cache lors de la modification du profil. Le TTL seul laisse l'ancienne valeur jusqu'à 10 min, inacceptable pour une donnée que l'utilisateur vient de changer et s'attend à voir. TTL + éviction sur écriture donnent la bonne fraîcheur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Caching",
+          "quizRef": "caching-check"
+        }
+      ]
+    },
+    {
+      "slug": "coherence-races-invalidation",
+      "title": "Cohérence du cache : les races d'invalidation",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Supprimer plutôt que mettre à jour, et dans le bon ordre",
+          "body": "Reprenons le **cache-aside** (l'application lit le cache ; en cas de *miss*, elle charge depuis la base et remplit le cache). Quand une donnée **change**, deux questions se posent, et les deux cachent un piège.\n\n**Question 1 : mettre à jour l'entrée du cache, ou la supprimer ?** On **supprime** presque toujours (c'est l'**invalidation**). Pourquoi pas mettre à jour ? Parce que deux écritures simultanées pourraient déposer leurs valeurs dans le cache **dans le désordre** et y laisser la mauvaise. C'est une **race condition** (« situation de course ») : un bug qui n'apparaît que selon l'**ordre** exact, imprévisible, de deux opérations qui se déroulent **en même temps**. Supprimer est plus sûr : la prochaine lecture rechargera la bonne valeur depuis la base.\n\n**Question 2 : dans quel ordre ?** Il faut écrire **d'abord la base**, **puis** supprimer la clé du cache.\n\n👉 **Analogie** : tu mets à jour le **tableau officiel** (la base), puis tu **arraches l'ancienne affiche** (le cache). Si tu arraches l'affiche **avant** d'avoir mis à jour le tableau, quelqu'un peut, dans l'intervalle, **recopier l'ancienne information** et la ré-afficher.\n\n**Exemple concret de l'ordre dangereux** (supprimer puis écrire) : tu supprimes la clé ; juste après, une lecture concurrente fait un *miss*, lit **l'ancienne** valeur encore en base (l'écriture n'est pas finie) et la **re-cache** ; puis ton écriture se termine. Résultat : la base est à jour, mais le cache contient de nouveau l'**ancienne** valeur. En écrivant la base **d'abord**, toute lecture qui recharge voit déjà la **nouvelle** valeur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Supprimer plutot que mettre a jour le cache, et dans le bon ordre, evite de servir du perime.",
+          "body": "/images/lessons/coherence-races-invalidation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La race qui re-cache du périmé",
+          "body": "Même le bon ordre (« base d'abord, puis suppression ») garde une **race** subtile, plus rare mais bien réelle.\n\nDéroulé : un **lecteur** fait un *miss* et lit une **ancienne** valeur en base, puis se retrouve **suspendu** un instant (le système le met en pause). Pendant ce temps, un **écrivain** met à jour la base **et** supprime la clé. Enfin, le lecteur **reprend** et écrit **sa** valeur (déjà périmée) dans le cache, où elle reste.\n\n👉 **Analogie** : un serveur note une ancienne commande, se fait interrompre ; pendant ce temps le client change d'avis et la cuisine est prévenue ; puis le serveur revient et **affiche quand même** l'ancienne commande au tableau.\n\nTrois parades, du plus simple au plus robuste :\n- un **TTL** court comme **filet de sécurité** : même si du périmé se glisse dans le cache, il disparaît vite (l'incohérence est **bornée** dans le temps) ;\n- le **delayed double delete** (« double suppression différée ») : on supprime la clé, puis on la **re-supprime** après un court délai, pour effacer une éventuelle valeur périmée re-cachée entre-temps ;\n- les **clés versionnées** : la clé inclut un **numéro de version** qui change à chaque écriture (`user:42:v7`, puis `user:42:v8`). L'ancienne clé n'est **plus jamais demandée** ; elle expire tranquillement toute seule."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une race peut re-cacher une valeur perimee juste apres sa suppression : attention a l'ordre.",
+          "body": "/images/lessons/coherence-races-invalidation-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Données immuables : le cache sans invalidation (niveau expert)",
+          "body": "La meilleure invalidation est celle qu'on **n'a pas à faire**. L'astuce : cacher de l'**immuable**, c'est-à-dire des données qui, **une fois créées, ne changent jamais**.\n\nLe principe : au lieu de cacher `user:42` (une clé **mutable**, dont le contenu change quand l'utilisateur se modifie), on range la donnée sous une clé qui **inclut une version ou une empreinte** du contenu, par exemple `user:42:v7` ou `asset:<hash>` (un *hash* est une empreinte calculée à partir du contenu : si le contenu change, l'empreinte change).\n\nDu coup, une modification produit une **nouvelle clé** (`user:42:v8`). L'ancienne (`v7`) n'est **plus jamais référencée** : personne ne la demande, donc elle ne peut plus être servie à tort, et elle s'efface d'elle-même par TTL ou LRU. **On n'invalide rien**, on **change de clé**.\n\n👉 **Analogie** : plutôt que de **corriger au blanco** une fiche existante (risqué : quelqu'un peut lire pendant que tu corriges), tu écris une **fiche neuve avec un nouveau numéro** et tu jettes l'ancienne. Personne ne lit jamais une fiche à moitié corrigée.\n\n**Exemple concret** : c'est exactement le **cache busting** des fichiers front. Un site publie `app.3f9a1c.js` (le nom contient une empreinte) ; à la version suivante, c'est `app.7b2e08.js`. Le navigateur peut cacher chaque fichier **pour toujours**, puisqu'un changement produit un **nouveau nom**. On applique ici la même idée aux **données**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Donnees immuables : si une valeur ne change jamais, on la cache sans jamais l'invalider.",
+          "body": "/images/lessons/coherence-races-invalidation-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Visualiser : lecture cache-aside et bon ordre d'écriture",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Lecture d'une clé\"] --> B{\"Clé présente dans le cache ?\"}\n  B -->|Hit : trouvée| C[\"Renvoyer la valeur du cache\"]\n  B -->|Miss : absente| D[\"Lire la valeur en base\"]\n  D --> E[\"Écrire la valeur dans le cache\"]\n  E --> F[\"Renvoyer la valeur\"]\n  W[\"Écriture d'une donnée\"] --> X[\"Étape 1 : écrire en base\"]\n  X --> Y[\"Étape 2 : supprimer la clé du cache\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "En cache-aside, une équipe supprime la clé du cache PUIS écrit en base. Sous forte charge, du périmé réapparaît parfois dans le cache. Quel est l'ordre correct, et pourquoi élimine-t-il (en grande partie) le problème ?",
+          "solution": "L'ordre correct est : écrire d'abord la base, PUIS supprimer la clé du cache. Avec l'ordre inverse (supprimer puis écrire), entre la suppression et la fin de l'écriture, une lecture concurrente fait un miss, lit l'ANCIENNE valeur encore en base et la re-cache, le périmé revient. En écrivant la base d'abord, toute lecture qui recharge après la suppression voit déjà la nouvelle valeur. On ajoute un TTL court comme filet de sécurité contre la race résiduelle, voire un delayed double delete pour les cas critiques."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Cohérence & races d'invalidation",
+          "quizRef": "caching-coherence-check"
+        }
+      ]
+    },
+    {
+      "slug": "pathologies-redis-production",
+      "title": "Pathologies & Redis en production",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Cache stampede (thundering herd)",
+          "body": "Une **cache stampede** (« ruée sur le cache », aussi appelée *thundering herd*, « troupeau tonitruant ») est l'un des pièges les plus violents en production.\n\nLe scénario : une clé **très demandée** (par exemple la page d'accueil) **expire**. À cet instant précis, **tous** les visiteurs font un *miss* **en même temps** et se ruent **tous** sur la base pour la recharger. La base, d'habitude protégée par le cache, reçoit d'un coup des milliers de requêtes identiques et **s'effondre**. Le comble : c'est le cache qui, en expirant mal, a provoqué la panne.\n\n👉 **Analogie** : un seul guichet rouvre après une longue fermeture, et **toute la foule** se précipite **au même instant**. Le guichet est submergé, alors qu'il aurait tenu un flux étalé.\n\nTrois parades :\n- un **verrou** (*request coalescing*, « fusion des requêtes ») : **une seule** requête est autorisée à recharger ; les autres **attendent** ce résultat ou servent l'ancienne valeur en attendant ;\n- l'**expiration probabiliste anticipée** : chaque requête a une petite chance, **croissante à l'approche de l'expiration**, de rafraîchir la clé **un peu en avance**, de façon **aléatoire** (ainsi une seule le fait, avant la ruée) ;\n- le **refresh en arrière-plan** : une tâche recharge la clé chaude **avant** qu'elle n'expire.\n\n**À retenir** : une clé chaude ne doit **jamais** expirer « sèchement », d'un coup, sans filet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cache stampede : a l'expiration, mille requetes recalculent la meme chose en meme temps.",
+          "body": "/images/lessons/pathologies-redis-production-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Penetration & avalanche",
+          "body": "Deux autres pathologies classiques, souvent confondues.\n\n**Cache penetration** (« pénétration du cache ») : des requêtes portent sur des clés qui **n'existent pas** (par exemple `user:-1`, ou une attaque qui demande des identifiants au hasard). Comme la donnée n'existe **ni** dans le cache **ni** en base, chaque requête **rate le cache** et va **marteler la base** pour rien. Parades :\n- **cacher aussi l'absence** : quand la base répond « rien », on cache cette **réponse vide** (une valeur « null ») avec un **TTL court**, pour que les demandes suivantes s'arrêtent au cache ;\n- un **filtre de Bloom** : une petite structure de données probabiliste capable de répondre très vite « cette clé **n'existe sûrement pas** », ce qui permet d'**écarter d'emblée** les clés impossibles sans toucher la base. 👉 **Analogie** : un videur avec la **liste des invités** ; il recale immédiatement un nom qui n'y figure pas, sans faire chercher dans la salle.\n\n**Cache avalanche** (« avalanche de cache ») : **beaucoup** de clés expirent **au même moment** (typiquement parce qu'on leur a posé le **même TTL au même instant**, par exemple lors d'un pré-chargement nocturne). À l'expiration, un **pic** de requêtes frappe la base simultanément. Parade : le **jitter** (« gigue », un petit **aléa** ajouté au TTL) pour **étaler** les expirations dans le temps. 👉 **Analogie** : au lieu de donner à tout le monde le **même** horaire de rendez-vous, on **décale** chacun de quelques minutes pour éviter la cohue.\n\n**Exemple concret** : 100 000 entrées pré-chargées à minuit avec un TTL de 1 h expirent **toutes** à 1 h pile (avalanche) ; un TTL de « 3600 s plus ou moins quelques centaines de secondes » disperse ces expirations."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Penetration (clefs inexistantes) et avalanche (expirations simultanees) ecroulent la base derriere le cache.",
+          "body": "/images/lessons/pathologies-redis-production-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Redis : politiques d'éviction & persistance",
+          "body": "Deux réglages de Redis à connaître dès qu'il tourne en production.\n\n**La politique d'éviction** décide **quelles clés Redis sacrifie quand sa mémoire est pleine** (rappel : évincer = retirer des entrées pour faire de la place). Les principales :\n- **`allkeys-lru`** : évince les clés **les moins récemment utilisées**, toutes clés confondues. C'est le réglage **typique d'un cache** (on garde ce qui sert le plus).\n- **`volatile-ttl`** : parmi les clés qui ont une date d'expiration, évince **celles qui expirent le plus tôt**.\n- **`noeviction`** : **refuse** les nouvelles écritures quand c'est plein, plutôt que de jeter quoi que ce soit. **Dangereux pour un pur cache** (les écritures échouent), mais logique si Redis stocke des données précieuses.\n\n**La persistance** décide si Redis **survit à un redémarrage** :\n- **RDB** (*Redis Database*) : des **snapshots** (photos de la mémoire) enregistrés **périodiquement** sur disque ;\n- **AOF** (*Append Only File*, « fichier en ajout seul ») : un **journal** de toutes les écritures, rejoué au démarrage pour reconstruire l'état.\n\n👉 **Analogie** : RDB, c'est une **photo de groupe** prise de temps en temps (on perd ce qui a changé depuis la dernière) ; AOF, c'est le **carnet où l'on note chaque mouvement** (plus fidèle, mais plus lourd).\n\n**À retenir** : la persistance est **utile** si Redis sert aussi de **stock** (sessions, files), **inutile** pour un cache **pur et jetable** (les données se recréent depuis la base). On choisit la politique selon le **rôle réel** de l'instance."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Redis plein : ses politiques d'eviction et sa persistance decident quoi garder et quoi perdre.",
+          "body": "/images/lessons/pathologies-redis-production-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Hot keys & big keys (niveau expert)",
+          "body": "Deux pièges d'**exploitation** (le quotidien de qui fait tourner un cache à grande échelle), liés à la façon dont Redis répartit et traite les données.\n\nContexte : à grande échelle, on répartit les clés sur **plusieurs nœuds** (un **cluster** Redis, c'est-à-dire plusieurs serveurs Redis qui se partagent les données). De plus, Redis traite les commandes **sur un seul thread** (*mono-thread*, un seul « fil » d'exécution) : les commandes sont servies **l'une après l'autre**, très vite, mais une commande lente **bloque** toutes les suivantes.\n\n**Hot key** (« clé chaude ») : une clé lue par **presque tout le trafic** (par exemple un paramètre global). Comme chaque clé vit sur **un seul** nœud du cluster, **tout** le trafic se concentre sur **ce** nœud, qui sature pendant que les autres se tournent les pouces. Parade : **répliquer** ou **sharder** la clé (la dupliquer sous plusieurs suffixes `config:1`, `config:2`, répartis sur plusieurs nœuds), et parfois ajouter un **cache local** en complément. 👉 **Analogie** : un seul distributeur de billets pour toute la ville ; on en **installe plusieurs**.\n\n**Big key** (« grosse clé ») : une valeur **énorme** (une liste d'un million d'éléments, un document géant). Comme Redis est mono-thread, **chaque accès** à cette clé **monopolise** le thread et fait **grimper la latence de tout le monde**. Parade : **découper** la grosse valeur en morceaux plus petits. 👉 **Analogie** : un client qui commande **mille plats d'un coup** bloque toute la file ; on **fractionne** sa commande.\n\n**À retenir** : surveiller la **distribution** des clés et des tailles (avec des outils comme `--bigkeys`) fait partie de l'exploitation d'un cache à l'échelle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Hot keys (tres demandees) et big keys (trop grosses) desequilibrent un cluster Redis.",
+          "body": "/images/lessons/pathologies-redis-production-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Chaque nuit à minuit, votre application pré-charge 100 000 entrées de cache avec un TTL identique de 1 heure. Chaque jour à 1h, la base subit un pic de charge violent. Quel phénomène, et quelle correction simple ?",
+          "solution": "C'est une cache avalanche : les 100 000 clés, posées au même instant avec le même TTL d'1h, expirent toutes simultanément à 1h ; tout le trafic fait miss en même temps et frappe la base d'un coup. Correction simple : ajouter du jitter au TTL (par ex. 3600 s ± un aléa de quelques centaines de secondes) pour étaler les expirations dans le temps. On peut aussi rafraîchir en arrière-plan les clés chaudes avant expiration."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références pour creuser :\n- la **documentation Redis** (politiques d'éviction, persistance RDB/AOF, Redis Cluster, commandes `SCAN` et `--bigkeys`) ;\n- l'article de référence sur l'**expiration probabiliste anticipée** : « Optimal Probabilistic Cache Stampede Prevention » (Vattani et al.) ;\n- *Designing Data-Intensive Applications* (Kleppmann) pour les questions de cohérence ;\n- le retour d'expérience de Facebook, « Scaling Memcache at Facebook ».\n\n👉 **Astuce de pro** : pilote tes réglages avec des **mesures**, pas à l'intuition. Suis surtout le **hit ratio** (taux de hit) et la **latence P99** (le temps de réponse des 1 % de requêtes les plus lentes), puis ajuste TTL, tailles et politiques en fonction de ce que tu observes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le caching.",
+          "body": "/images/lessons/pathologies-redis-production-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Caching (niveau expert)",
+          "quizRef": "caching-expert"
+        }
+      ]
+    }
+  ]
+}

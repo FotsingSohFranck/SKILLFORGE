@@ -1,0 +1,41 @@
+{
+  "ref": "optional-moderne-pieges-a-eviter",
+  "node": "optional-moderne",
+  "lesson": "pieges-a-eviter",
+  "title": "Quiz : pièges à éviter",
+  "description": "get() sans vérifier, Optional comme champ ou paramètre, null autour d'un Optional.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi éviter d'appeler get() sans avoir vérifié la présence ?",
+      "justification": "get() sur une boite vide lève une NoSuchElementException : on recrée exactement le problème du null. Mieux vaut orElse, orElseThrow, map ou ifPresent.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que sur une boite vide il lève une NoSuchElementException", "correct": true, "position": 0 },
+        { "label": "Parce que get() est supprimé depuis Java 17", "correct": false, "position": 1 },
+        { "label": "Parce que get() modifie la valeur de la boite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'usage recommandé d'Optional ?",
+      "justification": "Optional est conçu comme type de retour d'une méthode qui peut ne rien renvoyer. Comme champ ou paramètre, il est déconseillé.",
+      "position": 1,
+      "options": [
+        { "label": "Comme type de retour d'une méthode qui peut ne rien renvoyer", "correct": true, "position": 0 },
+        { "label": "Comme champ systématique de chaque classe", "correct": false, "position": 1 },
+        { "label": "Comme paramètre obligatoire de toutes les méthodes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour signaler une absence, une méthode qui renvoie Optional doit renvoyer Optional.empty() plutôt que null.",
+      "justification": "Vrai : renvoyer null à la place d'un Optional ramène tous les pièges du null. L'absence se représente par Optional.empty().",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

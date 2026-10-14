@@ -1,0 +1,10 @@
+{
+  "node": "layered-hexagonal",
+  "lesson": "strategie-de-test-par-couche",
+  "title": "Quel test pour quelle couche ?",
+  "statement": "Pour chacun des quatre éléments suivants, indique le **type de test** le plus adapté (unitaire pur, unitaire avec ports en mémoire, intégration, ou test de couche web) et l'**outil** typique, en justifiant en une phrase. (a) Une règle de calcul d'XP portée par une entité du domaine. (b) Un use case qui orchestre l'inscription en appelant un repository et un notifier. (c) Un repository R2DBC qui écrit réellement dans PostgreSQL. (d) Un contrôleur WebFlux exposant `POST /api/v1/inscriptions`.",
+  "skeleton": "(a) ...\n(b) ...\n(c) ...\n(d) ...\n",
+  "solution": "(a) Entité du domaine (règle d'XP) : TEST UNITAIRE PUR, sans mock ni framework. On instancie l'entité, on appelle la méthode, on vérifie la règle et ses invariants (XP jamais négatif, seuils de niveau) en quelques millisecondes. La logique est pure, donc testable directement.\n\n(b) Use case d'inscription : TEST UNITAIRE avec des PORTS EN MÉMOIRE (fakes). On remplace le repository et le notifier par de fausses implémentations légères et on vérifie l'orchestration (bonnes étapes, bon ordre) sans base ni réseau. Le use case ne dépend que d'interfaces, on peut donc les faker.\n\n(c) Repository R2DBC : TEST D'INTÉGRATION avec Testcontainers (une vraie PostgreSQL jetable dans un conteneur Docker). C'est le seul moyen de vérifier pour de vrai le mapping objet vers table et les requêtes SQL/R2DBC.\n\n(d) Contrôleur WebFlux : TEST DE LA COUCHE WEB avec WebTestClient (appels HTTP simulés). On vérifie la route, la sérialisation JSON et les codes HTTP (201, 400...), sans démarrer un vrai serveur.\n\nPrincipe : chaque frontière de l'hexagone est un point de test naturel. Le domaine pur se couvre massivement en unitaire rapide (large base de la pyramide) ; l'intégration et le web restent ciblés sur les adaptateurs (sommet plus étroit).",
+  "keyPoints": ["unitaire", "en mémoire", "Testcontainers", "WebTestClient", "intégration"],
+  "language": "text"
+}

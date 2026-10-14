@@ -1,0 +1,10 @@
+{
+  "node": "tests-modernes",
+  "lesson": "assertions-lisibles",
+  "title": "Vérifie qu'une exception est levée",
+  "statement": "La méthode diviser lève une IllegalArgumentException quand le diviseur est zéro. Complète la classe de test : écris une méthode @Test qui utilise assertThrows pour vérifier que diviser(10, 0) lève bien une IllegalArgumentException. Passe le code à tester sous forme de lambda () -> ...",
+  "skeleton": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertThrows;\n\nclass Maths {\n    int diviser(int a, int b) {\n        if (b == 0) throw new IllegalArgumentException(\"division par zero interdite\");\n        return a / b;\n    }\n}\n\nclass MathsTest {\n    // Écris ici ta méthode de test @Test avec assertThrows\n}\n",
+  "solution": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertThrows;\n\nclass Maths {\n    int diviser(int a, int b) {\n        if (b == 0) throw new IllegalArgumentException(\"division par zero interdite\");\n        return a / b;\n    }\n}\n\nclass MathsTest {\n    @Test\n    void diviser_parZero_leveUneException() {\n        Maths maths = new Maths();\n        assertThrows(IllegalArgumentException.class, () -> maths.diviser(10, 0));\n    }\n}",
+  "keyPoints": ["assertThrows", "IllegalArgumentException.class", "lambda () ->", "@Test"],
+  "language": "java"
+}

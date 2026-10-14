@@ -1,0 +1,313 @@
+{
+  "node": "api-styles",
+  "lessons": [
+    {
+      "slug": "au-dela-de-rest",
+      "title": "Au-delà de REST",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "REST n'est pas la seule voie",
+          "body": "Avant tout, un rappel. Une **API** (de l'anglais *Application Programming Interface*, « interface de programmation ») est la **porte d'entrée** par laquelle deux logiciels se parlent. Quand ton application mobile va chercher la météo, elle passe par l'API du service météo.\n\n👉 **Analogie** : une API, c'est le **guichet** d'une administration. Tu n'entres pas dans les bureaux ; tu passes par le guichet, tu poses ta demande dans un format précis, et on te répond dans un format précis.\n\nUn **style d'API** est une **façon de concevoir ce guichet** : quelles règles, quel format de messages, quel transport. Le style le plus répandu s'appelle **REST** (tu l'as vu au nœud précédent) : il s'appuie sur les URL et les verbes du web (`GET`, `POST`...) et échange en général du **JSON** (un format texte lisible par un humain).\n\nREST convient à la majorité des **APIs publiques** (ouvertes à tous sur Internet), mais ce n'est pas la seule voie. D'autres styles répondent à d'autres besoins :\n- **GraphQL** : le client choisit exactement les données qu'il veut.\n- **gRPC** : des appels très rapides et fortement typés entre services internes.\n- **SOAP** : un ancien standard fondé sur XML, encore présent dans les grandes entreprises.\n\nAucun n'est « meilleur » dans l'absolu. 👉 Chacun est comme un **moyen de transport** (la voiture, le train, le vélo) : le bon choix dépend du trajet, pas d'un classement universel. Chaque style optimise un **compromis** différent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "REST est un style parmi d'autres : selon le besoin, GraphQL, gRPC ou l'asynchrone peuvent mieux convenir.",
+          "body": "/images/lessons/au-dela-de-rest-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les axes de comparaison",
+          "body": "Pour choisir un style, on ne se fie pas à la mode : on compare selon quelques **axes** concrets.\n\n- **Qui consomme l'API ?** Un navigateur web public, une application mobile, ou un autre service interne à l'entreprise ? Le public impose lisibilité et compatibilité ; l'interne peut se permettre des formats plus techniques.\n- **Le typage.** Un **contrat** souple (du JSON libre, où rien n'est garanti d'avance) ou un **contrat strict** (chaque champ a un type déclaré et vérifié) ? 👉 **Analogie** : commander « un truc à boire » (souple) versus remplir un formulaire précis « boisson : thé, taille : 33 cl » (strict). Le strict attrape les erreurs plus tôt.\n- **La performance.** Un format **texte** (JSON, lisible mais volumineux) ou **binaire** (compact, illisible à l'œil mais rapide à transporter) ? Et sur quel transport : **HTTP/1.1** (le web classique) ou **HTTP/2** (plus récent, qui envoie plusieurs échanges en parallèle sur une même connexion) ?\n- **La cachabilité.** Peut-on **mettre en cache** les réponses ? Le **cache**, c'est garder une copie d'une réponse déjà obtenue pour la resservir instantanément sans refaire le travail. 👉 **Analogie** : la photocopie d'un document qu'on ressort au lieu de le redemander à l'accueil. REST sur HTTP se cache **nativement** ; d'autres styles se cachent mal.\n- **L'outillage et l'écosystème.** Existe-t-il des bibliothèques matures, de la documentation, une communauté active ?\n\nLe bon style **découle du contexte** décrit par ces axes. On le vérifie style par style dans les leçons suivantes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On compare les styles d'API sur plusieurs axes : couplage, performance, typage, outillage.",
+          "body": "/images/lessons/au-dela-de-rest-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Quel style choisir ? (vue d'ensemble)",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[Quel besoin ?] --> B{API publique et cachable ?}\n  B -- Oui --> REST[REST + JSON]\n  B -- Non --> C{Client riche, besoins de donnees varies ?}\n  C -- Oui --> GQL[GraphQL]\n  C -- Non --> D{Communication interne performante ?}\n  D -- Oui --> GRPC[gRPC + protobuf]\n  D -- Non --> E{Integrer un systeme ancien ?}\n  E -- Oui --> SOAP[SOAP / XML]\n  E -- Non --> REST"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Pour une API publique, cachable, consommée par des navigateurs et des intégrateurs variés, quel style est le plus naturel et pourquoi ?",
+          "solution": "REST : il s'appuie sur HTTP (verbes, statuts, cache), est lisible, largement outillé et cachable par proxys/CDN, idéal pour une API publique hétérogène. GraphQL (POST) se cache mal, gRPC vise surtout l'interne performant. REST reste le défaut pour du public."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Au-delà de REST",
+          "quizRef": "api-styles-au-dela-check"
+        }
+      ]
+    },
+    {
+      "slug": "graphql",
+      "title": "GraphQL",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le client demande exactement ce qu'il veut",
+          "body": "**GraphQL** est un style d'API où le **client** (celui qui consomme) décrit **précisément** les données qu'il veut, et reçoit exactement cela, ni plus, ni moins.\n\nDeux idées clés :\n- Un **schéma typé** (*schema*) : un **catalogue** qui déclare tous les types de données disponibles et leurs champs. 👉 **Analogie** : la **carte d'un restaurant** qui liste tous les plats et leurs ingrédients possibles.\n- Un **endpoint unique** : une seule URL (souvent `/graphql`) par laquelle passent **toutes** les demandes. (Un *endpoint*, c'est une adresse d'accès de l'API.) En REST, au contraire, chaque ressource a sa propre URL.\n\nLe client envoie une **requête** (*query*) qui liste les champs voulus, et le serveur renvoie **ces champs-là seulement**.\n\nCela résout deux maux fréquents de REST :\n- L'**over-fetching** (« trop récupérer ») : l'API renvoie 30 champs alors que l'écran n'en affiche que 3. 👉 **Analogie** : commander un menu complet quand tu ne voulais qu'un café.\n- L'**under-fetching** (« pas assez récupérer ») : un seul appel ne suffit pas, il faut en enchaîner plusieurs pour composer un écran. 👉 **Analogie** : devoir passer trois coups de fil pour réunir les infos d'une même commande.\n\n**Exemple concret** : pour afficher une fiche profil, tu demandes juste `nom` et `avatar` ; GraphQL ne renvoie que ces deux champs, en un seul aller-retour. C'est idéal pour des **clients riches** aux besoins variés (application mobile, interface web complexe)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Avec GraphQL, le client compose sa requete et obtient exactement les champs demandes, ni plus ni moins.",
+          "body": "/images/lessons/graphql-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une requête GraphQL",
+          "codeLanguage": "text",
+          "body": "query {\n  roadmap(slug: \"backend\") {\n    title\n    nodes { slug title }   # on ne demande QUE ces champs\n  }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Les contreparties (niveau expert)",
+          "body": "GraphQL est puissant, mais il **déplace la complexité côté serveur**. Trois contreparties à connaître.\n\n- **Le cache HTTP devient difficile.** Souviens-toi : REST se cache facilement car chaque URL en `GET` identifie une ressource. En GraphQL, tout passe par un `POST` sur l'unique endpoint, donc les caches web classiques ne savent plus quoi garder. 👉 On perd la « photocopie » gratuite du cache HTTP.\n- **Le risque de requêtes coûteuses.** Comme le client compose sa requête, il peut demander un **graphe profond** (les amis, puis les amis des amis, puis...). Une requête parfaitement légitime peut alors faire écrouler le serveur. Parade : **limiter la profondeur et la complexité** des requêtes.\n- **Le problème N+1.** Un **resolver** est la petite fonction serveur qui sait aller chercher **un** champ précis. Si tu demandes une liste de 100 articles avec leur auteur, un resolver naïf fait 1 requête pour la liste, **puis 100 requêtes** pour les auteurs : c'est le problème **N+1** (1 requête + N requêtes). 👉 **Analogie** : faire les courses en 100 allers-retours au magasin au lieu d'une seule grosse liste. La parade s'appelle un **dataloader** : il **regroupe** ces accès en une seule requête groupée.\n\nEn résumé : GraphQL est puissant, mais exige de la **discipline** côté implémentation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La flexibilite de GraphQL a un prix : cache plus complexe et risque de requetes couteuses.",
+          "body": "/images/lessons/graphql-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une application mobile faisait 4 appels REST pour composer un écran, ramenant chacun trop de champs. En quoi GraphQL aide-t-il ?",
+          "solution": "GraphQL permet de récupérer, en UNE requête, exactement les champs nécessaires de plusieurs ressources liées : fin de l'under-fetching (4 appels → 1) et de l'over-fetching (on ne ramène que les champs voulus). Le mobile réduit ainsi latence et volume de données."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, GraphQL",
+          "quizRef": "api-styles-graphql-check"
+        }
+      ]
+    },
+    {
+      "slug": "grpc-et-soap",
+      "title": "gRPC & SOAP",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "gRPC : rapide et typé pour l'interne",
+          "body": "**gRPC** est un style d'API de type **RPC**. RPC veut dire *Remote Procedure Call*, « appel de procédure distante » : l'idée est d'**appeler une méthode qui s'exécute sur une autre machine comme si c'était une fonction locale** de ton programme. 👉 **Analogie** : tu décroches le téléphone et tu demandes à un collègue de faire un calcul ; côté code tu écris `getRoadmap(\"backend\")` et la réponse revient, sans que tu te soucies du réseau au milieu.\n\nGrâce à quoi c'est rapide et sûr :\n- Le contrat est défini en **Protocol Buffers** (souvent abrégé **protobuf**) : un langage de description de messages qui produit un format **binaire** compact. Binaire = fait de 0 et de 1 illisibles à l'œil, mais **beaucoup plus léger** que du texte JSON. 👉 **Analogie** : un code-barres à la place d'une phrase écrite.\n- Le transport est **HTTP/2**, une version moderne d'HTTP capable de **multiplexage** (faire passer plusieurs échanges en parallèle dans un même tuyau) et de **streaming** (envoyer un flux continu de messages dans les deux sens).\n\nRésultat : très **performant** et **fortement typé** (chaque champ a un type déclaré, vérifié dès la compilation). C'est le choix idéal pour la communication **entre microservices** (de petits services internes qui se parlent beaucoup). En revanche, il est **moins adapté aux navigateurs** (support partiel) et **moins lisible** qu'un JSON quand on veut déboguer à l'œil."
+        },
+        {
+          "type": "IMAGE",
+          "title": "gRPC privilegie la vitesse et un contrat fortement type : ideal pour la communication interne entre services.",
+          "body": "/images/lessons/grpc-et-soap-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un contrat protobuf",
+          "codeLanguage": "text",
+          "body": "service RoadmapService {\n  rpc GetRoadmap (RoadmapRequest) returns (Roadmap);\n}\nmessage RoadmapRequest { string slug = 1; }\nmessage Roadmap { string title = 1; repeated Node nodes = 2; }"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "SOAP : l'ancien standard",
+          "body": "**SOAP** (*Simple Object Access Protocol*) est un protocole d'API plus **ancien**, fondé sur **XML**. XML est un format texte à balises, du genre `<slug>backend</slug>` : très structuré, mais **verbeux** (il faut beaucoup de caractères pour dire peu de choses). 👉 **Analogie** : un courrier administratif ultra-formel là où un simple mot suffirait.\n\nSOAP s'accompagne d'un **contrat formel** appelé **WSDL** (*Web Services Description Language*) : un document qui décrit à l'avance toutes les opérations disponibles et le format exact des messages. Il apporte aussi des standards d'entreprise (sécurité, transactions).\n\nOn ne **démarre plus** un nouveau projet en SOAP aujourd'hui. Mais on le **rencontre encore** dans des systèmes bancaires, télécoms ou administratifs qu'il faut intégrer. 👉 Le connaître, c'est comme savoir lire une vieille écriture : inutile pour écrire du neuf, précieux pour comprendre l'existant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SOAP, verbeux et base sur XML, reste present en entreprise : un standard d'une autre epoque.",
+          "body": "/images/lessons/grpc-et-soap-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Choisir en une phrase (niveau expert)",
+          "body": "Récapitulons sous forme de **règle pratique**, style par style :\n- **REST** : pour une API **publique**, cachable et lisible.\n- **GraphQL** : pour des **clients riches** aux besoins de données variés.\n- **gRPC** : pour la communication **interne performante** entre services.\n- **SOAP** : seulement pour **intégrer du legacy** (le *legacy*, c'est le code ancien déjà en place qu'on doit continuer à faire vivre).\n\n👉 **Point important** : ce n'est pas « un seul style pour toute l'organisation ». Une même entreprise en utilise souvent **plusieurs** selon la frontière : **REST au bord** (côté public et navigateurs) et **gRPC à l'intérieur** (entre ses propres services). Le style se choisit **par frontière**, pas une fois pour toutes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Public et simple : REST ; interne et rapide : gRPC ; flexible cote client : GraphQL.",
+          "body": "/images/lessons/grpc-et-soap-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Deux microservices internes échangent des millions de messages avec un besoin de faible latence et de typage strict. Quel style privilégier et pourquoi ?",
+          "solution": "gRPC : le format binaire protobuf est compact et rapide, HTTP/2 multiplexe et permet le streaming, et le contrat est fortement typé, parfait pour de l'interne à haut débit et faible latence. REST/JSON serait plus lisible mais plus lourd et moins typé pour ce cas."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz, Styles d'API",
+          "quizRef": "api-styles-check"
+        }
+      ]
+    },
+    {
+      "slug": "contrats-compatibilite-schemas",
+      "title": "Contrats, compatibilité & sécurité des schémas",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Contract-first & compatibilité ascendante",
+          "body": "Quand plusieurs équipes se partagent une API, on adopte souvent l'approche **contract-first** (« le contrat d'abord ») : on **écrit d'abord le contrat** de l'API, avant même le code. Ce contrat (un fichier **OpenAPI** pour REST, un fichier `.proto` pour gRPC, un schéma pour GraphQL) devient la **source de vérité** partagée. 👉 **Analogie** : avant de construire, l'architecte et le client signent un **plan** ; tout le monde bâtit ensuite d'après le même plan.\n\nLa compétence clé, ensuite, est de **faire évoluer** ce contrat **sans casser** les clients déjà en service. On dit qu'un changement est **rétrocompatible** (ou *backward-compatible*, « compatible avec l'arrière ») quand les anciens clients **continuent de fonctionner** sans être modifiés. 👉 **Analogie** : ajouter une prise sur une multiprise sans déplacer les anciennes ; celles déjà branchées ne bougent pas.\n\n**Exemple en protobuf** : la règle d'or est de **ne jamais réutiliser ni changer le numéro d'un champ**. En protobuf, chaque champ porte un **numéro** (`slug = 1`, `title = 2`...), et c'est **ce numéro**, pas le nom, qui définit la compatibilité binaire. On **ajoute** de nouveaux champs avec de **nouveaux numéros**, et on marque les anciens numéros retirés comme **`reserved`** (« réservé », pour interdire de les réutiliser par erreur)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Definir le contrat d'abord, puis le faire evoluer sans casser les clients existants.",
+          "body": "/images/lessons/contrats-compatibilite-schemas-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Faire évoluer un schéma GraphQL",
+          "body": "GraphQL évolue **sans versions d'URL** (pas de `/v1`, `/v2` comme en REST) : on fait vivre le **même** schéma dans le temps, avec discipline.\n\n- **Ajouter** de nouveaux champs ou de nouveaux types est **sans risque** : les clients qui ne les demandent pas ne les voient pas.\n- Pour retirer quelque chose en douceur, on le **déprécie** avec `@deprecated(reason: ...)` : le champ reste utilisable, mais les outils affichent un avertissement « n'utilise plus ça ». 👉 **Analogie** : un panneau « rayon bientôt fermé, servez-vous à la nouvelle allée » plutôt qu'une fermeture sans prévenir.\n- Ce qui **casse** les clients : **retirer** un champ qu'ils lisent, ou le rendre soudain **non-nullable**.\n\nUn mot sur *nullable* : un champ **nullable** a le droit d'être **vide** (`null`, « pas de valeur »). Le rendre **non-nullable** (« obligatoirement rempli »), c'est **casser** les clients qui, jusqu'ici, envoyaient parfois du vide. Le sens inverse (non-nullable vers nullable) est sûr. 👉 Retiens : **desserrer** une contrainte est sûr, la **resserrer** casse. Cette discipline d'évolution **remplace** le versioning explicite de REST."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un schema GraphQL evolue en ajoutant, jamais en retirant brutalement : on deprecie avant de supprimer.",
+          "body": "/images/lessons/contrats-compatibilite-schemas-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Vérifier les contrats : consumer-driven contracts",
+          "body": "Comment être **sûr** qu'un changement de l'API ne casse **aucun** consommateur ? On automatise la vérification avec des **contract tests** (« tests de contrat »).\n\nLe principe des **consumer-driven contracts** (« contrats pilotés par le consommateur », outil connu : **Pact**) : chaque **consommateur** (le client qui appelle) déclare **ce qu'il attend** du **fournisseur** (le service appelé). Ces attentes deviennent des **tests** que le fournisseur exécute dans sa **CI**.\n\nLa **CI** (*Continuous Integration*, « intégration continue ») est le robot qui, à chaque modification du code, **relance automatiquement le build et les tests** avant tout déploiement. 👉 **Analogie** : un **contrôle qualité en bout de chaîne** qui refuse de laisser passer une pièce défectueuse.\n\nRésultat : si une évolution **rompt un contrat**, la CI **échoue avant** le déploiement, pas en production devant les vrais utilisateurs. C'est indispensable dès qu'une API et ses clients évoluent à des **rythmes différents** (le cas classique des microservices)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les consumer-driven contracts verifient que l'API respecte ce que ses consommateurs attendent vraiment.",
+          "body": "/images/lessons/contrats-compatibilite-schemas-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Sécuriser un schéma GraphQL (niveau expert)",
+          "body": "La flexibilité de GraphQL (le client compose sa requête) est aussi une **surface d'attaque** : l'ensemble des points par lesquels un attaquant peut s'en prendre au système. Un client peut demander un graphe **profond ou récursif** qui **écroule** le serveur.\n\nQuand une requête, même légitime, épuise les ressources et rend le service indisponible pour tout le monde, on parle de **déni de service** (*Denial of Service*, DoS). 👉 **Analogie** : une seule personne qui commande 10 000 plats et bloque toute la cuisine pour les autres clients.\n\nLes garde-fous indispensables :\n- **Limite de profondeur et de complexité** des requêtes (refuser les demandes trop lourdes).\n- **Timeouts** : couper une requête qui dépasse un temps maximal.\n- **Persisted queries** (« requêtes pré-enregistrées ») : en production, n'accepter que des requêtes connues d'avance, pas n'importe quoi d'improvisé.\n- Désactiver l'**introspection** en production : l'introspection est la capacité de GraphQL à **décrire son propre schéma** à qui le demande (pratique en développement, mais autant ne pas offrir la carte complète à un attaquant).\n- **Dataloaders** contre le problème N+1 vu plus tôt.\n\n👉 En clair : exposer GraphQL sans ces garde-fous, c'est offrir un déni de service par simple requête."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Limiter la profondeur et la complexite des requetes protege un schema GraphQL des abus.",
+          "body": "/images/lessons/contrats-compatibilite-schemas-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe veut renommer un champ protobuf `userId` en `user_id` (numéro de champ inchangé) et pense que c'est un changement cosmétique. Est-ce sûr côté compatibilité binaire ? Et que ne faut-il surtout jamais faire ?",
+          "solution": "Renommer un champ protobuf est sûr côté binaire : la sérialisation repose sur le NUMÉRO de champ (le tag), pas sur le nom ; les clients déjà déployés continuent de décoder correctement (attention toutefois au code généré côté clients qui référence l'ancien nom). Ce qu'il ne faut JAMAIS faire : réutiliser ou changer le numéro d'un champ, ni réaffecter un ancien numéro à un nouveau champ de type différent : cela corrompt silencieusement les données pour les clients existants. On marque les numéros retirés comme reserved."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Contrats & compatibilité",
+          "quizRef": "api-styles-contrats-check"
+        }
+      ]
+    },
+    {
+      "slug": "apis-asynchrones-webhooks",
+      "title": "APIs asynchrones & webhooks",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Quand le serveur doit parler en premier",
+          "body": "REST, GraphQL et gRPC « unaire » (un appel = une réponse) suivent tous le modèle **requête → réponse** : le **client demande**, le **serveur répond**. Le serveur ne parle jamais en premier.\n\nMais beaucoup de besoins sont **inversés** : prévenir qu'un **paiement est confirmé**, qu'un **traitement est terminé**, qu'un **nouvel événement** vient d'arriver. Là, c'est le **serveur** qui doit **initier** le contact. On passe alors à un modèle **asynchrone**, dit **piloté par les événements** (*event-driven*). **Asynchrone** signifie que l'émetteur n'attend pas une réponse immédiate : il **notifie**, et la suite se fait plus tard. 👉 **Analogie** : au lieu d'appeler la boulangerie toutes les 5 minutes pour savoir si le pain est prêt (requête/réponse), tu laisses ton numéro et **on te rappelle** quand c'est prêt (asynchrone).\n\nLes principaux outils de ce modèle :\n- **Webhooks** : le serveur **appelle une URL** fournie par le client à chaque événement (on détaille juste après).\n- **SSE** et **WebSocket** : des canaux **temps réel** où le serveur pousse un flux de messages (SSE = flux à sens unique serveur vers client ; WebSocket = canal bidirectionnel). Ils ont leur propre nœud dédié.\n- Un **broker de messages** : un intermédiaire (comme une **poste centrale**) qui reçoit les événements d'un service et les distribue aux autres.\n\nLa question n'est plus « **comment appeler** » l'API, mais « **comment être notifié** »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Parfois c'est le serveur qui doit prevenir : webhooks et evenements inversent le sens de l'appel.",
+          "body": "/images/lessons/apis-asynchrones-webhooks-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Concevoir un webhook robuste",
+          "body": "Un **webhook** est un `POST` que **ton** service envoie **vers une URL** fournie par le consommateur, à chaque événement. 👉 **Analogie** : tu as laissé ton adresse ; à chaque nouveauté, on te **glisse une lettre dans la boîte** sans que tu aies rien à demander.\n\nTrois exigences **non négociables** pour qu'un webhook soit fiable.\n\n1. **Signer** la requête. On y attache une **signature** calculée avec un **HMAC** : un code de vérification produit à partir du corps du message **et** d'un **secret partagé** connu des deux parties seulement, placé dans un en-tête comme `X-Signature`. Le receveur recalcule ce code de son côté : s'il correspond, le message est **authentique**. 👉 **Analogie** : un **sceau de cire** que seul l'expéditeur légitime peut apposer.\n2. **Réessayer** en cas d'échec, avec un **backoff exponentiel** : si l'envoi rate (le réseau ou le receveur tombe), on retente en **espaçant de plus en plus** les tentatives (1 s, puis 2 s, 4 s, 8 s...) pour ne pas noyer le receveur.\n3. **Garantir la livraison « au moins une fois »** (*at-least-once*). Comme on réessaie, le **même** événement peut arriver **plusieurs fois**. Le receveur doit donc être **idempotent** : traiter deux fois le même message doit produire le **même effet** que le traiter une seule fois. En pratique, chaque événement porte un **`event_id`** unique ; le receveur mémorise les identifiants déjà vus et **ignore les doublons** (déduplication). 👉 **Analogie** : sur un ticket de caisse déjà scanné, le second scan ne recompte pas la somme.\n\nSans ces trois réflexes, un webhook est **peu fiable** ou **usurpable**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un webhook robuste signe ses messages, gere les rejeux et accepte d'etre recu plusieurs fois.",
+          "body": "/images/lessons/apis-asynchrones-webhooks-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Vérifier la signature d'un webhook",
+          "codeLanguage": "text",
+          "body": "// Émetteur : signature = HMAC_SHA256(secret, corps_brut)\n//   en-tête -> X-Signature: sha256=<hex>\n// Receveur :\n//   1) recalcule HMAC_SHA256(secret, corps_brut_reçu)\n//   2) compare en temps constant à la signature reçue\n//   3) si différent -> 401 (rejeté) ; sinon traite l'événement\n//   4) déduplique via event_id (livraison at-least-once)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Documenter l'asynchrone : AsyncAPI (niveau expert)",
+          "body": "Tu as vu qu'**OpenAPI** décrit les APIs **requête/réponse** (REST). Pour les APIs **événementielles** (messages, canaux, webhooks), le standard équivalent s'appelle **AsyncAPI**.\n\nIl décrit :\n- les **canaux** (*channels*) : les « files » ou « sujets » sur lesquels circulent les messages. 👉 **Analogie** : des **stations de radio**, chacune sur sa fréquence.\n- les **schémas de messages** : le format exact de chaque message.\n- les opérations **publish / subscribe** : qui **publie** (émet) sur un canal et qui **s'abonne** (écoute).\n\nLe documenter apporte à l'événementiel ce qu'OpenAPI apporte au REST : un **contrat partagé**, du **code généré** automatiquement, et une **documentation à jour**. 👉 Un architecte d'API moderne raisonne autant sur les **flux d'événements** que sur les endpoints synchrones."
+        },
+        {
+          "type": "IMAGE",
+          "title": "AsyncAPI documente les flux d'evenements comme OpenAPI documente le REST.",
+          "body": "/images/lessons/apis-asynchrones-webhooks-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Votre service envoie un webhook « paiement confirmé » à un client. Le réseau échoue, vous réessayez, et finalement deux notifications identiques arrivent. Comment éviter que le client traite le paiement deux fois, et comment garantit-il que la requête vient bien de vous ?",
+          "solution": "Éviter le double traitement : livraison at-least-once + idempotence côté receveur. Chaque événement porte un event_id unique ; le receveur mémorise les event_id déjà traités et ignore un doublon (déduplication). Garantir l'authenticité : signer le webhook (HMAC-SHA256 du corps avec un secret partagé, dans un en-tête X-Signature) ; le receveur recalcule le HMAC et le compare en temps constant, rejetant toute requête non signée ou falsifiée. Les deux mécanismes sont complémentaires et indispensables."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "Références : spécification **AsyncAPI** (asyncapi.com) pour les APIs événementielles ; les guides webhooks de Stripe et GitHub (signature, retries, idempotence, d'excellents modèles réels) ; la doc **gRPC** sur le streaming (server/client/bidirectionnel) et les *deadlines* ; le livre *API Design Patterns* (JJ Geewax, chapitres sur les opérations longues et les événements). Pour GraphQL en production : *Production Ready GraphQL* (Marc-André Giroux)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les styles d'API.",
+          "body": "/images/lessons/apis-asynchrones-webhooks-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Styles d'API (niveau expert)",
+          "quizRef": "api-styles-expert"
+        }
+      ]
+    }
+  ]
+}

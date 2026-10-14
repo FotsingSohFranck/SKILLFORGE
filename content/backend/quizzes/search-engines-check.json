@@ -1,0 +1,52 @@
+{
+  "ref": "search-engines-check",
+  "node": "search-engines",
+  "lesson": "elasticsearch-et-usage",
+  "title": "Moteurs de recherche",
+  "description": "Index inversé, analyse, pertinence, synchronisation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle structure rend la recherche plein texte rapide ?",
+      "justification": "L'index inversé (mot → documents) permet de retrouver instantanément les documents contenant un terme.",
+      "position": 0,
+      "options": [
+        { "label": "L'index inversé", "correct": true, "position": 0 },
+        { "label": "Le balayage complet de la table", "correct": false, "position": 1 },
+        { "label": "Un cache LRU", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi analyser (minuscules, stemming) le texte à l'indexation ET à la requête ?",
+      "justification": "Pour comparer requête et documents dans la même forme normalisée et retrouver malgré les variations.",
+      "position": 1,
+      "options": [
+        { "label": "Comparer requête et documents dans la même forme", "correct": true, "position": 0 },
+        { "label": "Chiffrer le contenu", "correct": false, "position": 1 },
+        { "label": "Réduire la taille de la base", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un algorithme comme BM25 / TF-IDF ?",
+      "justification": "Il classe les résultats par pertinence selon la fréquence et la rareté des termes recherchés.",
+      "position": 2,
+      "options": [
+        { "label": "Classer les résultats par pertinence", "correct": true, "position": 0 },
+        { "label": "Créer des sauvegardes", "correct": false, "position": 1 },
+        { "label": "Gérer les transactions", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le moteur de recherche est un index synchronisé, pas la source de vérité des données.",
+      "justification": "Oui : la source de vérité reste la base ; l'index se synchronise (cohérence à terme) et peut être reconstruit.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

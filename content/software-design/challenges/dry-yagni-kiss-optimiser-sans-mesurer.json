@@ -1,0 +1,10 @@
+{
+  "node": "dry-yagni-kiss",
+  "lesson": "aha-et-complexite-essentielle",
+  "title": "Optimiser sans avoir mesuré",
+  "statement": "Un développeur trouve son application « un peu lente » et passe deux jours à ajouter un cache maison compliqué autour d'une boucle qu'il soupçonne d'être le problème. Il n'a jamais profilé l'application. Explique quelle erreur classique il commet, pourquoi c'est risqué (pense à la complexité accidentelle), et quelle est la bonne démarche.",
+  "skeleton": "Réponds en texte, en traitant : (1) le nom de l'erreur, (2) les risques concrets, (3) la bonne démarche étape par étape.",
+  "solution": "C'est de l'optimisation prématurée (Knuth : « premature optimization is the root of all evil »). L'erreur : il a optimisé sur une INTUITION, sans MESURER où l'application est réellement lente. Or l'intuition sur les points chauds est très souvent fausse. Risques concrets : (1) la boucle qu'il a « optimisée » n'est peut-être pas du tout le goulot d'étranglement (dans ce cas l'appli ne va pas plus vite et les deux jours sont perdus) ; (2) le cache maison ajoute de la complexité ACCIDENTELLE (invalidation, cohérence des données, bugs subtils) : du code que le problème n'exigeait pas, plus dur à comprendre et à maintenir ; (3) il a peut-être dégradé la lisibilité pour un gain nul, voire négatif. Bonne démarche : d'abord PROFILER (mesurer l'application pendant qu'elle tourne) pour identifier le vrai goulot d'étranglement. N'optimiser QUE là où les faits le justifient. Préférer d'abord une amélioration algorithmique simple avant d'introduire un cache. Garder le code simple tant que la performance mesurée est suffisante. Principe général de la famille des « prématuré » : agir sur des faits, pas sur des prédictions, donc mesurer avant d'optimiser, et ne complexifier que si les mesures le prouvent nécessaire.",
+  "keyPoints": ["prématurée", "profiler", "goulot", "accidentelle", "mesurer"],
+  "language": "text"
+}

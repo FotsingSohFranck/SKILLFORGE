@@ -1,0 +1,52 @@
+{
+  "ref": "cluster-operations-manage-check",
+  "node": "cluster-operations",
+  "lesson": "manage-ou-auto-gere",
+  "title": "Managé ou auto-géré ?",
+  "description": "Plan de contrôle vs nœuds, Kubernetes managé (EKS/GKE/AKS) vs auto-géré (kubeadm), quand choisir quoi.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans un Kubernetes managé (EKS/GKE/AKS), qui exploite le plan de contrôle (apiserver, etcd, scheduler) ?",
+      "justification": "Le fournisseur cloud gère le plan de contrôle pour toi (disponibilité, mises à jour, sauvegardes) ; tu te concentres sur tes applications. C'est le principal avantage du managé.",
+      "position": 0,
+      "options": [
+        { "label": "Le fournisseur cloud", "correct": true, "position": 0 },
+        { "label": "Toi, entièrement à la main", "correct": false, "position": 1 },
+        { "label": "Personne, il n'y a pas de plan de contrôle", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil sert à monter à la main (bootstrapper) un cluster auto-géré ?",
+      "justification": "kubeadm initialise le plan de contrôle (kubeadm init) puis rattache les nœuds de travail (kubeadm join). C'est l'outil standard de l'auto-géré.",
+      "position": 1,
+      "options": [
+        { "label": "kubeadm", "correct": true, "position": 0 },
+        { "label": "kubectl drain", "correct": false, "position": 1 },
+        { "label": "etcdctl snapshot", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Dans un cluster, qui exécute réellement tes applications : le plan de contrôle ou les nœuds de travail ?",
+      "justification": "Les nœuds de travail (les « bras ») exécutent les applications ; le plan de contrôle (le « cerveau ») décide, planifie et surveille, mais ne fait pas tourner tes conteneurs.",
+      "position": 2,
+      "options": [
+        { "label": "Les nœuds de travail", "correct": true, "position": 0 },
+        { "label": "Le plan de contrôle", "correct": false, "position": 1 },
+        { "label": "etcd tout seul", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une petite équipe sans expert Kubernetes, monter un cluster auto-géré avec kubeadm est le meilleur choix par défaut.",
+      "justification": "Faux : l'auto-géré exige d'exploiter la partie la plus critique (etcd, certificats, upgrades, HA) et une équipe dédiée. Par défaut on prend du managé ; l'auto-géré ne se justifie que pour un besoin spécifique avec l'expertise pour l'assumer.",
+      "position": 3,
+      "options": [
+        { "label": "Faux", "correct": true, "position": 0 },
+        { "label": "Vrai", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

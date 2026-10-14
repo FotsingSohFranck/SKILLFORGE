@@ -1,0 +1,63 @@
+{
+  "ref": "developer-experience-check",
+  "node": "developer-experience",
+  "lesson": "debug-et-tests",
+  "title": "Expérience développeur",
+  "description": "Hot reload, node_modules, debugger, Testcontainers, parité dev/prod.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment obtenir un hot reload en développement sans reconstruire l'image à chaque changement ?",
+      "justification": "Un bind mount du code source de l'hôte : le conteneur exécute les fichiers locaux en direct, combiné à un outil de rechargement.",
+      "position": 0,
+      "options": [
+        { "label": "Un bind mount du code source de l'hôte", "correct": true, "position": 0 },
+        { "label": "Reconstruire l'image à chaque sauvegarde", "correct": false, "position": 1 },
+        { "label": "Un volume nommé vide", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En montant tout le dossier hôte, le node_modules local (Windows) casse l'app dans le conteneur (Linux). Comment corriger ?",
+      "justification": "Ajouter un volume anonyme sur /app/node_modules pour préserver les dépendances du conteneur, non écrasées par le bind mount.",
+      "position": 1,
+      "options": [
+        { "label": "Un volume anonyme sur /app/node_modules pour préserver celui du conteneur", "correct": true, "position": 0 },
+        { "label": "Désactiver le hot reload", "correct": false, "position": 1 },
+        { "label": "Installer Node sur l'hôte", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment déboguer une application dans un conteneur depuis son IDE ?",
+      "justification": "Exposer le port de débogage du runtime (JDWP, --inspect...) et l'attacher à l'IDE : points d'arrêt et inspection comme en local.",
+      "position": 2,
+      "options": [
+        { "label": "Exposer le port de debug du runtime et y attacher l'IDE", "correct": true, "position": 0 },
+        { "label": "Lire uniquement les logs", "correct": false, "position": 1 },
+        { "label": "C'est impossible en conteneur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage à lancer les tests d'intégration contre une base en conteneur jetable (Testcontainers) ?",
+      "justification": "Isolation + reproductibilité + fidélité : base neuve à chaque exécution, état connu, vraie base (pas un mock) reflétant la production.",
+      "position": 3,
+      "options": [
+        { "label": "Isolation, reproductibilité et fidélité à la production", "correct": true, "position": 0 },
+        { "label": "Cela évite d'écrire des tests", "correct": false, "position": 1 },
+        { "label": "Cela partage les données entre développeurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les commodités de développement (bind mount de code, ports de debug ouverts) ne doivent pas se retrouver dans l'image de production.",
+      "justification": "Vrai : elles sont des failles de sécurité en prod ; on sépare config dev (compose.override) et Dockerfile de prod épuré, tout en gardant la parité dev/prod.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

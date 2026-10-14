@@ -1,0 +1,175 @@
+{
+  "node": "hcl-basics",
+  "lessons": [
+    {
+      "slug": "quest-ce-que-hcl",
+      "title": "Qu'est-ce que HCL",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le langage de Terraform",
+          "body": "Avant de parler du langage, un mot sur l'outil. **Terraform** est un logiciel qui **crée et gère de l'infrastructure** (des serveurs, des bases de données, des réseaux) chez un fournisseur *cloud* (un prestataire qui loue de la puissance informatique à distance, comme **AWS** d'Amazon ou **Google Cloud**). Au lieu de cliquer dans une console web pour fabriquer un serveur à la main, tu le **décris dans un fichier texte**, et Terraform se charge de le construire pour toi.\n\nCe fichier, tu l'écris en **HCL**. HCL est l'abréviation de *HashiCorp Configuration Language* : le langage de configuration créé par l'entreprise **HashiCorp** (l'éditeur de Terraform). Ces fichiers portent l'extension **`.tf`** (pour *Terraform*).\n\nPoint clé à comprendre tout de suite : HCL est un langage **déclaratif**, et non **impératif**. La différence :\n- **Impératif** = tu écris la **suite des étapes** à exécuter, une par une (« crée un serveur, puis attends qu'il démarre, puis ouvre le port... »). C'est la façon habituelle de programmer.\n- **Déclaratif** = tu décris seulement le **résultat que tu veux obtenir** (« je veux un serveur de ce type, avec ce port ouvert »), et l'outil calcule tout seul les étapes pour y arriver.\n\n👉 **Analogie** : commander au restaurant. En déclaratif, tu dis au serveur `je veux un steak-frites` (le résultat voulu), et la cuisine s'occupe du *comment*. En impératif, tu devrais dicter toute la recette, geste par geste. Avec Terraform, tu déclares l'état souhaité, et lui trouve le chemin.\n\nConcrètement, un fichier HCL est un empilement de **blocs**. Un **bloc** est un morceau de configuration délimité par des accolades `{ }` qui décrit **une chose** (une ressource, une variable, un réglage). À l'intérieur, on trouve des **arguments**, de simples paires `clé = valeur`. Un exemple minuscule :\n\n```\nresource \"aws_instance\" \"web\" {\n  instance_type = \"t3.micro\"\n}\n```\n\nCe bloc dit : `je veux une ressource de type aws_instance (un serveur AWS), que j'appelle web, de taille t3.micro`. Savoir lire cette structure de blocs, c'est déjà savoir lire n'importe quel fichier Terraform."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "La structure d'un bloc HCL",
+          "codeLanguage": "hcl",
+          "body": "# Un bloc : TYPE  \"LABEL1\"  \"LABEL2\"  { ... arguments ... }\nresource \"aws_instance\" \"web\" {\n  ami           = \"ami-123456\"       # argument : clé = valeur\n  instance_type = \"t3.micro\"\n\n  tags = {                            # une valeur peut être une map\n    Name        = \"serveur-web\"\n    Environment = \"prod\"\n  }\n}\n\n# Un bloc de configuration Terraform lui-même\nterraform {\n  required_version = \">= 1.5\"\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Expressions, références & interpolation",
+          "body": "Un fichier HCL n'est pas qu'une liste de valeurs figées : il permet des **expressions**. Une **expression** est un petit calcul que Terraform évalue pour produire une valeur (par opposition à une valeur écrite en dur comme `\"t3.micro\"`). Trois formes reviennent tout le temps.\n\n**1. La référence.** Tu peux pointer vers un **attribut** d'une autre ressource (un attribut = une des informations qu'une ressource expose, par exemple son identifiant). On écrit `aws_instance.web.id` pour dire `l'id de la ressource aws_instance nommée web`. En faisant ça, tu crées automatiquement une **dépendance implicite** : Terraform comprend que `web` doit exister *avant* la ressource qui utilise son id, et il ordonne les opérations pour toi (sans que tu aies à le préciser). 👉 **Analogie** : une recette qui dit `verse la sauce préparée à l'étape 2`. Rien qu'en la mentionnant, tu imposes que l'étape 2 soit faite avant. Terraform raisonne pareil avec les références.\n\n**2. L'interpolation.** *Interpoler*, c'est **insérer une valeur au milieu d'une chaîne de texte**. La syntaxe est `${ ... }`. Par exemple `\"serveur-${var.env}\"` : si la variable `var.env` vaut `prod`, le résultat est `\"serveur-prod\"`. 👉 **Analogie** : le publipostage (*mail merge*), où `Bonjour ${prenom}` devient `Bonjour Ada` une fois le prénom rempli. Le nom s'adapte automatiquement au contexte.\n\n**3. Les fonctions et conditions.** HCL fournit des **fonctions intégrées** (des outils tout faits pour transformer des valeurs), comme `upper(\"web\")` qui renvoie `\"WEB\"`, ou `join(\"-\", [\"a\",\"b\"])` qui renvoie `\"a-b\"`. Il gère aussi les **conditions** avec l'opérateur ternaire `condition ? valeur_si_vrai : valeur_si_faux`, par exemple `var.prod ? \"large\" : \"small\"` (si `var.prod` est vrai, on prend `\"large\"`, sinon `\"small\"`).\n\nCes expressions rendent ton code **dynamique et réutilisable** sans faire de HCL un vrai langage de programmation : elles servent à **composer** la configuration, pas à écrire de la logique compliquée."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Comment une référence crée un graphe de dépendances",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Tu ecris dans ton code :<br/>aws_instance.web utilise<br/>aws_security_group.web.id\"] --> B[\"Terraform lit la reference<br/>et en deduit une dependance\"]\n  B --> C[\"Il construit un graphe :<br/>security_group --&gt; instance\"]\n  C --> D[\"Ordre de creation calcule<br/>1) le security group<br/>2) l'instance\"]\n  C --> E[\"Ordre de suppression inverse<br/>1) l'instance<br/>2) le security group\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Dans un fichier Terraform, vous écrivez `security_group_id = aws_security_group.web.id`, référençant l'id d'un groupe de sécurité défini ailleurs. Quel effet cela a-t-il, au-delà de simplement fournir une valeur ?",
+          "solution": "Référencer un attribut d'une autre ressource (ici aws_security_group.web.id) fournit certes la valeur, mais crée surtout une DÉPENDANCE IMPLICITE entre les deux ressources. Terraform analyse ces références pour construire un graphe de dépendances : puisque cette ressource utilise l'id du security group web, Terraform sait qu'il doit créer (ou mettre à jour) le security group AVANT la ressource qui le référence, et le détruire APRÈS, dans l'ordre inverse. On n'a donc pas besoin de déclarer l'ordre manuellement (pas de depends_on explicite dans ce cas) : le simple fait de référencer l'attribut suffit à Terraform pour ordonner correctement les opérations. C'est un mécanisme fondamental de Terraform : les dépendances se déduisent des références entre ressources, ce qui permet à l'outil de paralléliser ce qui est indépendant et de séquencer ce qui est lié, automatiquement. En bonus, l'id est une valeur CALCULÉE (connue seulement après création du security group) : Terraform gère aussi ce cas, en créant les ressources dans le bon ordre pour que la valeur soit disponible au moment voulu. La référence est donc à la fois une valeur ET une déclaration de dépendance, un point clé pour comprendre comment Terraform ordonne son travail."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Qu'est-ce que HCL",
+          "quizRef": "hcl-basics-langage-check"
+        }
+      ]
+    },
+    {
+      "slug": "initialiser-un-projet",
+      "title": "Initialiser un projet",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'organisation des fichiers",
+          "body": "Un projet Terraform, c'est tout simplement un **répertoire** (un dossier) qui contient un ou plusieurs fichiers **`.tf`**. Bonne nouvelle : Terraform **fusionne** automatiquement tous les `.tf` du dossier avant de les lire, et l'ordre des fichiers n'a aucune importance. Tu peux donc découper ton code en plusieurs fichiers comme bon te semble : pour Terraform, c'est comme si tout était écrit dans un seul grand fichier.\n\nPuisqu'on est libre, une **convention** (un usage partagé, pas une règle imposée par l'outil) s'est imposée pour ranger le code de façon lisible :\n- **`main.tf`** : les ressources principales (le cœur de ton infrastructure).\n- **`variables.tf`** : les **variables d'entrée** (les valeurs paramétrables, comme la taille d'un serveur ou le nom d'un environnement).\n- **`outputs.tf`** : les **sorties** (les informations que le projet renvoie une fois construit, par exemple l'adresse IP créée).\n- **`providers.tf`** : la configuration des **providers** (on définit ce mot juste après).\n\n👉 **Analogie** : les **chapitres d'un livre**. Le lecteur pourrait tout avoir sur une seule longue page, mais découper en chapitres (`main`, `variables`, `outputs`) rend l'ensemble bien plus facile à parcourir. Terraform, lui, s'en moque et recolle tout.\n\nDernier terme : le répertoire depuis lequel tu lances Terraform s'appelle le **module racine** (*root module*). Un **module** est un dossier de fichiers `.tf` réutilisable ; celui d'où tu pars est la racine. On approfondira les modules plus loin, retiens juste le mot pour l'instant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "terraform init : le point de départ",
+          "body": "La toute première commande à lancer dans un nouveau projet est **`terraform init`** (pour *initialize*, initialiser). Elle **prépare** le répertoire avant que tu puisses faire quoi que ce soit d'autre. Elle fait trois choses.\n\n**1. Elle télécharge les providers.** Un **provider** est un **plugin** (un module d'extension) qui apprend à Terraform à parler à un service précis : le provider AWS sait créer des serveurs Amazon, le provider Google sait parler à Google Cloud, etc. Terraform ne connaît aucun cloud tout seul : ce sont les providers qui lui donnent ce pouvoir. `init` les télécharge dans un sous-dossier caché `.terraform/`. 👉 **Analogie** : c'est comme `npm install` en JavaScript, ou comme réunir tous ses ingrédients avant de commencer à cuisiner : on installe d'abord ce dont on aura besoin.\n\n**2. Elle initialise le backend.** Le **backend** est l'endroit où Terraform range l'**état** (*state*) : un fichier où il note ce qu'il a déjà créé, pour savoir la prochaine fois ce qui existe et ce qui doit changer. Par défaut, cet état est un simple fichier **local** sur ta machine.\n\n**3. Elle installe les modules** référencés (ces dossiers réutilisables évoqués juste avant).\n\n`init` génère aussi un fichier important : **`.terraform.lock.hcl`**, le *fichier de verrouillage des dépendances*. Il **fige les versions exactes** des providers utilisés. Il faut le **committer** dans Git (l'ajouter à ton dépôt) pour que toute l'équipe (et la chaîne d'automatisation appelée **CI**, pour *Continuous Integration*, qui rejoue le projet automatiquement) utilise **exactement les mêmes versions**. 👉 **Analogie** : c'est la liste de courses figée d'une recette (`farine T45, marque X`), pour que le gâteau soit identique quel que soit celui qui le prépare.\n\nEnfin, `init` est **idempotent** : un mot savant qui veut dire `on peut la relancer autant de fois qu'on veut sans casser quoi que ce soit`. On la relance dès qu'on ajoute un provider ou un module."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le cycle de démarrage",
+          "codeLanguage": "bash",
+          "body": "terraform init      # télécharge providers + modules, prépare le backend\n#   -> crée .terraform/ et .terraform.lock.hcl (à committer)\n\nterraform fmt       # met en forme le code (indentation standard)\nterraform validate  # vérifie la syntaxe et la cohérence (sans rien créer)\n\nterraform plan      # prévisualise les changements\nterraform apply     # applique"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un développeur clone un projet Terraform depuis Git et lance directement `terraform plan`, mais obtient une erreur indiquant qu'aucun provider n'est installé. Qu'a-t-il oublié, et à quoi sert le fichier `.terraform.lock.hcl` présent dans le dépôt ?",
+          "solution": "Il a oublié de lancer `terraform init` avant toute autre commande. init est l'étape de préparation obligatoire d'un projet Terraform : elle télécharge et installe les providers déclarés (les plugins AWS/GCP/etc., placés dans .terraform/), initialise le backend (où l'état sera stocké) et installe les modules référencés. Sans cette étape, aucun provider n'est présent localement, donc `terraform plan` ne peut pas fonctionner, d'où l'erreur. Le flux correct après un clone est donc : `terraform init`, puis plan/apply. Rôle du fichier .terraform.lock.hcl (le dependency lock file), committé dans le dépôt : il FIGE les versions exactes des providers (et leurs empreintes de vérification) résolues lors du init initial. Ainsi, quand un autre développeur, ou la CI, lance `terraform init`, il obtient EXACTEMENT les mêmes versions de providers que le reste de l'équipe, garantissant la reproductibilité (pas de « ça marche chez moi » lié à une version de provider différente) et l'intégrité (les checksums empêchent d'installer un binaire altéré). C'est pourquoi ce fichier doit être versionné dans Git, au même titre que le code. En résumé : init installe les providers (étape manquée ici), et le lock file garantit que tout le monde utilise les mêmes versions."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Le langage HCL",
+          "quizRef": "hcl-basics-check"
+        }
+      ]
+    },
+    {
+      "slug": "expressions-dynamiques",
+      "title": "Expressions dynamiques : for & dynamic",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les for expressions : transformer des collections",
+          "body": "Commençons par deux mots de vocabulaire. Une **collection** est un ensemble de valeurs regroupées. Les deux formes que tu croiseras sans cesse en HCL sont la **liste** (une suite ordonnée de valeurs, comme `[\"a\", \"b\", \"c\"]`) et la **map** (un ensemble de paires `clé = valeur`, comme `{ nom = \"web\", taille = \"petit\" }`, une sorte de dictionnaire).\n\nHCL permet de **transformer** une collection en une autre grâce à une **for expression** (une expression `for`). C'est l'équivalent déclaratif de ce qu'on appelle en programmation `map` (appliquer une transformation à chaque élément) et `filter` (ne garder que certains éléments). Deux exemples :\n- Sur une liste : `[for s in var.subnets : upper(s)]` passe chaque élément en majuscules.\n- Sur une map : `{ for k, v in var.tags : k => lower(v) }` met chaque valeur en minuscules.\n- Avec un filtre `if` : `[for s in var.subnets : s if s != \"\"]` ne garde que les éléments non vides.\n\n👉 **Analogie** : une **chaîne de tri** dans un centre de colis. Les paquets défilent un à un ; à chacun tu appliques la même opération (coller une étiquette = *transformer*), et tu écartes ceux qui ne remplissent pas un critère (= *filtrer*). La for expression fait exactement ça sur les éléments d'une collection.\n\nCombinées aux variables, ces expressions permettent de **dériver** dynamiquement des structures : construire une map de configuration à partir d'une liste, préparer des données avant de les passer plus loin. C'est le levier qui rend HCL **expressif** sans en faire un langage complet."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "for expressions & splat",
+          "codeLanguage": "hcl",
+          "body": "locals {\n  # transformer une liste en map indexée par nom\n  users_by_name = { for u in var.users : u.name => u }\n\n  # filtrer puis transformer\n  active_emails = [for u in var.users : u.email if u.active]\n}\n\n# Splat : extraire un attribut de toutes les instances d'une ressource\noutput \"all_ips\" {\n  value = aws_instance.web[*].private_ip   # [*] = splat\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les dynamic blocks",
+          "body": "Certaines ressources contiennent des **blocs imbriqués** qui se répètent. Un **bloc imbriqué** est un bloc à l'intérieur d'un autre bloc : par exemple, dans un **security group** (un `security group` est un pare-feu virtuel qui autorise ou bloque le trafic réseau d'un serveur), chaque règle d'autorisation d'entrée est un bloc `ingress` (le trafic *entrant*). Un serveur qui ouvre trois ports aura donc trois blocs `ingress`.\n\nQuand le nombre de ces blocs **varie** (parfois 2 ports, parfois 5 selon l'environnement), les écrire à la main devient pénible et source d'erreurs. Le **`dynamic` block** résout ça : il **génère** ces blocs répétés à partir d'une collection. En écrivant `dynamic \"ingress\" { for_each = var.rules; content { ... each.value ... } }`, Terraform produit **autant de blocs `ingress` qu'il y a d'éléments** dans `var.rules`.\n\n👉 **Analogie** : un **tampon encreur**. Plutôt que de recopier une règle dix fois à la main, tu donnes le modèle (le `content`) et la liste, et Terraform `tamponne` un bloc par élément.\n\nC'est le pendant de `for_each` (qu'on verra pour dupliquer des ressources entières), mais appliqué ici à des **blocs imbriqués** à l'intérieur d'une ressource.\n\n**Piège d'expert** : les `dynamic` blocks nuisent vite à la **lisibilité** (ils ajoutent un niveau d'indirection qui rend la ressource plus dure à lire). On ne les utilise donc que lorsque le nombre de blocs est **réellement** dynamique. Pour un nombre fixe et connu, des blocs statiques (écrits à la main) restent plus clairs."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "dynamic block : règles générées",
+          "codeLanguage": "hcl",
+          "body": "resource \"aws_security_group\" \"web\" {\n  name = \"web\"\n\n  dynamic \"ingress\" {\n    for_each = var.allowed_ports        # ex. [80, 443]\n    content {\n      from_port   = ingress.value\n      to_port     = ingress.value\n      protocol    = \"tcp\"\n      cidr_blocks = [\"0.0.0.0/0\"]\n    }\n  }\n}\n# Génère un bloc ingress par port de la liste."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Vous devez créer un security group dont le nombre de règles `ingress` dépend d'une variable (une liste de ports qui varie selon l'environnement). Écrire chaque bloc à la main n'est pas possible puisque le nombre change. Quelle construction HCL utiliser, et quelle précaution garder en tête ?",
+          "solution": "On utilise un dynamic block. Le problème est que la ressource security group contient des BLOCS imbriqués répétés (les règles ingress), et que leur nombre dépend d'une variable (la liste de ports), donc on ne peut pas les écrire statiquement. Le dynamic block génère ces blocs à partir d'une collection : `dynamic \"ingress\" { for_each = var.allowed_ports  content { from_port = ingress.value  to_port = ingress.value  protocol = \"tcp\"  cidr_blocks = [...] } }`. Terraform produit alors autant de blocs ingress qu'il y a d'éléments dans var.allowed_ports, en exposant chaque élément via ingress.value (et ingress.key pour la clé/index). C'est l'équivalent de for_each mais appliqué à des blocs IMBRIQUÉS à l'intérieur d'une ressource (là où for_each s'applique à des ressources ou modules entiers, et une for expression transforme une collection en valeur). On peut d'ailleurs préparer la collection avec une for expression (filtrer/transformer les ports) avant de la passer au dynamic block. Précaution à garder en tête : les dynamic blocks nuisent rapidement à la LISIBILITÉ du code, ils ajoutent un niveau d'indirection et rendent la ressource plus difficile à lire et à déboguer. On ne les utilise donc que lorsque le nombre de blocs est RÉELLEMENT dynamique (dépend d'une variable/collection). Pour un nombre FIXE et connu de blocs, on préfère les écrire STATIQUEMENT : c'est plus clair, plus explicite et plus facile à revoir. La règle d'expert : dynamic block seulement quand la répétition est variable ; sinon, blocs statiques. On évite aussi de sur-abstraire (des dynamic blocks imbriqués deviennent vite illisibles)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Expressions dynamiques (expert)",
+          "quizRef": "hcl-expressions-expert"
+        }
+      ]
+    },
+    {
+      "slug": "fonctions-et-console",
+      "title": "Fonctions & terraform console",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le catalogue de fonctions intégrées",
+          "body": "Une **fonction** est un outil tout prêt qui prend une ou plusieurs valeurs en entrée et en renvoie une nouvelle en sortie : par exemple `upper(\"web\")` renvoie `\"WEB\"`. HCL fournit un large **catalogue de fonctions intégrées** (*built-in*). Particularité importante : tu ne peux **pas** définir tes propres fonctions en HCL (contrairement à un vrai langage de programmation), mais le catalogue fourni est riche et couvre l'essentiel des besoins.\n\n👉 **Analogie** : les touches d'une **calculatrice**. Tu ne fabriques pas de nouveaux boutons, mais ceux présents (racine, pourcentage, mémoire) suffisent pour presque tous tes calculs. Les fonctions HCL sont ces boutons prêts à l'emploi.\n\nLes familles à connaître :\n- **Chaînes de texte** : `upper`, `format` (composer une chaîne à trous), `replace`, `join` (coller une liste en une chaîne), `split` (l'inverse), `trimspace` (enlever les espaces).\n- **Collections** : `length` (le nombre d'éléments), `merge` (fusionner des maps), `concat`, `flatten` (aplatir des listes imbriquées), `lookup`, `keys`, `values`, `distinct` (enlever les doublons), `contains`.\n- **Robustesse** (gérer les valeurs manquantes proprement) : `coalesce` renvoie la **première valeur non nulle** d'une liste ; `try` renvoie la première expression qui **ne provoque pas d'erreur** ; `can` **teste** si une expression réussit (renvoie vrai/faux).\n- **Réseau** : `cidrsubnet`, `cidrhost` pour découper des plages d'adresses IP.\n- **Encodage** : `jsonencode`, `base64encode`.\n\n`try` et `coalesce` sont particulièrement précieux : ils permettent de gérer une valeur optionnelle (qui peut être absente) sans faire planter Terraform, en fournissant une valeur de repli."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Fonctions courantes",
+          "codeLanguage": "hcl",
+          "body": "locals {\n  name = format(\"%s-%s-web\", var.project, var.environment)\n  tags = merge(var.default_tags, { Name = local.name })\n\n  # valeur optionnelle sûre : premier non-null, ou défaut\n  size = coalesce(var.override_size, var.default_size, \"t3.micro\")\n\n  # try : évite une erreur si le chemin n'existe pas\n  region = try(var.config.region, \"eu-west-3\")\n\n  # découper un CIDR en sous-réseaux\n  subnet = cidrsubnet(\"10.0.0.0/16\", 8, 2)   # -> 10.0.2.0/24\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "terraform console : le REPL (niveau expert)",
+          "body": "Comment savoir ce que produit une expression compliquée **sans** lancer un `plan` complet (qui est lent) ? Avec **`terraform console`**.\n\nCette commande ouvre un **REPL**. REPL est l'abréviation de *Read-Eval-Print Loop* (`lire, évaluer, afficher, recommencer`) : une **invite interactive** dans laquelle tu tapes une expression, et l'outil t'affiche **immédiatement** son résultat, puis attend la suivante. Ici, la console s'ouvre dans le **contexte de ton projet** : elle connaît tes variables, tes locals et l'état de tes ressources.\n\nTu peux y **évaluer n'importe quelle expression** : un appel de fonction, une for expression, une référence à une variable ou à une ressource. Par exemple, taper `merge({a=1}, {b=2})` renvoie tout de suite `{a=1, b=2}`.\n\n👉 **Analogie** : un **bac à sable** (ou la calculatrice de brouillon). Avant d'écrire une formule compliquée dans ton document final, tu la testes à côté, tu vérifies qu'elle donne le bon résultat, puis tu la recopies. La console est ce brouillon vivant pour tes expressions Terraform.\n\nC'est l'outil indispensable pour **mettre au point** une expression, **comprendre** une structure de données, ou **déboguer** pourquoi une transformation ne donne pas le résultat attendu, sans tâtonner par des `plan` successifs. Un expert vit dans `terraform console` pour construire ses expressions dynamiques vite et sûrement."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Vous écrivez une for expression complexe qui transforme une liste d'objets en map, mais le résultat n'est pas celui attendu et vous perdez du temps à faire des `terraform plan` répétés pour comprendre. Quel outil accélère cette mise au point, et comment ?",
+          "solution": "L'outil est terraform console, un REPL (Read-Eval-Print Loop, une invite interactive) qui évalue des expressions HCL dans le contexte du projet, sans exécuter de plan/apply. On lance `terraform console` dans le répertoire, puis on tape directement l'expression à tester et Terraform en affiche le résultat immédiatement. Concrètement, pour mettre au point la for expression : on peut d'abord évaluer les données d'entrée (par exemple `var.users` pour voir leur structure exacte), puis coller la for expression telle quelle (`{ for u in var.users : u.name => u }`) et voir instantanément la map produite, ce qui révèle où la transformation diverge de l'attendu (clé mal choisie, filtre incorrect, type inattendu, valeur null...). On itère alors dans le REPL (ajuster l'expression, réévaluer) jusqu'à obtenir le bon résultat, avant de la reporter dans le code. Cela remplace avantageusement les `terraform plan` répétés : le plan est LENT (il rafraîchit l'état, calcule tout le graphe, contacte éventuellement les providers) et ne montre pas directement la valeur intermédiaire d'une expression ; la console est INSTANTANÉE et affiche exactement la valeur évaluée. On peut aussi y tester des fonctions (merge, try, coalesce, cidrsubnet...) pour comprendre leur comportement, et inspecter des valeurs de l'état (référencer une ressource existante). C'est l'outil de débogage/prototypage d'expressions par excellence pour un utilisateur Terraform : au lieu de tâtonner via des plans successifs, on met au point la logique de transformation en quelques secondes dans le REPL, puis on l'intègre au code une fois validée. Un expert utilise systématiquement terraform console pour construire ses for expressions, dynamic blocks et appels de fonctions."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Fonctions & console (expert)",
+          "quizRef": "hcl-functions-console-expert"
+        }
+      ]
+    }
+  ]
+}

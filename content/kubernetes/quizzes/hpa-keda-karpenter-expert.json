@@ -1,0 +1,96 @@
+{
+  "ref": "hpa-keda-karpenter-expert",
+  "node": "autoscaling",
+  "lesson": "hpa-v2-keda-karpenter",
+  "title": "HPA v2, KEDA & Karpenter, expert",
+  "description": "behavior/stabilization, KEDA scale-to-zero, Karpenter vs Cluster Autoscaler.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet le champ behavior de l'HPA v2 ?",
+      "justification": "Maîtriser les policies de montée/descente et la stabilizationWindow pour éviter le flapping (oscillation coûteuse des répliques).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Régler les policies scaleUp/scaleDown et la stabilization (anti-flapping)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les métriques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les requests",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte KEDA que l'HPA de base ne fait pas ?",
+      "justification": "L'autoscaling événementiel (longueur de file, lag Kafka...) et le scale-to-zero quand il n'y a aucun événement.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Autoscaling sur événements + scale-to-zero",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La création d'images",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des pods",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En quoi Karpenter diffère-t-il du Cluster Autoscaler classique ?",
+      "justification": "Il provisionne les nœuds juste-à-temps, sans groupes fixes, en choisissant le type de machine le mieux adapté au meilleur coût, puis consolide.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Provisionnement flexible juste-à-temps (pas de node groups fixes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il scale les répliques, pas les nœuds",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il remplace kube-proxy",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour un worker consommant une file de messages, autoscaler sur la profondeur de la file (KEDA) est plus pertinent que sur le CPU.",
+      "justification": "Vrai : le CPU ne reflète pas la charge en attente ; KEDA scale sur la longueur de la file et peut descendre à zéro quand elle est vide.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

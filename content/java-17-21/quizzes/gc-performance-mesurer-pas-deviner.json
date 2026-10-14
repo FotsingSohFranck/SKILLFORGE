@@ -1,0 +1,42 @@
+{
+  "ref": "gc-performance-mesurer-pas-deviner",
+  "node": "gc-performance",
+  "lesson": "mesurer-pas-deviner",
+  "title": "Quiz : mesurer, pas deviner",
+  "description": "Taille du tas avec -Xmx, logs GC et démarche de choix.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le drapeau -Xmx ?",
+      "justification": "-Xmx fixe la taille maximale du tas. Par exemple -Xmx4g limite le tas à 4 giga-octets.",
+      "position": 0,
+      "options": [
+        { "label": "À fixer la taille maximale du tas", "correct": true, "position": 0 },
+        { "label": "À choisir le nom du ramasse-miettes", "correct": false, "position": 1 },
+        { "label": "À désactiver les pauses GC", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel drapeau affiche un journal des collectes, avec la durée des pauses ?",
+      "justification": "-Xlog:gc affiche une ligne à chaque collecte, avec notamment la durée de la pause : c'est le thermomètre pour mesurer plutot que deviner.",
+      "position": 1,
+      "options": [
+        { "label": "-Xlog:gc", "correct": true, "position": 0 },
+        { "label": "-Xmx", "correct": false, "position": 1 },
+        { "label": "-XX:+UseG1GC", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une application tourne correctement avec G1 par défaut et personne ne s'est jamais plaint des temps de réponse. Un développeur veut passer à ZGC \"parce que c'est plus moderne\", sans avoir rien mesuré. Que lui conseiller ?",
+      "justification": "Changer de ramasse-miettes sans avoir mesuré de problème, c'est optimiser à l'aveugle. La bonne démarche est de mesurer d'abord (par exemple avec -Xlog:gc), d'identifier un vrai besoin, et de ne changer qu'ensuite.",
+      "position": 2,
+      "options": [
+        { "label": "Mesurer d'abord avec -Xlog:gc et ne changer que si un vrai problème apparait", "correct": true, "position": 0 },
+        { "label": "Passer à ZGC immédiatement, un nom plus moderne est toujours mieux", "correct": false, "position": 1 },
+        { "label": "Doubler la taille du tas au hasard pour etre tranquille", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

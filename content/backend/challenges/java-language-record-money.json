@@ -1,0 +1,10 @@
+{
+  "node": "java-language",
+  "lesson": "types-records-sealed",
+  "title": "Un record Money immuable et validé",
+  "statement": "Écris un `record` Java nommé `Money` qui représente une somme d'argent en centimes (`long cents`) et une devise (`String currency`). Ajoute un *compact constructor* qui refuse une devise nulle ou vide en levant une `IllegalArgumentException`. Ajoute une méthode `add(Money other)` qui renvoie un **nouveau** `Money` (immutabilité), en refusant d'additionner deux devises différentes (là encore avec une `IllegalArgumentException`).",
+  "skeleton": "public record Money(long cents, String currency) {\n    // 1) compact constructor : valider la devise\n\n    // 2) méthode add(Money other) : renvoyer un NOUVEAU Money\n}",
+  "solution": "public record Money(long cents, String currency) {\n    public Money {\n        if (currency == null || currency.isBlank())\n            throw new IllegalArgumentException(\"currency requis\");\n    }\n    public Money add(Money other) {\n        if (!currency.equals(other.currency))\n            throw new IllegalArgumentException(\"devises différentes\");\n        return new Money(cents + other.cents, currency);\n    }\n}",
+  "keyPoints": ["record Money", "IllegalArgumentException", "return new Money", "cents + other.cents"],
+  "language": "java"
+}

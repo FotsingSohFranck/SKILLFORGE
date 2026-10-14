@@ -1,0 +1,96 @@
+{
+  "ref": "terraform-data-expert",
+  "node": "provisioners",
+  "lesson": "terraform-data-et-null-resource",
+  "title": "terraform_data & null_resource, expert",
+  "description": "null_resource/triggers, terraform_data (natif), toujours un dernier recours.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle ressource native remplace avantageusement null_resource ?",
+      "justification": "terraform_data, intégrée au cœur de Terraform (pas de provider null), avec triggers_replace pour rejouer ses provisioners.",
+      "position": 0,
+      "options": [
+        {
+          "label": "terraform_data",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "aws_instance",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "data.http",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'argument triggers (ou triggers_replace) ?",
+      "justification": "Quand sa valeur change, la ressource est remplacée, ce qui rejoue ses provisioners, pour lier une action à un changement.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Rejouer les provisioners quand une valeur change",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer la ressource",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Créer un backend",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "terraform_data change-t-il le statut « dernier recours » des provisioners ?",
+      "justification": "Non : un terraform_data + provisioner hérite des mêmes limites (impératif, non planifiable) ; on privilégie le déclaratif.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Non, cela reste un dernier recours",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, c'est devenu la bonne pratique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, cela rend les provisioners planifiables",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "terraform_data peut aussi simplement stocker une valeur (input) sans provisioner, par exemple pour forcer une dépendance.",
+      "justification": "Vrai : son argument input mémorise une valeur ; utile pour créer une dépendance ou une valeur intermédiaire, sans exécuter de script.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "ref": "pods-check",
+  "node": "pods",
+  "lesson": "init-et-multi-conteneurs",
+  "title": "Pods",
+  "description": "Pod = unité de base, contrôleurs, probes, init containers, sidecar.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est l'unité de déploiement de base de Kubernetes ?",
+      "justification": "Le Pod : une enveloppe d'un ou plusieurs conteneurs partageant réseau (localhost) et volumes ; souvent un seul conteneur.",
+      "position": 0,
+      "options": [
+        { "label": "Le Pod", "correct": true, "position": 0 },
+        { "label": "Le conteneur seul", "correct": false, "position": 1 },
+        { "label": "Le nœud", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne crée-t-on pas un Pod « nu » directement en production ?",
+      "justification": "Un pod nu n'est géré par aucun contrôleur : s'il (ou son nœud) meurt, rien ne le recrée. On utilise un Deployment/StatefulSet/etc.",
+      "position": 1,
+      "options": [
+        { "label": "Rien ne le recrée s'il meurt ; il faut un contrôleur (Deployment...)", "correct": true, "position": 0 },
+        { "label": "Les pods sont interdits en production", "correct": false, "position": 1 },
+        { "label": "Un pod ne peut pas exécuter de conteneur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle probe retire un pod du trafic sans le tuer quand une dépendance est indisponible ?",
+      "justification": "La readiness probe : si elle échoue, le pod sort des Services (plus de trafic) mais n'est pas redémarré ; la liveness, elle, redémarrerait.",
+      "position": 2,
+      "options": [
+        { "label": "La readiness probe", "correct": true, "position": 0 },
+        { "label": "La liveness probe", "correct": false, "position": 1 },
+        { "label": "La startup probe", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand exécute-t-on un init container ?",
+      "justification": "Avant les conteneurs applicatifs, en séquence, et ils doivent réussir : idéal pour attendre une dépendance ou préparer des données/migrations.",
+      "position": 3,
+      "options": [
+        { "label": "Avant les conteneurs applicatifs (préparation), et doivent réussir", "correct": true, "position": 0 },
+        { "label": "En parallèle des conteneurs applicatifs", "correct": false, "position": 1 },
+        { "label": "Après l'arrêt du pod", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Mettre la vérification d'une base de données dans la liveness probe peut provoquer le redémarrage de tous les pods lors d'un ralentissement de la base.",
+      "justification": "Vrai : la liveness redémarre le conteneur en cas d'échec ; tester une dépendance externe y transforme un ralentissement en panne généralisée. Ce test relève de la readiness.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

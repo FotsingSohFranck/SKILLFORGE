@@ -1,0 +1,41 @@
+{
+  "ref": "packaging-jlink-jpackage-choisir-la-bonne-sortie",
+  "node": "packaging-jlink-jpackage",
+  "lesson": "choisir-la-bonne-sortie",
+  "title": "Quiz : choisir la bonne sortie",
+  "description": "Quand préférer un JAR, une image jlink ou un installeur jpackage.",
+  "questions": [
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu partages un petit utilitaire en ligne de commande avec des collègues développeurs qui ont déjà le JDK installé. Quelle sortie est la plus adaptée ?",
+      "justification": "Un simple JAR suffit : les collègues ont déjà Java et le lancent avec java -jar, inutile d'embarquer un runtime.",
+      "position": 0,
+      "options": [
+        { "label": "Un simple JAR lancé avec java -jar", "correct": true, "position": 0 },
+        { "label": "Un installeur jpackage pour chaque collègue", "correct": false, "position": 1 },
+        { "label": "Une image jlink complète pour chacun", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu livres un logiciel de bureau à des clients non techniques sous Windows qui veulent juste double cliquer pour installer. Quelle sortie choisir ?",
+      "justification": "jpackage produit un installeur natif .exe que le client double clique, avec le runtime embarqué, donc rien d'autre à installer.",
+      "position": 1,
+      "options": [
+        { "label": "Un installeur natif produit par jpackage", "correct": true, "position": 0 },
+        { "label": "Un JAR, en demandant au client d'installer Java d'abord", "correct": false, "position": 1 },
+        { "label": "Les fichiers .class à copier dans un dossier", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une image jlink est autonome mais ne constitue pas un installeur : l'utilisateur reçoit un dossier à copier, pas un .exe à double cliquer.",
+      "justification": "Vrai : jlink fournit un runtime minimal autonome sous forme de dossier ; pour un vrai installeur natif, il faut jpackage.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

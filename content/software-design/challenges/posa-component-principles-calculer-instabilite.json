@@ -1,0 +1,10 @@
+{
+  "node": "posa-component-principles",
+  "lesson": "metriques-et-main-sequence",
+  "title": "Calculer I, A et D d'un composant",
+  "statement": "Un composant `core-domain` est importé par 9 autres composants et n'importe presque rien lui-même ; il ne contient que des interfaces (aucune classe concrète). Réponds en quatre points : (1) Calcule qualitativement son instabilité I (rappel : I = Ce / (Ca + Ce), avec Ca = couplage afférent = qui dépend de lui, Ce = couplage efférent = de qui il dépend). (2) Calcule qualitativement son abstraction A. (3) Situe-le par rapport à la Main Sequence (A + I = 1) et donne sa distance D = |A + I − 1|. (4) Est-il sainement placé ? Justifie.",
+  "skeleton": "1) Instabilite I : Ca = ... , Ce = ... , donc I = ...\n2) Abstraction A : ...\n3) Position / Main Sequence : A + I = ... , D = ...\n4) Sain ou non ? Justification : ...\n",
+  "solution": "(1) Instabilité I. Ca (afférent) est élevé : 9 composants dépendent de lui. Ce (efférent) est quasi nul : il n'importe presque rien. Donc I = Ce/(Ca+Ce) ≈ 0/(9+0) ≈ 0. Le composant est TRÈS STABLE (beaucoup dépendent de lui, lui de personne).\n\n(2) Abstraction A = types abstraits / total. `core-domain` ne contient que des interfaces, donc A ≈ 1 : composant TRÈS ABSTRAIT.\n\n(3) Position sur la Main Sequence. La droite idéale est A + I = 1. Ici A + I ≈ 1 + 0 = 1, donc la distance D = |A + I − 1| ≈ 0. Le composant est PILE SUR la Main Sequence.\n\n(4) Oui, il est SAINEMENT placé. Il est stable ET abstrait : c'est exactement ce que demandent le SDP et le SAP pour un composant central. Les autres composants dépendent d'interfaces stables (des ports), pas de code concret volatil. On est dans le bon coin de la séquence (I ≈ 0, A ≈ 1), à l'opposé de la zone de douleur (stable + concret) et de la zone d'inutilité (instable + abstrait). C'est le profil typique d'un bon domaine métier ou d'une couche de ports en architecture hexagonale.",
+  "keyPoints": ["I ≈ 0", "stable", "A ≈ 1", "abstrait", "Main Sequence", "sain"],
+  "language": "text"
+}

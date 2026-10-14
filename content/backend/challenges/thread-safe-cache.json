@@ -1,0 +1,10 @@
+{
+  "node": "caching",
+  "lesson": "les-niveaux-de-cache",
+  "title": "Un cache mémoïsant thread-safe",
+  "statement": "Implémentez `String get(String key, Function<String,String> load)` : renvoyer la valeur cachée pour `key`, ou la calculer avec `load` **une seule fois** puis la mémoriser, de façon sûre en concurrence (plusieurs threads). Utilisez une structure thread-safe et une seule opération atomique.",
+  "skeleton": "import java.util.*;\nimport java.util.concurrent.*;\nimport java.util.function.Function;\n\npublic class MemoCache {\n    private final Map<String, String> cache = /* votre choix */ null;\n\n    public String get(String key, Function<String, String> load) {\n        return null;\n    }\n}",
+  "solution": "import java.util.*;\nimport java.util.concurrent.*;\nimport java.util.function.Function;\n\npublic class MemoCache {\n    private final Map<String, String> cache = new ConcurrentHashMap<>();\n\n    public String get(String key, Function<String, String> load) {\n        return cache.computeIfAbsent(key, load);\n    }\n}",
+  "keyPoints": ["ConcurrentHashMap", "computeIfAbsent"],
+  "language": "java"
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "security-audit-4c-expert",
+  "node": "cluster-security",
+  "lesson": "audit-conformite-4c",
+  "title": "Audit, conformité & 4C, expert",
+  "description": "Modèle 4C, CIS/kube-bench, audit logging, NetworkPolicies egress.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que représente le modèle des 4C de la sécurité cloud native ?",
+      "justification": "Quatre couches (Cloud, Cluster, Container, Code) où chacune protège la suivante, une grille pour ne rien oublier.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Cloud, Cluster, Container, Code (couches imbriquées)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Quatre types de conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Quatre commandes kubectl",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil audite automatiquement le durcissement d'un cluster selon le CIS Benchmark ?",
+      "justification": "kube-bench scanne la configuration et signale les écarts (PASS/FAIL/WARN) par rapport au CIS Kubernetes Benchmark.",
+      "position": 1,
+      "options": [
+        {
+          "label": "kube-bench",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kubectl logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcdctl",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme permet de savoir « qui a fait quoi, quand » sur l'API après un incident ?",
+      "justification": "L'audit logging de l'apiserver (via une politique d'audit) enregistre chaque requête API, indispensable pour l'investigation et la conformité.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'audit logging de l'apiserver",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le tag latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les NetworkPolicies egress (trafic sortant) limitent l'exfiltration : un pod compromis ne devrait pas pouvoir joindre n'importe quel hôte externe.",
+      "justification": "Vrai : souvent négligées, elles complètent la segmentation ingress ; contrôler l'egress et le DNS ferme un vecteur d'exfiltration.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

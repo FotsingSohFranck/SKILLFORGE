@@ -1,0 +1,309 @@
+{
+  "node": "atelier-fil-rouge",
+  "lessons": [
+    {
+      "slug": "presentation-du-projet",
+      "title": "Présentation du projet",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Bienvenue au bout du parcours",
+          "position": 0,
+          "body": "Tu arrives au dernier nœud. Jusqu'ici, tu as appris chaque nouveauté de Java 21 **séparément** : les records, les interfaces scellées (*sealed*), le pattern matching, les record patterns, les Sequenced Collections et les threads virtuels (*virtual threads*). Ici, on change de registre : on va **tout assembler** dans un seul petit projet qui marche.\n\nUn **atelier** (en anglais *workshop*), c'est une leçon où l'on construit quelque chose de concret plutôt que d'étudier une notion isolée. 👉 C'est comme passer des gammes au piano à jouer enfin un vrai morceau : les mêmes doigts, mais tout s'enchaine.\n\nLe but n'est pas d'ajouter de la théorie, mais de te montrer comment ces briques **s'emboitent** dans du code réel."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce qu'on va construire",
+          "position": 1,
+          "body": "On va écrire un **gestionnaire de tâches en ligne de commande** (en anglais *command line todo app*) : un petit programme qui tourne dans le terminal et qui permet de gérer une liste de choses à faire.\n\n\"En ligne de commande\" veut dire : pas de fenêtre ni de boutons, on tape des **commandes** texte et le programme répond en texte. 👉 Comme quand tu tapes des ordres à un assistant : \"ajoute acheter du pain\", \"termine la tache 2\", \"liste\".\n\nLes fonctionnalités visées :\n\n1. **Ajouter** une tâche (un titre).\n2. **Terminer** une tâche (la marquer comme faite).\n3. **Lister** les tâches, dans l'ordre et en ordre inverse.\n4. **Simuler un chargement** de plusieurs tâches en parallèle, pour voir les threads virtuels à l'œuvre."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le plan de l'atelier",
+          "position": 2,
+          "body": "On avance par couches, une notion par leçon, exactement dans l'ordre où tu les as apprises :\n\n1. **Le modèle de données** avec des records et une interface scellée (leçon 2) : à quoi ressemble une tâche, et quelles commandes existent.\n2. **La logique** avec le pattern matching et les record patterns (leçon 3) : comment réagir à chaque commande.\n3. **Le stockage** avec une Sequenced Collection (leçon 4) : où ranger les tâches, et comment lire la première, la dernière, et l'ordre inverse.\n4. **Le traitement concurrent** avec des threads virtuels (leçon 5) : traiter plusieurs tâches en même temps.\n5. **L'assemblage et les tests** (leçon 6) : relier le tout dans un `main` et écrire quelques tests.\n\n👉 Vois ce plan comme la recette : on prépare les ingrédients (le modèle), puis on cuisine (la logique), on dresse l'assiette (le stockage et l'affichage), et enfin on goûte (les tests)."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "L'architecture de la mini-application",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    U[\"Utilisateur\\ntape une commande\"] --> P[\"Parseur\\ntexte -> Commande\"]\n    P --> C[\"Commande\\n(sealed + records)\"]\n    C --> L[\"Logique\\nswitch de patterns\"]\n    L --> S[\"Stockage\\nSequenced Collection de Tache\"]\n    S --> A[\"Affichage\\nordre normal / inverse\"]\n    A --> U"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : présentation du projet",
+          "position": 4,
+          "quizRef": "atelier-fil-rouge-presentation-du-projet"
+        }
+      ]
+    },
+    {
+      "slug": "modeliser-avec-records-et-sealed",
+      "title": "Modéliser avec records et sealed",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le rappel : record et sealed",
+          "position": 0,
+          "body": "Avant de coder le modèle, rappelons les deux outils vus plus tôt.\n\nUn **record** est une classe de données immuable déclarée en une ligne : tu dictes les composants, le compilateur génère constructeur, accesseurs, `equals`, `hashCode` et `toString`. Parfait pour \"un paquet de valeurs qui vont ensemble\".\n\nUne **interface scellée** (`sealed interface`) est une interface qui contrôle **qui a le droit de l'implémenter** : seules les classes listées après `permits` sont autorisées. 👉 C'est une liste d'invités fermée : on sait à l'avance tous les cas possibles, ni plus ni moins. Cette liste fermée nous servira ensuite pour un switch complet (exhaustif)."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Modéliser une tâche",
+          "position": 1,
+          "body": "Une **tâche** (en anglais *task*) dans notre application, c'est trois informations qui vont ensemble : un **identifiant** (un numéro unique pour la désigner), un **titre** (ce qu'il y a à faire) et un drapeau **faite** (vrai si la tâche est terminée).\n\nTrois valeurs figées qui voyagent ensemble : c'est exactement le cas d'usage d'un record. On ajoute une petite validation dans le **constructeur compact** (le titre ne doit pas être vide) et une méthode `terminer()` qui, comme un record est immuable, renvoie une **nouvelle** tâche marquée faite plutôt que de modifier l'actuelle."
+        },
+        {
+          "type": "CODE",
+          "title": "Le record Tache",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// Une tache : un numero, un titre, et un drapeau \"faite\".\nrecord Tache(int id, String titre, boolean faite) {\n    // Constructeur compact : on refuse un titre vide des la creation.\n    Tache {\n        if (titre == null || titre.isBlank()) {\n            throw new IllegalArgumentException(\"titre obligatoire\");\n        }\n    }\n\n    // Un record est immuable : pour \"changer\" l'etat, on cree une nouvelle Tache.\n    Tache terminer() {\n        return new Tache(id, titre, true);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Modéliser les commandes",
+          "position": 3,
+          "body": "L'utilisateur ne peut faire que trois choses : **ajouter**, **terminer**, **lister**. On veut représenter \"une commande à exécuter\" par un type, et surtout **lister une fois pour toutes** les commandes possibles.\n\nC'est le rôle parfait d'une interface scellée `Commande` qui ne permet que trois records : `Ajouter` (qui porte le titre à créer), `Terminer` (qui porte l'identifiant à marquer faite) et `Lister` (qui ne porte rien).\n\n👉 Pense à un menu de restaurant avec exactement trois plats affichés : impossible de commander autre chose. Grace à ce menu fermé, le code qui traite les commandes (leçon suivante) pourra garantir qu'il a bien couvert **tous** les cas."
+        },
+        {
+          "type": "CODE",
+          "title": "L'interface scellée Commande",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "// Une interface scellee : seuls les trois records listes peuvent l'implementer.\nsealed interface Commande permits Ajouter, Terminer, Lister { }\n\n// Chaque commande est un record qui porte juste ce dont elle a besoin.\nrecord Ajouter(String titre) implements Commande { }\nrecord Terminer(int id) implements Commande { }\nrecord Lister() implements Commande { } // ne porte aucune donnee"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Ajoute une commande",
+          "position": 5,
+          "body": "On veut une quatrième commande : `Supprimer`, qui porte l'identifiant (int) de la tâche à retirer. Montre les deux changements à faire sur le modèle.",
+          "solution": "Deux changements. 1) Ajouter le nouveau record implementant Commande :\n\nrecord Supprimer(int id) implements Commande { }\n\n2) Autoriser ce type dans la clause permits de l'interface scellee :\n\nsealed interface Commande permits Ajouter, Terminer, Lister, Supprimer { }\n\nSi on oublie d'ajouter Supprimer au permits, le code ne compile pas : c'est la securite des sealed. En bonus, tout switch exhaustif sur Commande signalera alors qu'il manque le cas Supprimer."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : modéliser avec records et sealed",
+          "position": 6,
+          "quizRef": "atelier-fil-rouge-modeliser-avec-records-et-sealed"
+        }
+      ]
+    },
+    {
+      "slug": "logique-avec-pattern-matching",
+      "title": "Logique avec pattern matching",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le rappel : switch de patterns et record patterns",
+          "position": 0,
+          "body": "On a maintenant un type `Commande` et trois formes possibles. Comment réagir différemment selon la forme reçue ? Avec le **switch de patterns** vu plus tôt.\n\nUn **pattern** (motif) teste la forme d'une valeur. Un `case Ajouter a ->` se déclenche quand la commande est un `Ajouter`, et range la valeur dans la variable `a`. Mieux : un **record pattern** **déconstruit** le record, c'est à dire extrait directement ses composants. `case Ajouter(String titre) ->` te donne tout de suite le `titre` sans écrire `a.titre()`.\n\n👉 Un record pattern, c'est déballer un colis et sortir son contenu d'un seul geste, au lieu d'ouvrir le colis puis chercher à l'intérieur."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un switch exhaustif grace au sealed",
+          "position": 1,
+          "body": "Comme `Commande` est scellée, le compilateur **connait tous les cas** : `Ajouter`, `Terminer`, `Lister`. Si ton switch les couvre tous, pas besoin de `default` : le switch est dit **exhaustif** (il traite toutes les possibilités).\n\nMieux encore : si un jour tu ajoutes une commande au `permits` (comme `Supprimer` dans l'exercice précédent) sans l'ajouter au switch, le code **ne compilera plus**. Le compilateur devient ton garde fou : il t'oblige à traiter le nouveau cas. C'est exactement la paire gagnante sealed + pattern matching."
+        },
+        {
+          "type": "CODE",
+          "title": "Traiter une commande avec un switch de patterns",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// La methode renvoie un message a afficher. Elle vit dans le gestionnaire (lecon 4).\nString traiter(Commande commande) {\n    return switch (commande) {\n        // Record pattern : on recupere directement le titre.\n        case Ajouter(String titre) -> {\n            Tache t = new Tache(prochainId++, titre, false);\n            taches.add(t);\n            yield \"Ajoutee : \" + t.titre();\n        }\n        // Record pattern : on recupere directement l'id.\n        case Terminer(int id) -> {\n            yield marquerFaite(id); // methode utilitaire, voir plus bas\n        }\n        // Lister ne porte aucune donnee : un pattern sans composant suffit.\n        case Lister() -> afficher();\n    };\n    // Pas de default : les trois cas d'une Commande scellee sont couverts.\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "yield : la valeur d'un bloc de case",
+          "position": 3,
+          "body": "Quand un `case` tient sur une seule expression, on écrit `case Lister() -> afficher();` et la valeur est renvoyée directement.\n\nMais quand un `case` a besoin de **plusieurs lignes** (créer une tâche, l'ajouter, puis renvoyer un message), on ouvre un bloc `{ ... }` et on termine par `yield`. Le mot clé **`yield`** veut dire \"la valeur que ce bloc produit pour le switch\". 👉 C'est le `return` du bloc de case : il ne sort pas de la méthode, il donne juste la valeur du switch pour ce cas."
+        },
+        {
+          "type": "CODE",
+          "title": "Les méthodes utilitaires appelées par le switch",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "// Marque faite la tache d'identifiant donne, en la REMPLACANT (immuabilite).\nprivate String marquerFaite(int id) {\n    for (int i = 0; i < taches.size(); i++) {\n        if (taches.get(i).id() == id) {\n            taches.set(i, taches.get(i).terminer());\n            return \"Terminee : tache \" + id;\n        }\n    }\n    return \"Introuvable : tache \" + id;\n}\n\n// Construit le texte de la liste, dans l'ordre d'ajout.\nprivate String afficher() {\n    if (taches.isEmpty()) return \"(aucune tache)\";\n    StringBuilder sb = new StringBuilder();\n    for (Tache t : taches) {\n        sb.append(t.faite() ? \"[x] \" : \"[ ] \")\n          .append(t.id()).append(' ').append(t.titre()).append('\\n');\n    }\n    return sb.toString().strip();\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Déconstruis pour filtrer",
+          "position": 5,
+          "body": "On veut interdire d'ajouter une tâche dont le titre fait plus de 100 caractères, directement dans le switch. Comment utiliser un record pattern avec une condition (when) pour ce cas particulier ?",
+          "solution": "On ajoute un case plus specifique AVANT le cas general, avec une garde when :\n\ncase Ajouter(String titre) when titre.length() > 100 -> \"Refusee : titre trop long\";\ncase Ajouter(String titre) -> { /* ajout normal */ yield \"Ajoutee : \" + titre; }\n\nLe mot cle when ajoute une condition au pattern : le premier case ne se declenche que si le titre depasse 100 caracteres. L'ordre compte : le cas garde doit venir avant le cas general, sinon il ne serait jamais atteint."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : logique avec pattern matching",
+          "position": 6,
+          "quizRef": "atelier-fil-rouge-logique-avec-pattern-matching"
+        }
+      ]
+    },
+    {
+      "slug": "collections-sequenced",
+      "title": "Stocker avec une Sequenced Collection",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le rappel : les Sequenced Collections",
+          "position": 0,
+          "body": "Il faut maintenant **ranger** les tâches quelque part. On veut garder l'**ordre d'ajout** (la première tâche ajoutée reste la première) et pouvoir lire facilement le début, la fin et l'ordre inverse.\n\nC'est pile le domaine des **Sequenced Collections**, arrivées en Java 21. Une **collection séquencée** est une collection qui a un ordre clair du premier au dernier élément, et qui offre des méthodes communes : `getFirst()` (le premier), `getLast()` (le dernier), `addFirst()` / `addLast()`, et `reversed()` (une vue en ordre inverse).\n\n👉 Avant Java 21, lire le dernier élément d'une liste demandait `liste.get(liste.size() - 1)`, verbeux et facile à rater. Désormais, `getLast()` dit la même chose en clair."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Quelle collection choisir",
+          "position": 1,
+          "body": "Une `List` (comme `ArrayList`) est une collection séquencée : elle garde l'ordre d'insertion et implémente l'interface `SequencedCollection`. C'est notre choix pour stocker les tâches, car on les affiche dans l'ordre où elles ont été ajoutées.\n\nDans le gestionnaire, on déclare donc un champ `private final List<Tache> taches = new ArrayList<>();`. Le mot `final` signifie que la **référence** ne changera pas (on garde toujours la même liste), mais son contenu, lui, peut évoluer au fil des ajouts. On peut aussi typer le champ `SequencedCollection<Tache>` pour insister sur les capacités utilisées."
+        },
+        {
+          "type": "CODE",
+          "title": "Premier, dernier, et ordre inverse",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\nList<Tache> taches = new ArrayList<>();\ntaches.add(new Tache(1, \"Acheter du pain\", false));\ntaches.add(new Tache(2, \"Appeler le medecin\", false));\ntaches.add(new Tache(3, \"Arroser les plantes\", false));\n\n// Methodes des Sequenced Collections (Java 21) :\nSystem.out.println(taches.getFirst()); // Tache[id=1, titre=Acheter du pain, faite=false]\nSystem.out.println(taches.getLast());  // Tache[id=3, titre=Arroser les plantes, faite=false]\n\n// reversed() : une VUE en ordre inverse, sans copier ni modifier la liste d'origine.\nfor (Tache t : taches.reversed()) {\n    System.out.println(t.id() + \" \" + t.titre()); // 3, puis 2, puis 1\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Afficher dans les deux sens",
+          "position": 3,
+          "body": "On enrichit le gestionnaire avec un affichage en ordre inverse, utile par exemple pour voir les dernières tâches ajoutées en premier. Grace à `reversed()`, pas besoin d'une deuxième boucle alambiquée : on réutilise la même logique sur la vue inversée.\n\nPoint important : `reversed()` renvoie une **vue**, pas une copie. Une vue est une fenêtre sur les mêmes données, parcourues dans l'autre sens. 👉 C'est comme lire la même liste de courses de bas en haut : c'est la même feuille, tu la lis juste dans l'autre ordre, tu n'as pas recopié la liste."
+        },
+        {
+          "type": "CODE",
+          "title": "L'affichage inverse dans le gestionnaire",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "// Affiche les taches de la plus recente a la plus ancienne.\nprivate String afficherInverse() {\n    if (taches.isEmpty()) return \"(aucune tache)\";\n    StringBuilder sb = new StringBuilder();\n    for (Tache t : taches.reversed()) { // la VUE inversee\n        sb.append(t.faite() ? \"[x] \" : \"[ ] \")\n          .append(t.id()).append(' ').append(t.titre()).append('\\n');\n    }\n    return sb.toString().strip();\n}\n\n// Pratique : un petit resume premier/dernier.\nprivate String resume() {\n    if (taches.isEmpty()) return \"Liste vide\";\n    return \"Premiere : \" + taches.getFirst().titre()\n         + \" | Derniere : \" + taches.getLast().titre();\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Prédis la sortie",
+          "position": 5,
+          "body": "On ajoute dans l'ordre les titres \"A\", \"B\", \"C\" à une List<String>. Que renvoient `liste.getFirst()`, `liste.getLast()`, et la boucle sur `liste.reversed()` ?",
+          "solution": "liste.getFirst() renvoie \"A\" (le premier ajoute). liste.getLast() renvoie \"C\" (le dernier ajoute). La boucle sur liste.reversed() parcourt la vue inversee et affiche \"C\", puis \"B\", puis \"A\". La liste d'origine n'est pas modifiee : reversed() n'est qu'une vue, liste.getFirst() renvoie toujours \"A\" ensuite."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : stocker avec une Sequenced Collection",
+          "position": 6,
+          "quizRef": "atelier-fil-rouge-collections-sequenced"
+        }
+      ]
+    },
+    {
+      "slug": "traitement-concurrent-virtual-threads",
+      "title": "Traitement concurrent avec les threads virtuels",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le rappel : les threads virtuels",
+          "position": 0,
+          "body": "Dernière brique : faire plusieurs choses **en même temps**. Un **thread** est un fil d'exécution, une tâche que la machine fait avancer. Faire tourner plusieurs threads à la fois s'appelle la **concurrence**.\n\nUn **thread virtuel** (*virtual thread*), arrivé en Java 21, est un thread très léger géré par la machine Java elle même : on peut en créer des milliers sans épuiser les ressources, là où les threads classiques (liés au système d'exploitation) sont coûteux et limités.\n\n👉 Un thread classique, c'est embaucher un employé à plein temps pour chaque tâche. Un thread virtuel, c'est confier les tâches à une immense équipe de bénévoles que Java fait tourner intelligemment. Idéal quand les tâches passent leur temps à **attendre** (un réseau, un disque, une temporisation)."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi ici, et pour quoi faire",
+          "position": 1,
+          "body": "Dans notre todo, imaginons qu'au démarrage on veuille **charger des détails** pour plusieurs tâches : aller chercher une échéance sur un serveur, par exemple. Chaque chargement **attend** une réponse. Si on les fait un par un, on additionne les attentes.\n\nAvec des threads virtuels, on lance tous les chargements **en parallèle** : les attentes se recouvrent, et le total prend à peu près le temps du plus lent, pas la somme de tous. On va simuler un chargement par une petite pause (`Thread.sleep`), qui représente l'attente d'une vraie réponse réseau."
+        },
+        {
+          "type": "CODE",
+          "title": "Lancer les chargements en parallèle",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\nimport java.util.concurrent.*;\n\n// Simule le chargement du detail d'une tache (une attente reseau).\nstatic String chargerDetail(Tache t) throws InterruptedException {\n    Thread.sleep(200); // on \"attend\" une reponse pendant 200 ms\n    return \"Detail charge pour : \" + t.titre();\n}\n\nstatic List<String> chargerTout(List<Tache> taches) throws InterruptedException {\n    // Un executor qui cree UN thread virtuel par tache soumise.\n    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n        List<Future<String>> futurs = new ArrayList<>();\n        for (Tache t : taches) {\n            futurs.add(executor.submit(() -> chargerDetail(t)));\n        }\n        // On recupere les resultats une fois tous les chargements lances.\n        List<String> resultats = new ArrayList<>();\n        for (Future<String> f : futurs) {\n            resultats.add(f.resultNow()); // disponible quand le try se ferme\n        }\n        return resultats;\n    } // le try-with-resources attend la fin de tous les threads virtuels\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce que fait le code, pas à pas",
+          "position": 3,
+          "body": "`Executors.newVirtualThreadPerTaskExecutor()` fabrique un **executor** : un objet à qui l'on confie des tâches à exécuter. Celui ci crée **un thread virtuel par tâche** soumise via `submit(...)`.\n\n`submit(...)` renvoie un **`Future`** : une promesse de résultat \"pour plus tard\", pendant que la tâche tourne en arrière plan. 👉 C'est le ticket qu'on te donne au pressing : tu l'échanges contre ton vêtement quand il est prêt.\n\nOn utilise `try (var executor = ...)` : le **try-with-resources** ferme l'executor à la fin du bloc, et cette fermeture **attend** que tous les threads virtuels aient fini. Après le bloc, tous les résultats sont prêts. Comme dix chargements de 200 ms tournent ensemble, le tout prend environ 200 ms, pas 2 secondes."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La règle d'or : ne pas bloquer, laisser attendre",
+          "position": 4,
+          "body": "Les threads virtuels sont faits pour les tâches qui **attendent** (réseau, fichier, pause). Quand un thread virtuel attend, Java le \"met de côté\" et occupe le vrai thread système avec un autre travail : rien n'est gaspillé.\n\nDeux réflexes importants vus plus tôt : ne crée pas un **pool** de threads virtuels de taille limitée (ils sont déjà bon marché, un par tâche suffit), et évite d'y faire de longs calculs purs qui ne font qu'occuper le processeur (là, les threads virtuels n'apportent rien). 👉 Ils brillent sur l'attente, pas sur le calcul intensif."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Estime le temps",
+          "position": 5,
+          "body": "Chaque chargement simulé prend 200 ms (Thread.sleep(200)). On charge 50 tâches. Combien de temps, environ, prend `chargerTout` avec des threads virtuels (un par tâche), comparé à un traitement séquentiel un par un ?",
+          "solution": "En sequentiel, on additionne : 50 x 200 ms = 10 000 ms, soit environ 10 secondes. Avec des threads virtuels (un par tache lance en parallele), les 50 attentes de 200 ms se recouvrent : le total avoisine 200 ms, le temps du chargement le plus lent. C'est tout l'interet : pour des taches qui attendent, la concurrence fait fondre le temps total."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : traitement concurrent avec les threads virtuels",
+          "position": 6,
+          "quizRef": "atelier-fil-rouge-traitement-concurrent-virtual-threads"
+        }
+      ]
+    },
+    {
+      "slug": "assembler-et-tester",
+      "title": "Assembler et tester",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Relier toutes les briques",
+          "position": 0,
+          "body": "Il est temps de **tout brancher ensemble**. On rassemble le modèle (records + sealed), la logique (switch de patterns), le stockage (Sequenced Collection) et, en option, le chargement concurrent (threads virtuels), dans une classe `GestionnaireTaches` et un `main` qui lit des commandes.\n\nLe `main` est le **point d'entrée** du programme : la méthode que Java exécute en premier. 👉 C'est la porte d'entrée de la maison qu'on a construite pièce par pièce. On va d'abord transformer un texte tapé en objet `Commande` (un petit **parseur**, c'est à dire un traducteur texte vers objet), puis laisser le gestionnaire faire le reste."
+        },
+        {
+          "type": "CODE",
+          "title": "Le gestionnaire complet",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic final class GestionnaireTaches {\n    private final List<Tache> taches = new ArrayList<>(); // Sequenced Collection\n    private int prochainId = 1;\n\n    public String traiter(Commande commande) {\n        return switch (commande) {\n            case Ajouter(String titre) -> {\n                Tache t = new Tache(prochainId++, titre, false);\n                taches.add(t);\n                yield \"Ajoutee : \" + t.titre();\n            }\n            case Terminer(int id) -> marquerFaite(id);\n            case Lister() -> afficher();\n        };\n    }\n\n    private String marquerFaite(int id) {\n        for (int i = 0; i < taches.size(); i++) {\n            if (taches.get(i).id() == id) {\n                taches.set(i, taches.get(i).terminer());\n                return \"Terminee : tache \" + id;\n            }\n        }\n        return \"Introuvable : tache \" + id;\n    }\n\n    private String afficher() {\n        if (taches.isEmpty()) return \"(aucune tache)\";\n        StringBuilder sb = new StringBuilder();\n        for (Tache t : taches) {\n            sb.append(t.faite() ? \"[x] \" : \"[ ] \")\n              .append(t.id()).append(' ').append(t.titre()).append('\\n');\n        }\n        return sb.toString().strip();\n    }\n\n    public List<Tache> taches() {\n        return List.copyOf(taches); // copie immuable : on ne fuit pas l'interne\n    }\n}"
+        },
+        {
+          "type": "CODE",
+          "title": "Le parseur et le main",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.Scanner;\n\npublic class App {\n    // Traduit une ligne de texte en Commande.\n    static Commande analyser(String ligne) {\n        String[] mots = ligne.trim().split(\"\\\\s+\", 2);\n        return switch (mots[0]) {\n            case \"ajouter\"  -> new Ajouter(mots.length > 1 ? mots[1] : \"\");\n            case \"terminer\" -> new Terminer(Integer.parseInt(mots[1]));\n            case \"lister\"   -> new Lister();\n            default -> throw new IllegalArgumentException(\"commande inconnue : \" + mots[0]);\n        };\n    }\n\n    public static void main(String[] args) {\n        var gestionnaire = new GestionnaireTaches();\n        var scanner = new Scanner(System.in);\n        System.out.println(\"Commandes : ajouter <titre> | terminer <id> | lister | quitter\");\n        while (scanner.hasNextLine()) {\n            String ligne = scanner.nextLine();\n            if (ligne.equals(\"quitter\")) break;\n            try {\n                System.out.println(gestionnaire.traiter(analyser(ligne)));\n            } catch (RuntimeException e) {\n                System.out.println(\"Erreur : \" + e.getMessage());\n            }\n        }\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi et comment tester",
+          "position": 3,
+          "body": "Écrire des **tests** veut dire ajouter du code qui vérifie **automatiquement** que le programme se comporte comme prévu. On utilise **JUnit 5**, la bibliothèque de tests standard en Java.\n\nUn test suit souvent le schéma **arrange, act, assert** : on prépare une situation, on exécute l'action à vérifier, puis on **affirme** (en anglais *assert*) le résultat attendu avec une méthode comme `assertEquals(attendu, obtenu)`. 👉 C'est comme vérifier une recette : tu prépares les ingrédients, tu cuisines, puis tu goûtes pour confirmer que c'est bon, à chaque fois de la même façon."
+        },
+        {
+          "type": "CODE",
+          "title": "Deux ou trois tests JUnit 5",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\nclass GestionnaireTachesTest {\n\n    @Test\n    void ajouter_puis_lister_garde_l_ordre() {\n        var g = new GestionnaireTaches();\n        g.traiter(new Ajouter(\"Acheter du pain\"));\n        g.traiter(new Ajouter(\"Arroser les plantes\"));\n        // La premiere tache ajoutee reste la premiere (Sequenced Collection).\n        assertEquals(\"Acheter du pain\", g.taches().getFirst().titre());\n        assertEquals(\"Arroser les plantes\", g.taches().getLast().titre());\n    }\n\n    @Test\n    void terminer_marque_la_tache_comme_faite() {\n        var g = new GestionnaireTaches();\n        g.traiter(new Ajouter(\"Appeler le medecin\"));\n        g.traiter(new Terminer(1));\n        assertTrue(g.taches().getFirst().faite());\n    }\n\n    @Test\n    void titre_vide_est_refuse() {\n        // Le constructeur compact de Tache rejette un titre vide.\n        assertThrows(IllegalArgumentException.class, () -> new Tache(1, \"  \", false));\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce que tu viens de construire",
+          "position": 5,
+          "body": "Bravo : tu as assemblé une vraie petite application Java 21 où **chaque nouveauté joue son rôle**.\n\n- Les **records** (`Tache`, `Ajouter`, `Terminer`, `Lister`) portent les données, immuables et sûres.\n- L'**interface scellée** `Commande` ferme la liste des cas possibles.\n- Le **switch de patterns** avec **record patterns** réagit à chaque commande, de façon exhaustive et vérifiée par le compilateur.\n- La **Sequenced Collection** stocke et affiche les tâches dans l'ordre et en ordre inverse.\n- Les **threads virtuels** chargent plusieurs détails en parallèle.\n- Les **tests JUnit 5** figent le comportement attendu.\n\n👉 Tu n'apprends plus des briques isolées : tu sais maintenant les **combiner**. C'est exactement ce qu'on attend d'un code Java moderne."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Ton tour : écris un test",
+          "position": 6,
+          "body": "Écris un test JUnit 5 qui vérifie que terminer une tâche inexistante (id absent) ne plante pas et renvoie bien le message \"Introuvable : tache 99\".",
+          "solution": "@Test\nvoid terminer_tache_inexistante_renvoie_introuvable() {\n    var g = new GestionnaireTaches();\n    g.traiter(new Ajouter(\"Une tache\"));\n    String message = g.traiter(new Terminer(99));\n    assertEquals(\"Introuvable : tache 99\", message);\n}\n\nArrange : un gestionnaire avec une seule tache (id 1). Act : on traite Terminer(99). Assert : le message renvoye est \"Introuvable : tache 99\", et aucune exception n'est levee. La methode marquerFaite parcourt la liste, ne trouve pas l'id 99, et renvoie le message d'echec."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : assembler et tester",
+          "position": 7,
+          "quizRef": "atelier-fil-rouge-assembler-et-tester"
+        }
+      ]
+    }
+  ]
+}

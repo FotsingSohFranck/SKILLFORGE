@@ -1,0 +1,10 @@
+{
+  "node": "concurrence-rappels",
+  "lesson": "thread-et-runnable",
+  "title": "Lance un Runnable dans un thread",
+  "statement": "Dans la méthode main, crée un Runnable (sous forme de lambda) qui affiche le texte \"Tache terminee\". Confie le à un nouveau Thread et démarre ce thread de façon qu'il s'exécute réellement en parallèle. Utilise la bonne méthode pour lancer le thread (pas celle qui exécute le code sur place).",
+  "skeleton": "public class Demo {\n    public static void main(String[] args) {\n        // 1. Cree un Runnable qui affiche \"Tache terminee\"\n        // 2. Cree un Thread avec ce Runnable\n        // 3. Demarre le thread (attention a start() et non run())\n    }\n}",
+  "solution": "public class Demo {\n    public static void main(String[] args) {\n        Runnable tache = () -> System.out.println(\"Tache terminee\");\n        Thread t = new Thread(tache);\n        t.start();\n    }\n}",
+  "keyPoints": ["Runnable", "lambda", "new Thread", "start()", "pas run()"],
+  "language": "java"
+}

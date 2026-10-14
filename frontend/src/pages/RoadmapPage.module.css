@@ -1,0 +1,221 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 1100px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.headMain {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.remaining {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.certRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+.summary {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  line-height: var(--leading);
+}
+
+.phases {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.phase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.phaseHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-primary-soft);
+}
+
+.phaseTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--color-text);
+}
+
+.phaseCount {
+  flex: none;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-border);
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.node:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.node.in_progress {
+  border-left-color: var(--color-warning);
+}
+
+.node.completed {
+  border-left-color: var(--color-success);
+}
+
+/* "À débloquer" : repère visuel advisory, le nœud reste cliquable (nav non linéaire). */
+.node.locked {
+  border-left-style: dashed;
+  background: var(--color-surface-2);
+}
+
+.node.locked .nodeTitle {
+  color: var(--color-text-muted);
+}
+
+.nodeTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.nodeTitle {
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.nodeTitle:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Lien étiré : toute la carte devient une cible cliquable, tout en gardant
+   le titre comme lien accessible et l'étoile favoris au-dessus. */
+.nodeTitle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.star {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-primary);
+  padding: 0;
+}
+
+.star:hover {
+  color: var(--color-primary-hover);
+}
+
+.nodeMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.minutes {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.prereq {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.exams {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.examList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.exam {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-secondary);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.exam:hover {
+  background: var(--color-surface-2);
+}
+
+.examIcon {
+  font-size: 1.1rem;
+}
+
+.examTitle {
+  flex: 1;
+  font-weight: 600;
+}
+
+.examMeta {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "relational-databases-avance-check",
+  "node": "relational-databases",
+  "lesson": "postgresql-avance",
+  "title": "Quiz : PostgreSQL avancé",
+  "description": "PL/pgSQL, triggers, LISTEN/NOTIFY, jsonb, Row-Level Security.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un trigger PostgreSQL ?",
+      "justification": "Un trigger est une fonction qui s'exécute automatiquement sur INSERT/UPDATE/DELETE, sans appel explicite : utile pour l'audit, l'horodatage, la cohérence dérivée.",
+      "position": 0,
+      "options": [
+        { "label": "Une fonction exécutée automatiquement lors d'un INSERT/UPDATE/DELETE", "correct": true, "position": 0 },
+        { "label": "Un index qui accélère les lectures", "correct": false, "position": 1 },
+        { "label": "Une copie de sauvegarde de la table", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit la Row-Level Security (RLS) ?",
+      "justification": "La RLS filtre les lignes accessibles par une policy imposée par le moteur : un utilisateur ne voit que ses lignes, même si le code applicatif a un bug. Idéal en multi-tenant.",
+      "position": 1,
+      "options": [
+        { "label": "Un filtrage par ligne imposé par le moteur, même si le code applicatif a un bug", "correct": true, "position": 0 },
+        { "label": "Le chiffrement automatique de toutes les colonnes", "correct": false, "position": 1 },
+        { "label": "La suppression des lignes anciennes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour stocker des données dont la forme varie d'une ligne à l'autre et pouvoir les interroger, quel type utiliser ?",
+      "justification": "jsonb stocke du JSON binaire indexable (via un index GIN), adapté au semi-structuré et interrogeable avec @> ou ->>.",
+      "position": 2,
+      "options": [
+        { "label": "jsonb (semi-structuré, indexable)", "correct": true, "position": 0 },
+        { "label": "varchar(255)", "correct": false, "position": 1 },
+        { "label": "numeric", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Mettre toute la logique métier dans la base (triggers, fonctions) est toujours une bonne idée.",
+      "justification": "Faux : trop de métier en base disperse la logique et complique les tests ; les triggers cachent du comportement. On n'y met que ce qui gagne vraiment à être au plus près des données.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

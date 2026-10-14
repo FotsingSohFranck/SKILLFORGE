@@ -1,0 +1,96 @@
+{
+  "ref": "cicd-check",
+  "node": "cicd",
+  "lesson": "automatiser-terraform",
+  "title": "Intégration CI/CD",
+  "description": "Plan sur PR/apply sur main, plan revu, OIDC, séparer plan/apply.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le flux CI/CD standard pour Terraform ?",
+      "justification": "Plan sur la PR (affiché pour revue), apply du plan approuvé à la fusion sur main, revu, tracé, automatisé.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Plan sur la PR (revue), apply du plan approuvé sur main",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Apply direct depuis chaque poste",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune revue, apply automatique partout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment éviter de stocker des clés cloud statiques dans le pipeline ?",
+      "justification": "Via l'authentification OIDC : le runner obtient des credentials temporaires du cloud, rien à voler ni à faire tourner.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'authentification OIDC (credentials temporaires)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Coller les clés dans le YAML",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Partager une clé entre tous les projets",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi séparer les droits du plan et de l'apply ?",
+      "justification": "Le plan (lecture, sur PR) peut avoir des droits restreints ; l'apply (écriture, sur main) des droits élevés et souvent une approbation manuelle.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le plan lit (restreint), l'apply écrit (élevé + approbation)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour aller plus vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il ne faut jamais les séparer",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un pipeline Terraform peut créer/détruire toute l'infrastructure, il doit donc être parmi les plus sécurisés (OIDC, moindre privilège, approbation prod).",
+      "justification": "Vrai : son pouvoir est énorme ; un pipeline mal sécurisé est un chemin direct vers la compromission du cloud entier.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "web-servers-expert",
+  "node": "web-servers",
+  "lesson": "proxy-performance-securite",
+  "title": "Serveurs web, niveau expert",
+  "description": "L4/L7, algorithmes LB, C10k, keep-alive, TLS au bord, cache, buffering.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre un équilibrage L4 et L7 ?",
+      "justification": "L4 route selon IP/port sans lire le contenu ; L7 lit la requête HTTP (URL, en-têtes) pour router finement, terminer TLS, cacher.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L4 route selon IP/port ; L7 lit la requête HTTP pour router finement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L4 est toujours plus intelligent que L7",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il n'y a aucune différence",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel modèle de concurrence permet à Nginx (et à Netty/WebFlux) de tenir des milliers de connexions avec peu de threads ?",
+      "justification": "Un modèle événementiel non bloquant (event loop) : une connexion en attente ne monopolise pas un thread, contrairement au thread-par-requête.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un modèle événementiel non bloquant (event loop)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un thread (ou process) par connexion",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une VM par connexion",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "10 000 connexions lentes font s'effondrer un serveur thread-par-connexion à CPU quasi inactif. Comment nomme-t-on ce problème ?",
+      "justification": "Le problème C10k : un thread par connexion épuise la mémoire/l'ordonnanceur avant le CPU ; l'event loop le résout.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le problème C10k",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un OOMKill de conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un cache stampede",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un reverse proxy protège-t-il un backend réactif des clients qui envoient leur requête très lentement ?",
+      "justification": "Par le buffering : il encaisse la requête complète avant de la transmettre rapidement au backend, qui ne voit que des requêtes propres.",
+      "position": 3,
+      "options": [
+        {
+          "label": "En bufferisant la requête complète avant de la transmettre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En désactivant TLS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En augmentant le heap du backend",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un reload gracieux d'Nginx applique une nouvelle configuration sans couper le trafic, en laissant les anciens workers finir leurs requêtes en cours.",
+      "justification": "Vrai : les nouveaux workers démarrent avec la nouvelle config, les anciens terminent puis s'arrêtent, zéro coupure.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

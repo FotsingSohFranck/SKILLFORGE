@@ -1,0 +1,10 @@
+{
+  "node": "n-plus-one",
+  "lesson": "un-plus-n-requetes",
+  "title": "Éliminer le N+1 en SQL",
+  "statement": "On charge actuellement les nœuds d'un parcours, puis les leçons de chaque nœud (N+1). Écrivez UNE seule requête SQL qui récupère, pour un `:roadmapId`, tous les nœuds et leurs leçons via une jointure, triés par position de nœud puis de leçon.",
+  "skeleton": "SELECT ...\nFROM nodes n\n-- complétez : jointure sur lessons, filtre roadmap, tri",
+  "solution": "SELECT n.id AS node_id, l.id AS lesson_id, l.title\nFROM nodes n\nJOIN lessons l ON l.node_id = n.id\nWHERE n.roadmap_id = :roadmapId\nORDER BY n.position, l.position;",
+  "keyPoints": ["JOIN lessons", "l.node_id = n.id", "n.roadmap_id = :roadmapId", "ORDER BY"],
+  "language": "sql"
+}

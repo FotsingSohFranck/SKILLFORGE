@@ -1,0 +1,96 @@
+{
+  "ref": "security-check",
+  "node": "security",
+  "lesson": "secrets-et-scan",
+  "title": "Sécurité & conformité",
+  "description": "Secrets hors code, scanners (Checkov/tfsec), policy as code (Sentinel/OPA).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où gérer les secrets en Terraform ?",
+      "justification": "Hors du code (TF_VAR_ ou un gestionnaire de secrets lu via data source) ; jamais en dur, et on protège le state (secret en clair dedans).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Hors du code (env ou gestionnaire de secrets), state protégé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En dur dans main.tf",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Committés dans Git",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que détectent des scanners comme Checkov, tfsec ou Terrascan ?",
+      "justification": "Les mauvaises configurations de sécurité dans le code (bucket public, absence de chiffrement, SG ouvert...), en CI, avant déploiement.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les mauvaises configurations de sécurité (misconfigurations)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les fautes d'orthographe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le coût mensuel",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait la policy as code (Sentinel, OPA) ?",
+      "justification": "Elle évalue des politiques contre le plan et REFUSE l'apply s'il viole une règle, une barrière bloquante, pas seulement une alerte.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Refuser l'apply d'un plan qui viole une règle (barrière bloquante)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Formater le code",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Télécharger les providers",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une sécurité IaC mûre combine secrets externalisés, state protégé, scan en CI et policy as code sur le plan (défense en profondeur).",
+      "justification": "Vrai : le scanner donne un feedback rapide (shift-left), la policy garantit qu'aucun apply non conforme ne passe, les deux ensemble.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

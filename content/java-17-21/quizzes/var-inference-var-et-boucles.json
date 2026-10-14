@@ -1,0 +1,41 @@
+{
+  "ref": "var-inference-var-et-boucles",
+  "node": "var-inference",
+  "lesson": "var-et-boucles",
+  "title": "Quiz : var et boucles",
+  "description": "Utiliser var dans for, for-each et try-with-resources.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans for (var i = 0; i < 10; i++), quel type est déduit pour i ?",
+      "justification": "Le littéral 0 est un int, donc i est déduit comme int, exactement comme avec for (int i = 0; ...).",
+      "position": 0,
+      "options": [
+        { "label": "int", "correct": true, "position": 0 },
+        { "label": "double", "correct": false, "position": 1 },
+        { "label": "un type qui peut changer à chaque tour", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où var est il particulièrement utile dans une boucle for-each sur une Map ?",
+      "justification": "Le type de l'élément (Map.Entry<String, List<Integer>>) est long et répétitif. var le déduit et rend la boucle bien plus lisible.",
+      "position": 1,
+      "options": [
+        { "label": "Il efface le type générique long de l'élément parcouru", "correct": true, "position": 0 },
+        { "label": "Il accélère l'exécution de la boucle", "correct": false, "position": 1 },
+        { "label": "Il permet de parcourir la Map dans les deux sens", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut utiliser var pour déclarer la ressource d'un try-with-resources, par exemple try (var lecteur = new BufferedReader(...)).",
+      "justification": "Vrai : la ressource est une variable locale avec une valeur à droite, donc var y déduit le type sans souci et la ressource est fermée normalement.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

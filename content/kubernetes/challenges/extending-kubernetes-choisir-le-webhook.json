@@ -1,0 +1,10 @@
+{
+  "node": "extending-kubernetes",
+  "lesson": "admission-webhooks",
+  "title": "Choisir le bon type de webhook (et le sécuriser)",
+  "statement": "Une équipe sécurité veut REFUSER, sur tout le cluster, la création de tout pod qui ne fixe pas de limites de ressources. En t'appuyant sur les admission webhooks : (1) quel TYPE de webhook choisir et pourquoi ? (2) quel danger comporte une failurePolicy: Fail ? (3) cite deux précautions pour ne pas se verrouiller ou paralyser le cluster.",
+  "skeleton": "1. Type de webhook et raison :\n\n2. Danger de failurePolicy: Fail :\n\n3. Deux précautions :\n",
+  "solution": "1. Un VALIDATING webhook. Le besoin est d'ACCEPTER ou REFUSER un objet selon une règle (pas de limites = refus), sans le modifier. C'est exactement le rôle du validating webhook, contrairement au mutating webhook qui, lui, transforme l'objet (ex. injecter un sidecar). C'est ainsi que des outils comme Kyverno ou OPA imposent des politiques. 2. failurePolicy: Fail signifie que si le webhook est injoignable (en panne, réseau coupé), l'apiserver REFUSE les objets concernés. Comme le webhook est sur le chemin critique de l'API, une panne peut alors bloquer TOUT le cluster, y compris empêcher le redéploiement du webhook lui-même (cercle vicieux). L'alternative, Ignore, laisse passer les objets sans contrôle : disponible mais la politique n'est plus appliquée. 3. Précautions : exclure les namespaces système comme kube-system (via un namespaceSelector) pour ne pas se verrouiller hors du cluster ; limiter le scope aux ressources voulues (ici les Pods) ; soigner les timeouts (un webhook lent ralentit toutes les créations) ; et assurer la haute disponibilité (plusieurs répliques) pour qu'une panne d'un exemplaire ne casse rien.",
+  "keyPoints": ["validating", "refuse", "failurePolicy", "kube-system"],
+  "language": "text"
+}

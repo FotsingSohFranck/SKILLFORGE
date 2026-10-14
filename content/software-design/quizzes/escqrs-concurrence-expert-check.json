@@ -1,0 +1,101 @@
+{
+  "ref": "escqrs-concurrence-expert-check",
+  "node": "event-sourcing-cqrs",
+  "lesson": "event-store-concurrence-causation",
+  "title": "Quiz, Concurrence & fiabilité de l'event store (expert)",
+  "description": "expectedVersion, une transaction = un agrégat, correlation/causation, checkpoints idempotents.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment la concurrence optimiste protège-t-elle un flux d'agrégat à l'append ?",
+      "justification": "On fournit la version attendue (expectedVersion = dernier événement lu) ; l'event store refuse l'écriture si la version a changé entre-temps → conflit, que le use case gère en rechargeant et réessayant.",
+      "position": 0,
+      "options": [
+        {
+          "label": "En fournissant expectedVersion ; l'append échoue si la version du flux a changé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En verrouillant toute la base pendant l'écriture",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En ignorant les écritures concurrentes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la frontière de cohérence recommandée pour une écriture en Event Sourcing ?",
+      "justification": "Une transaction = un agrégat : le flux par agrégat est la frontière de cohérence, protégée par sa version. C'est ce qui garantit les invariants sous concurrence.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un agrégat (une transaction = un agrégat)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toute la base en une transaction globale",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chaque événement individuellement, sans agrégat",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le causation id (vs correlation id) ?",
+      "justification": "Le causation id désigne le message parent immédiat (qui a causé celui-ci), permettant de reconstruire l'arbre de causalité ; le correlation id relie tous les messages d'une même transaction métier.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Identifier le message parent immédiat qui a causé cet événement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les événements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Numéroter les partitions",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Après un redémarrage, une projection réaffiche des sièges réservés comme libres ou double des compteurs. Que faut-il ?",
+      "justification": "Un checkpoint durable (reprendre où on en était), un traitement idempotent (livraison at-least-once → ne pas doubler) et le respect de l'ordre par flux. Sans cela, un redémarrage corrompt le read model.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Checkpoint durable + traitement idempotent + respect de l'ordre par flux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rejouer tout le flux depuis zéro à chaque démarrage",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ignorer les événements après un crash",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-classes-declarer-sealed-permits",
+  "node": "sealed-classes",
+  "lesson": "declarer-sealed-permits",
+  "title": "Quiz : déclarer sealed et permits",
+  "description": "Syntaxe des mots clés sealed et permits.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle déclaration scelle correctement Paiement en n'autorisant que CarteBancaire et Virement ?",
+      "justification": "On écrit sealed, le nom, puis permits suivi de la liste des sous-types autorisés séparés par des virgules.",
+      "position": 0,
+      "options": [
+        { "label": "sealed class Paiement permits CarteBancaire, Virement { }", "correct": true, "position": 0 },
+        { "label": "sealed class Paiement allows CarteBancaire, Virement { }", "correct": false, "position": 1 },
+        { "label": "class Paiement sealed (CarteBancaire, Virement) { }", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe t il si une classe absente du permits tente d'hériter d'une classe scellée ?",
+      "justification": "La règle est vérifiée par le compilateur : le code refuse de compiler, l'erreur arrive donc dès l'écriture.",
+      "position": 1,
+      "options": [
+        { "label": "Le code ne compile pas", "correct": true, "position": 0 },
+        { "label": "Le code compile mais plante au démarrage", "correct": false, "position": 1 },
+        { "label": "Le code compile et marche normalement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si tous les sous-types se trouvent dans le même fichier source, la clause permits peut être omise car le compilateur la déduit.",
+      "justification": "Dans un même fichier source, le compilateur sait trouver seul les sous-types, la clause permits devient alors facultative.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

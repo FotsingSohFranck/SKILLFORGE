@@ -1,0 +1,96 @@
+{
+  "ref": "net-http-tls-expert-check",
+  "node": "networks",
+  "lesson": "http-et-tls-moderne",
+  "title": "Quiz, HTTP moderne & TLS (expert)",
+  "description": "HTTP/2-3/QUIC, TLS/mTLS, latency numbers.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte HTTP/2 par rapport à HTTP/1.1 ?",
+      "justification": "Le multiplexage : plusieurs requêtes/réponses en parallèle sur une seule connexion (+ compression des en-têtes), réduisant le head-of-line blocking applicatif.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le multiplexage sur une seule connexion",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La suppression du chiffrement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une seule requête à la fois",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le mTLS (mutual TLS) ?",
+      "justification": "Les deux parties présentent un certificat : le serveur authentifie aussi le client, socle de la sécurité service-à-service (souvent géré par un service mesh).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les deux parties s'authentifient par certificat",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une version sans chiffrement de TLS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un algorithme de compression",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un aller-retour réseau vs un accès mémoire, c'est un écart de l'ordre de… ?",
+      "justification": "Des millions de fois (mémoire ~100 ns, aller-retour réseau ~0,5 ms intra-DC voire 100+ ms inter-continental), d'où réduire les allers-retours et cacher.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Des millions de fois plus lent pour le réseau",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À peu près identique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le réseau est plus rapide que la mémoire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une expiration de certificat TLS non anticipée est une cause classique et évitable de panne majeure.",
+      "justification": "Vrai : on automatise l'émission/rotation (cert-manager/mesh) et on surveille les expirations ; un certificat ne doit jamais expirer par surprise.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

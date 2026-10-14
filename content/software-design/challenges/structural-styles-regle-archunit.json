@@ -1,0 +1,10 @@
+{
+  "node": "structural-styles",
+  "lesson": "autres-styles-et-modularite-imposee",
+  "title": "Imposer une frontière avec ArchUnit",
+  "statement": "Pour empêcher la modularité de s'éroder, on transforme une règle d'architecture en test exécuté en CI. Écris une règle **ArchUnit** qui interdit à toute classe résidant dans un paquet `..domain..` de dépendre d'une classe résidant dans un paquet `..adapter..` (le domaine ne doit rien connaître des adaptateurs techniques). Utilise le DSL fluide : `noClasses().that()...should()...`.",
+  "skeleton": "ArchRule domaineIndependantDesAdapters =\n    noClasses()\n        // complète la règle : resideInAPackage, should, dependOnClassesThat...\n",
+  "solution": "ArchRule domaineIndependantDesAdapters =\n    noClasses()\n        .that().resideInAPackage(\"..domain..\")\n        .should().dependOnClassesThat().resideInAPackage(\"..adapter..\");",
+  "keyPoints": ["noClasses()", "..domain..", "..adapter..", "dependOnClassesThat", "resideInAPackage"],
+  "language": "java"
+}

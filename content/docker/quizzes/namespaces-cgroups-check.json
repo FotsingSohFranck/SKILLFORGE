@@ -1,0 +1,63 @@
+{
+  "ref": "namespaces-cgroups-check",
+  "node": "namespaces-cgroups-union",
+  "lesson": "cgroups-et-union-fs",
+  "title": "Namespaces, cgroups & Union FS",
+  "description": "Isolation, limitation des ressources, couches et copy-on-write.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme du noyau isole ce qu'un conteneur VOIT (PID, réseau, montages) ?",
+      "justification": "Les namespaces cloisonnent la vue (PID, NET, MNT, UTS, IPC, USER) ; les cgroups, eux, limitent la consommation.",
+      "position": 0,
+      "options": [
+        { "label": "Les namespaces", "correct": true, "position": 0 },
+        { "label": "Les cgroups", "correct": false, "position": 1 },
+        { "label": "Le système de fichiers en union", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme limite ce qu'un conteneur CONSOMME (CPU, mémoire, I/O) ?",
+      "justification": "Les cgroups (control groups) plafonnent et comptabilisent les ressources ; dépasser la limite mémoire déclenche un OOM kill.",
+      "position": 1,
+      "options": [
+        { "label": "Les cgroups", "correct": true, "position": 0 },
+        { "label": "Les namespaces", "correct": false, "position": 1 },
+        { "label": "Le hostname UTS", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi 10 conteneurs issus de la même image de 800 Mo n'occupent-ils pas 8 Go de disque ?",
+      "justification": "Le système de fichiers en union (copy-on-write) fait partager les couches image en lecture seule ; chaque conteneur n'ajoute qu'une fine couche d'écriture.",
+      "position": 2,
+      "options": [
+        { "label": "Ils partagent les couches image en lecture seule (copy-on-write)", "correct": true, "position": 0 },
+        { "label": "Docker compresse automatiquement à 1/10", "correct": false, "position": 1 },
+        { "label": "L'image est supprimée après le premier lancement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le user namespace en matière de sécurité ?",
+      "justification": "Il remappe root du conteneur vers un utilisateur non privilégié de l'hôte (base du rootless), limitant l'impact d'une évasion.",
+      "position": 3,
+      "options": [
+        { "label": "Remapper root du conteneur vers un utilisateur non privilégié de l'hôte", "correct": true, "position": 0 },
+        { "label": "Chiffrer les couches de l'image", "correct": false, "position": 1 },
+        { "label": "Accélérer le démarrage", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Docker a inventé les technologies d'isolation namespaces et cgroups.",
+      "justification": "Faux : ces fonctionnalités existaient déjà dans le noyau Linux ; Docker les a rendues faciles à utiliser (images, outillage, registre).",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

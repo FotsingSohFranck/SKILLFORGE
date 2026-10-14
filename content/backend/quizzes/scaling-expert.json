@@ -1,0 +1,119 @@
+{
+  "ref": "scaling-expert",
+  "node": "scaling-databases",
+  "lesson": "sharding-profondeur-pacelc",
+  "title": "Scaler les bases, niveau expert",
+  "description": "Partitionnement, réplication sync/async, failover, hachage cohérent, PACELC.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment purger efficacement une année de données d'une table temporelle à forte croissance, sans DELETE massif ni verrous ?",
+      "justification": "Le partitionnement déclaratif par plage permet de DETACH/DROP une partition entière, opération de métadonnée quasi instantanée.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Partitionner par plage de dates puis DETACH/DROP la partition",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un DELETE ... WHERE date < ... en boucle",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver l'autovacuum",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le compromis de la réplication synchrone par rapport à l'asynchrone ?",
+      "justification": "La synchrone attend qu'un réplica ait reçu l'écriture : aucune perte en cas de panne du primaire, mais plus de latence.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Aucune perte de transaction, au prix de plus de latence",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Plus rapide et sans perte",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle supprime le besoin de réplicas",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un orchestrateur comme Patroni ?",
+      "justification": "Il assure la bascule automatique (détection de panne, élection et promotion d'un réplica), la vraie haute disponibilité.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Promouvoir automatiquement un réplica si le primaire tombe",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les WAL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Générer les index automatiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer le hachage cohérent au simple `hash(clé) % N` pour sharder ?",
+      "justification": "Avec le modulo, changer N remappe presque toutes les clés ; le hachage cohérent ne déplace qu'une fraction (~1/N) lors d'un ajout de nœud.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Ajouter un shard ne déplace qu'une petite fraction des clés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il supprime le besoin de clé de sharding",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il rend les jointures inter-shards gratuites",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "PACELC affirme que, même sans partition réseau, garantir une cohérence forte a un coût en latence.",
+      "justification": "Vrai : PACELC ajoute l'arbitrage Latence/Cohérence en fonctionnement normal (Else), au-delà du seul cas de partition de CAP.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "state-operations",
+  "lesson": "importer-lexistant",
+  "title": "Reprendre un bucket existant avec un bloc import",
+  "statement": "Un bucket S3 nommé `data-prod-2021` a été créé à la main il y a longtemps. Reprends-le sous Terraform SANS le recréer. Écris (1) le bloc `import` qui cible l'adresse `aws_s3_bucket.data` (`to`) et l'identifiant réel du bucket (`id`), puis (2) le bloc `resource` `aws_s3_bucket` `data` correspondant, avec au moins l'attribut `bucket` aligné sur le nom réel.",
+  "skeleton": "# 1) Déclare l'import de l'objet existant (Terraform 1.5+)\nimport {\n  # to = ...\n  # id = ...\n}\n\n# 2) La ressource correspondante dans le code\n",
+  "solution": "import {\n  to = aws_s3_bucket.data\n  id = \"data-prod-2021\"\n}\n\nresource \"aws_s3_bucket\" \"data\" {\n  bucket = \"data-prod-2021\"\n}",
+  "keyPoints": ["import", "to = aws_s3_bucket.data", "id = \"data-prod-2021\"", "resource \"aws_s3_bucket\" \"data\"", "bucket = \"data-prod-2021\""],
+  "language": "hcl"
+}

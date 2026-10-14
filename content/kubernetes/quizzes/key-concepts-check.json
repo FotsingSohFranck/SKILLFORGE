@@ -1,0 +1,119 @@
+{
+  "ref": "key-concepts-check",
+  "node": "key-concepts",
+  "lesson": "modele-declaratif-reconciliation",
+  "title": "Concepts & architecture",
+  "description": "Plan de contrôle, nœuds, objets API, spec/status, réconciliation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant est la porte d'entrée unique de toutes les actions sur le cluster ?",
+      "justification": "Le kube-apiserver expose l'API REST ; kubectl, contrôleurs et kubelets passent tous par lui.",
+      "position": 0,
+      "options": [
+        {
+          "label": "kube-apiserver",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kube-proxy",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "le container runtime",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où est stocké l'état complet du cluster ?",
+      "justification": "Dans etcd, la base clé-valeur du plan de contrôle, la source de vérité, dont la sauvegarde est critique.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Dans etcd",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans le kubelet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans chaque conteneur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel agent, sur chaque nœud, reçoit les pods à exécuter et pilote le container runtime ?",
+      "justification": "Le kubelet parle à l'apiserver, lance les conteneurs via le runtime et vérifie leur santé (probes).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le kubelet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le scheduler",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcd",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un manifeste, quel champ écrivez-vous et quel champ Kubernetes remplit-il ?",
+      "justification": "Vous écrivez le spec (état désiré) ; Kubernetes remplit le status (état réel) et fait converger l'un vers l'autre.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vous écrivez spec, Kubernetes remplit status",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vous écrivez status, Kubernetes remplit spec",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Vous écrivez les deux",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour tout ce qui est durable en production, on privilégie le mode déclaratif (YAML versionnés, kubectl apply) plutôt que des commandes impératives.",
+      "justification": "Vrai : le déclaratif est reproductible, auditable, revu en PR et fondement du GitOps ; l'impératif sert à explorer/déboguer.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

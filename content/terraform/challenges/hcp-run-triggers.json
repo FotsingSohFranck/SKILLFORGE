@@ -1,0 +1,10 @@
+{
+  "node": "hcp",
+  "lesson": "hcp-fonctionnalites-avancees",
+  "title": "Propager un changement avec un run trigger",
+  "statement": "Une organisation a séparé son infrastructure en plusieurs workspaces HCP : un workspace « réseau » (adresses, sous-réseaux) dont dépendent trois workspaces « applications ». Quand le réseau change, on doit relancer les applications à la main, une par une, et on oublie parfois. Quelle fonctionnalité de HCP automatise cela, comment fonctionne-t-elle, et quel principe illustre-t-elle ?",
+  "skeleton": "Réponds en français, en 3 à 5 phrases.\n- La fonctionnalité : ...\n- Comment elle relie les workspaces : ...\n- Le principe illustré : ...\n",
+  "solution": "La fonctionnalité est le run trigger (déclencheur de run) de HCP Terraform. Un run trigger relie deux workspaces : on configure les workspaces « applications » pour qu'ils soient DÉCLENCHÉS par le workspace « réseau ». Ainsi, dès que le workspace réseau termine un run qui change son état (nouvelle plage d'adresses, nouveau sous-réseau), HCP lance AUTOMATIQUEMENT un run dans chacun des workspaces applications qui en dépendent, sans intervention manuelle. On propage donc un changement d'un périmètre amont (le réseau) vers tous les périmètres avals (les applications), comme une rangée de dominos : le premier tombe, les suivants suivent. Le principe illustré est la gestion des dépendances entre workspaces / l'orchestration : au lieu d'un seul état monolithique, on découpe l'infrastructure en workspaces à responsabilité claire, et les run triggers matérialisent qui dépend de qui pour garder l'ensemble cohérent automatiquement. Cela évite les oublis et les dérives entre le réseau et les applications qui s'appuient dessus.",
+  "keyPoints": ["run trigger", "workspace", "déclenche", "automatiquement", "dépend", "propager"],
+  "language": "text"
+}

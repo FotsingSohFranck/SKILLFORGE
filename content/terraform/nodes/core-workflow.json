@@ -1,0 +1,167 @@
+{
+  "node": "core-workflow",
+  "lessons": [
+    {
+      "slug": "plan-apply-destroy",
+      "title": "Plan, apply, destroy",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le cœur : write, plan, apply",
+          "body": "Avant de parler du workflow, un mot sur **Terraform** lui-même. Terraform est un outil d'**infrastructure as code** (souvent abrégé **IaC**, de l'anglais *Infrastructure as Code*, littéralement l'infrastructure définie sous forme de code). Au lieu de créer tes serveurs, bases de données et réseaux **à la main** en cliquant dans la console web de ton fournisseur cloud, tu les **décris dans des fichiers texte** (extension `.tf`), et Terraform se charge de les fabriquer pour toi, à l'identique, autant de fois que nécessaire.\n\n👉 **Analogie** : c'est la différence entre **monter un meuble en bricolant de mémoire** (à la main, jamais deux fois pareil) et **suivre une notice de montage** (le code) : la notice est écrite une fois, relue, partagée, et donne toujours le même meuble.\n\nLe workflow Terraform tient en trois temps.\n\n1. On **écrit** le code (les fichiers `.tf`) qui décrit l'infrastructure voulue.\n2. On lance **`terraform plan`** : Terraform **compare** ce que tu as décrit (l'état désiré, ton code) à ce qui existe vraiment (l'état réel). Pour se souvenir de ce qu'il gère, Terraform garde un fichier appelé l'**état** (en anglais *state*) : une sorte d'inventaire de tout ce qu'il a déjà créé. Le plan affiche **exactement** ce qu'il compte faire, à savoir créer (`+`), modifier (`~`), remplacer (`-/+`) ou détruire (`-`) une ressource, **sans rien changer** pour l'instant.\n3. On **relit** ce plan, puis **`terraform apply`** l'exécute réellement (après une demande de confirmation, ou en rejouant un plan déjà sauvegardé).\n\n👉 **Analogie du plan** : `terraform plan`, c'est l'**aperçu avant impression** ou le **récapitulatif de commande avant de payer** : tu vois la liste exacte de ce qui va se passer avant que ça arrive. **Exemple concret** : tu ajoutes dans ton code un serveur et une base de données ; `plan` t'affiche `Plan: 2 to add, 0 to change, 0 to destroy`, tu vérifies que c'est bien ce que tu veux, et seulement alors tu fais `apply`.\n\nCette étape de **prévisualisation** est ce qui rend Terraform sûr : on **voit** l'impact avant d'agir. Ne jamais appliquer sans avoir lu le plan est la règle d'or."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Le cycle et le plan sauvegardé",
+          "codeLanguage": "bash",
+          "body": "terraform plan                    # prévisualiser (rien n'est modifié)\nterraform apply                   # appliquer (demande confirmation)\n\n# En CI : sauvegarder le plan puis appliquer EXACTEMENT ce plan\nterraform plan -out=tfplan\nterraform apply tfplan            # applique le plan validé, sans re-calculer\n\n# Détruire toute l'infrastructure gérée (attention !)\nterraform destroy                 # relire ce qu'il va supprimer avant de confirmer"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "destroy & le plan sauvegardé en CI",
+          "body": "**`terraform destroy`** fait l'inverse de créer : il **supprime toute** l'infrastructure décrite par ton code. C'est très utile pour un **environnement éphémère** (un environnement de test qu'on monte le matin et qu'on jette le soir, pour ne pas payer un serveur qui dort), mais **redoutable** en production. Comme pour `apply`, on **relit toujours** la liste de ce qui va être détruit avant de confirmer.\n\n👉 **Analogie** : `destroy`, c'est **vider entièrement l'appartement** : parfait pour un logement de vacances qu'on rend, catastrophique pour son propre domicile.\n\nPassons à un détail d'expert, expliqué simplement. En équipe, on déclenche souvent Terraform via une **CI** (de l'anglais *Continuous Integration*, intégration continue) : un **robot** (un serveur automatique) qui exécute des commandes à ta place quand tu proposes une modification, au lieu de les taper toi-même sur ton poste. La suite de ces étapes automatiques s'appelle un **pipeline** (une chaîne de traitement). Et la façon de proposer une modification s'appelle une **pull request** (abrégée **PR**) : une demande de validation où des collègues relisent ton changement avant qu'il soit accepté.\n\nProblème : entre le moment où le robot calcule un `plan` (que tu fais relire dans la PR) et le moment où il lance l'`apply`, l'infrastructure peut avoir **changé** (un collègue a modifié quelque chose, ou une ressource a **dérivé**, c'est-à-dire été modifiée à la main hors de Terraform). Un `apply` qui **recalcule** son plan à ce moment-là pourrait donc faire **autre chose** que ce que tu avais validé.\n\nLa parade : on **sauvegarde** le plan dans un fichier (`terraform plan -out=tfplan`) et on applique **ce fichier** (`terraform apply tfplan`). L'apply exécute alors **exactement** le plan qui a été revu, sans le recalculer. **Exemple concret** : la PR montre `+ 1 serveur` ; on sauvegarde ce plan ; même si dix minutes plus tard quelqu'un touche à l'infra, l'`apply tfplan` fera précisément ce `+ 1 serveur` approuvé, ou échouera franchement si l'état a trop divergé (un garde-fou). C'est la base d'un pipeline Terraform sûr : plan revu en PR, apply du plan approuvé."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Le cycle Terraform en un coup d'œil",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Ecrire le code (.tf)\"] --> B[\"terraform plan (previsualise)\"]\n    B --> C{\"Le plan est correct ?\"}\n    C -->|Non| A\n    C -->|Oui| D[\"terraform apply (execute)\"]\n    D --> E[(\"Etat / state mis a jour\")]\n    E --> F[\"Infrastructure reelle\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Pourquoi, dans un pipeline CI, vaut-il mieux exécuter `terraform apply tfplan` (un plan sauvegardé) plutôt que `terraform apply` (qui recalcule un plan) ?",
+          "solution": "Parce qu'un `terraform apply` sans plan sauvegardé RECALCULE un nouveau plan au moment de l'apply, à partir de l'état réel de l'infrastructure à cet instant, qui peut avoir CHANGÉ depuis la revue. Or, dans un pipeline sûr, on veut appliquer EXACTEMENT ce qui a été prévisualisé et APPROUVÉ (typiquement le plan affiché et revu dans une pull request). Entre le moment du plan (revu) et celui de l'apply, plusieurs choses peuvent modifier ce que Terraform déciderait de faire : quelqu'un a modifié l'infrastructure à la main (dérive), un autre pipeline a appliqué des changements, une donnée externe a évolué, une nouvelle version de provider a été récupérée, etc. Un `terraform apply` qui recalcule pourrait donc exécuter des actions DIFFÉRENTES de celles validées, y compris des changements destructeurs non revus, sans que personne ne les ait approuvés. La solution est de découpler : (1) `terraform plan -out=tfplan` produit un plan FIGÉ dans un fichier, qui capture précisément les actions à effectuer ; ce plan est ce qu'on revoit/approuve ; (2) `terraform apply tfplan` applique EXACTEMENT ce plan sauvegardé, sans recalculer, Terraform exécute les actions figées, et échoue même si l'état a trop divergé (ce qui est un garde-fou : on ne veut pas appliquer un plan devenu obsolète en silence). Bénéfices : ce qui est appliqué est exactement ce qui a été revu (pas de surprise entre revue et exécution), le processus est auditable (le plan approuvé = ce qui tourne), et on évite les dérives entre plan et apply. C'est le fondement d'un workflow CI/CD Terraform fiable : plan revu en PR → apply du plan approuvé, jamais un apply qui recalcule à l'aveugle."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Plan, apply, destroy",
+          "quizRef": "core-workflow-plan-apply-check"
+        }
+      ]
+    },
+    {
+      "slug": "fmt-validate-inspect",
+      "title": "Format, validate & inspection",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "fmt, validate & le linting",
+          "body": "Avant de déployer, on **assainit** le code, c'est-à-dire qu'on le nettoie et qu'on vérifie qu'il est correct. Trois outils s'en chargent, du plus simple au plus poussé.\n\n**`terraform fmt`** (abréviation de *format*, mettre en forme) réindente et aligne automatiquement ton code selon le style officiel de Terraform. 👉 **Analogie** : c'est le **correcteur de mise en page** qui aligne proprement tous les paragraphes, sans changer le sens du texte. On le lance systématiquement, et en CI on vérifie avec `fmt -check` (qui **échoue** si un fichier est mal formaté, sans le modifier).\n\n**`terraform validate`** vérifie la **cohérence interne** du code : la syntaxe est-elle correcte, les arguments existent-ils, les références pointent-elles vers quelque chose de réel dans ton code ? Point important : il fait ça **sans contacter le cloud**, donc **hors ligne** et très **rapidement**. 👉 **Analogie** : c'est le **correcteur d'orthographe et de grammaire** : il repère les fautes dans ton texte sans vérifier si les faits sont vrais dans le monde réel. **Exemple** : tu écris `instance_typ` au lieu de `instance_type`, `validate` te le signale tout de suite.\n\nPour aller plus loin, **TFLint** est un **outil tiers** (développé en dehors de Terraform, à installer séparément) qui fait du **linting** : l'analyse du code à la recherche d'**erreurs et de mauvaises pratiques** que `validate` ne voit pas. 👉 **Analogie** : `validate` corrige la grammaire, **TFLint** est le **relecteur exigeant** qui te dit en plus « cette tournure est maladroite » ou « ce type d'instance n'existe pas chez ce fournisseur ». **Exemple** : TFLint repère un type de serveur inexistant, une valeur dépréciée, une convention non respectée.\n\nfmt + validate + TFLint, exécutés en CI (le robot automatique de l'équipe), garantissent un code **propre, cohérent et sûr** avant même de calculer le plan."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Assainir & inspecter",
+          "codeLanguage": "bash",
+          "body": "terraform fmt -recursive           # met en forme tout l'arbre\nterraform fmt -check               # en CI : échoue si mal formaté\nterraform validate                 # cohérence interne (hors ligne)\ntflint                             # linting avancé (bonnes pratiques)\n\n# Inspecter l'état / le graphe\nterraform state list               # lister les ressources gérées\nterraform output                   # afficher les sorties\nterraform graph                    # graphe des dépendances (DOT)\nterraform show                     # état actuel en détail"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Inspecter l'état & le graphe",
+          "body": "Terraform offre des commandes pour **comprendre** ce qu'il gère, sans avoir à deviner. Rappel : l'**état** (*state*) est le fichier où Terraform tient l'inventaire des ressources qu'il a créées.\n\n**`terraform state list`** liste toutes les ressources suivies dans l'état : la réponse à la question « qu'est-ce que Terraform gère ici, au juste ? ». **`terraform show`** affiche l'état **complet** avec les attributs réels (adresses IP, identifiants, etc.). **`terraform output`** montre les **valeurs de sortie**, c'est-à-dire les informations que ton code a choisi d'exposer (par exemple l'adresse publique d'un serveur).\n\n**`terraform graph`** produit le **graphe de dépendances** : un schéma qui montre **quelle ressource dépend de quelle autre**, et donc dans quel **ordre** Terraform doit agir. Il le sort au format **DOT** (un format texte standard décrivant un graphe, que des outils comme Graphviz savent transformer en image). 👉 **Analogie** : c'est le **plan de montage** qui indique « pose les fondations avant les murs, et les murs avant le toit » : on voit les dépendances d'un coup d'œil, et on repère un éventuel **cycle** (A attend B qui attend A, une boucle impossible).\n\nCes commandes sont l'**observabilité** de Terraform (la capacité à observer ce qui se passe à l'intérieur). 👉 **En clair** : avant de modifier ou de déboguer, on **inspecte** l'état pour savoir ce qui existe et comment les ressources sont liées, plutôt que de deviner à l'aveugle."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Quelle est la différence entre `terraform validate` et `terraform plan`, et pourquoi exécuter `validate` (et `fmt`) en CI avant même le `plan` ?",
+          "solution": "Différence : `terraform validate` vérifie la COHÉRENCE INTERNE du code, la syntaxe HCL est-elle correcte, les arguments sont-ils valides pour leurs types de ressources, les références pointent-elles vers des objets qui existent, les types concordent-ils. Il fait cela LOCALEMENT et HORS LIGNE : il ne contacte AUCUN provider ni cloud, ne consulte pas l'état réel, et ne dit rien de ce qui sera créé/modifié. Il est donc très rapide et attrape les erreurs « statiques » du code. `terraform plan`, lui, va bien plus loin : il se connecte aux providers, rafraîchit l'état réel de l'infrastructure, et CALCULE les actions concrètes (créer/modifier/remplacer/détruire) en comparant l'état désiré (code) à l'état réel. C'est une opération plus lourde, qui nécessite des credentials et un accès aux API, et qui montre l'IMPACT réel. Pourquoi lancer validate (et fmt -check) en CI AVANT le plan : (1) Fail fast et feedback rapide : fmt et validate sont instantanés et hors ligne ; ils attrapent les fautes de format et les erreurs de code immédiatement, sans attendre un plan long ni consommer d'accès cloud, inutile de lancer un plan coûteux sur du code qui ne compile même pas. (2) Ils ne nécessitent pas de credentials cloud : on peut les exécuter très tôt dans le pipeline, y compris sur des PR d'external contributors, sans exposer d'accès sensible. (3) fmt -check garantit un style cohérent (diffs propres, pas de bruit de formatage dans les revues) ; validate garantit un code cohérent. (4) On complète souvent par TFLint pour les mauvaises pratiques que validate ne détecte pas. L'ordre typique en CI est donc : fmt -check → validate → tflint → plan → (revue) → apply. On filtre les erreurs les moins chères à détecter d'abord (format, syntaxe, cohérence) avant de payer le coût du plan (accès cloud, temps) et de la revue humaine. C'est le principe du fail fast appliqué au pipeline Terraform."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Le workflow Terraform",
+          "quizRef": "core-workflow-check"
+        }
+      ]
+    },
+    {
+      "slug": "drift-target-exit-codes",
+      "title": "Dérive, -target & codes de sortie",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Détecter la dérive : plan -refresh-only",
+          "body": "L'infrastructure **dérive** (en anglais *drift*) quand quelqu'un modifie une ressource **à la main**, directement dans la console du cloud, **sans passer par Terraform**. Du coup, le monde réel ne correspond plus à ce que le code (et l'état) décrivent. 👉 **Analogie** : tu as un plan à jour de ta maison, mais quelqu'un a percé une porte sans te prévenir ; le plan et la réalité ne coïncident plus, c'est une **dérive**.\n\nPour **détecter** cette dérive **sans** rien changer, on utilise **`terraform plan -refresh-only`**. Le mot **refresh** signifie « rafraîchir » : Terraform va **interroger le cloud** pour connaître l'état réel actuel, et le compare à ce qu'il avait noté dans son état. L'option `-refresh-only` fait qu'il montre **uniquement** ce qui a divergé dans le réel, sans proposer d'appliquer le code. En clair : « voici ce qui a changé en dehors de Terraform ». **Exemple** : quelqu'un a ouvert un port de sécurité à la main ; `plan -refresh-only` te le révèle.\n\nC'est l'outil de **détection de dérive**. On le lance **périodiquement**, typiquement via un **cron** (un planificateur qui exécute une tâche automatiquement à heure fixe, par exemple chaque nuit à 3 h), pour être **alerté** dès que le réel s'écarte du code, avant que cela ne cause un incident. Si on veut **acter** la dérive (l'enregistrer dans l'état sans toucher à l'infra), on lance `apply -refresh-only`. Surveiller la dérive est une pratique d'exploitation mûre."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "-target : puissant mais à éviter",
+          "body": "L'option **`-target=ADRESSE`** limite un `plan` ou un `apply` à **une seule ressource** (et ce dont elle dépend), au lieu de traiter **tout** le **graphe** (l'ensemble des ressources et de leurs liens). L'**adresse** est le nom qui désigne une ressource précise dans ton code, par exemple `aws_instance.web`.\n\nC'est tentant pour « appliquer juste ce petit changement rapidement »... mais c'est **à éviter** en usage courant. Pourquoi ? Cibler une seule ressource **contourne le calcul global** : Terraform ne regarde plus l'ensemble, il peut donc laisser l'état **incohérent** (des ressources qui dépendaient de celle-ci ne sont pas mises à jour) et te **cacher** des changements que tu aurais dû voir. 👉 **Analogie** : c'est **repeindre un seul mur sans regarder la pièce entière** : tu vas plus vite, mais tu risques un raccord qui jure avec le reste.\n\nLa documentation de HashiCorp (l'éditeur de Terraform) présente `-target` comme un outil de **dépannage exceptionnel** (réparer un état bloqué, contourner un bug ponctuel), **pas** un mode de travail quotidien. Et un signal utile : si tu as **besoin** de `-target` régulièrement, c'est le **signe** qu'il faut **découper ton état** en périmètres plus petits, appliqués indépendamment (par exemple séparer le réseau, les serveurs, la base de données). Un expert utilise `-target` en dernier recours et **lit ce qu'il révèle** sur l'organisation du code."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les codes de sortie du plan (niveau expert)",
+          "body": "Pour **automatiser** en CI, il faut que le pipeline (le robot) puisse **décider tout seul** quoi faire après un plan. C'est le rôle du **code de sortie** (en anglais *exit code*) : un **nombre** que toute commande renvoie en terminant, et qui dit si elle a réussi ou échoué (par convention, `0` = succès). 👉 **Analogie** : c'est le **feu de signalisation** que la commande allume en finissant, vert ou rouge, pour que le programme suivant sache quoi faire.\n\n**`terraform plan -detailed-exitcode`** renvoie un code **plus riche** que le simple réussi/échoué :\n- **`0`** = **aucun changement** (l'infra est déjà conforme au code) ;\n- **`2`** = **des changements sont prévus** ;\n- **`1`** = **erreur**.\n\nCe code **pilote** le pipeline **sans avoir à lire (parser) le texte** affiché, ce qui serait fragile. **Parser**, ici, veut dire analyser le texte de sortie pour y chercher des mots, une méthode peu fiable qu'on veut éviter. La logique devient simple : « si `0`, ne rien faire ; si `2`, demander une approbation ou poster le plan sur la PR ; si `1`, échouer ».\n\n**Exemple concret** : un job de **détection de dérive** lance `plan -refresh-only -detailed-exitcode` chaque nuit et **alerte l'équipe seulement si le code vaut `2`** (une dérive a été détectée). Connaître ces codes (`0`/`1`/`2`) est indispensable pour construire une automatisation Terraform robuste, plutôt que de deviner l'état à partir des logs."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe veut un pipeline nocturne qui l'alerte automatiquement si quelqu'un a modifié l'infrastructure à la main (dérive), sans rien appliquer. Quelles commandes/options utiliser, et comment le pipeline décide-t-il d'alerter ?",
+          "solution": "On combine deux mécanismes : la détection de dérive via plan -refresh-only, et le pilotage du pipeline via le code de sortie détaillé du plan. Concrètement, le job nocturne lance : `terraform plan -refresh-only -detailed-exitcode`. (1) -refresh-only fait que Terraform RAFRAÎCHIT l'état réel (interroge les providers) et compare au state enregistré, en ne montrant QUE les écarts dus à des changements faits EN DEHORS de Terraform (dérive), il ne propose pas d'appliquer le code, il ne fait que révéler ce qui a divergé dans le réel. C'est exactement la détection de dérive voulue, sans rien modifier. (2) -detailed-exitcode fait renvoyer par la commande un code de sortie exploitable par le pipeline : 0 = aucun changement/aucune dérive (le réel correspond au state), 2 = des différences existent (ici, une dérive a été détectée), 1 = erreur d'exécution. Comment le pipeline décide d'alerter : il inspecte le code de sortie plutôt que de parser le texte. Si le code est 0, tout est conforme → ne rien faire. Si le code est 2, une dérive a été détectée → déclencher une ALERTE (message Slack/e-mail/ticket) avec le détail du plan refresh-only pour que l'équipe investigue qui/quoi a changé à la main. Si le code est 1, échec du job → alerter sur l'erreur du pipeline lui-même. Ce fonctionnement est fiable et scriptable (pas de fragile analyse de logs). On planifie ce job périodiquement (cron nocturne) pour être averti proactivement des dérives AVANT qu'elles ne causent un incident ou ne surprennent un apply légitime. Précisions : ce job ne fait qu'ALERTER (lecture seule), il n'applique rien ; si l'équipe décide d'ACTER la dérive (l'enregistrer dans le state sans toucher l'infra), elle peut lancer un apply -refresh-only ; si elle décide de RÉTABLIR le code (annuler la modification manuelle), un apply normal ramènera le réel au code. La bonne pratique de fond reste : ne pas modifier l'infra à la main (tout passer par Terraform), et surveiller la dérive pour détecter les écarts. En résumé : plan -refresh-only pour détecter la dérive sans rien changer, -detailed-exitcode (code 2) pour déclencher l'alerte automatiquement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Dérive, -target & codes de sortie (expert)",
+          "quizRef": "drift-target-exitcode-expert"
+        }
+      ]
+    },
+    {
+      "slug": "console-et-montee-de-version",
+      "title": "Console & montée de version",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "terraform console : explorer l'état & les expressions",
+          "body": "Au-delà de tester des expressions (vu au nœud HCL), **`terraform console`** ouvre une **console interactive** : un petit invite où tu tapes une expression et Terraform te répond **immédiatement** avec sa valeur, un peu comme une calculatrice. 👉 **Analogie** : c'est le **bac à sable** où tu poses une question à Terraform et il répond sur-le-champ, sans rien modifier.\n\nSon intérêt principal ici : **explorer l'état réel**. Tu peux y référencer n'importe quelle ressource gérée, par exemple `aws_instance.web.private_ip` (l'adresse IP privée du serveur nommé `web`), et Terraform te renvoie sa **valeur actuelle** telle qu'elle est enregistrée dans l'état. **Exemple** : tu ne sais plus quelle IP a pris ton serveur ; tu ouvres la console, tu tapes la référence, tu as la réponse en une seconde.\n\nC'est pratique pour **inspecter** rapidement une valeur, **déboguer** une référence qui ne donne pas ce que tu croyais, ou **construire** une expression pas à pas en t'appuyant sur des valeurs réelles. Couplée à `terraform show` (l'état complet) et `terraform state list` (la liste des ressources gérées), la console fait partie de la **boîte à outils d'inspection** : comprendre ce que Terraform gère et voit, plutôt que de deviner."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Monter un provider de version majeure (niveau expert)",
+          "body": "D'abord, un **provider** (fournisseur) est le **plugin** que Terraform utilise pour parler à un service donné (AWS, Google Cloud, Azure, etc.) : c'est lui qui sait créer un serveur chez ce fournisseur précis. 👉 **Analogie** : le provider est l'**adaptateur de prise** entre Terraform et un pays (un cloud) donné.\n\nLes versions suivent un numéro à trois chiffres (par exemple `5.40.0`). Une **version majeure** est le **premier** chiffre : passer de `~> 5.0` à `~> 6.0` est un changement **majeur**, qui peut apporter des **changements cassants** (en anglais *breaking changes*), c'est-à-dire des choses qui marchaient avant et qui, après, doivent être écrites autrement (un attribut renommé ou supprimé, un comportement modifié). C'est donc une opération **délibérée**, jamais subie.\n\nLa démarche sûre, étape par étape :\n1. **Lire le guide de migration** du provider (le document officiel qui liste les changements cassants de la nouvelle version).\n2. Mettre à jour la **contrainte** de version dans ton code (la ligne qui dit quelle version tu acceptes, par exemple `~> 6.0`).\n3. Lancer **`terraform init -upgrade`** : `init` prépare le projet et télécharge les providers ; l'option `-upgrade` met à jour le **lock file** (le fichier `.terraform.lock.hcl` qui **fige** la version exacte utilisée, pour que toute l'équipe ait la même) vers la nouvelle version.\n4. Lancer **`terraform plan`** pour **voir l'impact** : souvent des changements « cosmétiques » à valider, parfois des **remplacements** de ressources à surveiller de près.\n\n👉 **Analogie** : monter de version majeure, c'est comme **changer une pièce de moteur par un modèle plus récent** : on lit d'abord la notice, on essaie sur un véhicule d'atelier, puis seulement sur la voiture de tous les jours.\n\nOn teste **d'abord** sur un **environnement non critique** (dev, puis staging, c'est-à-dire des copies de test avant la vraie production), on corrige le code selon la nouvelle version, puis on **propage** progressivement. Ne **jamais** mettre à jour un provider majeur directement en production à l'aveugle : c'est un changement qui se **planifie, teste et propage** par paliers."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Inspecter & monter de version",
+          "codeLanguage": "bash",
+          "body": "# Explorer l'état dans la console\nterraform console\n> aws_instance.web.private_ip        # valeur réelle depuis l'état\n> [for i in aws_instance.web : i.id]  # tester une expression sur l'état\n\n# Monter un provider de version (délibérément)\n# 1) mettre à jour la contrainte (~> 6.0) ; 2) :\nterraform init -upgrade    # met à jour le lock file vers la nouvelle version\nterraform plan             # valider l'impact (d'abord en dev/staging)"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe doit mettre à jour son provider AWS de la version 5 à la version 6 (majeure). Décrivez une démarche sûre, plutôt que de changer la contrainte et d'appliquer directement en production.",
+          "solution": "Une montée de version MAJEURE d'un provider introduit potentiellement des changements CASSANTS (attributs renommés ou supprimés, valeurs par défaut modifiées, comportements différents, ressources qui doivent être remplacées). L'appliquer directement en production à l'aveugle risque des erreurs de plan, voire des remplacements destructeurs non anticipés. Démarche sûre : (1) LIRE LE GUIDE DE MIGRATION du provider (les release notes / upgrade guide de la v6), pour identifier les changements cassants, les attributs à renommer/supprimer, les nouveaux comportements, et les éventuels remplacements attendus. On adapte le code en conséquence AVANT de tester. (2) Mettre à jour la CONTRAINTE de version dans required_providers (par exemple ~> 6.0). (3) Lancer terraform init -upgrade, qui met à jour le fichier de verrouillage (.terraform.lock.hcl) vers la nouvelle version du provider (et régénérer les checksums multi-plateformes si besoin, cf. lock file). (4) Lancer terraform plan sur un ENVIRONNEMENT NON CRITIQUE d'abord (dev, puis staging) pour VOIR l'impact : beaucoup de changements sont « cosmétiques » (à valider), mais certains peuvent être des remplacements (-/+) à surveiller de près, on inspecte attentivement le plan, on corrige le code jusqu'à obtenir un plan sain (idéalement sans remplacement inattendu). (5) Appliquer en dev/staging, vérifier que tout fonctionne. (6) Une fois validé et le code corrigé, PROPAGER progressivement vers les environnements supérieurs (staging puis prod), en relisant le plan à chaque étape (l'état de prod peut différer). (7) Committer le lock file mis à jour et les corrections de code, revus en pull request. Points clés : c'est un changement DÉLIBÉRÉ et PLANIFIÉ, testé sur des environnements de plus en plus critiques, jamais une bascule directe en prod ; on s'appuie sur le plan (prévisualisation) à chaque palier pour maîtriser l'impact ; et on garde la possibilité de revenir en arrière (le lock file et la contrainte permettent de repasser en v5 si un problème sérieux apparaît, tant qu'on n'a pas appliqué de changement irréversible). Cette prudence vaut pour toute mise à jour majeure de provider (ou de Terraform lui-même)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Console & montée de version (expert)",
+          "quizRef": "console-upgrade-expert"
+        }
+      ]
+    }
+  ]
+}

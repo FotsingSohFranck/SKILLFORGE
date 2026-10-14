@@ -1,0 +1,74 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  /* Capsule facon Apple : rayon = demi-hauteur (pilule pleine). */
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-spring);
+  white-space: nowrap;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Survol : légère lévitation (défini AVANT :active pour que l'appui l'emporte). */
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Retour tactile « pressé » cohérent sur toutes les variantes (léger enfoncement, façon Apple). */
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.md {
+  /* Padding horizontal genereux : lisibilite de la capsule. */
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+}
+
+.sm {
+  padding: var(--space-1) var(--space-4);
+  font-size: var(--text-xs);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.secondary {
+  background: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--color-secondary-hover);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.danger:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+}

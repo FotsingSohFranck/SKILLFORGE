@@ -1,0 +1,96 @@
+{
+  "ref": "gof-visitor-expert-check",
+  "node": "gof-patterns",
+  "lesson": "visitor-double-dispatch",
+  "title": "Quiz, Visitor & double dispatch (expert)",
+  "description": "Externaliser une opération, double dispatch, problème d'expression, alternative sealed.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le double dispatch dans le pattern Visitor ?",
+      "justification": "Java ne fait que du single dispatch (sur le receveur). accept puis visit enchaînent deux dispatchs polymorphes pour sélectionner le code selon le couple (élément, visiteur).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Sélectionner le code selon deux types à la fois (élément ET visiteur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Accélérer les appels de méthode",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rendre les objets immuables",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel compromis Visitor fait-il sur le problème d'expression ?",
+      "justification": "Visitor rend facile l'ajout d'OPÉRATIONS (un nouveau visiteur) mais coûteux l'ajout de TYPES (chaque nouveau type casse tous les visiteurs). C'est l'inverse du polymorphisme classique.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Ajouter une opération devient facile, ajouter un type devient coûteux (casse les visiteurs)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il rend tout facile sans compromis",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il rend l'ajout de types facile et d'opérations coûteux",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle alternative Java moderne offre le bénéfice de Visitor sans le boilerplate accept/visit ?",
+      "justification": "Un `switch` exhaustif à record patterns sur une hiérarchie `sealed` : ajouter une opération = un switch, avec vérification d'exhaustivité par le compilateur.",
+      "position": 2,
+      "options": [
+        {
+          "label": "`sealed` + record patterns dans un switch exhaustif",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Des instanceof en cascade",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La réflexion",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Visitor est indiqué quand la hiérarchie de types est stable mais que les opérations se multiplient.",
+      "justification": "Vrai : Visitor optimise l'ajout d'opérations. Si au contraire ce sont les types qui varient beaucoup, le polymorphisme classique est préférable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

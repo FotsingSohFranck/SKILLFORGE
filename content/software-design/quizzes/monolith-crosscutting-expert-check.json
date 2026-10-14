@@ -1,0 +1,96 @@
+{
+  "ref": "monolith-crosscutting-expert-check",
+  "node": "monolith-vs-microservices",
+  "lesson": "cross-cutting-microservices-et-conway",
+  "title": "Quiz, Hors-code des microservices & Conway (expert)",
+  "description": "Observabilité/tracing, cohérence répartie, loi de Conway.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour suivre une requête traversant plusieurs microservices, on a besoin de… ?",
+      "justification": "Du tracing distribué (avec un correlation id) et d'une observabilité agrégée ; sans cela, déboguer un système distribué est quasi impossible.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Du tracing distribué (correlation id) et des logs/métriques agrégés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien de spécial, comme en monolithe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une seule grosse base partagée",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment gère-t-on la cohérence des données entre microservices (chacun sa base) ?",
+      "justification": "Cohérence à terme via événements, Sagas + compensation, Outbox pour publier, consommateurs idempotents, duplication de données, pas de transaction ACID globale ni de JOIN.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Cohérence à terme via événements, Sagas et compensation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une transaction ACID globale sur toutes les bases",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Des JOINs entre les bases des services",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit la loi de Conway ?",
+      "justification": "Les organisations produisent des systèmes qui copient leur structure de communication ; d'où l'inverse Conway maneuver : organiser les équipes selon l'architecture voulue.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'architecture logicielle reflète la structure de l'organisation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le code double de taille chaque année",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les microservices sont toujours meilleurs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Découper en 15 microservices avec une seule équipe de 8 personnes et une base partagée est une bonne idée « pour être à la pointe ».",
+      "justification": "Faux : sans maturité opérationnelle, base par service ni organisation adéquate (Conway), c'est un monolithe distribué ingérable. Microservices = besoin réel d'échelle/autonomie.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

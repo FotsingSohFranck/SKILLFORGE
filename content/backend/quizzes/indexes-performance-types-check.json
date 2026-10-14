@@ -1,0 +1,52 @@
+{
+  "ref": "indexes-performance-types-check",
+  "node": "indexes-performance",
+  "lesson": "choisir-le-bon-type-index",
+  "title": "Quiz : choisir le bon type d'index",
+  "description": "B-tree et ses limites, GIN/pg_trgm, index partiel, index d'expression.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels usages le B-tree couvre-t-il bien ?",
+      "justification": "Le B-tree gère l'égalité, les plages (<, >, BETWEEN) et le tri : environ 90 % des besoins.",
+      "position": 0,
+      "options": [
+        { "label": "L'égalité, les plages (<, >, BETWEEN) et le tri", "correct": true, "position": 0 },
+        { "label": "Uniquement la recherche plein-texte", "correct": false, "position": 1 },
+        { "label": "Les recherches par sous-chaîne LIKE '%mot%'", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel index rend efficace une recherche par sous-chaîne `LIKE '%docker%'` ?",
+      "justification": "Un index GIN avec l'extension pg_trgm indexe les trigrammes et gère le joker en tête, impossible pour un B-tree.",
+      "position": 1,
+      "options": [
+        { "label": "Un index GIN avec l'extension pg_trgm (trigrammes)", "correct": true, "position": 0 },
+        { "label": "Un B-tree sur la colonne texte", "correct": false, "position": 1 },
+        { "label": "Un index Hash", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un index partiel ?",
+      "justification": "Un index partiel n'indexe qu'un sous-ensemble des lignes via un WHERE : plus petit et plus rapide quand les requêtes ne visent qu'un état.",
+      "position": 2,
+      "options": [
+        { "label": "Un index qui ne couvre qu'un sous-ensemble des lignes (via un WHERE)", "correct": true, "position": 0 },
+        { "label": "Un index construit à moitié puis abandonné", "correct": false, "position": 1 },
+        { "label": "Un index qui n'indexe qu'une partie de chaque valeur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un index d'expression comme `CREATE INDEX ON users(lower(email))` rend `WHERE lower(email) = …` indexable.",
+      "justification": "Vrai : l'index d'expression indexe le résultat de la fonction, ce qui permet au moteur de l'utiliser pour ce filtre.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

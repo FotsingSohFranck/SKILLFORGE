@@ -1,0 +1,52 @@
+{
+  "ref": "pods-unite-check",
+  "node": "pods",
+  "lesson": "le-pod-unite-de-base",
+  "title": "Le Pod, unité de base",
+  "description": "Pod vs conteneur, réseau/localhost partagé, pod éphémère, contrôleurs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est l'unité de base que Kubernetes déploie et manipule ?",
+      "justification": "Kubernetes ne manipule pas le conteneur seul, mais le Pod : une enveloppe d'un ou plusieurs conteneurs partageant réseau (une IP, localhost) et volumes.",
+      "position": 0,
+      "options": [
+        { "label": "Le Pod", "correct": true, "position": 0 },
+        { "label": "Le conteneur, directement", "correct": false, "position": 1 },
+        { "label": "Le nœud (la machine)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que partagent les conteneurs d'un même pod ?",
+      "justification": "Ils partagent le même réseau : une seule IP commune et se parlent en localhost, et peuvent partager des volumes (stockage).",
+      "position": 1,
+      "options": [
+        { "label": "Une IP commune (ils se parlent en localhost) et, si besoin, des volumes", "correct": true, "position": 0 },
+        { "label": "Rien, ils sont totalement isolés l'un de l'autre", "correct": false, "position": 1 },
+        { "label": "Le même identifiant de processus uniquement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'adresse IP d'un pod reste la même pour toujours, on peut donc s'y fier durablement.",
+      "justification": "Faux : le pod est éphémère, on le remplace au lieu de le réparer, et son IP change à chaque recréation. On passe par un Service pour une adresse stable.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu veux faire tourner une application web sans état en 3 exemplaires, et qu'elle se répare seule si un pod meurt. Que déclares-tu ?",
+      "justification": "Un Deployment gère des pods sans état : il maintient le nombre de répliques désiré et recrée automatiquement un pod disparu (auto-réparation). Un Pod nu ne serait recréé par personne.",
+      "position": 3,
+      "options": [
+        { "label": "Un Deployment (qui crée et surveille les 3 pods)", "correct": true, "position": 0 },
+        { "label": "Trois Pods nus créés à la main", "correct": false, "position": 1 },
+        { "label": "Un seul Pod avec 3 conteneurs identiques", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

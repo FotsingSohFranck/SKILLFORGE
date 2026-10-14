@@ -1,0 +1,41 @@
+{
+  "ref": "record-patterns-deconstruire-un-record",
+  "node": "record-patterns",
+  "lesson": "deconstruire-un-record",
+  "title": "Quiz : déconstruire un record",
+  "description": "La forme case Point(int x, int y) et l'usage de var.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour un record Point(int x, int y), quelle branche de switch extrait directement les deux composants ?",
+      "justification": "Le record pattern liste les composants entre parenthèses : case Point(int x, int y) crée x et y utilisables tout de suite.",
+      "position": 0,
+      "options": [
+        { "label": "case Point(int x, int y) -> ...", "correct": true, "position": 0 },
+        { "label": "case Point p -> ...", "correct": false, "position": 1 },
+        { "label": "case Point.x, Point.y -> ...", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans case Point(var x, var y), que fait le mot clé var ?",
+      "justification": "var demande au compilateur d'inférer le type du composant (ici int), ce qui évite de le réécrire.",
+      "position": 1,
+      "options": [
+        { "label": "Il laisse le compilateur deviner le type du composant", "correct": true, "position": 0 },
+        { "label": "Il rend la variable modifiable après coup", "correct": false, "position": 1 },
+        { "label": "Il transforme le composant en texte", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "case Point(var x, var y) et case Point(int x, int y) donnent le même résultat pour un record dont les composants sont des int.",
+      "justification": "Vrai : var est juste une écriture plus courte ; le compilateur déduit int, le comportement est identique.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

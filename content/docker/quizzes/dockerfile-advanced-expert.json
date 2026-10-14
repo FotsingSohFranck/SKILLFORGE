@@ -1,0 +1,119 @@
+{
+  "ref": "dockerfile-advanced-expert",
+  "node": "building-images",
+  "lesson": "instructions-avancees",
+  "title": "Instructions avancées, expert",
+  "description": "ARG vs ENV, HEALTHCHECK, STOPSIGNAL, LABEL OCI, builds reproductibles.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre ARG et ENV dans un Dockerfile ?",
+      "justification": "ARG n'existe que pendant le build (passé via --build-arg) ; ENV persiste dans l'image et le conteneur au runtime.",
+      "position": 0,
+      "options": [
+        {
+          "label": "ARG n'existe qu'au build, ENV persiste au runtime",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "ARG persiste au runtime, ENV seulement au build",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ce sont des synonymes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un secret passé en ARG est-il sûr parce qu'il n'existe pas au runtime ?",
+      "justification": "Non : sa valeur reste dans l'historique de l'image (docker history) et est extractible ; on utilise les build secrets.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Non, il reste dans l'historique de l'image",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, ARG est totalement sûr",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, si on le supprime ensuite",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permet l'instruction HEALTHCHECK dans un Dockerfile ?",
+      "justification": "Intégrer la vérification de santé dans l'image, que Docker/Compose exploitent pour marquer le conteneur healthy/unhealthy.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Intégrer une vérification de santé à l'image",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les couches",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Publier l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les LABEL org.opencontainers.image.* ?",
+      "justification": "Ce sont les annotations OCI standard : elles relient l'image à sa source, sa version, sa révision (traçabilité).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Des métadonnées OCI standard (source, version, révision)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Des variables d'environnement runtime",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Des secrets de build",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un build reproductible (épinglage strict, SOURCE_DATE_EPOCH) combiné à la signature et au SBOM permet de prouver que l'image déployée correspond au code audité.",
+      "justification": "Vrai : c'est le cœur de la sécurité de la chaîne d'approvisionnement (SLSA), reproductibilité + provenance vérifiable.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

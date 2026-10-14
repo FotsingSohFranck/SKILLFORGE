@@ -1,0 +1,41 @@
+{
+  "ref": "build-dependances-classpath-vs-modules",
+  "node": "build-dependances",
+  "lesson": "classpath-vs-modules",
+  "title": "Quiz : classpath contre modules",
+  "description": "Classpath historique, JPMS et quand chacun compte.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que déclare explicitement un module dans son fichier module-info.java ?",
+      "justification": "Un module déclare ce qu'il expose aux autres (exports) et ce dont il a besoin (requires). C'est ce qui crée des frontières nettes, contrairement au classpath plat.",
+      "position": 0,
+      "options": [
+        { "label": "Ce qu'il expose (exports) et ce dont il a besoin (requires)", "correct": true, "position": 0 },
+        { "label": "La version de Java et la date de compilation", "correct": false, "position": 1 },
+        { "label": "La liste de tous les fichiers .class du projet", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu débutes et tu écris une petite application simple, sans fichier module-info.java. Que se passe t il ?",
+      "justification": "Sans module-info.java, Java traite le code comme un module anonyme et tout fonctionne sur le classpath. On n'est jamais forcé de passer aux modules.",
+      "position": 1,
+      "options": [
+        { "label": "Tout fonctionne : Java utilise le classpath, aucun module n'est obligatoire", "correct": true, "position": 0 },
+        { "label": "Le code refuse de compiler tant qu'on n'a pas créé de module", "correct": false, "position": 1 },
+        { "label": "Java télécharge automatiquement les modules manquants", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le classpath historique est un espace plat où toutes les classes sont mélangées sans frontières explicites.",
+      "justification": "Le classpath ne pose aucune frontière : toute classe peut en utiliser une autre, y compris les classes internes d'une bibliothèque. Les modules corrigent justement ce point.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

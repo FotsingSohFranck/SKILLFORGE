@@ -1,0 +1,31 @@
+{
+  "node": "design-build",
+  "lessons": [
+    {
+      "slug": "vite-et-imperatif",
+      "title": "Vite et impératif",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'examen est chronométré",
+          "body": "Le CKAD se joue au **temps** : 120 minutes pour une quinzaine de tâches pratiques dans un vrai cluster. La clé n'est pas de connaître le YAML par cœur, mais de le **générer** rapidement en impératif puis de l'ajuster. Maîtrisez `kubectl create ... --dry-run=client -o yaml`."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Générer plutôt qu'écrire",
+          "codeLanguage": "bash",
+          "body": "# Un pod, un job, un manifeste prêt à éditer :\nkubectl run web --image=nginx:1.27-alpine --dry-run=client -o yaml > pod.yaml\nkubectl create job hello --image=busybox -- echo hi --dry-run=client -o yaml > job.yaml"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pods multi-conteneurs",
+          "body": "Un pod peut porter plusieurs conteneurs qui **partagent réseau et volumes** : un conteneur principal et un *sidecar* (collecte de logs, proxy). Ils communiquent via `localhost` et un **emptyDir** partagé. À l'examen, on vous demande souvent d'ajouter un sidecar qui lit un fichier écrit par le conteneur principal."
+        }
+      ]
+    }
+  ]
+}

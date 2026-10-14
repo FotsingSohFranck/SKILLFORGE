@@ -1,0 +1,63 @@
+{
+  "ref": "scheduling-check",
+  "node": "scheduling",
+  "lesson": "affinites-priorites-evictions",
+  "title": "Ordonnancement",
+  "description": "Scheduler filtrer/scorer, taints/tolerations, spread, priorités, PDB.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment le scheduler choisit-il un nœud pour un pod ?",
+      "justification": "En deux temps : filtrer (écarter les nœuds inadaptés) puis scorer (classer et choisir le meilleur).",
+      "position": 0,
+      "options": [
+        { "label": "Il filtre les nœuds inadaptés puis score les restants", "correct": true, "position": 0 },
+        { "label": "Il prend toujours le premier nœud", "correct": false, "position": 1 },
+        { "label": "Au hasard", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un taint sur un nœud ?",
+      "justification": "Il le rend répulsif : seuls les pods avec une toleration correspondante peuvent y être planifiés (réserver des nœuds).",
+      "position": 1,
+      "options": [
+        { "label": "Il repousse les pods, sauf ceux qui le tolèrent", "correct": true, "position": 0 },
+        { "label": "Il attire tous les pods", "correct": false, "position": 1 },
+        { "label": "Il supprime le nœud", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme répartit les répliques sur des nœuds/zones différents pour la haute disponibilité ?",
+      "justification": "Les topologySpreadConstraints (ou podAntiAffinity) étalent les pods à travers les domaines de panne, évitant qu'une panne les emporte tous.",
+      "position": 2,
+      "options": [
+        { "label": "Les topologySpreadConstraints", "correct": true, "position": 0 },
+        { "label": "Les requests CPU", "correct": false, "position": 1 },
+        { "label": "Le tag latest", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit un PodDisruptionBudget (PDB) ?",
+      "justification": "Qu'un minimum de répliques reste disponible lors des perturbations volontaires (drain, mise à jour), protégeant la disponibilité.",
+      "position": 3,
+      "options": [
+        { "label": "Un minimum de répliques disponibles lors des évictions volontaires", "correct": true, "position": 0 },
+        { "label": "Un budget financier du cluster", "correct": false, "position": 1 },
+        { "label": "La priorité d'un namespace", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une toleration autorise un pod à aller sur un nœud tainté, mais ne l'y contraint pas ; pour forcer le placement, on ajoute une affinité.",
+      "justification": "Vrai : taint/toleration = repousser/autoriser ; affinité = attirer/contraindre. On combine les deux pour réserver précisément des nœuds.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

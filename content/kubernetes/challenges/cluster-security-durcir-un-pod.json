@@ -1,0 +1,10 @@
+{
+  "node": "cluster-security",
+  "lesson": "pod-security",
+  "title": "Durcir un pod avec securityContext",
+  "statement": "Complète le `securityContext` de ce conteneur pour appliquer le principe du moindre privilège. Le conteneur doit : tourner en non-root sous l'utilisateur 10001, interdire l'élévation de privilèges, monter son système de fichiers racine en lecture seule, et retirer TOUTES les capabilities Linux. Écris le manifeste complet.",
+  "skeleton": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: api\nspec:\n  securityContext:\n    # complète ici (non-root, utilisateur 10001)\n  containers:\n    - name: app\n      image: monorg/api:1.4.0\n      securityContext:\n        # complète ici (pas d'escalade, fs en lecture seule, drop capabilities)\n",
+  "solution": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: api\nspec:\n  securityContext:\n    runAsNonRoot: true\n    runAsUser: 10001\n  containers:\n    - name: app\n      image: monorg/api:1.4.0\n      securityContext:\n        allowPrivilegeEscalation: false\n        readOnlyRootFilesystem: true\n        capabilities:\n          drop: [\"ALL\"]",
+  "keyPoints": ["runAsNonRoot: true", "runAsUser: 10001", "allowPrivilegeEscalation: false", "readOnlyRootFilesystem: true", "capabilities", "drop", "ALL"],
+  "language": "yaml"
+}

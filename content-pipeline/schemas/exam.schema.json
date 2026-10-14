@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "exam.schema.json",
+  "title": "Examen blanc (authoré, certifications)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "format", "durationMinutes", "items"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "format": { "enum": ["MCQ", "PRACTICAL"] },
+    "durationMinutes": { "type": "integer", "minimum": 1 },
+    "passingScore": { "type": "number" },
+    "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/item" } }
+  },
+  "definitions": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "kind", "points", "position"],
+      "properties": {
+        "domain": { "type": "string", "minLength": 1, "description": "nom d'un domaine de la certification" },
+        "kind": { "enum": ["MCQ", "TASK"] },
+        "quizRef": { "type": "string", "description": "réf du quiz portant la question (kind=MCQ)" },
+        "questionIndex": { "type": "integer", "minimum": 0, "description": "index de la question dans le quiz (kind=MCQ)" },
+        "prompt": { "type": "string", "description": "énoncé de la tâche (kind=TASK)" },
+        "taskSolution": { "type": "string", "description": "solution attendue (kind=TASK)" },
+        "points": { "type": "number" },
+        "position": { "type": "integer" }
+      }
+    }
+  }
+}

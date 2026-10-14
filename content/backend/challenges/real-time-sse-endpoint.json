@@ -1,0 +1,10 @@
+{
+  "node": "real-time",
+  "lesson": "server-sent-events",
+  "title": "Exposer un flux SSE avec Spring WebFlux",
+  "statement": "Complète la méthode de contrôleur `stream()`. Elle doit exposer un flux **SSE** (Server-Sent Events) qui émet un « battement » toutes les secondes. Contraintes : le endpoint doit produire le type `MediaType.TEXT_EVENT_STREAM_VALUE`, renvoyer un `Flux<ServerSentEvent<String>>`, utiliser `Flux.interval(...)` pour le rythme, et attribuer à chaque événement un **id** (utile pour la reprise via Last-Event-ID) construit à partir du numéro de séquence.",
+  "skeleton": "@GetMapping(value = \"/api/v1/battements\", produces = MediaType.TEXT_EVENT_STREAM_VALUE)\npublic Flux<ServerSentEvent<String>> stream() {\n    // TODO : un ServerSentEvent par seconde, avec un id issu du numéro de séquence\n    return null;\n}",
+  "solution": "@GetMapping(value = \"/api/v1/battements\", produces = MediaType.TEXT_EVENT_STREAM_VALUE)\npublic Flux<ServerSentEvent<String>> stream() {\n    return Flux.interval(Duration.ofSeconds(1))\n        .map(seq -> ServerSentEvent.<String>builder()\n            .id(Long.toString(seq))\n            .event(\"battement\")\n            .data(\"battement \" + seq)\n            .build());\n}",
+  "keyPoints": ["TEXT_EVENT_STREAM_VALUE", "Flux<ServerSentEvent", "Flux.interval", ".id(", ".build()"],
+  "language": "java"
+}

@@ -1,0 +1,10 @@
+{
+  "node": "web-servers",
+  "lesson": "equilibrage-de-charge",
+  "title": "Équilibrer la charge sur 3 instances avec Nginx",
+  "statement": "Écris une configuration Nginx qui répartit le trafic sur trois instances de l'application (`app1`, `app2`, `app3`, toutes sur le port `8080`). Déclare un bloc `upstream` nommé `backend` utilisant l'algorithme `least_conn` (vers l'instance la moins occupée), puis un bloc `server` qui proxifie toutes les requêtes vers cet upstream.",
+  "skeleton": "# 1) déclarer un upstream \"backend\" avec 3 instances et least_conn\n\n# 2) un server qui proxifie tout vers http://backend\n",
+  "solution": "upstream backend {\n    least_conn;\n    server app1:8080;\n    server app2:8080;\n    server app3:8080;\n}\n\nserver {\n    listen 80;\n\n    location / {\n        proxy_pass http://backend;\n    }\n}\n",
+  "keyPoints": ["upstream backend", "least_conn", "app1:8080", "app2:8080", "app3:8080", "proxy_pass", "http://backend"],
+  "language": "nginx"
+}

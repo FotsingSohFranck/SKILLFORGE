@@ -1,0 +1,292 @@
+{
+  "node": "text-blocks",
+  "lessons": [
+    {
+      "slug": "le-probleme-des-chaines-multilignes",
+      "title": "Le problème des chaînes multilignes",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Une chaîne, c'est du texte entre guillemets",
+          "position": 0,
+          "body": "En Java, une **chaîne de caractères** (en anglais *String*) est un morceau de texte que le programme manipule : un nom, un message, un bout de code à afficher. On l'écrit entre guillemets doubles, par exemple `\"Bonjour\"`.\n\nTant que le texte tient sur **une seule ligne**, tout va bien. Les ennuis commencent quand on veut écrire du texte sur **plusieurs lignes** : un message d'accueil en trois phrases, un bout de **JSON** (un format texte pour échanger des données, on y revient plus loin), une requête **SQL** (le langage pour interroger une base de données), ou du **HTML** (le langage des pages web).\n\n👉 Imagine que tu ne puisses écrire que sur des Post-it d'une seule ligne. Pour noter une adresse en trois lignes, tu devras coller les Post-it bout à bout avec du scotch. C'est exactement la galère que Java t'imposait avant les text blocks."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le saut de ligne : ce caractère invisible noté \\n",
+          "position": 1,
+          "body": "Pour passer à la ligne à l'intérieur d'une chaîne classique, on ne peut pas juste appuyer sur Entrée dans le code : Java refuse. Il faut écrire un **caractère d'échappement**, c'est à dire une suite spéciale qui représente un caractère invisible ou interdit.\n\nLe saut de ligne s'écrit `\\n` (un antislash suivi de la lettre n). Ces deux signes dans le code valent **un seul** caractère invisible : le passage à la ligne.\n\n👉 Pense à `\\n` comme à la touche Entrée dessinée en toutes lettres : au lieu d'appuyer sur Entrée, tu écris son nom de code. Le résultat affiché est le même, mais dans le code source ça encombre vite."
+        },
+        {
+          "type": "CODE",
+          "title": "Trois phrases, et déjà c'est illisible",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// Un petit message de bienvenue sur trois lignes, à l'ancienne.\n// Il faut un \\n à chaque fin de ligne, et parfois un + pour continuer.\nString message = \"Bienvenue sur DevRoad.\\n\"\n        + \"Choisis un parcours pour commencer.\\n\"\n        + \"Bon apprentissage.\\n\";\n\nSystem.out.print(message);\n// Affiche :\n// Bienvenue sur DevRoad.\n// Choisis un parcours pour commencer.\n// Bon apprentissage."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La concaténation : coller des morceaux avec +",
+          "position": 3,
+          "body": "Dans l'exemple précédent, le signe `+` entre deux chaînes sert à les **concaténer**, c'est à dire à les coller bout à bout pour n'en former qu'une seule. Comme une chaîne de code ne peut pas s'étaler sur plusieurs lignes du fichier, on découpe le texte en petits bouts d'une ligne et on les recolle avec `+`.\n\n👉 C'est le scotch des Post-it : chaque `+` est un morceau de ruban adhésif entre deux bandes de texte. Plus le texte est long, plus il y a de scotch, et plus on risque d'oublier un bout ou de mal l'aligner."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le pire : les guillemets à échapper",
+          "position": 4,
+          "body": "Ça se complique encore quand le texte contient lui même des guillemets, ce qui arrive tout le temps en JSON ou en HTML. Comme le guillemet `\"` sert déjà à marquer le début et la fin de la chaîne, on doit le **protéger** pour dire à Java \"ce guillemet là fait partie du texte, ce n'est pas la fin de ma chaîne\". On l'écrit alors `\\\"` (un antislash devant le guillemet).\n\n👉 C'est comme mettre un guillemet entre parenthèses pour prévenir : \"attention, celui ci est pour de vrai, ne le prends pas comme une bordure\". Sur un gros morceau de JSON, ça finit par faire une forêt d'antislashs où l'on ne lit plus rien."
+        },
+        {
+          "type": "CODE",
+          "title": "Du JSON à l'ancienne : une forêt d'antislashs",
+          "position": 5,
+          "codeLanguage": "java",
+          "body": "// Le même petit objet JSON, écrit sans text block.\n// Chaque guillemet du JSON doit être échappé en \\\" : illisible.\nString json = \"{\\n\"\n        + \"  \\\"nom\\\": \\\"Ada\\\",\\n\"\n        + \"  \\\"niveau\\\": 3\\n\"\n        + \"}\";\n\nSystem.out.println(json);\n// Affiche :\n// {\n//   \"nom\": \"Ada\",\n//   \"niveau\": 3\n// }"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Compte les signes parasites",
+          "position": 6,
+          "body": "Dans le bloc JSON ci dessus écrit à l'ancienne, repère tout ce qui n'est pas le texte JSON lui même mais seulement de la plomberie Java : les `\\n`, les `\\\"`, les `+` et les guillemets de début et de fin de chaque bout. À ton avis, qu'est ce qui rend ce code difficile à relire ?",
+          "solution": "On compte 4 occurrences de \\n (une par ligne du JSON), 6 occurrences de \\\" (deux par guillemet réel du JSON, soit pour \"nom\", \"Ada\" et \"niveau\"), 3 signes + pour recoller les morceaux, et des guillemets de délimitation à chaque bout. Résultat : le vrai contenu (nom, Ada, niveau, 3) est noyé sous les antislashs et les symboles. On ne voit plus la structure du JSON, donc on introduit facilement une faute de frappe. C'est précisément ce problème que les text blocks suppriment."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : le problème des chaînes multilignes",
+          "position": 7,
+          "quizRef": "text-blocks-le-probleme-des-chaines-multilignes"
+        }
+      ]
+    },
+    {
+      "slug": "ecrire-un-text-block",
+      "title": "Écrire un text block",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un text block, c'est trois guillemets",
+          "position": 0,
+          "body": "Un **text block** (en français, un *bloc de texte*) est une façon d'écrire une chaîne sur plusieurs lignes, arrivée dans le socle stable de Java avec Java 15. Au lieu d'ouvrir et fermer la chaîne avec un seul guillemet, on l'ouvre et on la ferme avec **trois guillemets doubles** à la suite : `\"\"\"`.\n\nEntre ces deux bornes, tu écris ton texte **tel quel**, sur autant de lignes que tu veux, en appuyant vraiment sur Entrée. Plus besoin de `\\n`, plus besoin de `+`, et les guillemets simples à l'intérieur n'ont plus besoin d'être échappés.\n\n👉 C'est le passage du Post-it à une vraie feuille : tu écris ton texte normalement, sur plusieurs lignes, et Java comprend que tout ce qui est entre les triples guillemets est le contenu."
+        },
+        {
+          "type": "CODE",
+          "title": "Le même message, version text block",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Comparé à la version avec \\n et +, on lit directement le texte.\nString message = \"\"\"\n        Bienvenue sur DevRoad.\n        Choisis un parcours pour commencer.\n        Bon apprentissage.\n        \"\"\";\n\nSystem.out.print(message);\n// Affiche exactement les trois lignes, chacune suivie d'un saut de ligne."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La règle d'or : rien après les guillemets d'ouverture",
+          "position": 2,
+          "body": "Il y a **une** règle à ne jamais oublier. Après les trois guillemets d'ouverture `\"\"\"`, tu dois immédiatement passer à la ligne : le texte ne peut pas commencer sur la même ligne que l'ouverture. On appelle cette première ligne vide le **saut de ligne d'ouverture** (en anglais *opening line*).\n\nÉcrire `\"\"\"Bonjour` sur la même ligne provoque une **erreur de compilation**, c'est à dire que Java refuse de transformer ton code en programme et signale la faute.\n\n👉 Vois les `\"\"\"` d'ouverture comme le titre d'une page : on écrit le titre, puis on va à la ligne avant de commencer le texte. On ne colle pas la première phrase juste après le titre sur la même ligne."
+        },
+        {
+          "type": "CODE",
+          "title": "Ce qui marche et ce qui casse",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "// CORRECT : on passe à la ligne juste après les \"\"\" d'ouverture.\nString ok = \"\"\"\n        Bonjour\n        \"\"\";\n\n// ERREUR DE COMPILATION : du texte colle les guillemets d'ouverture.\n// String casse = \"\"\"Bonjour\n//         \"\"\";\n//\n// Java refuse : il faut un saut de ligne juste après les \"\"\" d'ouverture.\n\n// Les guillemets de FERMETURE, eux, peuvent être collés au texte ou seuls sur leur ligne.\nString aussiOk = \"\"\"\n        Bonjour\"\"\";"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les guillemets intérieurs deviennent gratuits",
+          "position": 4,
+          "body": "Gros avantage pour le JSON et le HTML : à l'intérieur d'un text block, un guillemet double simple `\"` n'a **plus besoin d'être échappé**. Tant que tu ne mets pas trois guillemets de suite, Java comprend qu'un `\"` isolé fait partie du texte.\n\nTu peux donc copier coller un bout de JSON ou de HTML presque sans y toucher.\n\n👉 Dans une chaîne classique, chaque guillemet du contenu était un intrus qu'il fallait désamorcer avec `\\`. Dans un text block, les guillemets simples sont invités à la fête : ils restent tels quels."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Anatomie d'un text block",
+          "position": 5,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Guillemets d'ouverture : trois guillemets\"] --> B[\"Saut de ligne OBLIGATOIRE\"]\n    B --> C[\"Lignes de contenu\\necrites telles quelles\"]\n    C --> D[\"Guillemets de fermeture : trois guillemets\"]\n    D --> E[\"Resultat : une String normale\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Corrige le text block",
+          "position": 6,
+          "body": "Ce code ne compile pas : `String s = \"\"\"Merci de ta visite.\"\"\";`. Explique pourquoi, puis réécris le correctement avec un text block.",
+          "solution": "Il ne compile pas car du texte (\"Merci de ta visite.\") est collé juste après les trois guillemets d'ouverture, alors que la règle impose un saut de ligne immédiatement après l'ouverture. Version correcte :\n\nString s = \"\"\"\n        Merci de ta visite.\n        \"\"\";\n\nOn passe à la ligne après les \"\"\" d'ouverture, on écrit le texte, puis on ferme avec \"\"\". Pour une seule ligne, un text block est d'ailleurs rarement utile : une chaîne classique \"Merci de ta visite.\" suffit."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : écrire un text block",
+          "position": 7,
+          "quizRef": "text-blocks-ecrire-un-text-block"
+        }
+      ]
+    },
+    {
+      "slug": "indentation-et-marge",
+      "title": "Indentation et marge",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le problème : où commence vraiment le texte ?",
+          "position": 0,
+          "body": "Quand tu écris un text block dans une méthode, tu **l'indentes** pour qu'il s'aligne joliment avec le reste du code. **Indenter**, c'est décaler une ligne vers la droite en ajoutant des espaces au début, pour montrer la structure.\n\nMais surgit une question : ces espaces de décalage font ils partie du texte ? Si oui, ton JSON se retrouverait avec plein d'espaces en trop devant chaque ligne. Java doit donc décider quels espaces sont du **décor** (l'alignement avec le code) et quels espaces sont du **contenu** (vraiment voulus dans le texte)."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les espaces accessoires et la marge",
+          "position": 1,
+          "body": "Java appelle **espaces accessoires** (en anglais *incidental whitespace*) les espaces de décalage qui ne servent qu'à aligner le bloc avec le code et qu'il faut retirer. Par opposition, les espaces vraiment voulus dans le texte sont dits **essentiels**.\n\nPour les distinguer, Java calcule une **marge** (en anglais *margin*) : il regarde **toutes** les lignes du bloc (y compris la ligne des guillemets de fermeture) et repère **la ligne la moins indentée**, c'est à dire celle qui commence le plus à gauche. Le décalage de cette ligne là devient la marge : Java retire ce nombre d'espaces au début de **chaque** ligne.\n\n👉 Imagine un paragraphe écrit sur une feuille à carreaux, décalé de 8 carreaux vers la droite. Java trouve la ligne la plus à gauche, par exemple à 8 carreaux, trace une ligne verticale rouge à cet endroit, et gomme tout ce qui est à gauche de cette ligne. Ce qui reste à droite est ton vrai texte."
+        },
+        {
+          "type": "CODE",
+          "title": "La marge en action",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// Dans le code, tout le bloc est indenté de 8 espaces pour l'alignement.\n// La ligne la moins indentée donne la marge, et ces 8 espaces sont retirés.\nString html = \"\"\"\n        <ul>\n          <li>Java</li>\n          <li>SQL</li>\n        </ul>\n        \"\"\";\n\nSystem.out.print(html);\n// Affiche, SANS les 8 espaces de décor, mais EN GARDANT les 2 espaces\n// voulus devant les <li> (ils sont au delà de la marge) :\n// <ul>\n//   <li>Java</li>\n//   <li>SQL</li>\n// </ul>"
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Comment Java calcule la marge",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Toutes les lignes du bloc\\n+ la ligne de fermeture\"] --> B[\"Trouver la ligne la MOINS indentee\"]\n    B --> C[\"Son decalage = la marge\"]\n    C --> D[\"Retirer la marge au debut\\nde CHAQUE ligne\"]\n    D --> E[\"Espaces accessoires enleves\\nespaces essentiels gardes\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La ligne de fermeture pilote la marge",
+          "position": 4,
+          "body": "Détail très pratique : la ligne qui porte les guillemets de fermeture `\"\"\"` compte, elle aussi, dans le calcul de la marge. Donc **en déplaçant cette ligne de fermeture vers la gauche ou la droite**, tu choisis la marge sans toucher au reste.\n\nSi tu places le `\"\"\"` de fermeture tout à gauche, la marge devient zéro et tous tes espaces de décalage sont conservés (souvent pas ce que tu veux). Si tu l'alignes avec ton contenu, la marge suit ton contenu.\n\n👉 La ligne de fermeture est comme un curseur de règle : là où tu la poses, tu fixes le bord gauche du texte final. C'est ton bouton de réglage de la marge."
+        },
+        {
+          "type": "CODE",
+          "title": "Le même bloc, deux positions de fermeture",
+          "position": 5,
+          "codeLanguage": "java",
+          "body": "// Fermeture ALIGNÉE avec le contenu : marge = décalage du contenu.\nString aligne = \"\"\"\n        Ligne A\n        Ligne B\n        \"\"\";\n// Résultat : \"Ligne A\\nLigne B\\n\" sans espaces devant.\n\n// Fermeture TOUT À GAUCHE : marge = 0, les espaces de décalage restent.\nString colleAGauche = \"\"\"\n        Ligne A\n        Ligne B\n\"\"\";\n// Résultat : \"        Ligne A\\n        Ligne B\\n\" avec 8 espaces devant chaque ligne."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Prédis la marge",
+          "position": 6,
+          "body": "Un text block contient deux lignes de contenu décalées de 12 espaces, et la ligne de fermeture `\"\"\"` est décalée de 8 espaces. Quelle est la marge retirée, et combien d'espaces restent devant chaque ligne de contenu dans la chaîne finale ?",
+          "solution": "La marge est le plus petit décalage parmi toutes les lignes, ligne de fermeture comprise. Ici la ligne de fermeture (8 espaces) est la moins indentée, donc la marge vaut 8. Java retire 8 espaces au début de chaque ligne. Les lignes de contenu, décalées de 12, gardent donc 12 moins 8 = 4 espaces chacune. Pour n'avoir aucun espace devant le contenu, il aurait fallu aligner la ligne de fermeture sur le contenu (12 espaces)."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : indentation et marge",
+          "position": 7,
+          "quizRef": "text-blocks-indentation-et-marge"
+        }
+      ]
+    },
+    {
+      "slug": "echappements-utiles",
+      "title": "Échappements utiles",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Deux échappements spéciaux aux text blocks",
+          "position": 0,
+          "body": "Les text blocks apportent deux **séquences d'échappement** faites pour eux. Rappel : une séquence d'échappement est une suite qui commence par un antislash `\\` et qui a un sens particulier plutôt que d'être du texte brut.\n\nCes deux nouveautés sont `\\` placé en fin de ligne, et `\\s`. Elles servent à régler finement les **sauts de ligne** et les **espaces de fin de ligne**, deux choses qu'un text block gère automatiquement mais pas toujours comme tu le voudrais. On les voit l'une après l'autre."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "L'antislash en fin de ligne : supprimer le saut de ligne",
+          "position": 1,
+          "body": "Par défaut, chaque passage à la ligne que tu tapes dans un text block devient un vrai saut de ligne dans la chaîne. Parfois tu veux couper une **longue** ligne dans ton code pour la lire sur deux lignes, mais obtenir **une seule** ligne dans le résultat.\n\nPour ça, mets un antislash `\\` **tout à la fin** de la ligne : il annule le saut de ligne qui suit. Les deux lignes du code sont alors recollées en une seule dans la chaîne.\n\n👉 C'est comme un trait d'union en fin de ligne dans un livre : le mot continue à la ligne suivante, mais c'est bien le même mot, la coupure n'est que visuelle. Ici, `\\` dit à Java : ne mets pas de saut de ligne ici, continue."
+        },
+        {
+          "type": "CODE",
+          "title": "Recoller une phrase trop longue",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// Le \\ en fin de ligne supprime le saut de ligne : la phrase reste sur UNE ligne.\nString phrase = \"\"\"\n        Ceci est une phrase assez longue que l'on coupe dans le code \\\n        pour la lire, mais qui reste sur une seule ligne une fois affichee.\n        \"\"\";\n\nSystem.out.println(phrase);\n// Affiche une seule ligne :\n// Ceci est une phrase assez longue que l'on coupe dans le code pour la lire, mais qui reste sur une seule ligne une fois affichee."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "\\s : garder un espace en fin de ligne",
+          "position": 3,
+          "body": "Autre souci : Java **supprime automatiquement les espaces en trop à la fin de chaque ligne** d'un text block (ces espaces invisibles qu'on appelle *trailing whitespace*). C'est utile en général, mais gênant quand tu as vraiment besoin d'espaces en fin de ligne, par exemple pour aligner des colonnes.\n\nLa séquence `\\s` vaut exactement **un espace**, mais elle a un pouvoir spécial : elle **protège** tous les espaces situés avant elle sur la ligne, en les empêchant d'être supprimés.\n\n👉 Pense à `\\s` comme à un petit piquet planté en fin de ligne : il retient les espaces qui le précèdent pour que le ménage automatique ne les emporte pas."
+        },
+        {
+          "type": "CODE",
+          "title": "Des espaces de fin de ligne qui survivent",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "// Sans \\s, les espaces de fin de ligne seraient effacés.\n// Ici on veut que chaque label fasse exactement 6 caractères de large.\nString menu = \"\"\"\n        Java  \\s\n        SQL   \\s\n        YAML  \\s\n        \"\"\";\n\n// Le \\s final protège les espaces placés avant lui : les trois labels\n// conservent leur alignement sur 6 caractères au lieu d'être rognés."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Choisis le bon échappement",
+          "position": 5,
+          "body": "Dans un text block, tu as une ligne `Cle :    ` suivie d'une valeur, et tu veux garder les espaces après les deux points pour aligner. Par ailleurs, une autre ligne est trop longue et tu veux la couper dans le code sans créer de saut de ligne à l'affichage. Quel échappement utilises tu dans chaque cas ?",
+          "solution": "Pour garder les espaces de fin de ligne après \"Cle :\", on termine la ligne par \\s : il protège les espaces qui le précèdent du nettoyage automatique. Pour couper une ligne trop longue dans le code sans produire de saut de ligne dans la chaîne, on place un \\ tout à la fin de la ligne à couper : il annule le saut de ligne et recolle les deux morceaux en une seule ligne affichée."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : échappements utiles",
+          "position": 6,
+          "quizRef": "text-blocks-echappements-utiles"
+        }
+      ]
+    },
+    {
+      "slug": "text-blocks-en-pratique",
+      "title": "Text blocks en pratique",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le terrain de jeu idéal : JSON, SQL, HTML",
+          "position": 0,
+          "body": "Les text blocks brillent dès qu'on écrit, dans du code Java, un texte qui est lui même écrit dans un autre langage. Les trois cas les plus fréquents :\n\n- Le **JSON** (*JavaScript Object Notation*) : un format texte pour représenter des données sous forme de paires nom et valeur, très utilisé par les API web. Il est bourré de guillemets.\n- Le **SQL** (*Structured Query Language*) : le langage pour interroger une base de données, souvent sur plusieurs lignes.\n- Le **HTML** (*HyperText Markup Language*) : le langage des pages web, fait de balises et d'imbrications.\n\n👉 Pour ces trois là, l'ancienne méthode (guillemets échappés, `\\n`, `+`) rendait le code presque illisible. Les text blocks te laissent écrire le JSON, le SQL ou le HTML comme tu l'écrirais dans un fichier dédié."
+        },
+        {
+          "type": "CODE",
+          "title": "Du JSON lisible",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Les guillemets du JSON restent tels quels, pas d'échappement, pas de \\n.\nString json = \"\"\"\n        {\n          \"utilisateur\": \"Ada\",\n          \"parcours\": \"Java moderne\",\n          \"termine\": false,\n          \"niveau\": 3\n        }\n        \"\"\";\n\nSystem.out.println(json);\n// On lit la structure du JSON d'un coup d'oeil, comme dans un vrai fichier .json."
+        },
+        {
+          "type": "CODE",
+          "title": "Du SQL et du HTML lisibles",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// Une requête SQL sur plusieurs lignes, enfin lisible.\nString requete = \"\"\"\n        SELECT nom, niveau\n        FROM apprenants\n        WHERE parcours = 'java-moderne'\n        ORDER BY niveau DESC\n        \"\"\";\n\n// Un fragment HTML, avec son indentation naturelle conservée.\nString page = \"\"\"\n        <section>\n          <h1>Mon parcours</h1>\n          <p>Niveau 3 sur 10</p>\n        </section>\n        \"\"\";"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Insérer des valeurs : garde le texte propre",
+          "position": 3,
+          "body": "Souvent, ton JSON ou ton SQL doit contenir une valeur calculée (le nom de l'utilisateur, un identifiant). Le réflexe simple est la méthode `formatted`, disponible sur toute chaîne : tu mets un repère `%s` là où la valeur doit aller, et `formatted(valeur)` le remplace. `%s` veut dire \"ici, insère la représentation texte de la valeur\".\n\n👉 C'est comme un texte à trous : tu écris le modèle une fois avec des blancs numérotés, puis tu remplis les blancs. Le modèle reste lisible.\n\nNote importante de sécurité : pour une vraie requête SQL, on n'insère **pas** les valeurs comme ça (risque d'injection). On utilise des requêtes paramétrées, vues ailleurs dans le parcours. Ici, `formatted` illustre juste l'idée sur du texte simple."
+        },
+        {
+          "type": "CODE",
+          "title": "Un modèle de texte à trous avec formatted",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "// %s marque l'emplacement d'une valeur ; formatted(...) la remplit dans l'ordre.\nString modele = \"\"\"\n        {\n          \"utilisateur\": \"%s\",\n          \"niveau\": %d\n        }\n        \"\"\";\n\nString json = modele.formatted(\"Ada\", 3);\nSystem.out.println(json);\n// Affiche :\n// {\n//   \"utilisateur\": \"Ada\",\n//   \"niveau\": 3\n// }\n// %s insère un texte, %d insère un nombre entier."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Trois réflexes à retenir",
+          "position": 5,
+          "body": "Pour bien vivre avec les text blocks au quotidien :\n\n1. **Saut de ligne d'ouverture** : toujours passer à la ligne juste après les `\"\"\"` d'ouverture, jamais de texte collé.\n2. **Ligne de fermeture = réglage de marge** : aligne le `\"\"\"` de fermeture sur ton contenu pour n'avoir aucun espace parasite à gauche.\n3. **Échappements à la demande** : `\\` en fin de ligne pour recoller une ligne coupée, `\\s` pour garder des espaces en fin de ligne.\n\n👉 Avec ces trois réflexes, tu écris du JSON, du SQL ou du HTML dans Java aussi confortablement que dans un fichier dédié, sans forêt d'antislashs."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Écris un text block JSON",
+          "position": 6,
+          "body": "Écris une variable `String json` contenant, grâce à un text block, l'objet JSON suivant : une clé `\"ville\"` valant `\"Paris\"` et une clé `\"actif\"` valant `true`. Veille à ne pas avoir d'espaces parasites à gauche et à respecter la règle du saut de ligne d'ouverture.",
+          "solution": "String json = \"\"\"\n        {\n          \"ville\": \"Paris\",\n          \"actif\": true\n        }\n        \"\"\";\n\nPoints clés : on passe à la ligne juste après les \"\"\" d'ouverture ; les guillemets du JSON ne sont pas échappés ; la ligne de fermeture \"\"\" est alignée sur l'accolade ouvrante pour que la marge retire tout le décalage de code, donc aucun espace parasite à gauche ; les deux espaces devant les clés sont au delà de la marge, ils sont donc conservés volontairement pour l'indentation du JSON."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : text blocks en pratique",
+          "position": 7,
+          "quizRef": "text-blocks-text-blocks-en-pratique"
+        }
+      ]
+    }
+  ]
+}

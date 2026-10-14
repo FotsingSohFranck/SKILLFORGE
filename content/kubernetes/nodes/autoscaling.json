@@ -1,0 +1,126 @@
+{
+  "node": "autoscaling",
+  "lessons": [
+    {
+      "slug": "hpa-et-vpa",
+      "title": "HPA & VPA",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "D'abord : c'est quoi « autoscaler » ?",
+          "body": "Avant les sigles, posons l'idée de base. **Autoscaling** veut dire « **mise à l'échelle automatique** ». C'est la capacité d'une application à s'adapter **toute seule** à la charge : plus de monde arrive, elle grossit ; le calme revient, elle rétrécit. Personne ne touche à un bouton la nuit.\n\nDeux mots de vocabulaire Kubernetes qu'on va utiliser sans arrêt :\n- un **pod** est la plus petite unité qui tourne dans Kubernetes : concrètement, **un exemplaire de ton application** (un conteneur, souvent) qui s'exécute. Retiens : *pod = une instance qui tourne*.\n- un **Deployment** est l'objet qui **gère un groupe de pods identiques** de ton appli et veille à en garder le bon nombre en vie. Le nombre de pods qu'il maintient s'appelle le nombre de **répliques** (des copies interchangeables).\n\n👉 **Analogie** : imagine une **caisse de supermarché**. Le Deployment, c'est le **responsable du magasin** qui décide *combien de caisses* sont ouvertes. Une caisse ouverte = un pod. L'autoscaling, c'est ce responsable qui **ouvre des caisses quand la file s'allonge** et en **ferme quand c'est vide**, automatiquement.\n\nIl y a **deux façons** de grossir, et c'est tout le sujet de cette leçon : ajouter **plus de caisses** (horizontal, l'HPA) ou rendre **chaque caisse plus puissante** (vertical, le VPA)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "HPA : ajouter des pods quand ça chauffe",
+          "body": "Le **HPA**, pour **Horizontal Pod Autoscaler** (« autoscaler horizontal de pods »), fait une seule chose, mais bien : il ajuste **le nombre de répliques** (le nombre de pods) d'un Deployment, **automatiquement**, en fonction de la charge.\n\nComment sait-il qu'il faut grossir ? Il regarde une **métrique**, c'est-à-dire **une mesure chiffrée** de l'activité. La plus classique est l'**utilisation du CPU** (à quel point le processeur travaille) ou de la **mémoire**. Sous la charge, l'HPA **ajoute** des pods ; au calme, il en **retire**.\n\n👉 **Analogie** : c'est le responsable du magasin qui **ouvre une nouvelle caisse** dès que les files dépassent 5 personnes, et en **ferme une** quand les caisses sont presque vides. On appelle ça le scaling **horizontal** : on met **plusieurs exemplaires côte à côte**, tous identiques et interchangeables.\n\n**Exemple concret** : ton site tourne avec 2 pods. Un article passe en vedette, le trafic explose, le CPU de chaque pod grimpe à 90 %. L'HPA le voit et passe à 6 pods pour absorber la vague. Le soir, le calme revient, il redescend à 2.\n\nDeux détails qui rendent l'HPA fiable :\n- pour scaler horizontalement, l'appli doit être **sans état** (en anglais *stateless*) : chaque pod fait le travail **sans garder de données locales importantes**, sinon on ne peut pas les multiplier librement (on approfondira, retiens juste : instances interchangeables).\n- l'HPA raisonne en **pourcentage d'une valeur de référence** appelée la **request**. La **request CPU**, c'est **la quantité de CPU que tu réserves d'avance** pour un conteneur (« ce pod a besoin d'au moins ça »). L'HPA compare l'usage réel à cette request : « maintenir l'usage CPU autour de 70 % de la request ». **Sans request définie, pas de base de comparaison, l'HPA devient erratique** (voir l'exercice)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "VPA : rendre chaque pod mieux taillé",
+          "body": "Le **VPA**, pour **Vertical Pod Autoscaler** (« autoscaler vertical de pods »), joue sur l'**autre** dimension. Au lieu de changer le **nombre** de pods, il change **leur taille** : il ajuste les **requests** et **limits** de chaque conteneur.\n\nPetit rappel de vocabulaire, car ces deux mots reviennent partout :\n- la **request** = ce que le pod **réserve** (le minimum garanti).\n- la **limit** = le **plafond** qu'il n'a pas le droit de dépasser (le maximum autorisé).\n\nLe VPA observe la **consommation réelle** d'un conteneur au fil du temps et propose des valeurs mieux ajustées : c'est ce qu'on appelle le **right-sizing** (« mise à la bonne taille »), pour éviter de **sur-provisionner** (réserver trop, on gaspille) ou de **sous-provisionner** (réserver trop peu, ça rame).\n\n👉 **Analogie** : plutôt que d'ouvrir plus de caisses, on **agrandit** la caisse : caissier plus rapide, tapis plus long, plus de place. On rend **une seule** unité **plus grosse** au lieu d'en **multiplier**. C'est ça, le scaling **vertical**.\n\n**Exemple concret** : un pod tourne avec une request de 128 Mo de mémoire, mais consomme en réalité 400 Mo et se fait tuer régulièrement (dépassement). Le VPA observe ça et recommande de passer la request à environ 512 Mo.\n\nDeux points importants à retenir :\n- appliquer un nouveau dimensionnement **recrée le pod** (on ne peut pas redimensionner à chaud). C'est pourquoi le VPA sert souvent en mode **recommandation** : il **suggère** les bonnes valeurs sans les imposer, et tu décides.\n- **on ne combine pas HPA et VPA sur la même métrique** (CPU ou mémoire) : ils se **contrediraient** (l'un veut plus de pods, l'autre des pods plus gros, sur le même signal). On choisit **l'un ou l'autre**, ou bien on garde le VPA **seulement en recommandation** à côté d'un HPA."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Horizontal (HPA) vs vertical (VPA) en une image",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n    subgraph AVANT[\"Etat de depart : 2 pods\"]\n        A1[\"Pod (petit)\"]\n        A2[\"Pod (petit)\"]\n    end\n    AVANT -->|\"HPA : plus de pods\\n(scaling horizontal)\"| H\n    AVANT -->|\"VPA : pods plus gros\\n(scaling vertical)\"| V\n    subgraph H[\"Apres HPA : 4 pods identiques\"]\n        H1[\"Pod (petit)\"]\n        H2[\"Pod (petit)\"]\n        H3[\"Pod (petit)\"]\n        H4[\"Pod (petit)\"]\n    end\n    subgraph V[\"Apres VPA : 2 pods plus grands\"]\n        V1[\"Pod (GROS)\"]\n        V2[\"Pod (GROS)\"]\n    end"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Vous configurez un HPA basé sur l'utilisation CPU, mais il ne scale jamais correctement : soit il ajoute trop de pods, soit pas assez. En vérifiant, vous constatez que les conteneurs n'ont pas de requests CPU définies. Quel est le lien ?",
+          "solution": "L'HPA basé sur le CPU raisonne en POURCENTAGE de la request CPU du conteneur, pas en valeur absolue : sa cible est du type « maintenir l'utilisation CPU à 70 % de la request ». Si les conteneurs n'ont pas de requests CPU définies, l'HPA n'a pas de base de référence pour calculer ce pourcentage, le calcul est faussé ou impossible, d'où un comportement erratique (scaling incohérent, trop ou pas assez de pods). C'est pourquoi des requests CPU correctement réglées sont un PRÉREQUIS de l'HPA. Correction : définir des requests CPU réalistes sur les conteneurs (mesurées d'après la consommation réelle), puis configurer la cible de l'HPA en pourcentage de cette request. L'HPA pourra alors comparer l'utilisation observée à la request et ajuster le nombre de répliques de façon cohérente. En résumé : pas de requests, pas d'HPA CPU fiable, le dimensionnement des ressources (requests) et l'autoscaling horizontal sont intimement liés."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, HPA & VPA",
+          "quizRef": "autoscaling-hpa-check"
+        }
+      ]
+    },
+    {
+      "slug": "cluster-autoscaler",
+      "title": "Cluster Autoscaler",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème : des pods qui n'ont nulle part où aller",
+          "body": "Rappel de la leçon précédente : l'HPA ajoute des **pods**. Mais un pod ne flotte pas dans le vide : il doit tourner sur une **machine**. Dans Kubernetes, ces machines s'appellent des **nœuds** (en anglais *nodes*) : ce sont les **serveurs** (physiques ou virtuels) qui composent ton **cluster** (l'ensemble des machines pilotées par Kubernetes). Chaque nœud a une capacité limitée en CPU et en mémoire.\n\nQue se passe-t-il si l'HPA veut créer 10 pods de plus, mais qu'**aucun nœud n'a assez de place** pour les héberger ? Les pods ne peuvent être placés nulle part : ils restent en état **Pending** (« en attente »). C'est le **scheduler** (le composant qui **place** chaque pod sur un nœud) qui n'arrive pas à leur trouver une machine avec assez de ressources libres.\n\n👉 **Analogie** : le responsable du magasin veut ouvrir 10 caisses de plus (les pods), mais il n'y a **plus de place au sol** dans le bâtiment (les nœuds). Les caisses commandées attendent sur le quai de livraison : elles existent, mais rien ne peut les installer.\n\n**Exemple concret** : ton cluster a 3 nœuds pleins. Un pic de trafic déclenche l'HPA qui réclame 8 pods supplémentaires. Résultat : 8 pods restent bloqués en **Pending**, et le trafic n'est toujours pas absorbé. Il manque une pièce : quelqu'un pour **ajouter des machines**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le Cluster Autoscaler : ajouter des nœuds automatiquement",
+          "body": "Cette pièce manquante, c'est le **Cluster Autoscaler** (« autoscaler du cluster »). Là où l'HPA scale les **pods**, le Cluster Autoscaler scale les **nœuds** (les machines).\n\nSon fonctionnement est simple à décrire :\n1. il **surveille** les pods **non planifiables** (ceux coincés en Pending faute de place) ;\n2. quand il en voit, il **demande au fournisseur cloud** (AWS, GCP, Azure...) de **provisionner une nouvelle machine**, c'est-à-dire d'en démarrer une et de l'ajouter au cluster ;\n3. le nouveau nœud rejoint le cluster, le scheduler y place enfin les pods en attente ;\n4. à l'inverse, quand des nœuds sont **sous-utilisés** (presque vides), il les **retire** pour ne pas payer des machines qui ne servent à rien.\n\n👉 **Analogie** : c'est le service qui **agrandit le bâtiment** quand il n'y a plus de place au sol, puis **réduit la surface louée** quand les rayons se vident. Il gère les **murs**, pas les caisses.\n\n**L'idée clé à retenir : HPA et Cluster Autoscaler travaillent en équipe.** L'un (**HPA**) crée les **pods** ; l'autre (**Cluster Autoscaler**) fournit les **machines** pour les faire tourner. L'un sans l'autre est incomplet : plus de pods sans plus de nœuds = des Pending ; plus de nœuds sans plus de pods = du gaspillage.\n\nÀ noter : une alternative moderne, **Karpenter**, fait le même travail mais de façon plus souple et « juste à temps » (on en reparle dans la dernière leçon)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les limites de l'autoscaling (niveau expert)",
+          "body": "L'autoscaling n'est pas magique, et le croire mène à de mauvaises surprises. Deux mots clés pour comprendre : il est **réactif** (il agit **après** avoir constaté la charge, pas avant) et **en retard** (il met du temps à agir).\n\nPourquoi ce retard ? Provisionner un nœud via le Cluster Autoscaler prend des **minutes** : il faut **démarrer la machine**, la **joindre au cluster**, puis **télécharger les images** des conteneurs (le *pull*, c'est-à-dire récupérer le paquet de ton appli depuis un registre). Trop lent pour un **pic brutal** qui arrive en quelques secondes.\n\n👉 **Analogie** : ouvrir une caisse existante est instantané (ajouter un pod sur un nœud déjà là), mais **construire une nouvelle aile du magasin** (démarrer un nœud) prend un temps fou. Si la foule arrive d'un coup, la nouvelle aile ne sera pas prête à temps.\n\nLes **parades** classiques :\n- garder une **marge de capacité** à l'avance (on parle d'**over-provisioning**, « sur-provisionnement ») : on fait tourner des pods **ballast** de très faible priorité qui « réservent » de la place et se font **évincer** dès qu'un vrai pod en a besoin ; on a ainsi un nœud déjà chaud sous la main.\n- utiliser des applications à **démarrage rapide** (qui deviennent prêtes en quelques secondes).\n- **pré-scaler** les pics **prévisibles** (une vente flash à 18 h : on monte la capacité à 17 h 45).\n\nEnfin, deux prérequis de conception : des workloads **sans état** (pour ajouter/retirer des pods sans perdre de données), et des **PodDisruptionBudgets** (un **PDB** est une règle qui dit « garde toujours au moins N pods de ce service vivants »), pour que le **retrait** de nœuds ne casse pas la disponibilité. **L'élasticité n'existe que si l'appli ET le cluster sont conçus pour elle.**"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Votre HPA veut passer de 5 à 15 répliques suite à un pic, mais les 10 nouveaux pods restent bloqués en état Pending. Quelle est la cause, et quel composant faut-il pour la résoudre ?",
+          "solution": "Les pods restent en Pending parce que le scheduler ne trouve pas de nœud disposant d'assez de ressources libres (CPU/mémoire, selon leurs requests) pour les accueillir : l'HPA a bien décidé de créer 10 répliques supplémentaires, mais la capacité physique du cluster (les nœuds existants) est insuffisante pour les héberger. L'HPA scale les PODS, il ne fournit pas de machines. Pour résoudre cela, il faut un Cluster Autoscaler (ou Karpenter) : ce composant détecte les pods non planifiables (Pending faute de place) et provisionne automatiquement de NOUVEAUX NŒUDS auprès du fournisseur cloud, sur lesquels les pods en attente pourront être planifiés ; il retire aussi les nœuds sous-utilisés quand la charge redescend. HPA (pods) et Cluster Autoscaler (nœuds) sont complémentaires et nécessaires ensemble pour un vrai autoscaling de bout en bout. Point d'attention : le provisionnement d'un nœud prend plusieurs minutes (démarrage machine, jointure, pull d'images), donc l'autoscaling reste réactif et en retard, pour un pic brutal, on garde une marge de capacité (over-provisioning) ou on pré-scale les pics prévisibles."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Autoscaling",
+          "quizRef": "autoscaling-check"
+        }
+      ]
+    },
+    {
+      "slug": "hpa-v2-keda-karpenter",
+      "title": "HPA v2, KEDA & Karpenter",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le comportement de l'HPA : éviter le « flapping »",
+          "body": "Un HPA laissé brut a un défaut agaçant : il **oscille**. Il voit un pic, ajoute des pods ; le pic retombe une seconde, il retire des pods ; le pic revient, il en rajoute... Ce va-et-vient permanent porte un nom : le **flapping** (« battement », comme un volet qui claque au vent). C'est **coûteux** (on crée et détruit des pods sans arrêt) et **instable** (l'appli n'est jamais au repos).\n\n👉 **Analogie** : un thermostat mal réglé qui **allume et éteint** le chauffage toutes les 10 secondes autour de 20 °C. Fatigant, et mauvais pour la chaudière. On veut au contraire un thermostat **calme**, avec un peu de marge et de patience.\n\nLa version **v2** de l'HPA (la version moderne, celle qu'on utilise aujourd'hui) offre justement ce réglage de patience via un champ appelé **`behavior`** (« comportement »). On y définit des règles distinctes pour :\n- la **montée** (`scaleUp`) : à quelle vitesse on a le droit d'ajouter des pods ;\n- la **descente** (`scaleDown`) : à quelle vitesse on a le droit d'en retirer.\n\nLe réglage le plus utile s'appelle la **`stabilizationWindowSeconds`** (« fenêtre de stabilisation », en secondes) : une durée pendant laquelle l'HPA regarde le **maximum récent** avant d'oser réduire, pour **ne pas descendre trop vite** sur une baisse passagère. Par défaut : **300 s en descente** (on attend 5 minutes de calme confirmé avant de retirer des pods) mais **0 s en montée** (on réagit **tout de suite** à une hausse). La logique : **prudent pour retirer, rapide pour ajouter**. Bien réglé, `behavior` transforme un autoscaling **nerveux** en un autoscaling **stable**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "KEDA : scaler sur des événements, et jusqu'à zéro",
+          "body": "L'HPA de base scale sur le **CPU** ou la **mémoire**. Mais pour beaucoup d'applications, ce n'est **pas** le bon signal. Pense à un **worker** (un programme qui **traite des tâches en arrière-plan**, pas une page web) qui dépile les messages d'une **file d'attente** (en anglais *queue* : une liste de tâches à traiter, du type RabbitMQ, Amazon SQS, un topic Kafka). Ce worker peut avoir un CPU **modéré** tout en ayant **des milliers de messages en attente**. Le CPU ne « voit » pas la file : scaler dessus est aveugle.\n\nC'est là qu'intervient **KEDA**, pour **Kubernetes Event-Driven Autoscaling** (« autoscaling piloté par les événements »), un projet de la **CNCF** (la fondation qui héberge Kubernetes et son écosystème). KEDA **étend** l'HPA avec des dizaines de **scalers** : des connecteurs prêts à l'emploi qui savent lire la **vraie** métrique de charge, par exemple :\n- la **longueur d'une file** (combien de messages attendent dans RabbitMQ ou SQS) ;\n- le **consumer lag** d'un topic Kafka (le *lag*, c'est le **retard accumulé** : combien de messages ont été produits mais pas encore consommés) ;\n- une métrique **Prometheus** custom (n'importe quelle mesure que tu exposes).\n\n👉 **Analogie** : au lieu de juger l'effort du caissier à sa **transpiration** (le CPU), on regarde **la longueur réelle de la file de clients** (la queue). C'est **ça**, la bonne mesure pour décider d'ouvrir des caisses.\n\nCerise sur le gâteau : KEDA permet le **scale-to-zero** (« descendre jusqu'à zéro »). Quand il n'y a **aucun** événement à traiter (file vide), il descend le déploiement à **0 pod** : coût nul, rien ne tourne. Dès qu'un message arrive, il **remonte** automatiquement. Idéal pour des workers, des consommateurs de files, des traitements par lots. Bon à savoir : sous le capot, KEDA **s'appuie sur l'HPA** : il ne le remplace pas, il l'alimente avec les bonnes métriques."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Karpenter vs Cluster Autoscaler (niveau expert)",
+          "body": "On l'a vu : pour scaler les **nœuds** (les machines), il existe le **Cluster Autoscaler**. Regardons **comment** il le fait, puis pourquoi une alternative, **Karpenter**, est souvent préférée à grande échelle.\n\nLe Cluster Autoscaler classique raisonne par **groupes de nœuds** (en anglais *node groups*) : des ensembles de machines **du même type**, définis **à l'avance**. Quand il manque de la place, il ajoute une machine **de ce type figé**, ni plus grosse ni plus petite. C'est simple, mais **rigide** : si tes pods ont des besoins variés, tu gaspilles (une petite tâche sur une grosse machine) ou tu manques de place.\n\n👉 **Analogie** : le Cluster Autoscaler, c'est un loueur qui ne propose **qu'un seul modèle de camionnette**. Besoin de transporter une enveloppe ou un piano ? Ce sera la même camionnette à chaque fois, adaptée ou non.\n\n**Karpenter** (né chez AWS, aujourd'hui plus largement adopté) change d'approche : il provisionne les nœuds **juste-à-temps** et **sans groupes figés**. Il **regarde les pods réellement en attente**, puis choisit **le type de machine le mieux adapté** à leurs besoins : bonne taille, bonne architecture (ex. ARM ou x86), et le mode le moins cher (**spot** = capacité cloud bradée mais interruptible, vs **on-demand** = prix normal mais garanti). Il va plus vite et, en plus, il **consolide** : il **regroupe** régulièrement les pods sur **moins de nœuds** pour libérer et éteindre les machines à moitié vides.\n\n👉 **Analogie** : Karpenter, c'est le loueur qui, **pour chaque livraison**, sort **exactement le bon véhicule** (vélo pour l'enveloppe, camion pour le piano) au **meilleur tarif** du moment, puis **regroupe les tournées** pour rendre les véhicules inutiles.\n\nRésultat : un scaling de nœuds plus **efficace** et plus **économique**, très adapté aux charges variées. Comprendre l'opposition (**groupes rigides** vs **provisionnement flexible**) guide un vrai choix d'architecture pour un cluster à l'échelle."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un service consomme les messages d'une file RabbitMQ. La nuit, la file est vide, mais l'équipe garde 3 pods qui tournent « au cas où », coûtant des ressources pour rien ; le jour, lors d'un afflux massif de messages, l'autoscaling sur CPU réagit mal car le CPU ne reflète pas la profondeur de la file. Quelle solution d'autoscaling est adaptée ?",
+          "solution": "KEDA (Kubernetes Event-Driven Autoscaling). Le problème a deux facettes que KEDA résout précisément. (1) La nuit, file vide mais 3 pods maintenus : gaspillage. KEDA permet le scale-to-zero, quand il n'y a aucun message à traiter, il descend le déploiement à 0 pod, éliminant totalement le coût la nuit ; dès qu'un message arrive, il remonte automatiquement à au moins 1 pod. (2) Le jour, l'autoscaling sur CPU réagit mal parce que la MÉTRIQUE PERTINENTE n'est pas le CPU mais la PROFONDEUR DE LA FILE : un worker peut avoir un CPU modéré tout en ayant des milliers de messages en attente. KEDA fournit un scaler RabbitMQ qui autoscale directement sur la longueur de la file (nombre de messages en attente) : plus la file grossit, plus KEDA ajoute de pods pour la résorber, et inversement. On configure un ScaledObject KEDA ciblant le Deployment du worker, avec un trigger RabbitMQ (queueName, valeur cible de messages par pod) et minReplicaCount: 0 pour le scale-to-zero. Résultat : 0 pod quand la file est vide (économie la nuit), et un nombre de pods proportionnel à la charge réelle (la file) le jour, un autoscaling qui suit la vraie demande, contrairement à l'HPA CPU aveugle à la file. KEDA s'appuie d'ailleurs sur l'HPA sous le capot, mais avec la bonne métrique événementielle."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, HPA v2, KEDA & Karpenter (expert)",
+          "quizRef": "hpa-keda-karpenter-expert"
+        }
+      ]
+    }
+  ]
+}

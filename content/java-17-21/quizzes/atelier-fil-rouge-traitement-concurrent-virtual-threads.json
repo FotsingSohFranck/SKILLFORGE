@@ -1,0 +1,41 @@
+{
+  "ref": "atelier-fil-rouge-traitement-concurrent-virtual-threads",
+  "node": "atelier-fil-rouge",
+  "lesson": "traitement-concurrent-virtual-threads",
+  "title": "Quiz : traitement concurrent avec les threads virtuels",
+  "description": "Executor de threads virtuels et tâches qui attendent.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que crée Executors.newVirtualThreadPerTaskExecutor() pour chaque tâche soumise ?",
+      "justification": "Cet executor crée un thread virtuel par tâche soumise via submit(). Comme les threads virtuels sont très légers, on peut en lancer un par tâche sans souci.",
+      "position": 0,
+      "options": [
+        { "label": "Un thread virtuel par tâche", "correct": true, "position": 0 },
+        { "label": "Un seul thread partagé par toutes les tâches", "correct": false, "position": 1 },
+        { "label": "Un thread système coûteux réutilisé en boucle", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Dix chargements, chacun fait Thread.sleep(200) (il attend). On les lance en parallèle avec un thread virtuel chacun. À quoi ressemble le temps total ?",
+      "justification": "Les attentes se recouvrent : les dix pauses de 200 ms tournent ensemble, donc le total avoisine 200 ms, le temps du plus lent, au lieu de 10 x 200 ms en séquentiel.",
+      "position": 1,
+      "options": [
+        { "label": "Environ 200 ms, car les attentes se recouvrent", "correct": true, "position": 0 },
+        { "label": "Environ 2000 ms, comme si on les faisait un par un", "correct": false, "position": 1 },
+        { "label": "Impossible à lancer : il y a trop de threads", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les threads virtuels brillent surtout pour des tâches qui attendent (réseau, fichier, pause), pas pour du calcul intensif pur.",
+      "justification": "Quand un thread virtuel attend, Java libère le vrai thread système pour autre chose. Sur du calcul pur qui occupe le processeur, les threads virtuels n'apportent aucun gain.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

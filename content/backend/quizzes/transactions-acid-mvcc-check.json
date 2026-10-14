@@ -1,0 +1,52 @@
+{
+  "ref": "transactions-acid-mvcc-check",
+  "node": "transactions-acid",
+  "lesson": "mvcc-snapshot-isolation",
+  "title": "MVCC & snapshot isolation",
+  "description": "Multi-versions, lecteurs/écrivains, bloat & VACUUM, Serializable/SSI.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sous MVCC, que fait PostgreSQL quand tu modifies une ligne ?",
+      "justification": "Il ne l'écrase pas sur place : il crée une nouvelle version de la ligne et garde l'ancienne un moment (d'où plusieurs versions côte à côte).",
+      "position": 0,
+      "options": [
+        { "label": "Il crée une nouvelle version de la ligne au lieu de l'écraser sur place", "correct": true, "position": 0 },
+        { "label": "Il supprime immédiatement l'ancienne valeur pour gagner de la place", "correct": false, "position": 1 },
+        { "label": "Il verrouille toute la table pendant l'écriture", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Grâce au MVCC, les lecteurs ne bloquent pas les écrivains et les écrivains ne bloquent pas les lecteurs.",
+      "justification": "Vrai : c'est la conséquence fondamentale du MVCC. Une lecture voit un instantané cohérent sans attendre les écritures en cours.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Les anciennes versions de lignes (« mortes ») s'accumulent et gonflent la table. Qu'est-ce qui les recycle ?",
+      "justification": "C'est le rôle du VACUUM (et de l'autovacuum), qui recycle l'espace des versions mortes pour éviter le bloat.",
+      "position": 2,
+      "options": [
+        { "label": "Le VACUUM (ou l'autovacuum)", "correct": true, "position": 0 },
+        { "label": "Le COMMIT de la transaction suivante", "correct": false, "position": 1 },
+        { "label": "Rien : elles disparaissent instantanément", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "En Serializable (SSI), une transaction échoue avec une serialization failure (code 40001). Comment le code applicatif doit-il réagir ?",
+      "justification": "Ce n'est pas un bug : en Serializable, toute transaction peut échouer ainsi. Le code doit simplement la rejouer depuis le début.",
+      "position": 3,
+      "options": [
+        { "label": "La rejouer depuis le début : c'est le comportement attendu du niveau Serializable", "correct": true, "position": 0 },
+        { "label": "Considérer que la base est corrompue et l'arrêter", "correct": false, "position": 1 },
+        { "label": "Ignorer l'erreur et continuer comme si la transaction avait réussi", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

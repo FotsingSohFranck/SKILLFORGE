@@ -1,0 +1,96 @@
+{
+  "slug": "prompt-engineering",
+  "title": "Prompt Engineering",
+  "summary": "Concevoir des prompts fiables : fonctionnement des LLM, techniques, données et mise en production.",
+  "kind": "TRACK",
+  "position": 10,
+  "phases": [
+    { "title": "Fondamentaux", "position": 0 },
+    { "title": "Techniques de prompting", "position": 1 },
+    { "title": "Contexte & données", "position": 2 },
+    { "title": "Fiabilité & production", "position": 3 }
+  ],
+  "nodes": [
+    {
+      "slug": "how-llms-work",
+      "title": "Comment fonctionne un LLM",
+      "summary": "Tokens, probabilités, fenêtre de contexte.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 45,
+      "position": 0
+    },
+    {
+      "slug": "anatomy",
+      "title": "Anatomie d'un bon prompt",
+      "summary": "Instruction, contexte, exemples, format.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "few-shot",
+      "title": "Zero-shot & few-shot",
+      "summary": "Guider par l'exemple.",
+      "phase": "Techniques de prompting",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "chain-of-thought",
+      "title": "Raisonnement étape par étape",
+      "summary": "Faire réfléchir avant de répondre.",
+      "phase": "Techniques de prompting",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "structured-output",
+      "title": "Sorties structurées",
+      "summary": "Obtenir du JSON exploitable, à coup sûr.",
+      "phase": "Contexte & données",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "rag",
+      "title": "RAG & ancrage",
+      "summary": "Fournir les bonnes données pour des réponses fiables.",
+      "phase": "Contexte & données",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 75,
+      "position": 1
+    },
+    {
+      "slug": "evaluation",
+      "title": "Évaluer & itérer",
+      "summary": "Mesurer la qualité d'un prompt, pas la deviner.",
+      "phase": "Fiabilité & production",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "safety",
+      "title": "Hallucinations & sûreté",
+      "summary": "Garde-fous, injection de prompt, limites.",
+      "phase": "Fiabilité & production",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 60,
+      "position": 1
+    }
+  ],
+  "edges": [
+    { "source": "how-llms-work", "target": "anatomy", "kind": "PREREQ" },
+    { "source": "anatomy", "target": "few-shot", "kind": "PREREQ" },
+    { "source": "few-shot", "target": "chain-of-thought", "kind": "PREREQ" },
+    { "source": "anatomy", "target": "structured-output", "kind": "PREREQ" },
+    { "source": "structured-output", "target": "rag", "kind": "PREREQ" },
+    { "source": "anatomy", "target": "evaluation", "kind": "PREREQ" },
+    { "source": "evaluation", "target": "safety", "kind": "PREREQ" }
+  ]
+}

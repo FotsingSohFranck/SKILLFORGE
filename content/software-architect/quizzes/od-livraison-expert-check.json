@@ -1,0 +1,96 @@
+{
+  "ref": "od-livraison-expert-check",
+  "node": "operations-devops",
+  "lesson": "livraison-et-resilience",
+  "title": "Quiz, Livraison progressive & résilience (expert)",
+  "description": "Canary/blue-green/feature flags/GitOps, Twelve-Factor/secrets, RTO/RPO, chaos.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle stratégie route un petit pourcentage du trafic vers la nouvelle version pour l'observer ?",
+      "justification": "Le canary : déploiement le plus prudent, on augmente progressivement ou on annule selon les métriques/SLO.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le canary",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le big bang nocturne",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où stocker les secrets (mots de passe, clés) selon les bonnes pratiques ?",
+      "justification": "Dans un coffre (Vault, KMS, secrets K8s chiffrés) avec rotation, jamais en dur ni dans le dépôt Git (l'historique reste même après suppression).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Dans un coffre (Vault/KMS), jamais dans le dépôt",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans un fichier committé sur Git",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En dur dans le code source",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que définissent le RTO et le RPO ?",
+      "justification": "RTO = temps max pour rétablir le service ; RPO = perte de données max tolérée. Ils dictent l'architecture de reprise (réplication, multi-région).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le temps de reprise et la perte de données tolérée",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La vitesse du réseau et la RAM",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Deux frameworks JavaScript",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le chaos engineering consiste à injecter des pannes en production contrôlée pour vérifier la résilience au lieu de la supposer.",
+      "justification": "Vrai : on ne découvre pas sa résilience pendant un vrai incident ; on la teste avant (Chaos Monkey, game days).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

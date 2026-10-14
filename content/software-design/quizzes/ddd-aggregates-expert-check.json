@@ -1,0 +1,96 @@
+{
+  "ref": "ddd-aggregates-expert-check",
+  "node": "ddd",
+  "lesson": "agregats-et-domain-events",
+  "title": "Quiz, Agrégats & domain events (expert)",
+  "description": "Règles d'agrégats (Vernon), référence par identité, domain events.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un agrégat devrait-il référencer un autre agrégat ?",
+      "justification": "Par identité (un customerId), pas par une référence objet directe, pour garder les agrégats découplés et les frontières nettes.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par identité (l'ID), pas par un objet complet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En incluant l'objet entier de l'autre agrégat",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par une variable globale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Combien d'agrégats une transaction devrait-elle idéalement modifier ?",
+      "justification": "Un seul ; la cohérence entre agrégats est à terme, via des domain events, pour éviter contention et transactions multi-agrégats.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un seul (cohérence à terme entre agrégats via événements)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Autant que possible dans la même transaction",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Exactement trois",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un domain event ?",
+      "justification": "Un fait métier significatif qui s'est produit, nommé au passé dans le langage ubiquitaire (PaiementReçu) ; il découple les agrégats/contextes et les effets secondaires.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un fait métier survenu, nommé au passé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une requête SQL planifiée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un bug en production",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il est recommandé de concevoir de petits agrégats plutôt que de gros agrégats qui aspirent beaucoup d'entités.",
+      "justification": "Vrai : un gros agrégat crée contention et problèmes de performance ; on garde l'agrégat aussi petit que les invariants le permettent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

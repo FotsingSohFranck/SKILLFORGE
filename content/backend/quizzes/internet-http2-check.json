@@ -1,0 +1,96 @@
+{
+  "ref": "internet-http2-check",
+  "node": "internet",
+  "lesson": "http2-et-http3",
+  "title": "Quiz, HTTP/2 & HTTP/3",
+  "description": "Limite de HTTP/1.1, multiplexage HTTP/2, QUIC et migration de connexion.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle limite de HTTP/1.1 le multiplexage de HTTP/2 vient-il lever ?",
+      "justification": "En HTTP/1.1 une connexion traite une requête à la fois (head-of-line blocking) ; HTTP/2 fait passer plusieurs échanges en parallèle (streams) sur une seule connexion.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une requête à la fois par connexion, qui bloque les suivantes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'absence de chiffrement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'impossibilité d'utiliser des en-têtes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quel transport repose HTTP/3 ?",
+      "justification": "HTTP/3 abandonne TCP pour QUIC, un transport bâti sur UDP qui intègre le chiffrement et le multiplexage.",
+      "position": 1,
+      "options": [
+        {
+          "label": "QUIC, bâti au-dessus d'UDP",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "TCP, comme HTTP/1.1",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un nouveau protocole sans rapport avec IP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Changer de version de protocole (HTTP/2, HTTP/3) oblige à réécrire le code de l'API.",
+      "justification": "Faux : la sémantique (verbes, codes, en-têtes) reste identique. La version est un levier d'infrastructure/performance, activé au reverse proxy ou au CDN, transparent pour le backend.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une appli mobile subit des coupures lors des changements Wi-Fi vers 4G. Pourquoi HTTP/3 aide-t-il ?",
+      "justification": "QUIC gère la migration de connexion : un changement de réseau ne casse pas la connexion, alors qu'une connexion TCP liée au couple IP/port doit être rétablie.",
+      "position": 3,
+      "options": [
+        {
+          "label": "QUIC gère la migration de connexion : le changement de réseau ne la casse pas",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "HTTP/3 supprime le besoin de DNS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "HTTP/3 met tout en cache localement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "building-for-scale-expert",
+  "node": "building-for-scale",
+  "lesson": "echelle-mondiale-chaos",
+  "title": "Building for scale, niveau expert",
+  "description": "Tail latency, loi de Little, load leveling, tests de charge, chaos, cellules.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle métrique reflète le mieux l'expérience de latence des utilisateurs, plutôt que la moyenne ?",
+      "justification": "Les percentiles hauts (P99/P99.9) : la moyenne masque la traîne lente qui touche pourtant beaucoup d'utilisateurs.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le P99 (percentile haut)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La latence moyenne",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La latence minimale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que relie la loi de Little (L = λ × W) ?",
+      "justification": "Le nombre de requêtes en cours (L) = débit d'arrivée (λ) × temps dans le système (W), utile pour dimensionner pools et files.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Requêtes en cours = débit × temps de traitement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Coût = CPU × mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Débit = index × cache",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment absorber des pics de trafic sans sur-dimensionner en permanence ?",
+      "justification": "Le queue-based load leveling : une file encaisse les pics, des workers consomment à un rythme soutenable (échange latence contre stabilité).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le queue-based load leveling (file tampon + workers)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Traiter tout de façon synchrone",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver l'autoscaling",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principe du chaos engineering ?",
+      "justification": "Injecter délibérément des pannes contrôlées pour vérifier que le système dégrade au lieu de s'effondrer, avant un vrai incident.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Injecter des pannes contrôlées pour valider la résilience",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Écrire du code désordonné",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les tests automatisés",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'architecture cellulaire (cell-based) borne le rayon d'explosion d'une panne : une cellule défaillante n'affecte que ses utilisateurs.",
+      "justification": "Vrai : partitionner en cellules indépendantes, chacune servant une fraction des utilisateurs, limite l'impact d'une panne à une cellule.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

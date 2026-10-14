@@ -1,0 +1,96 @@
+{
+  "ref": "autoscaling-hpa-check",
+  "node": "autoscaling",
+  "lesson": "hpa-et-vpa",
+  "title": "Quiz, HPA & VPA",
+  "description": "Autoscaling horizontal (HPA) vs vertical (VPA), rôle des requests.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le Horizontal Pod Autoscaler (HPA) ?",
+      "justification": "L'HPA ajuste le NOMBRE de répliques (de pods) d'un Deployment selon une métrique : c'est le scaling horizontal, on multiplie des instances identiques.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il ajuste le nombre de pods (répliques) selon la charge",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il agrandit la taille de chaque pod",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il ajoute des nœuds au cluster",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le Vertical Pod Autoscaler (VPA) ?",
+      "justification": "Le VPA ajuste les requests/limits (la taille) des conteneurs selon leur consommation réelle : c'est le right-sizing, souvent utilisé en mode recommandation.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il ajuste la taille des pods (leurs requests/limits)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ajuste le nombre de pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il supprime les nœuds vides",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un HPA basé sur le CPU a-t-il besoin de requests CPU définies ?",
+      "justification": "L'HPA raisonne en pourcentage de la request CPU (ex. viser 70 % de la request). Sans request, il n'a pas de base de comparaison et son scaling devient erratique.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Parce qu'il compare l'usage réel à la request (il raisonne en pourcentage de celle-ci)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que la request chiffre les pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que sans request les pods ne démarrent jamais",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut faire agir en même temps un HPA et un VPA sur la même métrique CPU d'un même Deployment sans problème.",
+      "justification": "Faux : ils se contrediraient (l'un veut plus de pods, l'autre des pods plus gros sur le même signal). On choisit l'un ou l'autre, ou on garde le VPA seulement en recommandation.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

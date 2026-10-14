@@ -1,0 +1,10 @@
+{
+  "node": "what-is-terraform",
+  "lesson": "terraform-iac-vs-cac-installation",
+  "title": "Provisionner ou configurer ?",
+  "statement": "En t'appuyant sur la distinction IaC vs CaC, classe chacune de ces cinq tâches dans la bonne catégorie et justifie en une phrase : (1) créer une machine virtuelle dans le cloud ; (2) installer le serveur web sur cette machine ; (3) créer un réseau et un load balancer ; (4) déployer et régler l'application sur les serveurs ; (5) créer une base de données managée. Termine en donnant l'ordre logique d'un flux qui combine les deux.",
+  "skeleton": "IaC (provisionner, le contenant) :\n- ...\n\nCaC (configurer, le contenu) :\n- ...\n\nOrdre du flux : ...",
+  "solution": "IaC (provisionner l'infrastructure, le « contenant », rôle de Terraform) : (1) créer une machine virtuelle dans le cloud, car on fait exister une ressource d'infrastructure ; (3) créer un réseau et un load balancer, car ce sont des briques d'infrastructure ; (5) créer une base de données managée, car on provisionne une ressource cloud. CaC (configurer ce qui tourne sur les machines, le « contenu », rôle d'Ansible/Chef/Puppet ou d'un script) : (2) installer le serveur web sur la machine, car on configure un logiciel sur un serveur qui existe déjà ; (4) déployer et régler l'application, car on paramètre ce qui s'exécute sur les serveurs. Ordre logique d'un flux combiné : d'abord l'IaC (Terraform) provisionne la machine, le réseau, le load balancer et la base (le contenant) ; ENSUITE la CaC (ou un script, ou une image conteneur) installe le serveur web puis déploie et configure l'application sur les serveurs créés (le contenu). On provisionne avant de configurer : impossible de configurer une machine qui n'existe pas encore.",
+  "keyPoints": ["IaC", "provisionner", "CaC", "configurer", "contenant", "contenu", "Terraform", "machine", "load balancer", "base de données", "serveur web", "application", "provisionne avant"],
+  "language": "text"
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "mock-provider-expert",
+  "node": "testing",
+  "lesson": "mock-provider-et-overrides",
+  "title": "Tester sans créer, expert",
+  "description": "mock_provider, overrides, tests rapides/gratuits/sans credentials.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet mock_provider dans terraform test (1.7+) ?",
+      "justification": "Simuler un provider : Terraform ne contacte pas le cloud, génère des valeurs factices, tests instantanés, gratuits, sans credentials.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Simuler un provider (tests locaux, sans créer de ressources)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Créer de vraies ressources plus vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le state",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les overrides (override_resource/data/module) ?",
+      "justification": "À fournir des valeurs déterministes à un attribut/une data/un module, pour asserter dessus de façon fiable dans un test mocké.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Fournir des valeurs déterministes pour les assertions",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Remplacer le provider en production",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Détruire les ressources",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage majeur des tests mockés pour la CI ?",
+      "justification": "Rapides, gratuits et sans credentials cloud : exécutables à chaque PR sur n'importe quel runner, sans exposer d'accès cloud.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Rapides, gratuits, sans credentials cloud",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils testent l'infra réelle en production",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ils suppriment le besoin de tests",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La bonne pyramide : beaucoup de tests mockés (rapides, à chaque PR) et quelques tests e2e (apply réel) pour la fidélité.",
+      "justification": "Vrai : l'essentiel de la couverture via des tests mockés gratuits, complétés par de rares tests e2e sur les changements importants.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

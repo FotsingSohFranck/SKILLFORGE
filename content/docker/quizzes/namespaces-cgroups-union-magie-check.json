@@ -1,0 +1,96 @@
+{
+  "ref": "namespaces-cgroups-union-magie-check",
+  "node": "namespaces-cgroups-union",
+  "lesson": "la-magie-demystifiee",
+  "title": "Quiz, La magie démystifiée",
+  "description": "Les trois briques du noyau, le rôle de chacune, et ce que Docker a réellement apporté.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un conteneur, c'est fondamentalement quoi ?",
+      "justification": "Un conteneur est un simple processus Linux auquel on applique trois fonctionnalités du noyau (namespaces, cgroups, système de fichiers en union), pas une machine virtuelle.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un processus Linux ordinaire encadré par trois fonctionnalités du noyau",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une machine virtuelle légère avec son propre noyau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un émulateur qui recrée un ordinateur complet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle brique isole ce qu'un processus VOIT (ses processus, son réseau, ses fichiers) ?",
+      "justification": "Les namespaces isolent la vue ; les cgroups limitent la consommation ; l'union FS assemble le système de fichiers en couches.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les namespaces",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les cgroups",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le système de fichiers en union",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Docker a inventé les namespaces et les cgroups.",
+      "justification": "Faux : ces mécanismes existaient déjà dans le noyau Linux (vers 2007) et étaient utilisés par LXC. Docker les a rendus faciles à utiliser (image portable, outillage, registre), il ne les a pas inventés.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un conteneur consomme toute la RAM de la machine et fait planter les autres conteneurs. Quelle brique aurait dû l'en empêcher ?",
+      "justification": "Les cgroups plafonnent la consommation de ressources (mémoire, CPU, I/O). Une limite mémoire aurait déclenché un OOM kill du seul conteneur fautif au lieu d'affamer les autres.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Les cgroups (une limite mémoire)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les namespaces (une meilleure isolation de la vue)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le système de fichiers en union (moins de couches)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-patterns-exhaustivite-atelier",
+  "node": "sealed-patterns-exhaustivite",
+  "lesson": "atelier",
+  "title": "Quiz : atelier, evaluer une expression",
+  "description": "Domaine Expr scelle, type recursif et evaluation par switch.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans sealed interface Expr permits Nombre, Addition, Multiplication, pourquoi dit on qu'Expr est un type recursif ?",
+      "justification": "Addition et Multiplication contiennent eux memes des Expr (gauche et droite) : le type se refere a lui meme, ce qui permet d'emboiter les operations.",
+      "position": 0,
+      "options": [
+        { "label": "Parce qu'Addition et Multiplication contiennent elles memes des Expr.", "correct": true, "position": 0 },
+        { "label": "Parce qu'Expr ne peut contenir qu'un seul Nombre.", "correct": false, "position": 1 },
+        { "label": "Parce qu'Expr s'execute en boucle infinie.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans evaluer, quel case joue le role de cas de base qui arrete la recursion ?",
+      "justification": "case Nombre(double v) -> v renvoie directement la valeur sans rappeler evaluer : c'est le cas de base qui stoppe la descente.",
+      "position": 1,
+      "options": [
+        { "label": "case Nombre(double v) -> v", "correct": true, "position": 0 },
+        { "label": "case Addition(Expr g, Expr d) -> evaluer(g) + evaluer(d)", "correct": false, "position": 1 },
+        { "label": "case Multiplication(Expr g, Expr d) -> evaluer(g) * evaluer(d)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si on ajoute une variante Soustraction a Expr sans traiter son cas dans evaluer, le switch expression sans default cesse de compiler.",
+      "justification": "La liste permits change, le switch n'est plus exhaustif et sans default le compilateur refuse le code tant que le cas Soustraction manque.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

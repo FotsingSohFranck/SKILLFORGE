@@ -1,0 +1,119 @@
+{
+  "ref": "services-check",
+  "node": "services",
+  "lesson": "types-de-services",
+  "title": "Services & découverte",
+  "description": "Adresse stable, selector/endpoints, ClusterIP/NodePort/LoadBalancer, DNS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne peut-on pas atteindre un pod par son IP codée en dur ?",
+      "justification": "Les pods sont éphémères : leur IP change à chaque recréation. On passe par un Service (nom/IP stables) qui répartit vers les pods.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'IP d'un pod change à chaque recréation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les pods n'ont pas d'IP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Kubernetes interdit les IP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un Service sait-il quels pods cibler ?",
+      "justification": "Par un sélecteur de labels ; Kubernetes maintient la liste des IP des pods correspondants ET prêts (endpoints).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Par un sélecteur de labels (et les pods prêts)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par leur IP codée en dur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par leur ordre de création",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de Service expose un service uniquement à l'intérieur du cluster ?",
+      "justification": "ClusterIP (défaut) : IP interne, joignable seulement depuis le cluster, idéal pour la communication entre services.",
+      "position": 2,
+      "options": [
+        {
+          "label": "ClusterIP",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "LoadBalancer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "NodePort",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de Service provisionne un load balancer cloud avec IP publique ?",
+      "justification": "LoadBalancer : il crée un load balancer externe du fournisseur cloud, la façon standard d'exposer un service à Internet en managé.",
+      "position": 3,
+      "options": [
+        {
+          "label": "LoadBalancer",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "ClusterIP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "ExternalName",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Kubernetes fournit un DNS interne : les pods atteignent un Service par son nom (ex. backend), pas par une IP.",
+      "justification": "Vrai : CoreDNS résout les noms de Services (backend, ou backend.ns.svc.cluster.local), c'est la découverte de services.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

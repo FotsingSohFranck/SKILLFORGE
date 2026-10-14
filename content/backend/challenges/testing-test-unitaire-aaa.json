@@ -1,0 +1,10 @@
+{
+  "node": "testing",
+  "lesson": "tests-unitaires",
+  "title": "Écrire un test unitaire (structure AAA)",
+  "statement": "On dispose d'un value object `Money(int cents, String devise)` avec une méthode `add(Money autre)` et un accesseur `cents()`. Écris un test unitaire JUnit 5 nommé `additionne_deux_montants` qui vérifie que `new Money(100, \"EUR\").add(new Money(50, \"EUR\"))` donne bien 150 cents. Respecte la structure AAA (Arrange, Act, Assert) et utilise `assertEquals`.",
+  "skeleton": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\nclass MoneyTest {\n\n    @Test\n    void additionne_deux_montants() {\n        // Arrange : prépare les deux montants\n\n        // Act : additionne-les\n\n        // Assert : vérifie le total en cents\n    }\n}",
+  "solution": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\nclass MoneyTest {\n\n    @Test\n    void additionne_deux_montants() {\n        // Arrange\n        var a = new Money(100, \"EUR\");\n        var b = new Money(50, \"EUR\");\n\n        // Act\n        var total = a.add(b);\n\n        // Assert\n        assertEquals(150, total.cents());\n    }\n}",
+  "keyPoints": ["@Test", "add", "assertEquals", "150", "cents"],
+  "language": "java"
+}

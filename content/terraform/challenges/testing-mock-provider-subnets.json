@@ -1,0 +1,10 @@
+{
+  "node": "testing",
+  "lesson": "mock-provider-et-overrides",
+  "title": "Tester la logique d'un module sans credentials (mock_provider)",
+  "statement": "Tu veux vérifier, à chaque pull request et SANS coût ni credentials cloud, que ton module crée bien 3 sous-réseaux. Dans un fichier `module.tftest.hcl` : (1) déclare un `mock_provider \"aws\" {}` pour que Terraform ne contacte pas le vrai cloud ; (2) écris un bloc `run` nommé `trois_sous_reseaux` en mode `plan` ; (3) dans son bloc `assert`, vérifie que `length(aws_subnet.this) == 3`, avec un `error_message` clair sinon.",
+  "skeleton": "# simuler le provider aws (aucun appel cloud)\n\n# run en mode plan qui asserte le nombre de sous-reseaux\n",
+  "solution": "mock_provider \"aws\" {}\n\nrun \"trois_sous_reseaux\" {\n  command = plan\n  assert {\n    condition     = length(aws_subnet.this) == 3\n    error_message = \"Il devrait y avoir 3 sous-réseaux\"\n  }\n}",
+  "keyPoints": ["mock_provider \"aws\"", "run \"trois_sous_reseaux\"", "command = plan", "assert", "length(aws_subnet.this) == 3", "error_message"],
+  "language": "hcl"
+}

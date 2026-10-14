@@ -1,0 +1,10 @@
+{
+  "node": "observability",
+  "lesson": "alerting-et-slo",
+  "title": "Écrire une règle d'alerte sur un symptôme",
+  "statement": "Écris une **règle d'alerte Prometheus** (format YAML) qui alerte sur un **symptôme** ressenti par l'utilisateur : le taux de réponses en erreur `5xx`. L'alerte, nommée `HighErrorRate`, doit se déclencher quand la proportion de requêtes `5xx` dépasse **1 %** (`0.01`) pendant **5 minutes** (`for: 5m`), avec un label `severity: page` et une annotation `summary` décrivant le problème. Utilise la métrique `http_requests_total` (label `status`).",
+  "skeleton": "groups:\n  - name: slo\n    rules:\n      - alert: HighErrorRate\n        # complete expr, for, labels, annotations\n",
+  "solution": "groups:\n  - name: slo\n    rules:\n      - alert: HighErrorRate\n        expr: sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) > 0.01\n        for: 5m\n        labels:\n          severity: page\n        annotations:\n          summary: \"Taux d'erreurs 5xx superieur a 1% sur 5 minutes\"",
+  "keyPoints": ["alert: HighErrorRate", "expr:", "http_requests_total", "for: 5m", "severity: page", "annotations", "summary"],
+  "language": "yaml"
+}

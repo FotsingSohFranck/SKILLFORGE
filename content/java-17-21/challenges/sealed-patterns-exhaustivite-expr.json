@@ -1,0 +1,10 @@
+{
+  "node": "sealed-patterns-exhaustivite",
+  "lesson": "atelier",
+  "title": "Evalue une expression arithmetique",
+  "statement": "On te donne l'interface scellee Expr permits Nombre, Addition, Multiplication et ses trois records. Ecris une methode static double evaluer(Expr e) qui calcule le resultat de l'expression, avec un switch exhaustif et SANS default. Un Nombre vaut sa valeur ; une Addition vaut la somme de l'evaluation de ses deux cotes ; une Multiplication vaut le produit de l'evaluation de ses deux cotes (recursion).",
+  "skeleton": "sealed interface Expr permits Nombre, Addition, Multiplication { }\nrecord Nombre(double valeur) implements Expr { }\nrecord Addition(Expr gauche, Expr droite) implements Expr { }\nrecord Multiplication(Expr gauche, Expr droite) implements Expr { }\n\nstatic double evaluer(Expr e) {\n    // Ecris ici un switch exhaustif et recursif, sans default\n}\n",
+  "solution": "static double evaluer(Expr e) {\n    return switch (e) {\n        case Nombre(double v) -> v;\n        case Addition(Expr g, Expr d) -> evaluer(g) + evaluer(d);\n        case Multiplication(Expr g, Expr d) -> evaluer(g) * evaluer(d);\n    };\n}",
+  "keyPoints": ["switch", "case Nombre", "case Addition", "case Multiplication", "recursion evaluer", "sans default"],
+  "language": "java"
+}

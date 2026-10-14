@@ -1,0 +1,119 @@
+{
+  "ref": "core-workflow-check",
+  "node": "core-workflow",
+  "lesson": "fmt-validate-inspect",
+  "title": "Le workflow Terraform",
+  "description": "plan/apply/destroy, plan sauvegardé, fmt/validate/TFLint, inspection.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `terraform plan` ?",
+      "justification": "Il compare l'état désiré au réel et affiche exactement ce qui sera fait (create/update/replace/destroy), sans rien modifier.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Prévisualise les changements sans rien modifier",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Applique immédiatement les changements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime l'infrastructure",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi appliquer un plan sauvegardé (`apply tfplan`) en CI ?",
+      "justification": "Pour exécuter exactement le plan revu/approuvé, sans recalcul, l'infra a pu changer entre plan et apply.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Pour appliquer exactement le plan approuvé, sans recalcul",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour aller plus vite uniquement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour éviter d'écrire du code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que vérifie `terraform validate` ?",
+      "justification": "La cohérence interne du code (syntaxe, arguments, références) hors ligne, sans contacter le cloud, rapide.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La cohérence interne du code (hors ligne)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'impact réel sur le cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le coût mensuel",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande liste les ressources suivies dans l'état ?",
+      "justification": "terraform state list affiche toutes les ressources gérées ; show détaille l'état, graph le graphe de dépendances.",
+      "position": 3,
+      "options": [
+        {
+          "label": "terraform state list",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "terraform destroy",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "terraform init",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut exécuter fmt et validate en CI très tôt car ils sont rapides et ne nécessitent pas d'accès au cloud.",
+      "justification": "Vrai : hors ligne et instantanés, ils attrapent format et erreurs de code (fail fast) avant le plan coûteux, ordre fmt→validate→tflint→plan.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

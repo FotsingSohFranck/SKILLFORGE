@@ -1,0 +1,96 @@
+{
+  "ref": "sec-jwt-expert-check",
+  "node": "security",
+  "lesson": "jwt-oauth-supply-chain",
+  "title": "Quiz, JWT, OAuth & supply chain (expert)",
+  "description": "Pièges JWT, flux OAuth/PKCE, OWASP concret, supply chain.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Le payload d'un JWT est-il confidentiel ?",
+      "justification": "Non : il est signé (intégrité) mais pas chiffré, lisible par quiconque le décode. On n'y met jamais de données sensibles.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Non : il est signé mais lisible (pas chiffré)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui : il est chiffré par défaut",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, si stocké dans localStorage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel flux OAuth 2.0 est recommandé pour les applications (web/mobile/SPA) ?",
+      "justification": "Authorization Code + PKCE : PKCE protège contre l'interception du code, indispensable pour les clients publics. Implicit et Password sont dépréciés.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Authorization Code + PKCE",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Implicit flow",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Resource Owner Password",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment contrer les injections SQL ?",
+      "justification": "Requêtes paramétrées / ORM, jamais de concaténation d'entrées, la SQLi est évitable à 100 % par le paramétrage.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Requêtes paramétrées / ORM, jamais de concaténation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Concaténer les entrées dans la requête",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La sécurité de la chaîne d'approvisionnement (SBOM, SCA/SAST/DAST, mises à jour) est un enjeu majeur, illustré par Log4Shell.",
+      "justification": "Vrai : les dépendances sont du code tiers vulnérable ou compromis ; on inventorie (SBOM), on scanne et on met à jour, avec réaction rapide aux CVE.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

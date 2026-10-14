@@ -1,0 +1,10 @@
+{
+  "node": "gof-patterns",
+  "lesson": "vocabulaire-partage",
+  "title": "Appliquer Strategy : des frais de port interchangeables",
+  "statement": "Ton `Checkout` calcule les frais de port avec un gros `if/else` sur la méthode choisie, et il faut le modifier à chaque nouvelle option. Applique le pattern **Strategy** pour supprimer ce couplage. (1) Définis une interface `ShippingCost` avec une méthode `int compute(int subtotal)` (le prix en centimes). (2) Écris deux stratégies concrètes : `StandardShipping` qui renvoie toujours `500`, et `FreeAbove100` qui renvoie `0` si `subtotal >= 10000`, sinon `500`. (3) Écris une classe `Checkout` qui reçoit une `ShippingCost` par son constructeur (injection) et expose `int total(int subtotal)` renvoyant `subtotal + compute(subtotal)`. Le but : ajouter une future option = ajouter une classe, sans toucher à `Checkout`.",
+  "skeleton": "public interface ShippingCost {\n    // le contrat : calculer les frais de port a partir du sous-total\n}\n\n// class StandardShipping implements ShippingCost ...\n// class FreeAbove100 implements ShippingCost ...\n\n// class Checkout : recoit une ShippingCost, expose total(int subtotal)\n",
+  "solution": "public interface ShippingCost {\n    int compute(int subtotal);\n}\n\nclass StandardShipping implements ShippingCost {\n    public int compute(int subtotal) {\n        return 500;\n    }\n}\n\nclass FreeAbove100 implements ShippingCost {\n    public int compute(int subtotal) {\n        return subtotal >= 10000 ? 0 : 500;\n    }\n}\n\nclass Checkout {\n    private final ShippingCost shipping;\n    Checkout(ShippingCost shipping) {\n        this.shipping = shipping;\n    }\n    int total(int subtotal) {\n        return subtotal + shipping.compute(subtotal);\n    }\n}",
+  "keyPoints": ["interface ShippingCost", "int compute(int subtotal)", "implements ShippingCost", "class Checkout", "this.shipping = shipping", "shipping.compute(subtotal)"],
+  "language": "java"
+}

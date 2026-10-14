@@ -1,0 +1,96 @@
+{
+  "ref": "odp-demeter-expert-check",
+  "node": "other-design-principles",
+  "lesson": "loi-demeter-portee-reelle",
+  "title": "Quiz, Loi de Déméter (expert)",
+  "description": "Mythe du point, objets à comportement vs structures de données, fluent APIs, coût (Middle Man).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que vise réellement la loi de Déméter ?",
+      "justification": "Elle interdit de naviguer dans le graphe d'objets d'autrui (couplage à la structure interne), pas de compter les points. Un train wreck couple l'appelant aux entrailles d'un autre objet.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Éviter de naviguer dans la structure interne d'autres objets (couplage structurel)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "N'avoir qu'un seul point par ligne",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Interdire tout chaînage de méthodes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Parcourir un DTO/JSON désérialisé (`response.getData().getItems()`) viole la loi de Déméter.",
+      "justification": "Faux : la loi s'applique aux objets à COMPORTEMENT, pas aux structures de données pures. Parcourir des données n'expose pas les entrailles d'un objet à protéger.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une fluent API / un builder (`q.select().where().build()`) ne viole-t-il pas la loi ?",
+      "justification": "Chaque appel renvoie le même type/une abstraction stable conçue pour le chaînage (this), pas un objet interne exposé par accident : on ne navigue pas dans les entrailles d'un autre objet.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Chaque appel renvoie le même type conçu pour le chaînage, pas un objet interne",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce qu'il y a moins de trois points",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que les builders sont exemptés par définition",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le coût d'appliquer mécaniquement la loi de Déméter ?",
+      "justification": "Ajouter des méthodes de délégation partout peut faire proliférer des passe-plats (odeur Middle Man). Souvent, Tell Don't Ask (déplacer le comportement) est meilleur que masquer la chaîne.",
+      "position": 3,
+      "options": [
+        {
+          "label": "La prolifération de méthodes de délégation (odeur Middle Man)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une exécution plus lente garantie",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'impossibilité d'utiliser des interfaces",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

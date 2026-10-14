@@ -1,0 +1,149 @@
+{
+  "slug": "cka",
+  "title": "CKA, Certified Kubernetes Administrator",
+  "summary": "Préparation à l'examen CKA : installer, configurer, exploiter et dépanner un cluster Kubernetes.",
+  "kind": "CERTIFICATION",
+  "position": 11,
+  "certification": {
+    "code": "CKA",
+    "examFormat": "PRACTICAL",
+    "durationMinutes": 120,
+    "passingScore": 66.0,
+    "domains": [
+      {
+        "name": "Cluster Architecture, Installation and Configuration",
+        "weight": 25,
+        "position": 0
+      },
+      {
+        "name": "Workloads and Scheduling",
+        "weight": 15,
+        "position": 1
+      },
+      {
+        "name": "Services and Networking",
+        "weight": 20,
+        "position": 2
+      },
+      {
+        "name": "Storage",
+        "weight": 10,
+        "position": 3
+      },
+      {
+        "name": "Troubleshooting",
+        "weight": 30,
+        "position": 4
+      }
+    ]
+  },
+  "phases": [
+    {
+      "title": "Installer & configurer",
+      "position": 0
+    },
+    {
+      "title": "Exploiter & dépanner",
+      "position": 1
+    }
+  ],
+  "nodes": [
+    {
+      "slug": "cluster-setup",
+      "title": "Architecture & installation",
+      "summary": "kubeadm, composants, etcd, RBAC, upgrades.",
+      "phase": "Installer & configurer",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 0,
+      "examDomains": [
+        {
+          "domain": "Cluster Architecture, Installation and Configuration",
+          "weight": 25
+        }
+      ]
+    },
+    {
+      "slug": "workloads-scheduling",
+      "title": "Charges & ordonnancement",
+      "summary": "Deployments, DaemonSets, taints/tolerations, affinités.",
+      "phase": "Installer & configurer",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1,
+      "examDomains": [
+        {
+          "domain": "Workloads and Scheduling",
+          "weight": 15
+        }
+      ]
+    },
+    {
+      "slug": "services-networking",
+      "title": "Services & réseau",
+      "summary": "Services, DNS, Ingress, NetworkPolicies, CNI.",
+      "phase": "Exploiter & dépanner",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 0,
+      "examDomains": [
+        {
+          "domain": "Services and Networking",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "slug": "storage",
+      "title": "Stockage",
+      "summary": "PV, PVC, StorageClass, provisionnement dynamique.",
+      "phase": "Exploiter & dépanner",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 1,
+      "examDomains": [
+        {
+          "domain": "Storage",
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "Dépannage",
+      "summary": "Le plus gros domaine : diagnostiquer nœuds, pods, réseau.",
+      "phase": "Exploiter & dépanner",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 2,
+      "examDomains": [
+        {
+          "domain": "Troubleshooting",
+          "weight": 30
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "cluster-setup",
+      "target": "workloads-scheduling",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "workloads-scheduling",
+      "target": "services-networking",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "services-networking",
+      "target": "storage",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "services-networking",
+      "target": "troubleshooting",
+      "kind": "PREREQ"
+    }
+  ]
+}

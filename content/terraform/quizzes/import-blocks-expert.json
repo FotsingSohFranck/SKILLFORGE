@@ -1,0 +1,96 @@
+{
+  "ref": "import-blocks-expert",
+  "node": "state-operations",
+  "lesson": "import-en-masse-generation",
+  "title": "Import en masse, expert",
+  "description": "Blocs import déclaratifs, -generate-config-out, plan vide après import.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'avantage du bloc `import` (1.5+) sur la commande `terraform import` ?",
+      "justification": "Il est déclaratif et versionné (dans le code, revu en PR) plutôt qu'une commande impérative jouée manuellement, une par ressource.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Déclaratif et versionné (vs commande impérative)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il détruit les ressources",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il chiffre l'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `terraform plan -generate-config-out=fichier.tf` ?",
+      "justification": "Il génère automatiquement le code HCL des ressources ciblées par des blocs import, à partir de leur état réel.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Génère le code des ressources importées",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Applique les changements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime le state",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle vérification est indispensable après un import ?",
+      "justification": "Itérer sur le code jusqu'à obtenir un plan VIDE : preuve que Terraform gère la ressource à l'identique, sans vouloir la modifier.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Obtenir un plan vide (aucun changement)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Détruire puis recréer la ressource",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ne rien vérifier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le code généré par -generate-config-out est un point de départ à relire, pas un résultat à appliquer aveuglément.",
+      "justification": "Vrai : il peut contenir des attributs à nettoyer/valeurs redondantes ; on l'ajuste jusqu'à un plan neutre avant d'appliquer.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "ref": "caching-check",
+  "node": "caching",
+  "lesson": "redis-et-invalidation",
+  "title": "Caching",
+  "description": "Niveaux, Redis, invalidation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le vrai défi d'un cache ?",
+      "justification": "L'invalidation : garder le cache cohérent pour ne pas servir des données périmées.",
+      "position": 0,
+      "options": [
+        { "label": "L'invalidation (fraîcheur des données)", "correct": true, "position": 0 },
+        { "label": "L'installation initiale", "correct": false, "position": 1 },
+        { "label": "Le choix de la couleur du logo", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quatre instances avec chacune un cache local ; un utilisateur voit parfois l'ancienne valeur. Solution ?",
+      "justification": "Un cache distribué partagé (Redis) est invalidé une fois pour toutes ; le cache local seul est incohérent en scale horizontal.",
+      "position": 1,
+      "options": [
+        { "label": "Un cache distribué partagé (Redis)", "correct": true, "position": 0 },
+        { "label": "Augmenter le TTL", "correct": false, "position": 1 },
+        { "label": "Supprimer le cache totalement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que renvoie une requête conditionnelle HTTP quand la ressource n'a pas changé ?",
+      "justification": "304 Not Modified : le client réutilise sa copie, sans re-télécharger le corps.",
+      "position": 2,
+      "options": [
+        { "label": "304 Not Modified", "correct": true, "position": 0 },
+        { "label": "200 avec tout le corps à nouveau", "correct": false, "position": 1 },
+        { "label": "500 Internal Server Error", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une donnée que l'utilisateur vient de modifier, quelle stratégie garantit la fraîcheur ?",
+      "justification": "L'éviction sur écriture retire/actualise l'entrée dès la modification ; le TTL seul laisse traîner l'ancienne valeur.",
+      "position": 3,
+      "options": [
+        { "label": "L'éviction sur écriture", "correct": true, "position": 0 },
+        { "label": "Un TTL très long", "correct": false, "position": 1 },
+        { "label": "Ne rien faire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il faut ajouter un cache avant de corriger un N+1 ou un index manquant.",
+      "justification": "Non : on assainit la base d'abord ; cacher masque le problème et complique l'invalidation.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

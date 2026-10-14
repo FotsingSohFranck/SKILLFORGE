@@ -1,0 +1,52 @@
+{
+  "ref": "web-security-xss-check",
+  "node": "web-security",
+  "lesson": "xss-csrf-cors-csp",
+  "title": "Quiz : XSS, CSRF, CORS & CSP",
+  "description": "Script injecté, CSRF, CORS, en-têtes de sécurité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une faille XSS (Cross-Site Scripting) ?",
+      "justification": "Le XSS injecte du JavaScript malveillant dans une page, exécuté dans le navigateur d'une victime (vol de session, actions à son insu).",
+      "position": 0,
+      "options": [
+        { "label": "Du JavaScript malveillant injecté dans une page et exécuté chez la victime", "correct": true, "position": 0 },
+        { "label": "Une requête SQL trop lente", "correct": false, "position": 1 },
+        { "label": "Un certificat TLS expiré", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle combinaison protège efficacement contre le XSS ?",
+      "justification": "Échapper les données affichées (le navigateur affiche au lieu d'exécuter) + une Content-Security-Policy qui restreint les scripts autorisés.",
+      "position": 1,
+      "options": [
+        { "label": "Échapper les sorties + une Content-Security-Policy (CSP)", "correct": true, "position": 0 },
+        { "label": "Augmenter la taille du pool de connexions", "correct": false, "position": 1 },
+        { "label": "Désactiver HTTPS", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que contrôle le mécanisme CORS ?",
+      "justification": "Le CORS contrôle quelles origines (sites) ont le droit d'appeler ton API depuis un navigateur : on autorise explicitement les origines de confiance.",
+      "position": 2,
+      "options": [
+        { "label": "Quelles origines (sites) peuvent appeler ton API depuis un navigateur", "correct": true, "position": 0 },
+        { "label": "La vitesse maximale des requêtes par seconde", "correct": false, "position": 1 },
+        { "label": "Le format de sérialisation des réponses", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`Access-Control-Allow-Origin: *` combiné à des cookies d'authentification est une bonne configuration.",
+      "justification": "Faux : avec des credentials, on doit lister explicitement les origines de confiance, jamais le joker *. Les navigateurs refusent d'ailleurs cette combinaison.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "multi-arch-containerd-expert",
+  "node": "docker-and-oci",
+  "lesson": "multi-arch-et-containerd",
+  "title": "Multi-arch & containerd, expert",
+  "description": "Manifest list, --platform, snapshotters, shim, BuildKit.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un manifest list (image index) OCI ?",
+      "justification": "Un objet qui pointe vers plusieurs manifestes d'image (un par OS/architecture) : le pull choisit automatiquement la bonne variante.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un objet pointant vers plusieurs images, une par architecture",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La liste des couches d'une image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un fichier de log",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment construire une image pour amd64 ET arm64 sous le même tag ?",
+      "justification": "Avec buildx : docker buildx build --platform linux/amd64,linux/arm64 ... --push, qui produit un manifest list multi-arch.",
+      "position": 1,
+      "options": [
+        {
+          "label": "docker buildx build --platform linux/amd64,linux/arm64 ... --push",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker run --arch=all",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker commit deux fois",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle du shim (containerd-shim-runc-v2) ?",
+      "justification": "Il maintient le conteneur en vie même si containerd redémarre et collecte le code de sortie, intermédiaire entre containerd et runc.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Maintenir le conteneur en vie même si containerd redémarre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construire les images",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel moteur de build moderne apporte parallélisme, cache exportable et mounts de build ?",
+      "justification": "BuildKit (défaut de Docker) : parallélise les étapes, cache fin/exportable, --mount=type=cache/secret, multi-arch via buildx.",
+      "position": 3,
+      "options": [
+        {
+          "label": "BuildKit",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "runc",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dockerhub",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une image construite uniquement sur un Mac Apple Silicon (arm64) échouera sur des serveurs x86 avec « exec format error » si elle n'est pas multi-arch.",
+      "justification": "Vrai : elle ne contient que des binaires arm64 ; il faut un build multi-arch (buildx) pour servir aussi amd64.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "ref": "message-brokers-kafka-check",
+  "node": "message-brokers",
+  "lesson": "kafka-en-profondeur",
+  "title": "Quiz, Kafka en profondeur",
+  "description": "Partitions, clé, consumer groups, offsets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans Kafka, à quel niveau l'ordre des messages est-il garanti ?",
+      "justification": "Au sein d'une partition seulement : deux messages de partitions différentes peuvent être traités dans n'importe quel ordre.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Au sein d'une partition seulement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Sur tout le topic, globalement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Entre tous les consumer groups",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la clé d'un message Kafka ?",
+      "justification": "Elle décide de la partition via hash(clé) % partitions : tous les messages d'une même clé vont dans la même partition, donc restent ordonnés entre eux.",
+      "position": 1,
+      "options": [
+        {
+          "label": "À déterminer la partition, donc ce qui reste ordonné ensemble",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À chiffrer le contenu du message",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À définir la durée de rétention du message",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un consumer group, une partition est lue par…",
+      "justification": "Un seul membre du groupe à la fois ; d'où la limite : s'il y a plus de consommateurs que de partitions, les consommateurs en trop restent oisifs.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un seul membre du groupe à un instant donné",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tous les membres du groupe simultanément",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un membre différent pour chaque message",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton consommateur commite l'offset APRÈS avoir traité le message. Il crashe juste avant le commit. Que se passe-t-il au redémarrage ?",
+      "justification": "At-least-once : l'offset n'a pas été committé, le message est rejoué au redémarrage (doublon possible mais aucune perte). D'où l'intérêt d'un consommateur idempotent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le message est rejoué (at-least-once) : possible doublon, aucune perte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le message est définitivement perdu",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rien, Kafka garantit magiquement l'exactly-once de bout en bout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

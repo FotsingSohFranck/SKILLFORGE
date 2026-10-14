@@ -1,0 +1,10 @@
+{
+  "node": "workspaces",
+  "lesson": "cli-vs-hcp-workspaces",
+  "title": "Expliquer CLI workspace vs HCP workspace",
+  "statement": "Un collègue débutant dit : « un workspace HCP, c'est pareil qu'un workspace CLI, juste un état alternatif pour le même code ». En quelques phrases, explique-lui pourquoi c'est faux : dis ce qu'est un CLI workspace, puis ce qu'est un HCP workspace, et cite au moins trois choses propres à un HCP workspace que le CLI workspace n'a pas.",
+  "skeleton": "Réponds en français, en 4 à 6 phrases.\n- CLI workspace : ...\n- HCP workspace : ...\n- Trois éléments propres au HCP workspace : ...\n",
+  "solution": "Un CLI workspace (terraform workspace) est un mécanisme léger : plusieurs états pour un MÊME code dans un MÊME backend. Le workspace n'est qu'une clé d'état alternative (chemin du type env:/prod/...) ; le code, la configuration du backend et les variables restent partagés, seul l'état change selon le workspace courant. Un HCP workspace (dans HCP Terraform / Terraform Cloud) est au contraire une UNITÉ DE GESTION COMPLÈTE, une entité de premier plan. Il a bien sûr son propre état, mais AUSSI ses propres variables et secrets (définis par workspace), sa configuration VCS (le dépôt/branche qui déclenche les runs), ses runs (plan/apply exécutés à distance, avec historique) et son RBAC (permissions par équipe). Il correspond donc plutôt à un répertoire séparé + backend distinct + configuration propre, pas à un simple état alternatif. Croire que les deux sont identiques mène à mal structurer son organisation HCP et à mal gérer les variables/secrets et les permissions.",
+  "keyPoints": ["même code", "clé d'état", "backend", "unité de gestion", "variables", "secrets", "runs", "RBAC"],
+  "language": "text"
+}

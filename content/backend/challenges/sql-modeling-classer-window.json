@@ -1,0 +1,10 @@
+{
+  "node": "sql-modeling",
+  "lesson": "requetes-avancees",
+  "title": "Classer avec une fonction fenêtre",
+  "statement": "À partir de la table `learners` (colonnes `display_name`, `xp`), écris UNE requête qui renvoie `display_name`, `xp` et le rang de chaque apprenant du plus grand XP au plus petit, dans une colonne `rang`. Utilise une fonction fenêtre (`OVER (...)`) : chaque apprenant doit rester une ligne, on ne regroupe pas.",
+  "skeleton": "SELECT display_name, xp,\n       -- ajoute ici le rang par XP décroissant, colonne AS rang\nFROM learners;",
+  "solution": "SELECT display_name, xp,\n       rank() OVER (ORDER BY xp DESC) AS rang\nFROM learners;",
+  "keyPoints": ["rank() OVER", "ORDER BY xp DESC", "AS rang"],
+  "language": "sql"
+}

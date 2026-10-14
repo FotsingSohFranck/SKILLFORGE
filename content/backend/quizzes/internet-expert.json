@@ -1,0 +1,142 @@
+{
+  "ref": "internet-expert",
+  "node": "internet",
+  "lesson": "diagnostic-et-outils-reseau",
+  "title": "Internet, niveau expert",
+  "description": "TLS, HTTP/2-3, diagnostic réseau, cache/CORS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit la « forward secrecy » (confidentialité persistante) de TLS 1.3 ?",
+      "justification": "Une clé compromise plus tard ne permet pas de déchiffrer les sessions passées, car chaque session dérive des clés éphémères.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une clé compromise n'expose pas les sessions passées",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le serveur n'a plus besoin de certificat",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le client est authentifié automatiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une erreur « certificate authority invalid » peut apparaître alors que le certificat est valide chez vous ?",
+      "justification": "Souvent une chaîne incomplète : le serveur ne sert pas les intermédiaires, certains clients ne remontent pas à la racine.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Chaîne de certificats incomplète (intermédiaires manquants)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le DNS est mal configuré",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le port 443 est fermé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage majeur HTTP/2 apporte-t-il sur HTTP/1.1 ?",
+      "justification": "Le multiplexage envoie plusieurs échanges en parallèle sur une seule connexion, + compression des en-têtes (HPACK).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le multiplexage sur une seule connexion",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le chiffrement obligatoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La suppression des en-têtes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur un réseau mobile instable, qu'apporte HTTP/3 (QUIC) que HTTP/2 (TCP) n'a pas ?",
+      "justification": "Pas de head-of-line blocking transport + migration de connexion (changement de réseau sans rouvrir la connexion).",
+      "position": 3,
+      "options": [
+        {
+          "label": "La migration de connexion et l'absence de HoL transport",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un chiffrement plus fort",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Des URLs plus courtes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un fetch() échoue en CORS mais le même appel curl fonctionne. Pourquoi ?",
+      "justification": "curl n'applique pas la politique CORS ni les preflight OPTIONS ; le navigateur bloque si les en-têtes Access-Control-Allow-* manquent.",
+      "position": 4,
+      "options": [
+        {
+          "label": "curl n'applique pas la politique CORS du navigateur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "curl utilise HTTP/3",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le serveur est hors ligne",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un TTFB (time-to-first-byte) élevé pointe généralement vers le réseau plutôt que vers le backend.",
+      "justification": "Faux : le TTFB mesure le temps avant le premier octet = traitement serveur/base. Un temps de connexion élevé, lui, pointe le réseau/TLS.",
+      "position": 5,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "what-is-kubernetes",
+  "lesson": "ce-que-fait-kubernetes",
+  "title": "Modèle déclaratif : réduire réellement le nombre de répliques",
+  "statement": "Tu as déclaré à Kubernetes que tu veux 5 répliques d'une application. Tu voudrais maintenant n'en garder que 3. Un collègue propose de « supprimer 2 pods à la main avec une commande ». Explique pourquoi cette approche ne marchera pas durablement, ce qu'il faut faire à la place, et illustre le fonctionnement déclaratif de Kubernetes avec l'analogie du GPS.",
+  "skeleton": "Supprimer 2 pods à la main ne marchera pas durablement parce que ...\nPour vraiment passer à 3 répliques, il faut ...\nAnalogie du GPS : ...",
+  "solution": "Supprimer 2 pods à la main ne marchera pas durablement parce que Kubernetes fonctionne de façon déclarative : tu as déclaré un état désiré (5 répliques), et sa boucle de réconciliation compare en permanence l'état réel à cet état désiré. Dès que tu supprimes 2 pods, l'état réel tombe à 3, Kubernetes constate l'écart avec les 5 demandées, et il recrée aussitôt 2 pods pour revenir à 5. Pour vraiment passer à 3 répliques, il ne faut pas agir sur les pods, mais MODIFIER l'état désiré : déclarer 3 répliques (dans le fichier YAML, ou via la commande de scaling). Kubernetes verra alors qu'il y en a 5 pour 3 demandées, et il en supprimera 2 tout seul. Analogie du GPS : tu ne déplaces pas la voiture virage par virage (ce serait de l'impératif) ; tu changes la destination (l'état désiré), et le GPS recalcule le trajet pour t'y amener et t'y maintenir. On pilote Kubernetes par la description du résultat voulu, pas par des ordres ponctuels.",
+  "keyPoints": ["état désiré", "réconciliation", "recrée", "modifier", "déclar"],
+  "language": "text"
+}

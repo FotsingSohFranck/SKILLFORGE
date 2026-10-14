@@ -1,0 +1,96 @@
+{
+  "ref": "containerization-conteneurs-check",
+  "node": "containerization",
+  "lesson": "conteneurs-vs-virtualisation",
+  "title": "Quiz, Conteneurs vs virtualisation",
+  "description": "Conteneur vs VM, empaquetage app + dépendances, image identique partout.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui distingue fondamentalement un conteneur d'une machine virtuelle ?",
+      "justification": "Le conteneur partage le noyau de l'hôte et n'embarque que l'app ; la VM embarque, elle, un système d'exploitation invité complet au-dessus d'un hyperviseur.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le conteneur partage le noyau de l'hôte ; la VM embarque un OS invité complet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le conteneur chiffre les données, pas la VM",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La VM démarre toujours plus vite que le conteneur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que contient un conteneur ?",
+      "justification": "Un conteneur empaquète l'application ET toutes ses dépendances ensemble, pour tourner à l'identique partout.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'application et toutes ses dépendances, empaquetées ensemble",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Uniquement le code source, sans ses dépendances",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un système d'exploitation complet réembarqué à chaque fois",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton app marche sur ton poste mais plante sur le serveur d'un collègue. En quoi une image de conteneur règle-t-elle ce « ça marche chez moi » ?",
+      "justification": "La même image fige l'app et son environnement : elle tourne à l'identique sur le poste, en CI et en production, ce qui supprime le décalage d'environnement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La même image (app + environnement figés) tourne à l'identique partout : poste, CI, production",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle rend le serveur du collègue plus puissant",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle recompile le code différemment sur chaque machine",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un conteneur démarre en général bien plus vite qu'une VM parce qu'il n'a pas d'OS invité à démarrer.",
+      "justification": "Vrai : le conteneur ne lance qu'un processus isolé et partage le noyau de l'hôte, alors que la VM doit booter un OS complet, d'où un démarrage bien plus lent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "backend-migration-expert",
+  "node": "state-management",
+  "lesson": "migration-backend-partial-config",
+  "title": "Migration de backend & partial config, expert",
+  "description": "init -migrate-state, partial backend config, backends par environnement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment migrer un état d'un backend local vers un backend distant ?",
+      "justification": "Modifier le bloc backend puis relancer terraform init : Terraform détecte le changement et propose de migrer l'état sans perte.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Modifier le bloc backend puis terraform init (migration proposée)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Copier le fichier à la main dans Git",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est impossible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne peut-on pas mettre de variables (var.xxx) dans le bloc backend ?",
+      "justification": "Le backend est évalué très tôt, avant l'interpolation des variables ; on fournit les valeurs via la partial config (-backend-config).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le backend est évalué avant les variables",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les variables sont interdites en HCL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le backend n'accepte que du JSON",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment gérer un backend distinct par environnement avec un même code ?",
+      "justification": "Partial config : bloc backend incomplet dans le code + -backend-config=env.hcl à l'init, par environnement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Bloc backend incomplet + -backend-config par environnement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dupliquer tout le code",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Coder les valeurs en dur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après une migration de backend, on vérifie que terraform plan ne montre aucun changement (preuve que la migration est neutre).",
+      "justification": "Vrai : la migration ne fait que déplacer l'état ; un plan vide confirme que l'infrastructure n'est pas affectée.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

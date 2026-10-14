@@ -1,0 +1,96 @@
+{
+  "ref": "console-upgrade-expert",
+  "node": "core-workflow",
+  "lesson": "console-et-montee-de-version",
+  "title": "Console & montée de version, expert",
+  "description": "terraform console (explorer l'état), montée de provider majeur (init -upgrade).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet aussi `terraform console` (au-delà de tester des expressions) ?",
+      "justification": "Explorer l'état réel : référencer une ressource gérée renvoie sa valeur actuelle depuis l'état, utile pour inspecter/déboguer.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Explorer les valeurs réelles depuis l'état",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Appliquer les changements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Détruire des ressources",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande met à jour le lock file vers une nouvelle version de provider ?",
+      "justification": "terraform init -upgrade : il relit les contraintes et met à jour le lock file vers les nouvelles versions admissibles.",
+      "position": 1,
+      "options": [
+        {
+          "label": "terraform init -upgrade",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "terraform fmt",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "terraform destroy",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la première étape pour monter un provider vers une version majeure ?",
+      "justification": "Lire le guide de migration (changements cassants), puis mettre à jour la contrainte, init -upgrade, plan sur un env non critique.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Lire le guide de migration (changements cassants)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Appliquer directement en production",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le lock file",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une montée de provider majeure se planifie, se teste sur un environnement non critique, puis se propage, jamais directement en prod à l'aveugle.",
+      "justification": "Vrai : les versions majeures introduisent des changements cassants ; on valide via le plan sur dev/staging avant la prod.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

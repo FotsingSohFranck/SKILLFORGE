@@ -1,0 +1,10 @@
+{
+  "node": "getting-started",
+  "lesson": "premier-deploiement",
+  "title": "Déployer puis observer une application",
+  "statement": "Après avoir écrit un manifeste `web.yaml` (Deployment + Service), écris les commandes pour : (1) appliquer le manifeste, (2) vérifier que les pods sont bien Running, (3) diagnostiquer un pod en lisant ses détails et ses Events, (4) lire les logs de l'application, et (5) y accéder localement sur le port 8080 sans l'exposer publiquement.",
+  "skeleton": "# 1. appliquer le manifeste\n\n# 2. vérifier l'état des pods\n\n# 3. détails + Events d'un pod\n\n# 4. logs de l'application\n\n# 5. accès local sur le port 8080\n",
+  "solution": "# 1. appliquer le manifeste\nkubectl apply -f web.yaml\n\n# 2. vérifier l'état des pods\nkubectl get pods\n\n# 3. détails + Events d'un pod (diagnostic n°1)\nkubectl describe pod <nom>\n\n# 4. logs de l'application\nkubectl logs <nom>\n\n# 5. accès local sur le port 8080 vers le port 80 du Deployment\nkubectl port-forward deploy/web 8080:80",
+  "keyPoints": ["kubectl apply -f", "kubectl get pods", "kubectl describe pod", "kubectl logs", "kubectl port-forward"],
+  "language": "bash"
+}

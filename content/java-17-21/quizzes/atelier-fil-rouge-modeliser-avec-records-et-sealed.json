@@ -1,0 +1,41 @@
+{
+  "ref": "atelier-fil-rouge-modeliser-avec-records-et-sealed",
+  "node": "atelier-fil-rouge",
+  "lesson": "modeliser-avec-records-et-sealed",
+  "title": "Quiz : modéliser avec records et sealed",
+  "description": "Le record Tache et l'interface scellée Commande.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un record convient-il bien pour représenter une Tache(id, titre, faite) ?",
+      "justification": "Une tâche est un paquet de valeurs qui vont ensemble et ne changent pas : c'est exactement le cas d'usage d'un record immuable, avec equals/hashCode/toString générés.",
+      "position": 0,
+      "options": [
+        { "label": "C'est un groupe figé de valeurs qui vont ensemble", "correct": true, "position": 0 },
+        { "label": "Parce qu'un record peut hériter de plusieurs classes", "correct": false, "position": 1 },
+        { "label": "Parce qu'un record change ses valeurs au cours du temps", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la clause permits dans sealed interface Commande permits Ajouter, Terminer, Lister ?",
+      "justification": "La clause permits ferme la liste des implémentations autorisées : seules Ajouter, Terminer et Lister peuvent implémenter Commande. C'est ce qui rend possible un switch exhaustif ensuite.",
+      "position": 1,
+      "options": [
+        { "label": "Elle limite les types autorisés à implémenter l'interface", "correct": true, "position": 0 },
+        { "label": "Elle autorise n'importe quelle classe à implémenter l'interface", "correct": false, "position": 1 },
+        { "label": "Elle crée automatiquement les trois records", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Comme Tache est immuable, la méthode terminer() renvoie une nouvelle Tache au lieu de modifier l'actuelle.",
+      "justification": "Un record est immuable : on ne peut pas changer faite sur place, donc terminer() construit et renvoie une nouvelle instance avec faite à true.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

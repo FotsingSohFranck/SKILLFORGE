@@ -1,0 +1,10 @@
+{
+  "node": "containerization",
+  "lesson": "images-et-dockerfile",
+  "title": "Écrire un Dockerfile multi-stage",
+  "statement": "Écris un `Dockerfile` multi-stage minimal pour une application Java. Étape 1 (nommée `build`) : partir d'une image Maven + JDK 21, copier le projet et lancer `mvn package`. Étape 2 : partir d'une image JRE 21 minimale, copier UNIQUEMENT le jar produit depuis l'étape `build`, et le lancer avec la forme exec de l'ENTRYPOINT.",
+  "skeleton": "# Dockerfile multi-stage\n# Étape 1 : build   |   Étape 2 : image d'exécution minimale\n",
+  "solution": "FROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /app\nCOPY . .\nRUN mvn -q package -DskipTests\n\nFROM eclipse-temurin:21-jre\nCOPY --from=build /app/target/app.jar app.jar\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]",
+  "keyPoints": ["AS build", "COPY --from=build", "21-jre", "ENTRYPOINT ["],
+  "language": "bash"
+}

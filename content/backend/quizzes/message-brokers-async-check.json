@@ -1,0 +1,96 @@
+{
+  "ref": "message-brokers-async-check",
+  "node": "message-brokers",
+  "lesson": "asynchrone-et-decouplage",
+  "title": "Quiz, Asynchrone & découplage",
+  "description": "Synchrone vs asynchrone, rôle du broker, découplage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre un traitement synchrone et asynchrone ?",
+      "justification": "En synchrone l'appelant attend la fin du traitement ; en asynchrone il dépose un message et rend la main tout de suite, quelqu'un d'autre traitera plus tard.",
+      "position": 0,
+      "options": [
+        {
+          "label": "En synchrone on attend la fin ; en asynchrone on dépose un message et on rend la main aussitôt",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'asynchrone est toujours plus lent que le synchrone",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le synchrone ne fonctionne que sur une seule machine",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait principalement un message broker entre producteur et consommateur ?",
+      "justification": "Il les découple : dans le temps (pas besoin d'être dispos en même temps) et dans l'espace (pas besoin de se connaître).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il les découple dans le temps et dans l'espace",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il remplace la base de données du producteur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il oblige producteur et consommateur à tourner en même temps",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "À l'inscription, l'email de bienvenue passe par un service externe parfois lent. Pourquoi l'envoyer via un broker plutôt que dans la requête d'inscription ?",
+      "justification": "L'envoi est lent et faillible ; en asynchrone l'inscription publie un événement et répond tout de suite, un consommateur envoie l'email (avec retries) sans ralentir ni faire échouer l'inscription.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Pour répondre tout de suite : l'email est traité à part, sans ralentir ni faire échouer l'inscription",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour chiffrer l'adresse email de l'utilisateur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce qu'un broker envoie les emails plus vite qu'un service dédié",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Face à un pic de charge, la file du broker permet d'absorber la charge et de traiter les messages au rythme des consommateurs.",
+      "justification": "Vrai : les messages s'accumulent dans la file (le pic est absorbé) et les consommateurs les traitent à leur rythme ; on peut en ajouter pour aller plus vite.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

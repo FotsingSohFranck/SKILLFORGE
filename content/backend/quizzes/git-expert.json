@@ -1,0 +1,119 @@
+{
+  "ref": "git-expert",
+  "node": "git",
+  "lesson": "git-outillage-avance-securite",
+  "title": "Git, niveau expert",
+  "description": "Modèle objet, refs, worktrees, commits signés, filter-repo, bisect.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment Git identifie-t-il un objet (blob, tree, commit) ?",
+      "justification": "Git est adressé par contenu : chaque objet est identifié par le hash SHA de son contenu, d'où la déduplication.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par le hash SHA de son contenu",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par son nom de fichier et son chemin",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par un identifiant auto-incrémenté",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une branche Git, concrètement ?",
+      "justification": "Une branche est un ref : un simple pointeur (fichier) contenant le hash d'un commit, d'où sa création instantanée.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un pointeur (ref) vers un commit",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une copie complète des fichiers",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une suite de diffs stockés à part",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un secret a été committé puis « supprimé » dans un commit suivant. Quelle est la priorité ?",
+      "justification": "Le secret reste dans l'historique : il faut le considérer compromis et le faire tourner (rotation) ; réécrire l'historique est secondaire.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le considérer compromis et le faire tourner immédiatement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien : le supprimer dans un commit suffit",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ajouter le fichier au .gitignore et continuer",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande isole automatiquement le commit ayant introduit une régression ?",
+      "justification": "git bisect (run) fait une recherche dichotomique dans l'historique, testant des commits jusqu'à isoler le fautif.",
+      "position": 3,
+      "options": [
+        {
+          "label": "git bisect (run)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "git cherry-pick",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "git stash",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le champ auteur d'un commit prouve à lui seul l'identité de la personne qui l'a écrit.",
+      "justification": "Faux : le champ author est librement modifiable ; seule une signature GPG/SSH apporte une preuve cryptographique d'identité.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

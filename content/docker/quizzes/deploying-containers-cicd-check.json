@@ -1,0 +1,96 @@
+{
+  "ref": "deploying-containers-cicd-check",
+  "node": "deploying-containers",
+  "lesson": "de-limage-a-la-production",
+  "title": "Quiz, De l'image à la production",
+  "description": "Pipeline CI/CD, build once deploy many, déploiement sans coupure.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit le principe « build once, deploy many » ?",
+      "justification": "On construit une seule image, testée et scannée, et on promeut EXACTEMENT celle-ci de staging à la production : l'artefact déployé est celui qui a passé les tests.",
+      "position": 0,
+      "options": [
+        {
+          "label": "On construit une seule image testée et on promeut exactement celle-ci de staging à la prod",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "On reconstruit une nouvelle image pour chaque environnement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On déploie directement le code sans passer par une image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait la CI (intégration continue) à chaque changement de code ?",
+      "justification": "La CI construit l'image, lance les tests automatiques et scanne les vulnérabilités : si une étape échoue, le code fautif ne va pas plus loin.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Elle construit l'image, lance les tests et scanne les vulnérabilités",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle envoie directement le code aux utilisateurs sans vérification",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle supprime les anciennes images du registre",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu dois mettre à jour un service déjà en ligne sans qu'aucun utilisateur ne subisse de coupure. Quelle stratégie remplace les instances quelques-unes à la fois ?",
+      "justification": "Le rolling update remplace les instances progressivement : pendant qu'on met à jour les unes, les autres continuent de servir, donc pas de coupure.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le rolling update (mise à jour progressive, quelques instances à la fois)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Arrêter toutes les instances, mettre à jour, puis tout redémarrer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le service et le recréer à la main",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Déployer souvent reste sûr même sans possibilité de rollback rapide.",
+      "justification": "Faux : déployer souvent n'est sûr QUE si revenir en arrière (rollback) est trivial. Le filet de sécurité est ce qui rend l'audace raisonnable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

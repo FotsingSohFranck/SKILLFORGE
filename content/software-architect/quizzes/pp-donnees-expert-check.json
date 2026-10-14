@@ -1,0 +1,96 @@
+{
+  "ref": "pp-donnees-expert-check",
+  "node": "patterns-principles",
+  "lesson": "donnees-distribuees-et-metriques",
+  "title": "Quiz, Données distribuées & métriques (expert)",
+  "description": "Saga, Outbox, CDC, idempotence, connascence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment gérer une transaction métier traversant plusieurs services (sans 2PC) ?",
+      "justification": "Une Saga : suite de transactions locales reliées par événements, avec compensations sémantiques en cas d'échec (chorégraphiée ou orchestrée).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une Saga avec transactions locales et compensations",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un two-phase commit distribué partout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une seule base partagée par tous les services",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Le pattern Outbox résout quel problème ?",
+      "justification": "Le dual write : écrire l'événement dans une table outbox dans la même transaction que le changement métier, puis le publier de façon fiable.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'incohérence entre écrire en base et publier un événement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La coloration syntaxique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La lenteur du réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que la connascence ?",
+      "justification": "Un vocabulaire précis du couplage : deux éléments sont connascents si modifier l'un impose de modifier l'autre ; statique/dynamique, graduée par degré/localité/force.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une taxonomie précise du couplage entre éléments",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un algorithme de tri",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un type de base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le Change Data Capture (CDC) capture les changements du journal de la base pour les propager en flux, sans modifier l'application.",
+      "justification": "Vrai : outils comme Debezium ; utile pour alimenter vues, caches et entrepôts en temps réel.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "ref": "gof-flyweight-bridge-expert-check",
+  "node": "gof-patterns",
+  "lesson": "flyweight-bridge",
+  "title": "Quiz, Flyweight & Bridge (expert)",
+  "description": "État intrinsèque/extrinsèque, explosion combinatoire, Bridge vs Adapter vs Strategy.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans le pattern Flyweight, qu'est-ce que l'état intrinsèque ?",
+      "justification": "L'état intrinsèque est partagé, immuable et indépendant du contexte : il est stocké une seule fois dans le flyweight (ex. le glyphe d'un caractère). L'état extrinsèque dépend du contexte et est passé de l'extérieur.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'état partagé, immuable, indépendant du contexte (stocké une fois)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La position et le contexte d'usage de chaque objet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un identifiant unique par instance",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème le pattern Bridge résout-il ?",
+      "justification": "L'explosion combinatoire de sous-classes : en séparant abstraction et implémentation en deux hiérarchies reliées par composition, on passe de n×m à n+m classes.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'explosion combinatoire de sous-classes (n×m → n+m) sur deux dimensions de variation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La lenteur des appels réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'absence d'interface tierce",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui distingue Bridge d'Adapter ?",
+      "justification": "Bridge se conçoit dès le départ pour découpler deux dimensions (préventif) ; Adapter s'ajoute après coup pour rendre compatible une interface existante/tierce (correctif). Structures proches, intentions opposées.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Bridge est préventif (conçu dès le départ) ; Adapter est correctif (ajouté après coup sur une interface existante)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont identiques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Bridge concerne le réseau, Adapter la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "500 000 pins sur une carte, ~20 icônes distinctes, la mémoire explose. Quel pattern et comment ?",
+      "justification": "Flyweight : partager ~20 icônes (état intrinsèque immuable) via une fabrique/cache, et garder position GPS + label (état extrinsèque) dans des objets légers référençant l'icône partagée.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Flyweight : partager les 20 icônes (intrinsèque), passer position/label (extrinsèque) par pin léger",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Bridge : une hiérarchie d'icônes et une de positions",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Singleton : une seule icône globale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

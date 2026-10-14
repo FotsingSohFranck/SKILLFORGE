@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-classes-pourquoi-c-est-utile",
+  "node": "sealed-classes",
+  "lesson": "pourquoi-c-est-utile",
+  "title": "Quiz : pourquoi c'est utile",
+  "description": "Bénéfices des types scellés, dont le pattern matching exhaustif.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand un switch avec pattern matching porte sur un type scellé, que peut vérifier le compilateur ?",
+      "justification": "Comme la liste des sous-types est fermée et connue, le compilateur vérifie que tous les cas sont traités : c'est l'exhaustivité.",
+      "position": 0,
+      "options": [
+        { "label": "Que tous les cas possibles sont traités (switch exhaustif)", "correct": true, "position": 0 },
+        { "label": "Que le code s'exécute plus vite", "correct": false, "position": 1 },
+        { "label": "Que chaque cas renvoie le même type de valeur qu'un default", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton switch exhaustif traite les trois formes d'une interface scellée, sans branche default. Tu ajoutes une 4e forme dans le permits. Que se passe t il à la compilation ?",
+      "justification": "Le switch devient non exhaustif, donc il ne compile plus tant que le nouveau cas n'est pas traité : le compilateur te force à le gérer.",
+      "position": 1,
+      "options": [
+        { "label": "Le switch ne compile plus tant que le nouveau cas n'est pas traité", "correct": true, "position": 0 },
+        { "label": "Le nouveau cas est ignoré sans avertissement", "correct": false, "position": 1 },
+        { "label": "Le switch ajoute tout seul un cas pour la nouvelle forme", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter une branche default à un switch sur un type scellé fait perdre la vérification d'exhaustivité par le compilateur.",
+      "justification": "Avec un default, le compilateur considère tous les cas restants couverts et cesse de signaler un cas manquant, on perd donc le filet de sécurité.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

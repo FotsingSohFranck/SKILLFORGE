@@ -1,0 +1,63 @@
+{
+  "ref": "locals-outputs-check",
+  "node": "locals-outputs",
+  "lesson": "outputs-et-sensitive",
+  "title": "Locals & outputs",
+  "description": "locals vs variables, outputs, composition de modules, sensitive, preconditions.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre une variable d'entrée et une valeur locale ?",
+      "justification": "La variable est un paramètre fourni de l'extérieur ; le local est un calcul interne au module (non surchargeable de l'extérieur).",
+      "position": 0,
+      "options": [
+        { "label": "Variable = entrée externe, local = calcul interne", "correct": true, "position": 0 },
+        { "label": "Ce sont des synonymes", "correct": false, "position": 1 },
+        { "label": "Local = entrée externe, variable = interne", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent principalement les outputs ?",
+      "justification": "À exposer des valeurs après l'apply (info) et surtout à composer les modules (un module expose, un autre consomme).",
+      "position": 1,
+      "options": [
+        { "label": "Exposer des valeurs et composer les modules entre eux", "correct": true, "position": 0 },
+        { "label": "Installer les providers", "correct": false, "position": 1 },
+        { "label": "Verrouiller l'état", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `sensitive = true` sur un output ?",
+      "justification": "Il masque la valeur dans l'affichage CLI et les logs, mais la valeur reste en clair dans le fichier d'état.",
+      "position": 2,
+      "options": [
+        { "label": "Masque l'affichage (mais la valeur reste en clair dans le state)", "correct": true, "position": 0 },
+        { "label": "Chiffre la valeur partout", "correct": false, "position": 1 },
+        { "label": "Supprime la valeur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les preconditions ?",
+      "justification": "À vérifier une hypothèse avant l'apply (ex. AMI dans la bonne région) et échouer tôt avec un message clair.",
+      "position": 3,
+      "options": [
+        { "label": "Vérifier une hypothèse avant l'apply (fail fast)", "correct": true, "position": 0 },
+        { "label": "Créer des ressources conditionnelles", "correct": false, "position": 1 },
+        { "label": "Chiffrer le state", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Marquer un output sensitive suffit à sécuriser un mot de passe.",
+      "justification": "Faux : sensitive masque l'affichage mais la valeur reste en clair dans le state ; il faut protéger le state (backend chiffré, accès restreint) et idéalement externaliser les secrets.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

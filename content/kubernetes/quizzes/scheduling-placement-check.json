@@ -1,0 +1,52 @@
+{
+  "ref": "scheduling-placement-check",
+  "node": "scheduling",
+  "lesson": "scheduler-et-placement",
+  "title": "Le scheduler & le placement",
+  "description": "Rôle du scheduler, filtrer/scorer, nœud/pod, taints & tolerations.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle du kube-scheduler ?",
+      "justification": "Le scheduler choisit, pour chaque pod nouvellement créé, le nœud sur lequel le placer. Ensuite, le kubelet du nœud démarre les conteneurs.",
+      "position": 0,
+      "options": [
+        { "label": "Décider sur quel nœud placer chaque nouveau pod", "correct": true, "position": 0 },
+        { "label": "Construire les images de conteneurs", "correct": false, "position": 1 },
+        { "label": "Sauvegarder la base de données du cluster", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En deux temps, comment le scheduler choisit-il un nœud ?",
+      "justification": "Il filtre d'abord (écarter les nœuds inadaptés : pas assez de ressources, contraintes non respectées), puis score les nœuds restants pour retenir le meilleur.",
+      "position": 1,
+      "options": [
+        { "label": "Il filtre les nœuds inadaptés, puis score les restants et prend le meilleur", "correct": true, "position": 0 },
+        { "label": "Il prend toujours le premier nœud de la liste", "correct": false, "position": 1 },
+        { "label": "Il choisit un nœud complètement au hasard", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un taint posé sur un nœud ?",
+      "justification": "Le taint rend le nœud répulsif : par défaut aucun pod n'y est planifié, sauf ceux qui portent une toleration correspondante.",
+      "position": 2,
+      "options": [
+        { "label": "Il repousse les pods, sauf ceux qui portent la toleration correspondante", "correct": true, "position": 0 },
+        { "label": "Il attire automatiquement tous les pods vers ce nœud", "correct": false, "position": 1 },
+        { "label": "Il augmente la quantité de mémoire du nœud", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter une toleration à un pod le force à être planifié sur les nœuds taintés correspondants.",
+      "justification": "Faux : la toleration AUTORISE le pod à aller sur un nœud tainté, mais ne l'y oblige pas. Pour forcer le placement, on combine avec une affinité (ou un nodeSelector).",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

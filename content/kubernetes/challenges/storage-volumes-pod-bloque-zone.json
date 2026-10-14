@@ -1,0 +1,10 @@
+{
+  "node": "storage-volumes",
+  "lesson": "volume-binding-mode-topologie",
+  "title": "Diagnostiquer un pod bloqué sur son volume",
+  "statement": "Sur un cluster multi-zones (A, B, C), un pod ne démarre jamais : son événement indique qu'il ne peut pas monter son volume. En enquêtant, tu vois que le disque du PVC a été créé en zone A, mais que le pod a été planifié en zone B. La StorageClass utilise `volumeBindingMode: Immediate`. Explique avec tes mots (1) pourquoi le pod est bloqué, (2) quel réglage de la StorageClass corrige durablement le problème, et (3) comment ce réglage fonctionne.",
+  "skeleton": "1) Pourquoi le pod est-il bloqué ?\n\n2) Quel réglage corrige le problème ?\n\n3) Comment ce réglage fonctionne-t-il ?\n",
+  "solution": "1) Pourquoi le pod est bloqué : un disque bloc cloud (EBS, PD) appartient à une seule zone et ne peut être attaché qu'à un nœud de cette même zone ; on ne peut pas le déplacer d'une zone à l'autre. Avec volumeBindingMode: Immediate, le PV (le disque) est provisionné dès la création du PVC, AVANT que le scheduler ne place le pod. Le disque a donc été créé en zone A « à l'aveugle » ; ensuite le scheduler, faute de place en A, a placé le pod en zone B. Le pod en zone B tente de monter un disque qui vit en zone A : c'est impossible, donc il reste bloqué indéfiniment sur le montage du volume.\n\n2) Le réglage qui corrige : mettre volumeBindingMode: WaitForFirstConsumer sur la StorageClass.\n\n3) Comment il fonctionne : il inverse l'ordre des opérations. Kubernetes ne provisionne plus le disque immédiatement ; il ATTEND que le scheduler ait choisi le nœud du pod, PUIS crée le disque dans la MÊME zone que ce nœud. Le placement du pod tient aussi compte des contraintes de topologie du volume. Résultat : le volume est toujours co-localisé avec le pod, plus jamais de conflit de zone. C'est le réglage recommandé (et souvent le défaut des StorageClasses cloud modernes) pour tout stockage à contrainte topologique.",
+  "keyPoints": ["Immediate", "avant", "WaitForFirstConsumer", "attend", "même zone", "topologie"],
+  "language": "text"
+}

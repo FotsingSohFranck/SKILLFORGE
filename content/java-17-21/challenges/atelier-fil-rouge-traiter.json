@@ -1,0 +1,10 @@
+{
+  "node": "atelier-fil-rouge",
+  "lesson": "logique-avec-pattern-matching",
+  "title": "Traite une commande avec un switch de patterns",
+  "statement": "Écris la méthode String traiter(Commande commande) du gestionnaire. Utilise un switch de patterns avec des record patterns pour déconstruire chaque commande. Pour Ajouter(titre) : crée une Tache avec prochainId++ et faite=false, ajoute-la à la liste taches, et renvoie \"Ajoutee : \" + titre. Pour Terminer(id) : trouve la tâche d'identifiant id, remplace-la par sa version terminer() et renvoie \"Terminee : tache \" + id ; si absente, renvoie \"Introuvable : tache \" + id. Pour Lister() : renvoie \"liste\" (un simple marqueur suffit ici). Le switch doit être exhaustif, sans default.",
+  "skeleton": "import java.util.*;\n\npublic class Gestionnaire {\n    private final List<Tache> taches = new ArrayList<>();\n    private int prochainId = 1;\n\n    String traiter(Commande commande) {\n        // switch de patterns exhaustif ici\n    }\n}\n",
+  "solution": "import java.util.*;\n\npublic class Gestionnaire {\n    private final List<Tache> taches = new ArrayList<>();\n    private int prochainId = 1;\n\n    String traiter(Commande commande) {\n        return switch (commande) {\n            case Ajouter(String titre) -> {\n                Tache t = new Tache(prochainId++, titre, false);\n                taches.add(t);\n                yield \"Ajoutee : \" + titre;\n            }\n            case Terminer(int id) -> {\n                for (int i = 0; i < taches.size(); i++) {\n                    if (taches.get(i).id() == id) {\n                        taches.set(i, taches.get(i).terminer());\n                        yield \"Terminee : tache \" + id;\n                    }\n                }\n                yield \"Introuvable : tache \" + id;\n            }\n            case Lister() -> \"liste\";\n        };\n    }\n}",
+  "keyPoints": ["switch (commande)", "record pattern Ajouter(String titre)", "record pattern Terminer(int id)", "yield dans un bloc", "Lister() sans composant", "pas de default (exhaustif)", "taches.set avec terminer()"],
+  "language": "java"
+}

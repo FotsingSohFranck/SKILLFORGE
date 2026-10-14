@@ -1,0 +1,142 @@
+{
+  "ref": "java-expert",
+  "node": "java-language",
+  "lesson": "generiques-modules-outillage",
+  "title": "Java, niveau expert",
+  "description": "JMM, concurrence, GC/JIT, génériques, outillage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit une relation happens-before dans le Java Memory Model ?",
+      "justification": "Si A happens-before B, les effets de A (écritures mémoire) sont garantis visibles par B.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La visibilité des écritures de A pour B",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Que A s'exécute plus vite que B",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Que A et B sont sur le même thread",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un simple compteur partagé très sollicité, quelle approche est la plus performante ?",
+      "justification": "AtomicInteger utilise le CAS (lock-free) : pas de blocage, plus rapide qu'un synchronized pour ce cas.",
+      "position": 1,
+      "options": [
+        {
+          "label": "AtomicInteger (CAS, lock-free)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un bloc synchronized autour de chaque incrément",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une variable int simple",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une méthode Java est-elle lente au premier appel puis rapide ensuite ?",
+      "justification": "La JVM interprète d'abord, puis le JIT recompile les méthodes chaudes en code machine optimisé (warmup).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le JIT recompile les méthodes chaudes après quelques exécutions",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le GC accélère le code",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le réseau se met en cache",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que rappelle le mnémonique PECS pour les wildcards génériques ?",
+      "justification": "Producer Extends, Consumer Super : ? extends T pour lire (produire), ? super T pour écrire (consommer).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Producer Extends, Consumer Super",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Public Enum, Class Static",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parse Early, Compile Slow",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Vous redéfinissez `equals` sur une classe. Que devez-vous impérativement faire aussi ?",
+      "justification": "Redéfinir hashCode de façon cohérente : deux objets égaux doivent avoir le même hash, sinon ils se perdent dans une HashMap.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Redéfinir hashCode de façon cohérente",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien de plus",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rendre la classe final",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Chronométrer une méthode une seule fois avec System.nanoTime() dans un main donne une mesure de performance fiable.",
+      "justification": "Non : sans warmup (JIT), et avec le bruit du GC / dead-code elimination, la mesure est trompeuse. On utilise JMH.",
+      "position": 5,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

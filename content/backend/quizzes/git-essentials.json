@@ -1,0 +1,142 @@
+{
+  "ref": "git-essentials",
+  "node": "git",
+  "lesson": "rebase-et-workflows",
+  "title": "Git, l'essentiel",
+  "description": "Flux de base, branches, remotes, réécriture d'historique.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la zone de staging (index) ?",
+      "justification": "Le staging sélectionne les changements qui entreront dans le prochain commit, permettant de composer des commits ciblés.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Choisir les changements qui entreront dans le prochain commit",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Sauvegarder sur le serveur distant",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer définitivement des fichiers",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande annule un commit DÉJÀ poussé sur une branche partagée, sans réécrire l'historique ?",
+      "justification": "git revert crée un nouveau commit inverse ; il n'altère pas l'historique partagé (contrairement à reset).",
+      "position": 1,
+      "options": [
+        {
+          "label": "git revert <hash>",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "git reset --hard HEAD~1",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "git commit --amend",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre `git fetch` et `git pull` ?",
+      "justification": "fetch récupère sans intégrer ; pull = fetch + intégration (merge ou rebase) dans la branche courante.",
+      "position": 2,
+      "options": [
+        {
+          "label": "fetch récupère sans fusionner ; pull récupère ET intègre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont strictement équivalents",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "fetch pousse, pull récupère",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut rebaser sans risque des commits déjà poussés et partagés avec l'équipe.",
+      "justification": "Le rebase réécrit les hash : rejouer une histoire déjà partagée crée des divergences. On ne rebase que du local non partagé.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "`git reset --soft HEAD~1` fait quoi ?",
+      "justification": "Il défait le dernier commit mais conserve les changements dans le staging (prêts à re-committer).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Défait le dernier commit en gardant les changements stagés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprime le dernier commit et jette les changements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pousse le dernier commit sur origin",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil aide à isoler le commit qui a introduit une régression ?",
+      "justification": "git bisect fait une recherche dichotomique dans l'historique en testant des commits jusqu'à isoler le fautif.",
+      "position": 5,
+      "options": [
+        {
+          "label": "git bisect",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "git stash",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "git clone",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

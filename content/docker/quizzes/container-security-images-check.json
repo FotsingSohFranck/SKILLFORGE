@@ -1,0 +1,96 @@
+{
+  "ref": "container-security-images-check",
+  "node": "container-security",
+  "lesson": "securite-des-images",
+  "title": "Quiz, Sécurité des images",
+  "description": "Surface d'attaque, base minimale, non-root, digest, scan continu.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une base d'image minimale (Alpine, distroless, scratch) est-elle plus sûre ?",
+      "justification": "Moins de paquets = moins de failles possibles et moins d'outils qu'un attaquant peut détourner. On réduit la surface d'attaque.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Moins de paquets, donc moins de failles possibles et moins d'outils exploitables",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une petite image se télécharge plus vite, donc elle est chiffrée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une base minimale empêche toute nouvelle CVE d'apparaître",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit l'épinglage d'une image par son digest (sha256:...) plutôt que par un tag comme :latest ?",
+      "justification": "Le digest est l'empreinte du contenu exact : il désigne toujours la même image, impossible à substituer en douce, contrairement à un tag mouvant.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Que l'on obtient toujours exactement le même contenu, impossible à remplacer en douce",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Que l'image reçoit automatiquement les correctifs de sécurité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Que l'image tourne en non-root par défaut",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Par défaut, un conteneur s'exécute en root. Quelle instruction du Dockerfile réduit ce risque en faisant tourner l'app sans les pleins pouvoirs ?",
+      "justification": "L'instruction USER fait tourner l'application sous un utilisateur ordinaire (non-root) : si l'app est compromise, l'attaquant n'hérite pas de tous les pouvoirs de root.",
+      "position": 2,
+      "options": [
+        {
+          "label": "USER (faire tourner l'app sous un utilisateur non-root)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "EXPOSE (déclarer un port)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "LABEL (ajouter une métadonnée)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une image scannée « clean » au moment de sa mise en production le reste tant qu'on ne la modifie pas.",
+      "justification": "Faux : de nouvelles CVE sont découvertes en continu dans ses composants, même sans changement. Il faut scanner en continu ET reconstruire régulièrement sur une base à jour.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "git-objet-check",
+  "node": "git",
+  "lesson": "git-modele-objet",
+  "title": "Quiz, Le modèle objet (avancé)",
+  "description": "blob/tree/commit, branches = pointeurs, adressage par contenu.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que contient un « blob » dans Git ?",
+      "justification": "Le blob contient le CONTENU d'un fichier (ses octets), sans son nom ni son emplacement, ce sont les trees qui donnent les noms.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le contenu d'un fichier, sans son nom",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La liste des branches",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'adresse du serveur distant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une branche, au fond ?",
+      "justification": "Une branche n'est pas une copie : c'est un simple pointeur (un petit fichier contenant le hash d'un commit). La créer est donc instantané.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un simple pointeur vers un commit",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une copie complète du projet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un dossier caché",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Deux fichiers de contenu IDENTIQUE mais à des endroits différents : combien de blobs Git crée-t-il ?",
+      "justification": "Un seul. Git adresse les objets par le hash de leur contenu : un contenu identique = même hash = même blob (déduplication). Les trees les distinguent par leurs noms.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un seul blob (adressage par contenu = déduplication)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Deux blobs, un par fichier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun blob",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Comprendre le modèle objet aide à savoir exactement ce que chaque commande fait au graphe de commits.",
+      "justification": "Vrai : voir les branches comme des pointeurs sur un graphe d'objets immuables rend merge, rebase et reset prévisibles, on ne « prie » plus devant Git.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

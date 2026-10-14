@@ -1,0 +1,10 @@
+{
+  "node": "autoscaling",
+  "lesson": "hpa-v2-keda-karpenter",
+  "title": "Un worker qui descend à zéro avec KEDA",
+  "statement": "Un worker (Deployment `mailer`) consomme les messages d'une file **RabbitMQ** nommée `emails`. La nuit la file est vide : on veut **0 pod** (aucun coût). Le jour, on veut monter jusqu'à **20 pods** selon la profondeur de la file, en visant environ **50 messages en attente par pod**.\n\nÉcris le manifeste **ScaledObject** de KEDA (API `keda.sh/v1alpha1`) nommé `mailer-scaler` qui réalise ça. On suppose qu'un `TriggerAuthentication` nommé `rabbitmq-auth` existe déjà pour la connexion.",
+  "skeleton": "apiVersion: keda.sh/v1alpha1\nkind: ScaledObject\nmetadata:\n  name: mailer-scaler\nspec:\n  # complète : scaleTargetRef, minReplicaCount, maxReplicaCount, triggers (rabbitmq)\n",
+  "solution": "apiVersion: keda.sh/v1alpha1\nkind: ScaledObject\nmetadata:\n  name: mailer-scaler\nspec:\n  scaleTargetRef:\n    name: mailer\n  minReplicaCount: 0\n  maxReplicaCount: 20\n  triggers:\n    - type: rabbitmq\n      metadata:\n        queueName: emails\n        mode: QueueLength\n        value: \"50\"\n      authenticationRef:\n        name: rabbitmq-auth",
+  "keyPoints": ["keda.sh/v1alpha1", "ScaledObject", "scaleTargetRef", "name: mailer", "minReplicaCount: 0", "maxReplicaCount: 20", "type: rabbitmq", "queueName: emails"],
+  "language": "yaml"
+}

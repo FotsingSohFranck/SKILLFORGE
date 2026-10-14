@@ -1,0 +1,96 @@
+{
+  "ref": "state-management-etat-check",
+  "node": "state-management",
+  "lesson": "quest-ce-que-letat",
+  "title": "Quiz, Qu'est-ce que l'état",
+  "description": "Rôle du state, les trois choses comparées par le plan, données sensibles, jamais dans Git.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le fichier d'état (state) de Terraform ?",
+      "justification": "Le state mappe chaque ressource du code à l'objet réel qu'elle représente dans le cloud (id, attributs) : c'est la mémoire de Terraform.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Faire le lien entre les ressources du code et les objets réels du cloud",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Stocker le code source des providers",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Formater automatiquement les fichiers .tf",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que compare `terraform plan` pour décider des actions ?",
+      "justification": "Le plan confronte trois choses : le code (désiré), le state (ce que Terraform croit avoir créé) et le réel (rafraîchi via les API du fournisseur).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le code désiré, le state, et le réel dans le cloud",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Uniquement l'ancien code et le nouveau code",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La version de Terraform et celle du provider",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le fichier d'état peut contenir des secrets (mots de passe, clés) écrits en clair.",
+      "justification": "Vrai : le state stocke tous les attributs des ressources, en clair par défaut, y compris les valeurs sensibles. Il faut le protéger comme la donnée la plus confidentielle.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un coéquipier veut committer `terraform.tfstate` dans Git pour le partager. Quelle est la bonne réaction ?",
+      "justification": "Jamais dans Git : le state exposerait des secrets en clair (pour toujours dans l'historique) et Git n'offre pas de verrouillage. On l'ajoute au .gitignore et on utilise un backend distant.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Refuser : l'ajouter au .gitignore et passer par un backend distant partagé et chiffré",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Accepter, c'est le moyen normal de partager l'état en équipe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le committer mais seulement sur la branche main",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

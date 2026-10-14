@@ -1,0 +1,243 @@
+{
+  "node": "concurrence-rappels",
+  "lessons": [
+    {
+      "slug": "pourquoi-la-concurrence",
+      "title": "Pourquoi la concurrence",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Faire plusieurs choses à la fois",
+          "position": 0,
+          "body": "La **concurrence** (en anglais *concurrency*), c'est l'art de faire avancer **plusieurs tâches en même temps** dans un même programme. Une tâche, c'est simplement un travail à faire : télécharger un fichier, calculer un total, répondre à un visiteur.\n\nPourquoi en a t on besoin ? Prends un serveur web : des centaines de personnes lui envoient une **requête** (une demande, par exemple \"donne moi la page d'accueil\") au même instant. Si le serveur traitait les requêtes une par une, la 200e personne attendrait très longtemps. Avec la concurrence, il s'occupe de plusieurs requêtes à la fois.\n\n👉 Imagine un serveur de restaurant seul en salle : s'il attend qu'une table ait fini son repas avant de s'occuper de la suivante, c'est la catastrophe. Un bon service jongle entre les tables, il fait avancer tout le monde en parallèle."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ne pas bloquer, rester réactif",
+          "position": 1,
+          "body": "L'autre grande raison, c'est de **ne pas bloquer**. **Bloquer** veut dire : s'arrêter et attendre sans rien faire d'autre, par exemple pendant qu'un fichier se charge ou qu'une réponse réseau arrive.\n\nSi une application fait tout sur une seule file d'attente, la moindre attente fige l'ensemble : l'interface d'un logiciel devient insensible, le bouton ne répond plus, la fenêtre affiche \"ne répond pas\". En déplaçant l'attente sur une tâche séparée, le reste du programme continue de tourner et reste **réactif** (il répond vite aux actions de l'utilisateur).\n\n👉 Pendant que le four cuit un plat (longue attente), le cuisinier ne reste pas planté devant la vitre : il épluche les légumes de la commande suivante. Le travail continue au lieu de s'arrêter."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Concurrence n'est pas parallélisme",
+          "position": 2,
+          "body": "On confond souvent deux mots. La **concurrence** (*concurrency*), c'est **gérer** plusieurs tâches qui progressent sur une même période, même si l'ordinateur passe en réalité très vite de l'une à l'autre. Le **parallélisme** (*parallelism*), c'est **exécuter** vraiment plusieurs tâches au même instant, ce qui exige plusieurs **coeurs** de processeur (un coeur, c'est une unité de calcul ; un processeur moderne en a plusieurs).\n\nAutrement dit : la concurrence est une façon d'organiser le travail ; le parallélisme est une façon de l'exécuter physiquement. On peut avoir de la concurrence sur un seul coeur (il alterne très vite entre les tâches) et du vrai parallélisme sur plusieurs coeurs.\n\n👉 Un seul caissier qui sert deux files en alternance fait de la concurrence. Deux caissiers côte à côte qui servent chacun une file font du parallélisme."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Concurrence (alternance) contre parallélisme (simultané)",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n    subgraph Concurrence [\"Concurrence : 1 coeur alterne\"]\n        direction LR\n        C1[\"Tache A\"] --> C2[\"Tache B\"] --> C3[\"Tache A\"] --> C4[\"Tache B\"]\n    end\n    subgraph Parallelisme [\"Parallelisme : 2 coeurs en meme temps\"]\n        direction TB\n        P1[\"Coeur 1 : Tache A\"]\n        P2[\"Coeur 2 : Tache B\"]\n    end"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Concurrence ou parallélisme ?",
+          "position": 4,
+          "body": "Pour chaque situation, dis si on parle plutôt de concurrence (organiser l'alternance) ou de parallélisme (vraie exécution simultanée). 1) Un ordinateur à un seul coeur qui fait tourner un navigateur et un lecteur de musique en basculant très vite entre les deux. 2) Un gros calcul découpé en 8 morceaux, chacun confié à l'un des 8 coeurs de la machine.",
+          "solution": "1) Concurrence : un seul coeur ne peut rien exécuter réellement en même temps, il alterne très vite entre les deux programmes, ce qui donne l'illusion du simultané. 2) Parallélisme : les 8 coeurs travaillent physiquement au même instant sur les 8 morceaux. Retiens que le parallélisme a besoin de plusieurs coeurs, alors que la concurrence est juste une manière d'organiser des tâches qui progressent ensemble."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : pourquoi la concurrence",
+          "position": 5,
+          "quizRef": "concurrence-rappels-pourquoi-la-concurrence"
+        }
+      ]
+    },
+    {
+      "slug": "thread-et-runnable",
+      "title": "Thread et Runnable",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Qu'est ce qu'un thread",
+          "position": 0,
+          "body": "Un **thread** (en français \"fil d'exécution\") est une ligne de travail qui exécute des instructions les unes après les autres. Ton programme démarre toujours avec un thread, appelé le thread principal (*main*). Pour faire plusieurs choses à la fois, tu crées des threads supplémentaires : chacun déroule son propre fil d'instructions.\n\nEn Java, un thread classique est un **thread plateforme** (*platform thread*) : il correspond directement à un thread du système d'exploitation, c'est à dire à une ressource gérée par le coeur de l'ordinateur. Retiens bien ce terme, il sera central dans la dernière leçon : ces threads plateforme sont puissants mais coûteux.\n\n👉 Un thread, c'est comme un ouvrier qui suit sa liste de tâches ligne par ligne. Un seul ouvrier fait les choses dans l'ordre ; plusieurs ouvriers avancent en même temps."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Runnable : le travail à confier",
+          "position": 1,
+          "body": "Pour dire à un thread **quoi faire**, on lui donne un **Runnable**. `Runnable` est une interface très simple avec une seule méthode, `run()`, qui ne prend aucun paramètre et ne renvoie rien. Tu y écris le code de la tâche.\n\nUne **interface**, ici, est juste un contrat : \"tout Runnable sait exécuter un `run()`\". Comme `Runnable` n'a qu'une méthode, on l'écrit presque toujours sous forme de **lambda** (une petite fonction anonyme, notée avec une flèche `->`).\n\n👉 Sépare bien les deux rôles : le Runnable est la **feuille de consignes** (ce qu'il faut faire), le thread est l'**ouvrier** qui lit la feuille et agit. Même feuille, on peut la donner à n'importe quel ouvrier."
+        },
+        {
+          "type": "CODE",
+          "title": "Créer et lancer un thread",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "public class Demo {\n    public static void main(String[] args) throws InterruptedException {\n        // Le Runnable : la tache a executer, ecrite sous forme de lambda.\n        Runnable tache = () -> {\n            System.out.println(\"Bonjour depuis un autre thread !\");\n        };\n\n        // On cree un thread en lui confiant la tache.\n        Thread t = new Thread(tache);\n\n        // start() DEMARRE un nouveau thread qui executera run() en parallele.\n        t.start();\n\n        // join() attend que le thread t ait fini avant de continuer.\n        t.join();\n        System.out.println(\"Le thread principal reprend la main.\");\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "start() contre run() : l'erreur classique",
+          "position": 3,
+          "body": "Attention au piège le plus courant des débutants. `t.start()` demande à Java de **créer un nouveau thread** qui exécutera `run()` de son côté : ton code continue pendant ce temps. C'est ce que tu veux.\n\nSi tu écris `t.run()` à la place, tu appelles juste une méthode normale **dans le thread actuel** : aucun nouveau fil n'est créé, le travail se fait sur place, et le reste attend qu'il finisse. Autrement dit, `t.run()` tout seul n'apporte aucune concurrence.\n\n👉 `start()`, c'est embaucher un nouvel ouvrier et lui dire \"vas y\". `run()` tout seul, c'est faire le travail toi même en mettant le reste en pause. La règle : pour de la concurrence, toujours `start()`."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Repère le bug",
+          "position": 4,
+          "body": "Un collègue débutant écrit ce code et s'étonne que \"rien ne se passe en parallèle\" : Thread t = new Thread(() -> System.out.println(\"coucou\")); t.run(); Qu'a t il fait de travers, et quelle est la correction ?",
+          "solution": "Il a appelé t.run() au lieu de t.start(). Du coup, aucun nouveau thread n'est créé : run() s'exécute comme une méthode ordinaire dans le thread principal, qui attend qu'elle finisse avant de continuer. Il n'y a donc aucune concurrence. La correction est de remplacer t.run() par t.start(), qui lance un véritable thread séparé exécutant le code du Runnable."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : thread et Runnable",
+          "position": 5,
+          "quizRef": "concurrence-rappels-thread-et-runnable"
+        }
+      ]
+    },
+    {
+      "slug": "executors-et-pools",
+      "title": "Executors et pools de threads",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le problème : créer un thread coûte cher",
+          "position": 0,
+          "body": "Créer un thread plateforme à la main pour chaque petite tâche pose deux problèmes. D'abord, **créer et détruire** un thread prend du temps et de la mémoire. Ensuite, si tu crées un thread par requête sans limite, tu peux en lancer des dizaines de milliers d'un coup et faire tomber la machine.\n\nL'idée maligne, c'est de **réutiliser** un petit groupe de threads déjà prêts au lieu d'en recréer sans arrêt. Ce groupe s'appelle un **pool de threads** (*thread pool*) : un pool, c'est une réserve d'ouvriers disponibles qui attendent du travail.\n\n👉 Plutôt que d'embaucher puis licencier un ouvrier pour chaque colis à livrer, tu gardes une équipe fixe de 10 livreurs. Dès qu'un livreur revient, tu lui confies le colis suivant. C'est plus rapide et tu maitrises la taille de l'équipe."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "ExecutorService : le chef d'équipe",
+          "position": 1,
+          "body": "En Java, on ne manipule presque jamais les threads du pool à la main : on passe par un **ExecutorService**. C'est un objet qui gère un pool pour toi : tu lui **soumets** des tâches, il les distribue aux threads disponibles, et il met en file d'attente celles qui dépassent.\n\nOn en crée un avec la classe utilitaire `Executors`. Par exemple `Executors.newFixedThreadPool(4)` fabrique un pool de 4 threads réutilisés. Tu lui donnes du travail avec `submit(...)`, en lui passant un `Runnable` (ou un `Callable`, qu'on verra à la leçon suivante).\n\n👉 L'ExecutorService est le **chef d'équipe** : tu lui déposes les tâches sur son bureau (`submit`), et c'est lui qui décide quel ouvrier libre s'en occupe. Toi, tu n'as plus à gérer les ouvriers un par un."
+        },
+        {
+          "type": "CODE",
+          "title": "Soumettre des tâches à un pool",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.concurrent.ExecutorService;\nimport java.util.concurrent.Executors;\n\npublic class Demo {\n    public static void main(String[] args) {\n        // Un pool de 4 threads reutilises pour toutes les taches.\n        ExecutorService pool = Executors.newFixedThreadPool(4);\n\n        // On soumet 10 taches : le pool les distribue sur ses 4 threads.\n        for (int i = 1; i <= 10; i++) {\n            int numero = i; // variable effectivement finale, utilisable dans la lambda\n            pool.submit(() -> {\n                System.out.println(\"Tache \" + numero + \" sur le thread \"\n                        + Thread.currentThread().getName());\n            });\n        }\n\n        // shutdown() : on refuse les nouvelles taches et on laisse finir les en cours.\n        pool.shutdown();\n    }\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Des tâches qui attendent, un pool qui les distribue",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    Q[\"File d'attente\\nTache 1..10\"] --> E[\"ExecutorService\\n(chef d'equipe)\"]\n    E --> T1[\"Thread 1\"]\n    E --> T2[\"Thread 2\"]\n    E --> T3[\"Thread 3\"]\n    E --> T4[\"Thread 4\"]\n    T1 -. reutilise .-> E\n    T2 -. reutilise .-> E"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi réutiliser plutôt que recréer",
+          "position": 4,
+          "body": "Le gain d'un pool est double. Côté **performance**, les threads existent déjà : on évite le coût de création à chaque tâche. Côté **contrôle**, la taille du pool fixe une limite nette : avec 4 threads, jamais plus de 4 tâches ne s'exécutent en même temps, même si tu en soumets 10 000. Les autres patientent sagement dans la file.\n\nCette limite est à la fois une protection (on ne noie pas la machine) et une contrainte (si une tâche bloque longtemps, elle occupe un thread du pool pour rien). C'est précisément cette tension qu'on examinera dans la dernière leçon.\n\n👉 Une équipe fixe de livreurs te protège de l'embauche sauvage, mais si un livreur reste coincé une heure dans un ascenseur, il manque à l'équipe pendant tout ce temps."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Combien de tâches en même temps ?",
+          "position": 5,
+          "body": "Tu crées un pool avec Executors.newFixedThreadPool(3) puis tu lui soumets 12 tâches qui durent chacune 1 seconde. Combien de tâches s'exécutent au maximum en même temps, et environ combien de temps faut il pour tout traiter ?",
+          "solution": "Au maximum 3 tâches s'exécutent en même temps, car le pool ne contient que 3 threads ; les 9 autres attendent dans la file. Comme chaque tâche dure 1 seconde et qu'on traite 3 tâches par seconde, il faut environ 12 / 3 = 4 secondes pour tout terminer. C'est l'intérêt du pool : il réutilise les mêmes 3 threads pour enchainer les 12 tâches, sans jamais en créer un quatrième."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : executors et pools",
+          "position": 6,
+          "quizRef": "concurrence-rappels-executors-et-pools"
+        }
+      ]
+    },
+    {
+      "slug": "future-et-resultats",
+      "title": "Future et résultats",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Callable : une tâche qui renvoie un résultat",
+          "position": 0,
+          "body": "Un `Runnable` fait un travail mais ne renvoie rien (`run()` ne rend aucune valeur). Or souvent, on veut **récupérer un résultat** : le total d'un calcul, le contenu téléchargé, le nombre de lignes traitées.\n\nPour ça, Java fournit **Callable**. C'est comme un `Runnable`, mais sa méthode `call()` **renvoie une valeur** (et peut lever une exception). On écrit un `Callable<Integer>` si la tâche produit un entier, un `Callable<String>` si elle produit une chaine, etc. Le `<...>` indique le type du résultat attendu.\n\n👉 Un Runnable, c'est une consigne \"fais ce ménage\" dont tu ne récupères rien de précis. Un Callable, c'est une consigne \"compte les cartons et rapporte moi le total\" : à la fin, on attend un chiffre en retour."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Future : un reçu pour un résultat futur",
+          "position": 1,
+          "body": "Quand tu soumets un `Callable` à un `ExecutorService`, le résultat n'est pas prêt tout de suite : la tâche tourne de son côté. Alors `submit(...)` te rend immédiatement un **Future**.\n\nUn **Future** représente un **résultat qui arrivera plus tard**. C'est comme un reçu ou un ticket de retrait : tu l'as tout de suite, mais la marchandise (le résultat) viendra quand la tâche aura fini. Tu continues ton travail, et tu présenteras le ticket plus tard pour récupérer la valeur.\n\n👉 Au pressing, on te donne un ticket au dépôt de ton vêtement. Le ticket n'est pas le vêtement : c'est une promesse que tu pourras le récupérer une fois prêt. Le Future joue ce rôle pour un résultat de calcul."
+        },
+        {
+          "type": "CODE",
+          "title": "Callable, Future et get()",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.concurrent.*;\n\npublic class Demo {\n    public static void main(String[] args) throws Exception {\n        ExecutorService pool = Executors.newFixedThreadPool(2);\n\n        // Un Callable<Integer> : la tache calcule et RENVOIE un entier.\n        Callable<Integer> calcul = () -> {\n            int total = 0;\n            for (int i = 1; i <= 100; i++) total += i;\n            return total; // call() renvoie une valeur, contrairement a run()\n        };\n\n        // submit rend tout de suite un Future : le \"recu\" du resultat a venir.\n        Future<Integer> ticket = pool.submit(calcul);\n\n        // On peut faire autre chose ici pendant que le calcul tourne...\n\n        // get() recupere le resultat ; il ATTEND (bloque) si ce n'est pas encore pret.\n        Integer resultat = ticket.get();\n        System.out.println(\"Somme de 1 a 100 = \" + resultat); // 5050\n\n        pool.shutdown();\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "get() récupère le résultat, mais il attend",
+          "position": 3,
+          "body": "La méthode `get()` sur un `Future` te rend la valeur produite par la tâche. Point important : si le résultat n'est pas encore prêt, `get()` **bloque**, c'est à dire qu'il met en pause le thread appelant jusqu'à ce que la tâche soit finie.\n\nC'est pratique et simple, mais c'est aussi un piège de performance : si tu appelles `get()` trop tôt, tu annules une partie du bénéfice de la concurrence, puisque tu te remets à attendre. La bonne habitude est de lancer d'abord **toutes** les tâches (collecter tous les tickets), puis de ne faire les `get()` qu'ensuite.\n\n👉 Tu déposes tes cinq vêtements au pressing et tu récupères cinq tickets d'un coup. Si tu attends devant le comptoir après chaque dépôt, tu perds le temps que tu voulais gagner. Dépose tout, puis reviens tout chercher."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Lancer d'abord, attendre ensuite",
+          "position": 4,
+          "body": "Tu as 3 Callable<Integer> indépendants qui durent chacun 2 secondes, et un pool de 3 threads. Compare deux façons de faire : (A) submit du premier puis get() tout de suite, puis submit du deuxième puis get(), etc. ; (B) submit des trois d'abord, puis les trois get() ensuite. Quelle version est la plus rapide et pourquoi ?",
+          "solution": "La version (B) est la plus rapide. En (A), chaque get() bloque juste après le submit correspondant, donc les tâches s'exécutent l'une après l'autre : environ 2 + 2 + 2 = 6 secondes. En (B), les trois tâches sont soumises d'abord et tournent en parallèle sur les 3 threads du pool ; les get() ne font qu'attendre un résultat qui arrive au bout de 2 secondes pour les trois : environ 2 secondes au total. La règle à retenir : soumets toutes les tâches, PUIS appelle get(), car get() bloque."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : future et résultats",
+          "position": 5,
+          "quizRef": "concurrence-rappels-future-et-resultats"
+        }
+      ]
+    },
+    {
+      "slug": "problemes-classiques",
+      "title": "Les problèmes classiques",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le blocage sur une I/O",
+          "position": 0,
+          "body": "Le premier problème s'appelle le **blocage**. On dit qu'un thread **bloque** quand il s'arrête pour attendre un événement extérieur, souvent une **I/O** (*Input/Output*, entrée/sortie), c'est à dire un échange avec le monde extérieur : lire un fichier sur le disque, interroger une base de données, appeler un service sur le réseau.\n\nLe point clé : pendant une I/O, le thread ne calcule rien, il **attend**. Et pourtant il reste occupé, immobilisé sur place. Une requête réseau peut durer des centaines de millisecondes, ce qui est une éternité pour un processeur. Pendant tout ce temps, le thread est gaspillé.\n\n👉 C'est l'ouvrier qui a commandé une pièce par la poste et qui reste planté devant la boite aux lettres jusqu'à la livraison. Il n'est pas parti, il n'avance pas non plus : il monopolise sa place pour ne rien faire."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le coût mémoire d'un thread plateforme",
+          "position": 1,
+          "body": "Le deuxième problème est le **coût** d'un thread plateforme. Chaque thread plateforme réclame sa propre **pile** (*stack*) : une zone de mémoire où il range les appels de méthodes en cours et leurs variables. Par défaut, cette pile pèse environ **1 Mo** (un mégaoctet), réservé dès la création du thread, qu'il travaille ou qu'il attende.\n\nFais le calcul : 1 000 threads, c'est déjà environ 1 Go de mémoire rien que pour les piles. 10 000 threads, c'est environ 10 Go. La mémoire d'un serveur s'épuise vite. En pratique, on est donc limité à **quelques milliers** de threads plateforme sur une machine ordinaire, pas des centaines de milliers.\n\n👉 Chaque ouvrier exige son propre grand établi réservé, même quand il attend son colis sans rien faire. L'atelier n'a de la place que pour quelques milliers d'établis : au delà, plus de place, même si presque tous les ouvriers sont inactifs."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le piège : beaucoup d'attentes, peu de threads",
+          "position": 2,
+          "body": "Mets les deux problèmes ensemble et tu obtiens la grande difficulté des serveurs. Imagine 10 000 clients connectés, chacun surtout en attente d'une I/O (une réponse de base de données). Idéalement, tu voudrais un thread par client, car c'est simple à écrire. Mais 10 000 threads plateforme coûtent trop cher en mémoire.\n\nDu coup, on se rabat sur un pool de quelques centaines de threads. Et là, chaque thread qui **bloque** sur une I/O lente est un thread du pool indisponible pour les autres clients. Quand tous les threads du pool attendent une I/O, le serveur ne répond plus, alors que le processeur, lui, ne fait presque rien.\n\n👉 Tu as 10 000 colis à suivre mais seulement 200 ouvriers, et chaque ouvrier reste bloqué devant une boite aux lettres. Résultat : 200 ouvriers immobilisés, 9 800 colis en attente, et un atelier qui tourne au ralenti alors que personne ne travaille vraiment."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Pourquoi les threads plateforme plafonnent",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Besoin : 10 000 taches\\nsurtout en attente d'I/O\"] --> B{\"Un thread plateforme\\npar tache ?\"}\n    B -->|\"Oui\"| C[\"Environ 1 Mo de pile par thread\\n10 000 threads = environ 10 Go\\nMemoire epuisee\"]\n    B -->|\"Non, un pool limite\"| D[\"Quelques centaines de threads\"]\n    D --> E[\"Chaque thread qui bloque sur une I/O\\nest indisponible pour les autres\"]\n    E --> F[\"Serveur sature\\nalors que le processeur est presque inactif\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce que ça prépare : les virtual threads",
+          "position": 4,
+          "body": "Résumons la tension. Un thread plateforme est lourd (environ 1 Mo chacun), donc on ne peut en avoir que quelques milliers ; et quand il bloque sur une I/O, il gaspille cette ressource précieuse en ne faisant qu'attendre. Le modèle \"un thread par tâche\", pourtant simple et agréable à écrire, devient impossible dès qu'il y a beaucoup d'attentes.\n\nC'est exactement le problème que les **virtual threads** (threads virtuels), le sujet du prochain nœud, viennent résoudre. L'idée, en avant goût : des threads si légers qu'on peut en créer des millions, et qui ne monopolisent pas un thread plateforme pendant qu'ils attendent une I/O. Garde bien en tête les deux limites vues ici, le coût mémoire et le gaspillage par blocage : elles sont la clé pour comprendre pourquoi les virtual threads changent tout.\n\n👉 On cherche un ouvrier qui, au lieu de rester planté devant la boite aux lettres, libère son établi dès qu'il se met à attendre, pour qu'un autre travaille à sa place. C'est la promesse de la suite."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Estime la mémoire",
+          "position": 5,
+          "body": "Un serveur veut gérer 50 000 connexions simultanées avec le modèle un thread plateforme par connexion. Sachant qu'un thread plateforme réserve environ 1 Mo de pile, combien de mémoire partirait uniquement dans les piles ? Pourquoi cette approche est elle irréaliste, et quel aspect du problème les virtual threads visent ils ?",
+          "solution": "50 000 threads x environ 1 Mo = environ 50 Go de mémoire rien que pour les piles, avant même de compter les données de l'application. C'est irréaliste car une machine ordinaire n'a pas autant de mémoire, et de toute façon ces threads passeraient l'essentiel de leur temps à bloquer sur des I/O réseau sans rien calculer. Les virtual threads visent précisément ces deux points : être assez légers pour qu'on puisse en avoir des millions, et ne pas immobiliser un thread plateforme pendant les attentes d'I/O."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : les problèmes classiques",
+          "position": 6,
+          "quizRef": "concurrence-rappels-problemes-classiques"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "api-styles-contrats-check",
+  "node": "api-styles",
+  "lesson": "contrats-compatibilite-schemas",
+  "title": "Contrats & compatibilité",
+  "description": "Contract-first, compatibilité protobuf/GraphQL, contract tests.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En protobuf, qu'est-ce qui définit la compatibilité binaire d'un champ ?",
+      "justification": "C'est le numéro du champ (le tag), pas son nom : on ne doit jamais le réutiliser ni le changer ; renommer reste sûr côté binaire.",
+      "position": 0,
+      "options": [
+        { "label": "Le numéro du champ (le tag)", "correct": true, "position": 0 },
+        { "label": "Le nom du champ", "correct": false, "position": 1 },
+        { "label": "Sa position dans le fichier .proto", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle évolution d'un schéma GraphQL est CASSANTE pour les clients existants ?",
+      "justification": "Retirer un champ lu par des clients, ou rendre un champ non-nullable, casse ; ajouter un champ ou le déprécier est sûr.",
+      "position": 1,
+      "options": [
+        { "label": "Retirer un champ ou le rendre soudain non-nullable", "correct": true, "position": 0 },
+        { "label": "Ajouter un nouveau champ optionnel", "correct": false, "position": 1 },
+        { "label": "Marquer un champ @deprecated", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les contract tests (ex. Pact) dans la CI ?",
+      "justification": "Ils vérifient automatiquement qu'un changement d'API ne casse aucun consommateur, et font échouer la CI avant le déploiement.",
+      "position": 2,
+      "options": [
+        { "label": "Vérifier qu'un changement d'API ne casse aucun consommateur", "correct": true, "position": 0 },
+        { "label": "Mesurer la latence de l'API en production", "correct": false, "position": 1 },
+        { "label": "Générer automatiquement la page d'accueil", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Renommer un champ protobuf en gardant son numéro casse la compatibilité binaire.",
+      "justification": "Faux : la sérialisation repose sur le numéro, pas sur le nom ; renommer sans changer le numéro est sûr côté binaire.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

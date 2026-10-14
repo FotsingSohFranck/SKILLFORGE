@@ -1,0 +1,10 @@
+{
+  "node": "ci-cd",
+  "lesson": "concevoir-pipeline-robuste",
+  "title": "Migration « expand » rétrocompatible",
+  "statement": "Tu prépares un déploiement **sans coupure** : pendant le rolling update, l'ancien et le nouveau code vont coexister et parler à la **même** base. Écris la migration SQL de l'étape **expand** du pattern expand/contract : ajoute à la table `users` une nouvelle colonne `email_verified` de type `boolean`, **sans casser l'ancien code**. Indice : à cette étape, la colonne ne doit **pas** être `NOT NULL` (elle doit accepter l'absence de valeur), sinon les instances encore sur l'ancien code, qui ne la renseignent pas, échoueraient à l'insertion.",
+  "skeleton": "-- V2__add_email_verified.sql\n-- Etape expand : ajouter sans rien casser\n",
+  "solution": "-- V2__add_email_verified.sql\n-- Etape expand : colonne nullable, l'ancien code continue de fonctionner\nALTER TABLE users ADD COLUMN email_verified boolean;",
+  "keyPoints": ["ALTER TABLE", "users", "ADD COLUMN", "email_verified", "boolean"],
+  "language": "sql"
+}

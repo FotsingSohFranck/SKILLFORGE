@@ -1,0 +1,10 @@
+{
+  "node": "locals-outputs",
+  "lesson": "locals",
+  "title": "Factoriser des tags avec un local",
+  "statement": "Écris un bloc `locals` contenant deux valeurs locales : (1) `common_tags`, une map avec les clés `Project` (valant `var.project`), `Environment` (valant `var.environment`) et `ManagedBy` (valant la chaîne `\"terraform\"`) ; (2) `name_prefix`, une chaîne construite par interpolation qui vaut la valeur de `var.project`, un tiret, puis la valeur de `var.environment` (par exemple `boutique-prod`). Ensuite, dans une ressource `aws_instance` nommée `web`, définis l'argument `tags` en fusionnant `local.common_tags` avec un tag `Name` valant `local.name_prefix` suivi de `-web`. Utilise la fonction `merge`.",
+  "skeleton": "locals {\n  common_tags = {\n\n  }\n  name_prefix = \n}\n\nresource \"aws_instance\" \"web\" {\n  # ...\n  tags = \n}",
+  "solution": "locals {\n  common_tags = {\n    Project     = var.project\n    Environment = var.environment\n    ManagedBy   = \"terraform\"\n  }\n  name_prefix = \"${var.project}-${var.environment}\"\n}\n\nresource \"aws_instance\" \"web\" {\n  # ...\n  tags = merge(local.common_tags, { Name = \"${local.name_prefix}-web\" })\n}",
+  "keyPoints": ["locals {", "common_tags", "var.project", "var.environment", "ManagedBy   = \"terraform\"", "name_prefix = \"${var.project}-${var.environment}\"", "merge(local.common_tags", "Name = \"${local.name_prefix}-web\""],
+  "language": "hcl"
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "lifecycle-fine-expert",
+  "node": "resources",
+  "lesson": "controle-fin-du-cycle-de-vie",
+  "title": "Contrôle fin du cycle de vie, expert",
+  "description": "postcondition, replace_triggered_by, timeouts.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que vérifie une postcondition ?",
+      "justification": "Le résultat APRÈS création (ex. l'IP publique est présente, le versioning est activé) : elle échoue l'apply si l'invariant n'est pas satisfait.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le résultat après création (un invariant attendu)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une hypothèse avant création",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le coût de la ressource",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `replace_triggered_by` ?",
+      "justification": "Il force la recréation d'une ressource quand une AUTRE change, même sans référence directe qui l'imposerait.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Force la recréation quand une autre ressource change",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Empêche toute recréation",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Renomme la ressource",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le bloc `timeouts` sur une ressource ?",
+      "justification": "À ajuster les délais d'attente (create/update/delete) pour des ressources longues (base, cluster), évitant des échecs sur des opérations lentes.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Ajuster les délais d'attente d'opérations lentes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Limiter le nombre de ressources",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer la ressource",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les pre/postconditions transforment le code Terraform en contrat vérifié (hypothèses avant, invariants après).",
+      "justification": "Vrai : on documente et garantit des invariants, attrapant une création qui « réussit » mais ne correspond pas à l'intention.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

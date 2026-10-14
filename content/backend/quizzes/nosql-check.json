@@ -1,0 +1,52 @@
+{
+  "ref": "nosql-check",
+  "node": "nosql-databases",
+  "lesson": "polyglotte-et-coherence",
+  "title": "Bases NoSQL",
+  "description": "Familles, cas d'usage, cohérence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle famille NoSQL est idéale pour un cache ou des sessions à latence minimale ?",
+      "justification": "Les bases clé-valeur (Redis) récupèrent une valeur par sa clé en microsecondes.",
+      "position": 0,
+      "options": [
+        { "label": "Clé-valeur (Redis)", "correct": true, "position": 0 },
+        { "label": "Graphe (Neo4j)", "correct": false, "position": 1 },
+        { "label": "Time-series (InfluxDB)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour « les amis de mes amis », quelle base est la plus adaptée ?",
+      "justification": "Une base graphe traite nativement les traversées de relations, coûteuses en relationnel.",
+      "position": 1,
+      "options": [
+        { "label": "Une base graphe", "correct": true, "position": 0 },
+        { "label": "Une base clé-valeur", "correct": false, "position": 1 },
+        { "label": "Une base colonnes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En NoSQL, comment aborde-t-on la modélisation par rapport au relationnel ?",
+      "justification": "On part des motifs d'accès (les requêtes attendues) et on modélise pour eux, quitte à dupliquer.",
+      "position": 2,
+      "options": [
+        { "label": "On modélise à partir des motifs d'accès", "correct": true, "position": 0 },
+        { "label": "On normalise toujours au maximum", "correct": false, "position": 1 },
+        { "label": "On ignore les requêtes futures", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La cohérence à terme (eventual consistency) convient à un solde bancaire.",
+      "justification": "Non : une lecture pourrait voir une valeur périmée. Un solde exige une cohérence forte ; l'eventual convient à un fil d'actualité.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "container-security-check",
+  "node": "container-security",
+  "lesson": "securite-du-runtime",
+  "title": "Sécurité des conteneurs",
+  "description": "Image minimale, scan continu, moindre privilège, socket Docker, privileged.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi scanner une image une seule fois ne suffit-il pas ?",
+      "justification": "De nouvelles CVE apparaissent après la publication ; il faut scanner en continu ET reconstruire régulièrement sur une base à jour.",
+      "position": 0,
+      "options": [
+        {
+          "label": "De nouvelles CVE apparaissent avec le temps ; il faut scanner en continu et mettre à jour",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le scan abîme l'image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une image clean le reste pour toujours",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle mesure de runtime applique le moindre privilège ?",
+      "justification": "Tourner en non-root, read-only, --cap-drop ALL, no-new-privileges : autant de réductions de ce qu'un attaquant peut faire.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Non-root + read-only + cap-drop + no-new-privileges",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tourner en --privileged",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Monter le socket Docker",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne faut-il jamais monter /var/run/docker.sock dans un conteneur non fiable ?",
+      "justification": "Le socket est l'API du daemon (root sur l'hôte) : le conteneur peut alors créer des conteneurs privilégiés et devenir root sur la machine.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Cela donne un accès équivalent à root sur l'hôte (évasion garantie)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Cela ralentit le daemon",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Cela n'a aucun effet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le flag `--privileged`, et pourquoi le bannir ?",
+      "justification": "Il désactive quasiment toutes les protections (capabilities, seccomp) et donne un accès quasi total à l'hôte, à éviter.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Il désactive les protections et ouvre un accès quasi total à l'hôte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il chiffre le conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il accélère le démarrage sans risque",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La sécurité des conteneurs se construit par couches : image minimale, non-root, capabilities réduites, seccomp, read-only, pas de socket Docker.",
+      "justification": "Vrai : c'est la défense en profondeur ; aucune mesure seule ne suffit, on empile les protections pour réduire le rayon d'explosion.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

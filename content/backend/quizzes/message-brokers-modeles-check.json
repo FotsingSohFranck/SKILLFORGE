@@ -1,0 +1,96 @@
+{
+  "ref": "message-brokers-modeles-check",
+  "node": "message-brokers",
+  "lesson": "files-vs-evenements",
+  "title": "Quiz, Files vs événements",
+  "description": "File de travail, pub/sub, RabbitMQ vs Kafka.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une file de travail (work queue), un message représentant une tâche est consommé par…",
+      "justification": "Un seul worker : la tâche n'est exécutée qu'une fois, c'est de la répartition du travail entre workers.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un seul worker (la tâche n'est faite qu'une fois)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tous les workers en même temps",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun worker, il reste dans la file",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En publication/abonnement (pub/sub), un événement est reçu par…",
+      "justification": "Tous les abonnés intéressés : un même événement est diffusé à plusieurs consommateurs qui réagissent chacun à leur façon.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Tous les abonnés intéressés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un seul abonné choisi au hasard",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Uniquement le producteur qui l'a émis",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu as besoin d'un flux d'événements conservé, rejouable et à très haut débit, relisible depuis le début par plusieurs consommateurs. Quel broker ?",
+      "justification": "Kafka : log distribué qui conserve les messages (rejouables), tient un très haut débit et laisse plusieurs consommateurs lire indépendamment, y compris depuis le début.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Kafka",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "RabbitMQ",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Peu importe, les deux conservent et rejouent de la même façon",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec RabbitMQ, un message est généralement retiré de la file une fois qu'il a été consommé.",
+      "justification": "Vrai : RabbitMQ est un broker de messages classique où un message consommé disparaît de la file ; Kafka, lui, conserve les messages pour permettre le rejeu.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "enhanced-instanceof-la-portee-de-la-variable",
+  "node": "enhanced-instanceof",
+  "lesson": "la-portee-de-la-variable",
+  "title": "Quiz : la portée de la variable",
+  "description": "Flow scoping et portée étendue après return ou throw.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que désigne la portée (scope) d'une variable ?",
+      "justification": "La portée est la zone du code où la variable existe et peut être utilisée. En dehors, elle est inconnue du compilateur.",
+      "position": 0,
+      "options": [
+        { "label": "La zone du code où la variable existe et peut être utilisée", "correct": true, "position": 0 },
+        { "label": "La valeur maximale que la variable peut contenir", "correct": false, "position": 1 },
+        { "label": "Le type de la variable", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Dans if (!(o instanceof String s)) { return -1; } puis return s.length();, pourquoi s est elle utilisable sur la dernière ligne alors qu'on est hors du if ?",
+      "justification": "C'est le flow scoping : si l'on a dépassé le if qui fait return quand o n'est pas une String, alors o est forcément une String, donc s est valable dans la suite de la méthode.",
+      "position": 1,
+      "options": [
+        { "label": "Grace au flow scoping : passé le return, o est forcément une String, donc s existe", "correct": true, "position": 0 },
+        { "label": "Parce que les variables de pattern sont toujours globales à la classe", "correct": false, "position": 1 },
+        { "label": "Parce que le return recopie automatiquement s en dehors du if", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un simple if (o instanceof String s) { ... }, la variable s est utilisable après l'accolade fermante du if.",
+      "justification": "Faux : sans sortie anticipée, s n'existe que dans le bloc du if, car c'est seulement là que le test est garanti vrai.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "rest-apis-conception-check",
+  "node": "rest-apis",
+  "lesson": "concevoir-une-api",
+  "title": "Quiz : Concevoir une API durable",
+  "description": "Versioning, rétrocompatibilité, pagination et idempotence des écritures.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment faire évoluer une API sans casser les clients existants ?",
+      "justification": "On versionne (/api/v1) et on n'ajoute que des changements rétrocompatibles ; un changement cassant justifie une nouvelle version, jamais une modification silencieuse.",
+      "position": 0,
+      "options": [
+        { "label": "Versionner l'API et rester rétrocompatible", "correct": true, "position": 0 },
+        { "label": "Modifier le format des réponses sans prévenir", "correct": false, "position": 1 },
+        { "label": "Supprimer les anciens champs dès qu'ils gênent", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Lequel de ces changements est rétrocompatible (ne casse pas les clients) ?",
+      "justification": "Ajouter un champ optionnel dans la réponse est rétrocompatible : les anciens clients l'ignorent. Renommer/supprimer un champ ou rendre un paramètre obligatoire sont des changements cassants.",
+      "position": 1,
+      "options": [
+        { "label": "Ajouter un nouveau champ optionnel dans la réponse", "correct": true, "position": 0 },
+        { "label": "Renommer un champ existant", "correct": false, "position": 1 },
+        { "label": "Rendre un paramètre jusque-là optionnel obligatoire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un endpoint renvoie d'un coup les milliers de lignes d'une table. Quel levier appliquer en priorité ?",
+      "justification": "La pagination borne le nombre de lignes par réponse (par page ou par curseur). On ne renvoie jamais une collection entière non bornée ; filtrage et tri complètent la pagination.",
+      "position": 2,
+      "options": [
+        { "label": "Paginer la collection (page/size ou curseur)", "correct": true, "position": 0 },
+        { "label": "Augmenter la mémoire du serveur", "correct": false, "position": 1 },
+        { "label": "Compresser la réponse et ne rien changer d'autre", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "POST est idempotent : le rejouer plusieurs fois n'a aucune conséquence.",
+      "justification": "Faux : POST n'est pas idempotent, chaque rejeu peut créer un doublon. On s'en protège avec une clé d'idempotence et/ou une contrainte d'unicité en base.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

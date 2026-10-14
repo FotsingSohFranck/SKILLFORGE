@@ -1,0 +1,52 @@
+{
+  "ref": "relational-databases-contraintes-check",
+  "node": "relational-databases",
+  "lesson": "contraintes-et-integrite",
+  "title": "Quiz : Contraintes & intégrité",
+  "description": "Types de contraintes, ON DELETE, la base comme filet ultime.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle contrainte empêche deux comptes d'avoir le même email ?",
+      "justification": "UNIQUE interdit les doublons sur une colonne. NOT NULL rend la valeur obligatoire, CHECK impose une règle sur la valeur : ce ne sont pas la bonne réponse ici.",
+      "position": 0,
+      "options": [
+        { "label": "UNIQUE", "correct": true, "position": 0 },
+        { "label": "NOT NULL", "correct": false, "position": 1 },
+        { "label": "CHECK", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans une clé étrangère, que fait `ON DELETE CASCADE` quand on supprime la ligne parente ?",
+      "justification": "CASCADE supprime aussi les lignes filles. SET NULL casse le lien, RESTRICT/NO ACTION interdit la suppression tant qu'il reste des enfants.",
+      "position": 1,
+      "options": [
+        { "label": "Il supprime aussi les lignes filles qui la référencent", "correct": true, "position": 0 },
+        { "label": "Il interdit la suppression", "correct": false, "position": 1 },
+        { "label": "Il duplique les lignes filles", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Deux requêtes simultanées vérifient qu'un email n'existe pas, puis l'insèrent chacune. Sans contrainte, que se passe-t-il, et comment l'éviter ?",
+      "justification": "Sans contrainte, les deux INSERT réussissent (doublon). Une contrainte UNIQUE fait rejeter la seconde par le moteur, même sous concurrence, là où un SELECT-puis-INSERT applicatif échoue.",
+      "position": 2,
+      "options": [
+        { "label": "Deux comptes en doublon ; une contrainte UNIQUE en base l'empêche même sous concurrence", "correct": true, "position": 0 },
+        { "label": "La base bloque toujours d'elle-même, aucune contrainte n'est utile", "correct": false, "position": 1 },
+        { "label": "Un simple SELECT avant l'INSERT suffit à garantir l'unicité", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Même si l'application valide déjà les entrées, garder les contraintes en base reste utile.",
+      "justification": "Vrai : la contrainte est le filet ultime contre un bug, une requête directe ou une condition de course qui passeraient la validation applicative.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

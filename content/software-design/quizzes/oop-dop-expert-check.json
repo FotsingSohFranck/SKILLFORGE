@@ -1,0 +1,96 @@
+{
+  "ref": "oop-dop-expert-check",
+  "node": "oop-constructs",
+  "lesson": "record-patterns-dop",
+  "title": "Quiz, Record patterns & DOP (expert)",
+  "description": "records+sealed=ADT, record patterns, switch exhaustif, problème d'expression.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En Data-Oriented Programming, que représentent respectivement `record` et `sealed` ?",
+      "justification": "record = type produit (agrégat de champs, « ET ») ; sealed = type somme (choix fermé d'alternatives, « OU ») ; ensemble ils forment des types algébriques de données (ADT).",
+      "position": 0,
+      "options": [
+        {
+          "label": "record = type produit (ET), sealed = type somme (OU), ensemble un ADT",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "record = somme, sealed = produit",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les deux sont des interfaces sans rôle particulier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage un `switch` exhaustif sur une hiérarchie `sealed` offre-t-il ?",
+      "justification": "Le compilateur vérifie que tous les cas sont couverts (pas de default défensif) ; ajouter un sous-type casse la compilation aux switch à compléter, un filet de sécurité.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le compilateur vérifie l'exhaustivité ; un nouveau type casse la compilation aux endroits à compléter",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il s'exécute plus vite qu'un if",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il rend les records mutables",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Le « problème d'expression » : quand préférer records + pattern matching au polymorphisme ?",
+      "justification": "Records + matching facilitent l'ajout d'OPÉRATIONS (un switch centralisé) sur un ensemble de types fermé ; le polymorphisme facilite l'ajout de TYPES. Ils optimisent des axes opposés.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Quand les opérations varient plus que les types et que l'ensemble des variantes est fermé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours, le polymorphisme est obsolète",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Quand on ajoute souvent de nouveaux types",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le style orienté données remplace totalement les objets de domaine riches.",
+      "justification": "Faux : les deux coexistent, objets riches pour le domaine à invariants, ADT (records+sealed) pour les données transparentes/immuables qui transitent (événements, messages, AST).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

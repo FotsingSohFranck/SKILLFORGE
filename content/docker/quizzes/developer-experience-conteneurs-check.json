@@ -1,0 +1,96 @@
+{
+  "ref": "developer-experience-conteneurs-check",
+  "node": "developer-experience",
+  "lesson": "developper-dans-des-conteneurs",
+  "title": "Quiz, Développer dans des conteneurs",
+  "description": "Conteneur comme environnement de dev, hot reload, bind mount, node_modules.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principal intérêt d'utiliser un conteneur comme environnement de développement ?",
+      "justification": "Tout le monde obtient le même environnement (mêmes versions, mêmes services) sans installer quoi que ce soit à la main : fini le « ça marche chez moi ».",
+      "position": 0,
+      "options": [
+        {
+          "label": "Toute l'équipe obtient le même environnement sans rien installer à la main",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Cela rend l'application plus rapide en production",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Cela supprime le besoin d'écrire du code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un bind mount en développement ?",
+      "justification": "Il branche un dossier de l'hôte sur un dossier du conteneur : le conteneur exécute les fichiers locaux en direct, ce qui permet le hot reload sans rebuild.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Brancher le code de l'hôte dans le conteneur pour un rechargement à chaud sans rebuild",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les fichiers du conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Copier définitivement le code dans l'image au build",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le « hot reload » oblige à reconstruire l'image Docker après chaque modification du code.",
+      "justification": "Faux : c'est justement l'inverse. Le hot reload prend en compte les changements instantanément, sans rebuild ni redémarrage manuel.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu montes tout ton dossier hôte dans le conteneur avec `./:/app`. L'app plante car ton `node_modules` local (Windows) écrase celui du conteneur (Linux). Quelle est la bonne parade ?",
+      "justification": "On ajoute un volume anonyme sur /app/node_modules : il préserve les dépendances installées dans l'image (Linux) en les excluant du bind mount de l'hôte.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Ajouter un volume anonyme sur /app/node_modules pour préserver celui du conteneur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Renoncer au hot reload et reconstruire l'image à chaque fois",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Installer la même version de Node sur l'hôte Windows",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "scoped-values",
+  "lesson": "lier-avec-where-run",
+  "title": "Lie une valeur le temps d'un bloc",
+  "statement": "On te donne la clé UTILISATEUR déjà déclarée. Dans la méthode main, lie la valeur \"Ana\" à cette clé pour la durée d'un bloc avec where(...).run(...), et dans ce bloc appelle la méthode saluer(). La méthode saluer() doit lire la valeur via UTILISATEUR.get() et l'afficher. La valeur ne doit exister que pendant le bloc.",
+  "skeleton": "import java.lang.ScopedValue;\n\npublic class Demo {\n    static final ScopedValue<String> UTILISATEUR = ScopedValue.newInstance();\n\n    public static void main(String[] args) {\n        // Lie \"Ana\" pour la duree d'un bloc, et appelle saluer() dedans\n\n    }\n\n    static void saluer() {\n        // Lis et affiche la valeur du Scoped Value\n\n    }\n}\n",
+  "solution": "import java.lang.ScopedValue;\n\npublic class Demo {\n    static final ScopedValue<String> UTILISATEUR = ScopedValue.newInstance();\n\n    public static void main(String[] args) {\n        ScopedValue.where(UTILISATEUR, \"Ana\").run(() -> saluer());\n    }\n\n    static void saluer() {\n        System.out.println(\"Bonjour \" + UTILISATEUR.get());\n    }\n}",
+  "keyPoints": ["ScopedValue.where(UTILISATEUR, \"Ana\")", ".run(() -> ...)", "UTILISATEUR.get()", "valeur bornee au bloc"],
+  "language": "java"
+}

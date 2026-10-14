@@ -1,0 +1,10 @@
+{
+  "node": "web-security",
+  "lesson": "failles-cote-serveur",
+  "title": "Bloquer une SSRF par liste blanche",
+  "statement": "Un endpoint importe une image depuis une URL fournie par l'utilisateur. Pour éviter une SSRF, complète la méthode : n'autorise QUE l'hôte de confiance `images.mon-site.com` (liste blanche stricte) et REJETTE tout le reste en levant `SecurityException`. Utilise `url.getHost()`.",
+  "skeleton": "void fetchImage(URL url) {\n  // Liste blanche stricte des hotes autorises\n  Set<String> allowed = Set.of(\"images.mon-site.com\");\n  // ... verifie l'hote et rejette si non autorise ...\n\n  download(url);\n}",
+  "solution": "void fetchImage(URL url) {\n  Set<String> allowed = Set.of(\"images.mon-site.com\");\n  if (!allowed.contains(url.getHost())) {\n    throw new SecurityException(\"Hote non autorise\");\n  }\n  download(url);\n}",
+  "keyPoints": ["allowed.contains(url.getHost())", "throw new SecurityException", "!allowed.contains"],
+  "language": "java"
+}

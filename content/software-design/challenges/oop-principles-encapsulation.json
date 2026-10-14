@@ -1,0 +1,10 @@
+{
+  "node": "oop-principles",
+  "lesson": "les-quatre-piliers",
+  "title": "Encapsuler un compte bancaire",
+  "statement": "Voici une classe `CompteBancaire` non encapsulée : son champ `solde` est `public`, donc n'importe quel code peut le mettre à une valeur incohérente (même négative). Ré-écris la classe pour **encapsuler** son état : rends le champ `private`, expose une simple lecture `solde()`, et remplace la modification directe par deux **méthodes intentionnelles** `deposer(double montant)` et `retirer(double montant)`. La méthode `retirer` doit **protéger l'invariant** « le solde ne descend jamais sous zéro » en refusant (avec une exception) un retrait supérieur au solde.",
+  "skeleton": "class CompteBancaire {\n    public double solde; // à corriger : ne pas exposer l'état directement\n    // ajoute deposer(...), retirer(...) et solde()\n}",
+  "solution": "class CompteBancaire {\n    private double solde;\n\n    public CompteBancaire(double soldeInitial) {\n        this.solde = soldeInitial;\n    }\n\n    public void deposer(double montant) {\n        if (montant <= 0) throw new IllegalArgumentException(\"montant invalide\");\n        this.solde += montant;\n    }\n\n    public void retirer(double montant) {\n        if (montant <= 0) throw new IllegalArgumentException(\"montant invalide\");\n        if (montant > solde) throw new IllegalStateException(\"solde insuffisant\");\n        this.solde -= montant;\n    }\n\n    public double solde() {\n        return solde;\n    }\n}",
+  "keyPoints": ["private double solde", "deposer", "retirer", "throw", "solde"],
+  "language": "java"
+}

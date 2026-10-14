@@ -1,0 +1,96 @@
+{
+  "ref": "drift-target-exitcode-expert",
+  "node": "core-workflow",
+  "lesson": "drift-target-exit-codes",
+  "title": "Dérive, -target & codes de sortie, expert",
+  "description": "plan -refresh-only (drift), -target à éviter, -detailed-exitcode.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande détecte la dérive (changements faits hors Terraform) sans modifier le code ?",
+      "justification": "terraform plan -refresh-only : rafraîchit l'état réel et montre uniquement ce qui a divergé, sans proposer d'appliquer le code.",
+      "position": 0,
+      "options": [
+        {
+          "label": "terraform plan -refresh-only",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "terraform destroy",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "terraform init",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi éviter -target en usage courant ?",
+      "justification": "Il contourne le calcul global, peut laisser l'état incohérent et masquer des changements ; c'est un outil de dépannage exceptionnel.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il peut laisser l'état incohérent (dépannage exceptionnel)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est plus lent",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est payant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie un code de sortie 2 de `terraform plan -detailed-exitcode` ?",
+      "justification": "2 = des changements sont prévus ; 0 = aucun changement ; 1 = erreur. Ce code pilote la CI sans parser les logs.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Des changements sont prévus",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Aucun changement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une erreur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un besoin récurrent de -target est le signe qu'il faudrait plutôt découper l'état en périmètres plus petits.",
+      "justification": "Vrai : cibler régulièrement contourne le graphe global ; un découpage d'état donne des applies ciblés et cohérents par nature.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

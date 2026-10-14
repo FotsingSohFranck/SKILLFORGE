@@ -1,0 +1,52 @@
+{
+  "ref": "web-servers-check",
+  "node": "web-servers",
+  "lesson": "choisir-et-servir",
+  "title": "Serveurs web & reverse proxy",
+  "description": "Rôle, équilibrage, SPA + API.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un reverse proxy en façade d'une application ?",
+      "justification": "Il route, termine le TLS, sert le statique et équilibre la charge vers les instances.",
+      "position": 0,
+      "options": [
+        { "label": "Router, terminer le TLS, équilibrer la charge", "correct": true, "position": 0 },
+        { "label": "Compiler le code", "correct": false, "position": 1 },
+        { "label": "Stocker les données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui rend possible l'équilibrage entre plusieurs instances ?",
+      "justification": "Une application sans état : n'importe quelle instance traite n'importe quelle requête.",
+      "position": 1,
+      "options": [
+        { "label": "Une application sans état", "correct": true, "position": 0 },
+        { "label": "Une session en mémoire locale", "correct": false, "position": 1 },
+        { "label": "Un seul serveur géant", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment l'équilibreur évite-t-il d'envoyer du trafic à une instance en panne ?",
+      "justification": "Via des health checks qui retirent du pool les instances qui ne répondent pas.",
+      "position": 2,
+      "options": [
+        { "label": "Des health checks", "correct": true, "position": 0 },
+        { "label": "Un cache Redis", "correct": false, "position": 1 },
+        { "label": "Rien, c'est automatique sans configuration", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un SPA renvoyant 404 au rafraîchissement d'une route profonde se corrige par un fallback vers index.html.",
+      "justification": "Oui : le serveur renvoie index.html sur les routes inconnues et le routeur client prend le relais.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

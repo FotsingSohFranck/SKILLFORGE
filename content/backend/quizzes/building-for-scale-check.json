@@ -1,0 +1,52 @@
+{
+  "ref": "building-for-scale-check",
+  "node": "building-for-scale",
+  "lesson": "strategies-de-resilience",
+  "title": "Building for scale",
+  "description": "Scaling, résilience, circuit breaker.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle condition rend possible le scaling horizontal ?",
+      "justification": "Une application sans état : n'importe quelle instance traite n'importe quelle requête.",
+      "position": 0,
+      "options": [
+        { "label": "Une application sans état", "correct": true, "position": 0 },
+        { "label": "Une session en mémoire locale", "correct": false, "position": 1 },
+        { "label": "Un cache local par instance", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un circuit breaker ?",
+      "justification": "Il coupe les appels vers une dépendance qui échoue en boucle et réessaie plus tard, évitant les timeouts empilés.",
+      "position": 1,
+      "options": [
+        { "label": "Couper les appels vers une dépendance défaillante", "correct": true, "position": 0 },
+        { "label": "Chiffrer le trafic", "correct": false, "position": 1 },
+        { "label": "Créer des index", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ajouter backoff + jitter aux retries ?",
+      "justification": "Pour éviter un retry storm : des retries immédiats en boucle amplifient la panne ; l'attente croissante + aléa l'atténue.",
+      "position": 2,
+      "options": [
+        { "label": "Éviter un retry storm qui amplifie la panne", "correct": true, "position": 0 },
+        { "label": "Aller plus vite en réessayant sans attendre", "correct": false, "position": 1 },
+        { "label": "Cela n'a aucun effet", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avant d'ajouter des serveurs, il vaut mieux mesurer et corriger le goulot (N+1, index).",
+      "justification": "Oui : une correction logicielle rend chaque instance plus efficace et repousse le besoin de scaler ; jeter du matériel masque le problème.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

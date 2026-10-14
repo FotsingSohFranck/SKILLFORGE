@@ -1,0 +1,52 @@
+{
+  "ref": "nosql-databases-modeliser-check",
+  "node": "nosql-databases",
+  "lesson": "modeliser-en-nosql",
+  "title": "Quiz : Modéliser en NoSQL",
+  "description": "Imbriquer vs référencer, single-table design, partition/clustering keys.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une base document, quand faut-il référencer plutôt qu'imbriquer les données liées ?",
+      "justification": "On référence quand le sous-ensemble peut grandir sans limite (risque de document géant) ou qu'il est partagé ; on imbrique ce qu'on lit ensemble et qui reste borné.",
+      "position": 0,
+      "options": [
+        { "label": "Quand le sous-ensemble peut grandir sans limite ou est partagé", "correct": true, "position": 0 },
+        { "label": "Quand les données sont toujours lues avec le parent et peu nombreuses", "correct": false, "position": 1 },
+        { "label": "Jamais : en NoSQL on imbrique toujours tout", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans une clé composite DynamoDB, à quoi sert la partition key ?",
+      "justification": "La partition key regroupe les données qui vont ensemble et décide sur quelle machine elles vivent ; la sort key ordonne les éléments à l'intérieur de la partition.",
+      "position": 1,
+      "options": [
+        { "label": "Regrouper les données liées et choisir la machine qui les stocke", "correct": true, "position": 0 },
+        { "label": "Chiffrer les valeurs stockées", "correct": false, "position": 1 },
+        { "label": "Trier les lignes à l'intérieur d'une partition", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Sur Cassandra, toutes les écritures visent la même valeur de partition key. Que risque-t-il de se passer ?",
+      "justification": "Une partition key mal répartie concentre la charge sur un seul nœud : c'est un hot partition, un nœud saturé pendant que les autres restent inactifs.",
+      "position": 2,
+      "options": [
+        { "label": "Un hot partition : un nœud saturé, les autres inactifs", "correct": true, "position": 0 },
+        { "label": "La charge se répartit automatiquement sur tous les nœuds", "correct": false, "position": 1 },
+        { "label": "Les données sont dupliquées sur chaque nœud sans coût", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sur Cassandra, une suppression efface immédiatement la donnée du disque.",
+      "justification": "Faux : une suppression pose un marqueur (tombstone). Trop de tombstones ralentissent les lectures qui doivent les enjamber une par une.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

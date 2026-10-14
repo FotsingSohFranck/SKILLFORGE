@@ -1,0 +1,369 @@
+{
+  "node": "rest-apis",
+  "lessons": [
+    {
+      "slug": "ressources-et-verbes",
+      "title": "Ressources & verbes",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Penser en ressources",
+          "body": "Avant de parler de REST, posons les mots de base.\n\nUne **API** (de l'anglais *Application Programming Interface*, « interface de programmation ») est la **porte d'entrée** d'un programme : un ensemble de points d'accès par lesquels un autre logiciel vient lui demander des données ou des actions. 👉 **Analogie** : c'est le **guichet** d'une administration. Tu ne vas pas fouiller toi-même dans les bureaux ; tu passes par le guichet, tu fais ta demande selon des règles précises, et on te répond.\n\nSur le web, ces échanges utilisent le protocole **HTTP** (*HyperText Transfer Protocol*) : la langue commune que parlent les navigateurs et les serveurs. Chaque échange est une **requête** (ce que le client demande) suivie d'une **réponse** (ce que le serveur renvoie).\n\nUne API **REST** (*REpresentational State Transfer*) est une façon d'organiser cette API autour de **ressources**. Une **ressource**, c'est simplement une *chose* que ton application manipule : un utilisateur, un parcours, une leçon. On désigne chaque ressource par une **URL** (son adresse, comme `https://site.fr/api/v1/users`), et on utilise des **noms au pluriel** : `/roadmaps`, `/users`, `/roadmaps/{id}/nodes` (le `{id}` est un trou à remplir par l'identifiant d'un parcours précis).\n\nPour *agir* sur une ressource, on utilise les **verbes HTTP** (aussi appelés **méthodes**) : `GET` pour lire, `POST` pour créer, `PUT`/`PATCH` pour modifier, `DELETE` pour supprimer. La règle d'or : **l'URL dit *quoi*, la méthode dit *quelle action***.\n\nExemple concret :\n- `GET /users` = « donne-moi la liste des utilisateurs »\n- `POST /users` = « crée un nouvel utilisateur »\n- `DELETE /users/42` = « supprime l'utilisateur numéro 42 »\n\nOn évite donc de mettre l'action dans l'URL : `/getUsers` ou `/createUser` sont des **anti-patterns** (de mauvaises habitudes à ne pas reproduire). 👉 **Analogie** : au restaurant, tu ne cries pas « fabrique-moi-un-plat » ; tu désignes un *plat* sur la carte (la ressource) et tu indiques l'*action* (« j'en commande un », « je l'annule »). Cette régularité rend l'API **prévisible** : dès qu'on connaît une route, on devine toutes les autres."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Penser en ressources : des noms (utilisateurs, commandes) qu'on manipule avec des verbes HTTP.",
+          "body": "/images/lessons/ressources-et-verbes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un contrôleur REST",
+          "codeLanguage": "java",
+          "body": "@RestController\n@RequestMapping(\"/api/v1/roadmaps\")\npublic class RoadmapController {\n    @GetMapping                 // GET  /api/v1/roadmaps\n    Mono<ApiResponse<List<RoadmapDto>>> all() { ... }\n\n    @GetMapping(\"/{slug}\")      // GET  /api/v1/roadmaps/backend\n    Mono<ApiResponse<RoadmapDto>> one(@PathVariable String slug) { ... }\n\n    @PostMapping                // POST /api/v1/roadmaps\n    Mono<ResponseEntity<...>> create(@RequestBody RoadmapImport body) { ... }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Sûr, idempotent, et pourquoi ça compte",
+          "body": "Les verbes HTTP ont des **propriétés** qu'il faut connaître, car tout l'écosystème du web compte dessus.\n\nUn verbe est **sûr** (en anglais *safe*) quand il **ne modifie rien** sur le serveur : il se contente de lire. `GET` est sûr. Un **effet de bord**, c'est justement une modification (créer, changer ou supprimer quelque chose) ; un verbe sûr n'en a aucun. 👉 **Analogie** : `GET`, c'est *regarder* la vitrine d'un magasin ; tu peux le faire cent fois, la vitrine ne change pas.\n\nUn verbe est **idempotent** quand le **rejouer plusieurs fois** aboutit **au même état** qu'une seule fois. `GET`, `PUT` et `DELETE` sont idempotents ; `POST` ne l'est pas. 👉 **Analogie** : appuyer sur le bouton « éteindre » d'une lampe est idempotent (rappuyer alors qu'elle est déjà éteinte ne change rien). En revanche, « ajoute une lampe dans la pièce » (comme `POST`) n'est pas idempotent : le refaire crée une deuxième lampe.\n\nExemple : si tu envoies deux fois `DELETE /users/42`, l'utilisateur 42 est supprimé une fois, et le second appel constate simplement qu'il n'existe plus (même résultat final). Mais deux `POST /users` créent **deux** utilisateurs.\n\nPourquoi cette sémantique n'est **pas cosmétique** ? Parce que des intermédiaires automatiques s'appuient dessus :\n- un **cache** (une mémoire qui garde une copie des réponses pour aller plus vite) peut stocker un `GET` sans risque, puisqu'il ne change rien ;\n- un **proxy** (un serveur relais placé entre le client et le serveur) ou un client peuvent **rejouer** une requête idempotente en cas de coupure réseau, sans danger.\n\nUne API qui **modifie des données sur un `GET`** casse toutes ces hypothèses : un simple préchargement de page, un robot d'indexation ou un cache pourraient déclencher des modifications à ton insu. Respecter la nature de chaque verbe, c'est rester compatible avec tout le web."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sur (ne modifie rien) et idempotent (meme effet si repete) : des proprietes qui changent tout.",
+          "body": "/images/lessons/ressources-et-verbes-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le cycle d'une requête REST",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    C[\"Client (navigateur, appli)\"] -->|\"1. requete : GET /api/v1/users/42\"| S[\"Serveur API REST\"]\n    S -->|\"2. lit la ressource\"| DB[(\"Base de donnees\")]\n    DB -->|\"3. renvoie l'utilisateur 42\"| S\n    S -->|\"4. reponse : 200 OK + donnees JSON\"| C"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un développeur expose `GET /api/v1/users/42/delete` pour supprimer un utilisateur. Citez deux raisons pour lesquelles c'est une mauvaise conception REST.",
+          "solution": "1) GET doit être sûr (sans effet de bord) : un préchargement, un crawler ou un cache pourrait déclencher la suppression. 2) L'action (delete) est dans l'URL au lieu d'être portée par la méthode : il fallait DELETE /api/v1/users/42. La conception REST place le quoi dans l'URL et l'action dans le verbe."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Ressources & verbes",
+          "quizRef": "rest-apis-ressources-check"
+        }
+      ]
+    },
+    {
+      "slug": "statuts-et-erreurs",
+      "title": "Statuts & erreurs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le bon code, à chaque issue",
+          "body": "Chaque réponse HTTP commence par un **code de statut** : un nombre à trois chiffres qui résume, en un coup d'œil, **comment s'est passée** la requête. C'est la première chose que lit un client (et tous les outils automatiques).\n\nCes codes sont rangés en **familles**, selon leur premier chiffre :\n- **2xx** = succès (ça a marché) ;\n- **3xx** = redirection (va voir ailleurs, ou c'est inchangé) ;\n- **4xx** = erreur **du côté du client** (la demande est fautive) ;\n- **5xx** = erreur **du côté du serveur** (le serveur a échoué).\n\n👉 **Analogie** : c'est le **feu tricolore** de la réponse. Vert (2xx) tu passes, orange (3xx) attention ou détour, rouge (4xx/5xx) ça bloque, et la nuance du rouge dit *qui* est en tort.\n\nOn renvoie le code qui décrit **précisément** l'issue :\n- **200** OK (lecture réussie), **201** Created (ressource créée), **204** No Content (succès sans corps à renvoyer, typique d'un `DELETE`) ;\n- **400** Bad Request (entrée invalide), **401** Unauthorized (non authentifié : « je ne sais pas qui tu es »), **403** Forbidden (authentifié mais pas le droit), **404** Not Found (ressource introuvable), **409** Conflict (conflit, par ex. un doublon), **422** Unprocessable Entity (une règle métier est violée), **429** Too Many Requests (trop de requêtes) ;\n- **500** Internal Server Error (le serveur a échoué de son fait).\n\nExemple : créer un compte renvoie `201` ; demander un utilisateur qui n'existe pas renvoie `404` ; envoyer un e-mail mal formé renvoie `400`.\n\nLe statut **n'est pas décoratif** : le **monitoring** (la surveillance automatique de la santé du service), les **alertes**, les **retries** (les nouvelles tentatives automatiques d'un client) et les caches s'appuient tous dessus. Un mauvais code envoie de fausses informations à toute cette machinerie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le bon code de statut a chaque issue : 200, 201, 400, 404, 409, 422, 500.",
+          "body": "/images/lessons/statuts-et-erreurs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Une enveloppe d'erreur normalisée",
+          "body": "Quand une requête échoue, le client a besoin de **comprendre** l'erreur pour réagir. Pour cela, on renvoie toutes les erreurs dans un **format unique**, qu'on appelle une **enveloppe** (une structure de réponse toujours identique qui « emballe » le résultat).\n\nUne bonne enveloppe d'erreur contient un bloc `error` avec :\n- un **`code`** métier **stable** : un identifiant court et fixe (par ex. `ALREADY_ENROLLED`) que le client peut tester dans son programme, indépendamment de la langue d'affichage ;\n- un **`message`** lisible par un humain (« Déjà inscrit à ce parcours. ») ;\n- d'éventuels **`details`** de validation (quel champ pose problème, par exemple).\n\n👉 **Analogie** : c'est un **formulaire de réclamation standardisé**. Peu importe le guichet, tu reçois toujours le même bordereau avec les mêmes cases (numéro de dossier, motif, précisions) : tu sais tout de suite où regarder.\n\nPour éviter que chaque partie du code invente son propre format, on **centralise** la traduction *exception vers réponse* dans un **handler global** (une fonction unique qui intercepte toutes les erreurs, comme le `GlobalErrorHandler` de cette plateforme). Deux règles absolues :\n- **jamais** de **stacktrace** renvoyée au client. Une stacktrace, c'est la longue trace technique interne d'un plantage (noms de classes, numéros de ligne) ; l'exposer trahit des détails d'implémentation et aide un attaquant.\n- **jamais** deux formats d'erreur différents dans la même API.\n\nRésultat : le client peut gérer les erreurs de façon **programmatique** (directement dans son code), au lieu de deviner au cas par cas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une enveloppe d'erreur normalisee : meme format partout, facile a consommer cote client.",
+          "body": "/images/lessons/statuts-et-erreurs-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Réponse d'erreur cohérente",
+          "codeLanguage": "java",
+          "body": "// 409 Conflict : enveloppe normalisée\n{\n  \"data\": null,\n  \"error\": {\n    \"code\": \"ALREADY_ENROLLED\",\n    \"message\": \"Déjà inscrit à ce parcours.\",\n    \"details\": []\n  }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Un client POST une inscription à un parcours inexistant. Quel statut renvoyer, et pourquoi surtout pas 500 ?",
+          "solution": "404 (ressource cible introuvable) ou 422 (règle métier). Pas 500 : l'erreur vient de l'entrée du client, pas d'un défaut du serveur. Un 5xx fausserait le monitoring et déclencherait des alertes/retries à tort. Les 4xx signalent une faute côté client, les 5xx un problème côté serveur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Statuts & erreurs",
+          "quizRef": "rest-apis-statuts-check"
+        }
+      ]
+    },
+    {
+      "slug": "concevoir-une-api",
+      "title": "Concevoir une API durable",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Versionner le contrat",
+          "body": "Une API publique est un **contrat** avec ses clients : une promesse sur la forme des URL, des données envoyées et reçues. Dès que d'autres programmes en dépendent, tu **n'es plus libre** de tout changer du jour au lendemain, comme on ne réécrit pas un contrat signé sans prévenir l'autre partie.\n\nPour faire évoluer l'API **sans casser l'existant**, on la **versionne** : on met un numéro de version dans l'URL (`/api/v1/…`). Le jour où l'on doit tout changer en profondeur, on ouvre une `/api/v2/…` à côté, et l'ancienne continue de fonctionner pendant la transition.\n\nDeux notions clés :\n- un changement **rétrocompatible** (*backward compatible*) n'abîme pas les clients existants : par exemple **ajouter** un nouveau champ optionnel dans la réponse. Les anciens clients l'ignorent, les nouveaux en profitent.\n- un changement **cassant** (*breaking change*) casse les clients : renommer ou supprimer un champ, changer son type, rendre obligatoire un paramètre. Celui-là **exige** une nouvelle version, jamais une modification silencieuse.\n\n👉 **Analogie** : ajouter une nouvelle rubrique **optionnelle** sur un formulaire est rétrocompatible (qui veut la remplit). Supprimer une case que d'autres attendaient, ou en rendre une obligatoire, casse les habitués : ça mérite une **nouvelle édition** du formulaire.\n\nExemple concret : cette plateforme versionne **toutes** ses routes en `/api/v1/`. Tant qu'on ne fait qu'ajouter des champs optionnels, on reste en v1 ; le jour d'une refonte incompatible, ce sera v2."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Versionner le contrat pour evoluer sans casser les clients deja en place.",
+          "body": "/images/lessons/concevoir-une-api-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pagination, filtrage, tri",
+          "body": "Imagine un endpoint `GET /roadmaps` qui renvoie **toutes** les lignes d'une table de plusieurs milliers d'entrées, d'un coup. La réponse devient énorme, lente à produire et lente à transférer, et elle peut faire **écrouler** le serveur comme le client. On ne renvoie **jamais** une collection entière sans limite.\n\nTrois outils, réglés via des **paramètres de requête** (les `?clé=valeur` à la fin de l'URL, en anglais *query parameters*) :\n\n**La pagination** : découper la liste en **pages** de taille raisonnable. Deux techniques :\n- par **numéro de page** : `?page=2&size=20` (« la 2e tranche de 20 »). Simple, mais fragile si des lignes s'ajoutent entre deux appels.\n- par **curseur** (*cursor*) : le serveur renvoie un jeton pointant vers « la suite » (« donne-moi ce qui vient **après** cet élément »). Plus robuste pour les grandes listes.\n\n👉 **Analogie** : un livre ne se lit pas sur une seule feuille interminable ; il est **paginé**. Tu demandes « la page 3 », pas « tout le livre en une image ».\n\n**Le filtrage** : ne renvoyer que le pertinent, via `?q=docker` (recherche) ou `?status=published`. 👉 **Analogie** : les **filtres** d'un site marchand (« taille M », « moins de 50 euros »).\n\n**Le tri** : ordonner côté serveur avec `?sort=created_at` (par date, par nom, etc.).\n\nOn renvoie aussi les **métadonnées de pagination** (page courante, taille, total) dans l'enveloppe standard, pour que le client sache s'il reste des pages à charger. Sans ces trois leviers, une liste qui grossit finit toujours par poser problème."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Pagination, filtrage, tri : indispensables pour des collections volumineuses.",
+          "body": "/images/lessons/concevoir-une-api-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Idempotence des écritures (niveau expert)",
+          "body": "Rappel : `POST` **n'est pas idempotent** (le rejouer crée un doublon). Or un client **peut** rejouer une requête sans le vouloir : un **timeout** (le délai d'attente est dépassé et il n'a pas reçu la réponse), une reconnexion, un utilisateur qui double-clique. Comment éviter de créer deux fois la même chose ?\n\n**La clé d'idempotence** : le client génère un identifiant unique pour son opération et l'envoie dans un **en-tête** (une métadonnée de la requête HTTP) nommé `Idempotency-Key`. Le serveur **mémorise** la première réponse associée à cette clé ; si la **même** clé revient (le rejeu), il **resert la réponse mémorisée** sans recréer la ressource. 👉 **Analogie** : le **numéro de commande** sur un site marchand : si tu recharges la page de paiement, on te montre la commande déjà passée au lieu d'en créer une seconde.\n\n**La contrainte d'unicité en base** : un filet de sécurité côté données. On déclare qu'une combinaison de colonnes doit être unique, par exemple `UNIQUE(user_id, roadmap)` (« un même utilisateur ne peut s'inscrire qu'une fois à un parcours donné »). Si un rejeu tente malgré tout de créer le doublon, la base **refuse**, et l'API répond proprement **409 Conflict** au lieu d'enregistrer deux inscriptions.\n\nCombinés, ces deux mécanismes rendent tes écritures **sûres** même dans un réseau imparfait. (Section « niveau expert », mais le réflexe se prend tôt.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'idempotence des ecritures (cle d'idempotence) evite les doublons en cas de reessai.",
+          "body": "/images/lessons/concevoir-une-api-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un endpoint renvoie systématiquement toute la table `roadmaps` (des milliers de lignes). Quel problème et quels trois leviers appliquer ?",
+          "solution": "Le payload et le temps de réponse croissent sans limite, épuisant serveur et client. Leviers : pagination (limiter le nombre de lignes par réponse, curseur pour les grandes listes), filtrage (?q=, ?kind=) pour ne renvoyer que le pertinent, et tri (?sort=) côté serveur. On ne renvoie jamais une collection non bornée."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Concevoir une API durable",
+          "quizRef": "rest-apis-conception-check"
+        }
+      ]
+    },
+    {
+      "slug": "openapi-et-hateoas",
+      "title": "OpenAPI, HATEOAS & documentation",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Documenter avec OpenAPI",
+          "body": "Une API sans documentation est presque inutilisable : personne ne devine tes routes ni la forme de tes données. **OpenAPI** (anciennement appelé **Swagger**) est un **format standard** pour **décrire** une API : la liste des endpoints, les **schémas** (la forme précise des données envoyées et reçues) et les codes de statut possibles.\n\nDeux bénéfices concrets :\n- la documentation devient **exécutable** : avec **Swagger UI** (une page web générée à partir de cette description), on peut **essayer** les requêtes directement depuis le navigateur, sans écrire de code. 👉 **Analogie** : un **mode d'emploi interactif** où chaque bouton fait vraiment tourner l'appareil, au lieu d'un manuel papier qu'on lit passivement.\n- elle sert à **générer des clients typés** : des bibliothèques de code, dans le langage de ton choix, prêtes à appeler l'API sans erreur de frappe sur les noms de champs.\n\nPoint crucial : on **génère** cette description **depuis le code** (à partir des contrôleurs et des DTO réels), et non à la main dans un fichier séparé. Ainsi elle reste **toujours à jour**. Cette plateforme expose Swagger UI et le fichier brut `/v3/api-docs`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "OpenAPI documente l'API de maniere machine-lisible : contrat, exemples, generation de clients.",
+          "body": "/images/lessons/openapi-et-hateoas-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "REST, richardson & HATEOAS",
+          "body": "Jusqu'où pousser le « REST » ? Le **modèle de maturité de Richardson** (du nom de Leonard Richardson) classe les API sur une échelle de rigueur, en quatre niveaux :\n- **niveau 0** : un seul point d'entrée, tout passe par lui (à peine du web) ;\n- **niveau 1** : on introduit des **ressources** distinctes (`/users`, `/roadmaps`) ;\n- **niveau 2** : on utilise correctement les **verbes** (`GET`/`POST`/…) **et** les **codes de statut** HTTP. C'est le niveau **visé en pratique** par la grande majorité des API sérieuses ;\n- **niveau 3** : **HATEOAS**.\n\n**HATEOAS** (*Hypermedia As The Engine Of Application State*, un acronyme volontairement imprononçable) veut dire que chaque réponse inclut des **liens** vers les actions possibles ensuite. 👉 **Analogie** : une **page web** que tu navigues **de lien en lien** sans connaître les adresses par cœur ; l'API devient **auto-découvrable**, le client suit les liens fournis plutôt que de construire les URL lui-même.\n\nExemple de réponse « HATEOAS » : un parcours renvoyé avec un lien `\"enroll\": \"/api/v1/roadmaps/backend/enroll\"` qui indique l'action d'inscription disponible.\n\nHATEOAS est **élégant** mais **rarement pleinement adopté** (c'est lourd à mettre en place et à consommer). L'essentiel, et c'est déjà beaucoup, est d'atteindre le **niveau 2** avec rigueur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HATEOAS : la reponse porte les liens vers les actions possibles, guidant le client.",
+          "body": "/images/lessons/openapi-et-hateoas-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "REST vs RPC (niveau expert)",
+          "body": "REST n'est pas le seul style d'API. Son grand rival s'appelle **RPC** (*Remote Procedure Call*, « appel de procédure à distance »).\n\n- **REST** modélise des **ressources** (des noms) manipulées par un **petit ensemble de verbes** HTTP. On raisonne en « objets » : `GET /users/42`.\n- **RPC** modélise des **appels de fonctions à distance** (des actions) : `getUserPlaylist(userId)`. On appelle une procédure sur le serveur comme si c'était une fonction locale. Les technologies courantes sont **gRPC** (très performant, binaire) et une partie de **JSON-RPC**.\n\n👉 **Analogie** : REST, c'est un **catalogue** où tu désignes des objets et dis quoi en faire (prendre, rendre) ; RPC, c'est un **téléphone** où tu appelles quelqu'un et lui demandes d'exécuter une tâche précise.\n\nChacun brille sur son terrain :\n- REST excelle pour des **CRUD** (l'acronyme des quatre opérations de base : *Create, Read, Update, Delete*, soit créer, lire, mettre à jour, supprimer) sur des ressources publiques, **cachables** et lisibles par des humains.\n- RPC excelle pour des échanges **internes**, **performants** et fortement typés entre services (on approfondira avec GraphQL et gRPC au nœud suivant).\n\nLe bon style **dépend du contexte**, pas d'un dogme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "REST (ressources) vs RPC (appels de procedures) : deux philosophies, deux usages.",
+          "body": "/images/lessons/openapi-et-hateoas-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Pourquoi générer la documentation OpenAPI depuis le code plutôt que de la rédiger à part dans un document séparé ?",
+          "solution": "Une doc séparée diverge inévitablement du code réel (change d'un côté, pas de l'autre) : elle devient fausse et trompeuse. Générée depuis le code, elle reste synchronisée avec les endpoints/schémas réels, est testable via Swagger UI et peut générer des clients typés. La source de vérité reste le code."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, APIs REST",
+          "quizRef": "rest-apis-check"
+        }
+      ]
+    },
+    {
+      "slug": "cache-http-conditionnel",
+      "title": "Cache HTTP & requêtes conditionnelles",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "ETag : ne pas renvoyer ce que le client a déjà",
+          "body": "Beaucoup de ressources sont **lues très souvent** mais **changent rarement** (la fiche d'un parcours, par exemple). Renvoyer à chaque fois les mêmes octets est un gaspillage. Une API bien conçue exploite le **cache HTTP** : un mécanisme, intégré au protocole lui-même, qui évite de re-transférer ce que le client possède déjà. (À ne pas confondre avec un cache **serveur** interne ; ici c'est le **protocole**, de bout en bout, qui gère l'économie.)\n\nL'outil central est l'**ETag** (*Entity Tag*) : une **empreinte** de la réponse, une courte chaîne calculée à partir de son contenu (par ex. `\"a1b2c3\"`). Si le contenu change, l'empreinte change ; s'il est identique, elle reste la même. 👉 **Analogie** : c'est le **numéro d'édition** d'un document. « Tu as déjà l'édition a1b2c3 ? Alors inutile que je te renvoie les 40 pages, elles sont identiques. »\n\nLe tout forme une **requête conditionnelle** (« renvoie-moi le contenu **seulement s'il a changé** ») :\n1. Au premier appel, le serveur renvoie la ressource **plus** un en-tête `ETag: \"a1b2c3\"`.\n2. Au rappel, le client renvoie `If-None-Match: \"a1b2c3\"` (« je possède déjà cette version »).\n3. Si rien n'a changé, le serveur répond **`304 Not Modified`** **sans corps** : le client réutilise sa copie locale.\n\nL'économie de bande passante et de latence est **énorme** sur les ressources lues souvent et modifiées rarement. Une variante, `Last-Modified` (date de dernière modification) combinée à `If-Modified-Since`, joue le même rôle sur une base de **date** plutôt que d'empreinte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ETag : ne pas renvoyer ce que le client possede deja (304 Not Modified).",
+          "body": "/images/lessons/cache-http-conditionnel-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le cycle ETag / 304",
+          "codeLanguage": "bash",
+          "body": "# 1er appel : le serveur renvoie la représentation + un ETag\ncurl -i /api/v1/roadmaps/backend\n#  200 OK\n#  ETag: \"a1b2c3\"\n\n# 2e appel : le client prouve ce qu'il a déjà\ncurl -i -H 'If-None-Match: \"a1b2c3\"' /api/v1/roadmaps/backend\n#  304 Not Modified   (aucun corps renvoyé)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Cache-Control : qui peut cacher, et combien de temps",
+          "body": "L'ETag répond à la question « **est-ce** que ça a changé ? ». L'en-tête **`Cache-Control`** répond à une autre question : « **qui** a le droit de garder une copie, et **pour combien de temps** ? ». C'est lui qui pilote finement le cache.\n\nSes réglages les plus utiles :\n- **`max-age=60`** : la **durée de fraîcheur** en secondes. Pendant 60 secondes, la copie est considérée à jour et réutilisée **sans même redemander** au serveur.\n- **`public`** : des intermédiaires partagés (**proxies**, **CDN**) ont le droit de cacher la réponse. Un **CDN** (*Content Delivery Network*) est un réseau de serveurs répartis géographiquement, au plus près des utilisateurs, qui sert les copies à la place du serveur d'origine.\n- **`private`** : seul le **navigateur** de l'utilisateur peut garder la copie (pas les intermédiaires partagés), car la donnée lui est propre.\n- **`no-store`** : **ne jamais** garder de copie (données sensibles, comme une information bancaire).\n\n👉 **Analogie** : c'est l'**étiquette de conservation** sur un aliment : « à consommer sous 60 s » (`max-age`), « peut être stocké au dépôt commun » (`public`), « réservé à ce frigo » (`private`), voire « ne pas stocker » (`no-store`).\n\nBien réglé, `Cache-Control` laisse un CDN ou le navigateur **absorber une part massive** du trafic de lecture sans jamais toucher au serveur. Mal réglé, on perd tout le bénéfice (`no-store` partout) ou, pire, on **expose des données privées** en les marquant `public`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cache-Control : qui peut cacher la reponse, et pour combien de temps.",
+          "body": "/images/lessons/cache-http-conditionnel-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Écritures conditionnelles : éviter le lost update (niveau expert)",
+          "body": "L'ETag ne sert pas qu'à lire : il **sécurise aussi les écritures**. Le problème qu'il résout s'appelle le **lost update** (« mise à jour perdue ») : deux personnes chargent la même ressource, la modifient chacune de leur côté, et la seconde sauvegarde **par-dessus** la première **sans le savoir**. Le travail du premier est silencieusement écrasé.\n\nLa parade : chaque client lit d'abord la ressource **avec son ETag**. Au moment d'écrire (`PUT` ou `PATCH`), il envoie l'en-tête `If-Match: \"a1b2c3\"` (« ne modifie **que si** la version est toujours celle que j'ai lue »). Si la ressource a changé entre-temps, son ETag ne correspond plus, et le serveur répond **`412 Precondition Failed`** au lieu d'écraser. Le client est alors invité à **recharger** et à refaire son édition sur la version à jour.\n\n👉 **Analogie** : avant de valider, on vérifie que le document n'a pas été modifié depuis qu'on l'a ouvert ; si quelqu'un est passé avant nous, on nous prévient au lieu d'effacer son passage.\n\nC'est le **verrou optimiste** au niveau HTTP. « Optimiste » parce qu'on ne **bloque pas** la ressource pendant l'édition (on parie qu'il n'y aura pas de conflit) ; on vérifie seulement **au dernier moment**. C'est le pendant, côté HTTP, de la colonne `version` en base de données.\n\nAssocié à la **négociation de contenu** (le client indique le format qu'il souhaite via l'en-tête `Accept: application/json`, et le serveur s'y adapte), on obtient une API à la fois **efficace** et **sûre** face aux accès concurrents."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ecritures conditionnelles (If-Match) : eviter le lost update quand deux clients modifient en meme temps.",
+          "body": "/images/lessons/cache-http-conditionnel-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Deux clients éditent la même ressource. Le second sauvegarde 2 secondes après le premier et écrase ses changements sans le savoir. Quel mécanisme HTTP standard aurait empêché cela ?",
+          "solution": "Les écritures conditionnelles avec ETag + If-Match : chaque client récupère la ressource avec son ETag ; lors du PUT/PATCH, il envoie If-Match: <etag-lu>. Le second client a un ETag périmé (la ressource a changé depuis) → le serveur répond 412 Precondition Failed au lieu d'écraser. Le client est alors invité à recharger et refaire son édition. C'est le verrou optimiste au niveau HTTP."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Cache HTTP & requêtes conditionnelles",
+          "quizRef": "rest-apis-cache-check"
+        }
+      ]
+    },
+    {
+      "slug": "robustesse-api",
+      "title": "Robustesse : rate limiting, Problem Details, versioning",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Rate limiting : protéger l'API d'elle-même",
+          "body": "Une API ouverte sur le monde doit se **protéger d'elle-même** : sans garde-fou, un client bogué ou malveillant peut l'inonder de requêtes et dégrader le service pour **tout le monde**. On applique donc un **rate limiting** (« limitation de débit ») : un plafond du nombre de requêtes autorisées par client et par unité de temps.\n\nL'algorithme le plus répandu est le **token bucket** (« seau de jetons ») : chaque client dispose d'un seau qui se **remplit** de jetons à débit constant ; chaque requête **consomme** un jeton ; seau vide, les requêtes sont refusées le temps qu'il se recharge. 👉 **Analogie** : un **distributeur de tickets** qui réédite un ticket toutes les X secondes. Tu peux en accumuler quelques-uns (les rafales sont tolérées), mais pas en tirer à l'infini.\n\nQuand un client dépasse sa limite, on ne coupe pas brutalement : on répond **`429 Too Many Requests`** avec un en-tête **`Retry-After`** qui indique **dans combien de temps réessayer**. On expose aussi l'état du seau via `RateLimit-Remaining` (jetons restants) et `RateLimit-Reset` (quand il se recharge). Un client correct **respecte** ces signaux et ralentit, au lieu de marteler le serveur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le rate limiting protege l'API d'elle-meme et des abus : trop d'appels = ralentis ou refuses.",
+          "body": "/images/lessons/robustesse-api-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Problem Details (RFC 9457) : un format d'erreur standard",
+          "body": "On a vu qu'il faut une **enveloppe d'erreur** cohérente. Plutôt que d'inventer la tienne, il existe un **standard** officiel : la **RFC 9457** (qui remplace l'ancienne RFC 7807), intitulée *Problem Details for HTTP APIs*. (Une **RFC**, *Request For Comments*, est un document de référence qui normalise un point technique d'Internet ; retiens : « une norme publique que tout le monde peut suivre ».)\n\nElle définit un corps d'erreur avec des champs fixes :\n- **`type`** : une URI qui **identifie** la catégorie de problème ;\n- **`title`** : un résumé court et stable ;\n- **`status`** : le code HTTP (par ex. 409) ;\n- **`detail`** : l'explication précise de **ce** cas ;\n- **`instance`** : l'URI de la requête concernée ;\n- plus des **champs d'extension** libres pour tes besoins.\n\nLe corps est servi avec le **Content-Type** `application/problem+json` (le Content-Type est l'en-tête qui annonce le **format** du corps ; ici « un JSON de type problème »).\n\n👉 **Analogie** : c'est le **constat d'accident** européen standardisé : les mêmes cases dans tous les pays, donc n'importe quel assureur le lit sans traducteur. L'intérêt est le même ici : des clients et des outils **interopérables** (capables de coopérer sans accord préalable) comprennent tes erreurs **sans documentation sur mesure**. L'enveloppe d'erreur de cette plateforme suit le même esprit (code métier stable + message + détails)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Problem Details (RFC 9457) : un format d'erreur standard, interoperable.",
+          "body": "/images/lessons/robustesse-api-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "PATCH : modifier sans tout renvoyer",
+          "body": "Pour modifier une ressource, deux verbes existent, et la différence est importante :\n- **`PUT`** **remplace la ressource entière** : tu dois renvoyer **tous** les champs, même ceux que tu ne changes pas. Oublier un champ risque de l'effacer.\n- **`PATCH`** applique une **modification partielle** : tu n'envoies **que** ce qui change.\n\n👉 **Analogie** : `PUT`, c'est **réimprimer toute la page** d'un document pour corriger une ligne ; `PATCH`, c'est **coller une correction** juste sur la ligne concernée.\n\nIl existe deux formats standard pour décrire un `PATCH` :\n- **JSON Merge Patch** (RFC 7386) : on envoie un mini-objet avec **seulement les champs à changer**, et `null` pour **supprimer** un champ. Simple et intuitif. Exemple : `{ \"title\": \"Nouveau titre\" }` ne touche **que** le titre.\n- **JSON Patch** (RFC 6902) : une **liste d'opérations** explicites (`add`, `remove`, `replace`…) appliquées dans l'ordre. Plus verbeux, mais plus précis pour des modifications complexes.\n\nAu-delà du confort, `PATCH` **évite d'écraser** des champs qu'on ne touche pas : c'est précieux pour les **gros objets** et pour la **concurrence** (plusieurs éditeurs en même temps), surtout combiné à `If-Match` vu à la leçon précédente."
+        },
+        {
+          "type": "IMAGE",
+          "title": "PATCH modifie partiellement une ressource, sans renvoyer l'objet entier.",
+          "body": "/images/lessons/robustesse-api-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Versionner et déprécier proprement (niveau expert)",
+          "body": "On a déjà vu **qu'il faut** versionner ; voyons **comment**, et surtout comment retirer une vieille version sans brutaliser les clients.\n\nTrois stratégies de **versioning** :\n- dans l'**URL** : `/api/v1/…`. Simple, **visible**, testable dans un navigateur. C'est le choix de cette plateforme.\n- dans un **en-tête** dédié (par ex. `API-Version: 2`).\n- via la **négociation de contenu** : `Accept: application/vnd.api.v2+json`. Plus « pur REST », mais **moins visible** et plus délicat à tester.\n\nQuelle que soit l'approche, on ne **coupe jamais** une version du jour au lendemain : on la **déprécie avec préavis**. **Déprécier** (*to deprecate*), c'est **annoncer** qu'une chose est vouée à disparaître tout en la laissant fonctionner un temps, pour laisser aux clients l'occasion de migrer. Concrètement :\n- l'en-tête **`Deprecation`** signale que l'endpoint est déprécié ;\n- l'en-tête **`Sunset`** (« coucher de soleil ») donne la **date de retrait** définitive ;\n- on complète par de la **documentation** et une **fenêtre de migration** confortable.\n\n👉 **Analogie** : une **ligne de bus** qu'on va supprimer. On **affiche** des mois à l'avance « dernière circulation le 30 juin », au lieu de retirer le bus un matin sans prévenir et de laisser les usagers sur le quai.\n\nCasser un contrat **sans préavis** est la faute la **plus coûteuse** d'une API publique : du jour au lendemain, toutes les applications qui en dépendaient tombent en panne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Versionner et deprecier proprement : prevenir, offrir une transition, puis retirer.",
+          "body": "/images/lessons/robustesse-api-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un client boucle et envoie 10 000 requêtes/minute, dégradant le service pour tous. Quel statut HTTP renvoyer, quel en-tête ajouter, et pourquoi est-ce mieux que de simplement couper la connexion ?",
+          "solution": "Renvoyer 429 Too Many Requests avec un en-tête Retry-After (et idéalement RateLimit-Remaining/Reset). C'est mieux qu'une coupure sèche car c'est un signal explicite et standard : un client correct comprend qu'il doit ralentir et réessayer après le délai indiqué, plutôt que de reconnecter en boucle sans savoir pourquoi. On protège le service tout en restant coopératif avec les clients légitimes."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : RFC 9110 (sémantique HTTP), RFC 9457 (Problem Details), RFC 7386/6902 (JSON Merge Patch / JSON Patch), RFC 8594 (Sunset) ; *Web API Design* (Google Cloud API Design Guide) et les *Microsoft REST API Guidelines* ; le livre *API Design Patterns* (JJ Geewax). Outil : Swagger/OpenAPI pour contractualiser, et des passerelles (Kong, APISIX) pour le rate limiting en périphérie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les APIs REST.",
+          "body": "/images/lessons/robustesse-api-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, APIs REST (niveau expert)",
+          "quizRef": "rest-apis-expert"
+        }
+      ]
+    }
+  ]
+}

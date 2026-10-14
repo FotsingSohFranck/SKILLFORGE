@@ -1,0 +1,56 @@
+{
+  "title": "Examen blanc CKAD",
+  "format": "PRACTICAL",
+  "durationMinutes": 120,
+  "passingScore": 66.0,
+  "items": [
+    {
+      "domain": "Application Design and Build",
+      "kind": "TASK",
+      "prompt": "Créez un pod `web` à partir de l'image `nginx:1.27-alpine`, exposant le port 80, avec le label `app=web`.",
+      "taskSolution": "kubectl run web --image=nginx:1.27-alpine --port=80 --labels=app=web",
+      "points": 8,
+      "position": 0
+    },
+    {
+      "domain": "Application Design and Build",
+      "kind": "TASK",
+      "prompt": "Créez un Job `hello` qui exécute `busybox` avec la commande `echo bonjour` et se termine.",
+      "taskSolution": "kubectl create job hello --image=busybox -- echo bonjour",
+      "points": 6,
+      "position": 1
+    },
+    {
+      "domain": "Application Deployment",
+      "kind": "TASK",
+      "prompt": "Déployez 3 répliques d'un Deployment `api` basé sur `nginx:1.27-alpine`, puis mettez l'image à jour vers `nginx:1.28-alpine` et suivez le déroulé.",
+      "taskSolution": "kubectl create deployment api --image=nginx:1.27-alpine --replicas=3\nkubectl set image deployment/api nginx=nginx:1.28-alpine\nkubectl rollout status deployment/api",
+      "points": 10,
+      "position": 2
+    },
+    {
+      "domain": "Application Environment, Configuration and Security",
+      "kind": "TASK",
+      "prompt": "Créez une ConfigMap `app-config` avec la clé `GREETING=Bonjour`, puis un Secret `app-secret` avec `TOKEN=s3cr3t`.",
+      "taskSolution": "kubectl create configmap app-config --from-literal=GREETING=Bonjour\nkubectl create secret generic app-secret --from-literal=TOKEN=s3cr3t",
+      "points": 12,
+      "position": 3
+    },
+    {
+      "domain": "Application Observability and Maintenance",
+      "kind": "TASK",
+      "prompt": "Ajoutez une readiness probe HTTP GET sur `/healthz` port 8080 à un conteneur, avec un délai initial de 5 secondes.",
+      "taskSolution": "readinessProbe:\n  httpGet:\n    path: /healthz\n    port: 8080\n  initialDelaySeconds: 5",
+      "points": 8,
+      "position": 4
+    },
+    {
+      "domain": "Services and Networking",
+      "kind": "TASK",
+      "prompt": "Exposez le Deployment `api` via un Service ClusterIP sur le port 80 redirigeant vers le port cible 8080.",
+      "taskSolution": "kubectl expose deployment api --port=80 --target-port=8080",
+      "points": 8,
+      "position": 5
+    }
+  ]
+}

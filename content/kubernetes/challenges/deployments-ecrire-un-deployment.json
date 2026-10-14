@@ -1,0 +1,10 @@
+{
+  "node": "deployments",
+  "lesson": "replicasets-et-deployments",
+  "title": "Écrire un manifeste Deployment",
+  "statement": "Écris un manifeste Kubernetes (YAML) pour un **Deployment** nommé `web` qui fait tourner **3 répliques** de l'image `nginx:1.27.1`. Les pods doivent porter le label `app: web`, et le `selector` du Deployment doit cibler ce même label. Le conteneur (nommé `web`) écoute sur le **port 80**.",
+  "skeleton": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: # combien de répliques ?\n  selector:\n    matchLabels:\n      # cible le label des pods\n  template:\n    metadata:\n      labels:\n        # le label porté par chaque pod\n    spec:\n      containers:\n        # nom, image, port\n",
+  "solution": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n        - name: web\n          image: nginx:1.27.1\n          ports:\n            - containerPort: 80",
+  "keyPoints": ["kind: Deployment", "replicas: 3", "matchLabels", "app: web", "nginx:1.27.1", "containerPort: 80"],
+  "language": "yaml"
+}

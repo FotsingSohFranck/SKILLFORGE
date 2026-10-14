@@ -1,0 +1,38 @@
+{
+  "node": "troubleshooting",
+  "lessons": [
+    {
+      "slug": "diagnostiquer-methodiquement",
+      "title": "Diagnostiquer méthodiquement",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le plus gros domaine (30%)",
+          "body": "Le dépannage pèse le plus dans le CKA. La méthode : partir du symptôme et **remonter les couches**, pod → nœud → composant du plan de contrôle. On lit toujours les **events** (`describe`) et les **logs** avant de conclure. La rapidité vient de réflexes, pas de devinettes."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "La boîte à outils",
+          "codeLanguage": "bash",
+          "body": "kubectl get nodes                 # un nœud NotReady ?\nkubectl describe pod web          # events : image, probes, ressources\nkubectl logs web --previous       # crash précédent\njournalctl -u kubelet             # sur le nœud : le kubelet va bien ?"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Nœud NotReady : par où commencer",
+          "body": "Un nœud `NotReady` vient souvent d'un **kubelet** arrêté, d'un **CNI** en panne ou d'un disque plein. On se connecte au nœud, on vérifie `systemctl status kubelet` et ses logs. Les pods système (`kube-system`) donnent aussi des indices : un CoreDNS ou un composant réseau en échec explique bien des symptômes en cascade."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un pod reste en `Pending` sans jamais démarrer. Citez deux causes fréquentes et la commande pour les distinguer.",
+          "solution": "kubectl describe pod montre les events. Causes fréquentes : ressources insuffisantes sur les nœuds (le scheduler ne trouve pas de place) ou une contrainte non satisfaite (nodeSelector/taint sans toleration, PVC non Bound)."
+        }
+      ]
+    }
+  ]
+}

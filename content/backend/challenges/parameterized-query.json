@@ -1,0 +1,10 @@
+{
+  "node": "web-security",
+  "lesson": "injections-et-validation",
+  "title": "Éviter l'injection SQL",
+  "statement": "Réécrivez cet accès dangereux de façon sûre avec R2DBC : au lieu de concaténer `email` dans la requête, utilisez un **paramètre lié** (`:email`) et `bind`. Écrivez l'appel `db.sql(...).bind(...)`.",
+  "skeleton": "// DANGER : \"SELECT * FROM users WHERE email = '\" + email + \"'\"\n// Réécrivez de façon sûre :\ndb.sql(...)",
+  "solution": "db.sql(\"SELECT * FROM users WHERE email = :email\")\n  .bind(\"email\", email);",
+  "keyPoints": ["db.sql(", "WHERE email = :email", ".bind(\"email\", email)"],
+  "language": "java"
+}

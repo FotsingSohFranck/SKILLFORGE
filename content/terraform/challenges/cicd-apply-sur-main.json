@@ -1,0 +1,10 @@
+{
+  "node": "cicd",
+  "lesson": "automatiser-terraform",
+  "title": "N'appliquer que sur main",
+  "statement": "Dans un pipeline GitHub Actions, le `plan` doit tourner sur chaque pull request, mais l'`apply` ne doit s'exécuter QUE lorsque le code arrive sur la branche principale `main` (après revue et fusion). Écris l'étape (step) YAML de l'apply : elle exécute `terraform apply tfplan`, mais uniquement si la référence poussée est `refs/heads/main`. Utilise la condition `if:` avec la variable `github.ref`.",
+  "skeleton": "steps:\n  # ... init, plan -out=tfplan plus haut ...\n\n  # etape apply : SEULEMENT sur main\n  - # complete la condition et la commande\n",
+  "solution": "steps:\n  - if: github.ref == 'refs/heads/main'\n    run: terraform apply tfplan",
+  "keyPoints": ["if:", "github.ref", "refs/heads/main", "terraform apply tfplan"],
+  "language": "yaml"
+}

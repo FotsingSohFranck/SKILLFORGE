@@ -1,0 +1,260 @@
+{
+  "node": "building-for-scale",
+  "lessons": [
+    {
+      "slug": "types-de-scaling",
+      "title": "Types de mise à l'échelle",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Vertical vs horizontal",
+          "body": "**Mettre à l'échelle** un système (en anglais *to scale*, on dit souvent **scaler**), c'est lui donner les moyens d'encaisser **plus de trafic** (plus d'utilisateurs, plus de requêtes) sans ralentir ni tomber. Il y a deux grandes façons de le faire.\n\n**1. La mise à l'échelle verticale** (*scale up*) : on garde **la même machine** et on la rend **plus puissante**, en lui ajoutant du **CPU** (le processeur, le « cerveau » qui exécute les calculs) et de la **RAM** (la mémoire vive, l'espace de travail temporaire). 👉 **Analogie** : c'est comme remplacer une petite voiture par une grosse cylindrée pour transporter plus de monde, tu gardes **un seul véhicule** mais tu le muscles. **Exemple** : ton serveur passe de 4 à 32 cœurs et de 8 à 128 Go de RAM. C'est simple (aucune ligne de code à changer), mais il y a deux limites : un **plafond** (la plus grosse machine du marché a une taille maximale, et le prix explose bien avant), et cette machine unique reste un **point de défaillance unique** (en anglais *single point of failure*) : si elle tombe en panne, **tout** le service s'arrête d'un coup.\n\n**2. La mise à l'échelle horizontale** (*scale out*) : au lieu d'une grosse machine, on met **plusieurs machines**. On parle d'**instances** : des copies identiques de ton application qui tournent en parallèle. On répartit le trafic entre elles grâce à un **équilibreur de charge** (en anglais *load balancer*), un aiguilleur placé devant qui envoie chaque requête à l'instance la moins occupée. 👉 **Analogie** : plutôt qu'un seul énorme guichet, tu ouvres **dix guichets normaux**, et un agent d'accueil (l'équilibreur) dirige chaque client vers un guichet libre. **Exemple** : 5 copies de ton API derrière un load balancer encaissent environ 5 fois plus de requêtes ; si l'une tombe, les 4 autres continuent (**résilience**), et tu peux en ajouter ou en retirer à volonté (**élasticité**).\n\nL'horizontal est la voie du **cloud** parce qu'il n'a pas de plafond et qu'il résiste aux pannes. Mais il impose une condition : l'application doit être **sans état** (en anglais *stateless*), c'est-à-dire ne rien retenir en mémoire locale entre deux requêtes (on détaille ça dans la dernière leçon), sinon deux requêtes d'un même utilisateur envoyées à deux instances différentes ne se comprendraient plus. Le vertical, lui, dépanne à court terme : c'est le bouton facile quand il faut juste tenir jusqu'à demain."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Scaler vertical : une machine plus grosse ; scaler horizontal : plus de machines cote a cote.",
+          "body": "/images/lessons/types-de-scaling-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Mesurer avant de scaler",
+          "body": "Réflexe de débutant : « ça rame ? ajoutons des serveurs ! ». C'est presque toujours une **erreur**. Avant d'ajouter la moindre machine, on **mesure** pour trouver le **goulot d'étranglement** (en anglais *bottleneck*) : l'endroit précis qui **bride** tout le reste. 👉 **Analogie** : le goulot d'une bouteille, c'est le rétrécissement par lequel tout doit passer ; élargir le fond de la bouteille n'y change rien, seul le goulot compte. Dans une application, ce goulot est **rarement** le manque de matériel.\n\nLes coupables les plus fréquents :\n- le **problème N+1** : au lieu d'une seule requête à la base de données, ton code en envoie une par élément d'une liste (1 requête pour récupérer 100 commandes, **puis 100 requêtes** pour le détail de chacune, soit 101 au lieu de 2). **Exemple** : afficher une page de 50 produits déclenche 51 allers-retours vers la base, chacun coûtant quelques millisecondes qui s'additionnent.\n- un **index manquant** : un **index** est un répertoire trié que la base tient à côté d'une table pour retrouver une ligne **sans lire toute la table** (comme l'index alphabétique à la fin d'un livre, qui t'évite de feuilleter les 500 pages). Sans lui, une recherche parcourt des millions de lignes une par une.\n- une **requête lente** mal écrite qui rapatrie beaucoup trop de données.\n\nPour les débusquer, on utilise le **profiling** (l'action de **mesurer** : instrumenter le code pour voir où le temps est réellement passé) et les journaux de **requêtes lentes** de la base. **Corriger** un de ces défauts rend **chaque** instance plus efficace et **repousse** d'autant le besoin de scaler, souvent pour bien moins cher qu'un serveur en plus.\n\nD'où l'ordre de bon sens : **1) optimiser** (corriger les N+1, ajouter les index, réécrire les requêtes lentes), **2) cacher** (garder en mémoire, dans un **cache**, les résultats qu'on recalcule sans cesse, pour ne pas refaire le travail), **3) répliquer** (dupliquer la base en lecture), et **seulement ensuite 4) scaler horizontalement**. Jeter du matériel sur un problème **logiciel** coûte cher et ne le résout pas : ça ne fait que le masquer un moment."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mesurer avant de scaler : sans chiffres, on optimise au hasard.",
+          "body": "/images/lessons/types-de-scaling-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une API sature à 200 req/s. On propose de doubler la taille du serveur. Quelle question poser d'abord, et pourquoi ?",
+          "solution": "« Où est le goulot ? » : mesurer avant d'agir (profiling, requêtes lentes, N+1, index). Souvent, une correction logicielle (index, N+1) multiplie le débit sans matériel. Doubler le serveur (scale vertical) peut masquer un problème logiciel à grands frais et rester plafonné. On optimise d'abord, on scale ensuite."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Types de mise à l'échelle",
+          "quizRef": "building-for-scale-types-check"
+        }
+      ]
+    },
+    {
+      "slug": "strategies-de-resilience",
+      "title": "Stratégies de résilience",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Dégrader plutôt que tomber",
+          "body": "Ton application ne vit pas seule : elle s'appuie sur des **dépendances**, c'est-à-dire d'autres services dont elle a besoin pour fonctionner (la base de données, une API de paiement, un service d'e-mails, un cache...). Un jour, l'une d'elles sera **lente** ou **en panne** : c'est une certitude. La vraie question n'est pas *si* ça arrivera, mais *comment ton application réagit* ce jour-là.\n\nDeux comportements possibles quand une dépendance flanche :\n- **s'écrouler** : l'erreur se propage et **toute** la page (ou toute l'application) devient inutilisable ;\n- **dégrader gracieusement** (en anglais *graceful degradation*) : continuer à rendre un service **utile même diminué**, en remplaçant la partie défaillante par un plan B.\n\n👉 **Analogie** : dans une voiture, si la climatisation tombe en panne, tu **baisses la vitre** et tu continues de rouler ; tu n'abandonnes pas la voiture sur le bas-côté. Dégrader, c'est garder la voiture en marche.\n\n**Exemples concrets** de dégradation gracieuse :\n- le service de recommandations est en panne ? On affiche une **liste par défaut** (« les plus populaires ») au lieu de planter la page d'accueil.\n- le service d'avis clients ne répond pas ? On montre la fiche produit **sans** la section avis, avec un discret « avis momentanément indisponibles ».\n- le total en temps réel est indisponible ? On sert la **dernière valeur connue**, gardée en cache.\n\nConcevoir en anticipant l'échec, ce n'est pas du pessimisme, c'est du réalisme. À grande échelle, avec des centaines de machines et de dépendances, une **panne partielle** (une brique qui lâche pendant que le reste tourne) est **certaine** à un moment ou un autre. Autant décider **à l'avance** comment on la traverse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Degrader plutot que tomber : rendre un service reduit vaut mieux qu'une panne totale.",
+          "body": "/images/lessons/strategies-de-resilience-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Circuit breaker, throttling, backpressure",
+          "body": "Voici la **boîte à outils** de la résilience : quatre mécanismes, quatre rôles, illustrés simplement.\n\n**Le circuit breaker (disjoncteur).** Quand une dépendance échoue **en boucle**, continuer à l'appeler ne fait qu'empirer les choses : chaque appel attend un **timeout** (le délai maximal qu'on s'autorise à patienter avant d'abandonner un appel) et immobilise des ressources. Le circuit breaker **surveille** les échecs : au-delà d'un seuil, il **« ouvre le circuit »** et fait **échouer immédiatement** les appels suivants (sans même essayer), puis retente prudemment plus tard pour voir si la dépendance est revenue. 👉 **Analogie** : c'est exactement le **disjoncteur électrique** de ta maison ; en cas de court-circuit, il coupe le courant d'un coup pour éviter l'incendie, au lieu de laisser le fil chauffer. **Exemple** : après 20 échecs d'affilée vers l'API de paiement, on cesse de l'appeler pendant 30 secondes et on renvoie tout de suite « paiement momentanément indisponible ».\n\n**Le throttling (limitation de débit, aussi *rate limiting*).** On **plafonne** le nombre de requêtes qu'on accepte de traiter par seconde ; au-delà, on répond poliment **429** (le code HTTP « Too Many Requests », littéralement « trop de requêtes »). 👉 **Analogie** : c'est le **videur** d'une boîte de nuit qui ne laisse entrer les gens que par petits groupes, pour que la salle ne soit jamais dangereusement bondée. **Exemple** : on autorise 100 requêtes par seconde et par client ; la 101e reçoit un 429 « réessaie dans un instant ».\n\n**La backpressure (contre-pression).** Quand celui qui **consomme** les données est plus lent que celui qui les **produit**, il faut un moyen de dire « ralentis, je n'arrive pas à suivre ». La backpressure **propage** cette contrainte du consommateur lent vers le producteur, pour éviter d'accumuler un retard qui finit par saturer la mémoire. 👉 **Analogie** : à la caisse d'un supermarché, si la caissière est débordée, la file **s'allonge** et régule naturellement le rythme ; on ne déverse pas les clients plus vite qu'elle ne scanne. C'est **natif** en programmation **réactive** (le style non bloquant utilisé sur cette plateforme, où les données circulent en flux contrôlés).\n\n**Le load shedding (délestage).** En dernier recours, sous une charge extrême, on **rejette volontairement** une part du trafic pour **préserver le reste** : mieux vaut servir correctement 90 % des utilisateurs que planter pour 100 %. 👉 **Analogie** : c'est le **délestage électrique**, quand le réseau coupe le courant de certains quartiers pour éviter le black-out général."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Circuit breaker, throttling et backpressure protegent le systeme quand la charge explose.",
+          "body": "/images/lessons/strategies-de-resilience-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Timeouts & retries prudents (niveau expert)",
+          "body": "(Section marquée **niveau expert**, mais le principe est un réflexe à prendre tôt.)\n\n**Toujours mettre un timeout sur un appel externe.** Un **timeout** est la durée maximale qu'on accepte d'attendre une réponse avant d'abandonner l'appel. Sans lui, une dépendance **lente** garde chaque appel « suspendu » indéfiniment. Or chaque appel en attente occupe un **thread** (un fil d'exécution, un des « ouvriers » disponibles de ton application) ou une **connexion** (un canal ouvert vers la base ou le réseau). Ils sont en nombre **limité** : s'ils restent tous bloqués à attendre, plus aucune nouvelle requête ne peut être servie, et l'application **s'effondre**. 👉 **Analogie** : au téléphone, tu ne restes pas **une heure** en ligne à écouter une sonnerie sans réponse ; tu raccroches au bout d'un moment pour libérer la ligne.\n\n**Les retries (ré-essais) aident, mais avec prudence.** Réessayer un appel qui a échoué est souvent utile (l'erreur était peut-être passagère). Le piège, c'est de réessayer **tout de suite et en boucle** : si la dépendance est déjà surchargée, des milliers de clients qui la re-sollicitent au même instant l'achèvent. C'est le **retry storm** (tempête de ré-essais), qui **amplifie** la panne au lieu de l'atténuer. Deux garde-fous :\n- le **backoff** (recul) : on **attend de plus en plus longtemps** entre deux essais (par exemple 1 s, puis 2 s, puis 4 s), pour laisser à la dépendance le temps de respirer.\n- le **jitter** (gigue, un petit **aléa**) : on ajoute un délai **aléatoire** pour que tous les clients ne réessaient pas **pile au même instant** et ne recréent pas un pic synchronisé. 👉 **Analogie** : après une coupure de courant, si tous les appareils du quartier redémarrent **exactement** en même temps, ils font disjoncter à nouveau ; les décaler de quelques secondes au hasard évite ce nouveau pic.\n\nUn dernier ingrédient : l'**idempotence**. Une opération est **idempotente** si l'exécuter **plusieurs fois** produit le **même** résultat qu'une seule fois. **Exemple** : « fixer le statut à *payé* » est idempotent (le refaire ne change rien) ; à l'inverse « ajouter 10 € » n'est **pas** idempotent (le répéter double le montant). C'est indispensable pour pouvoir **réessayer sans danger** : sinon un retry pourrait facturer deux fois.\n\n**Idempotence + timeout + backoff + jitter + circuit breaker** : voilà le socle d'un client réseau **résilient**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Timeouts et retries doivent etre prudents : un retry mal regle aggrave une surcharge.",
+          "body": "/images/lessons/strategies-de-resilience-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un service appelle une API tierce en panne ; chaque appel attend 30 s (timeout) puis réessaie aussitôt. Le service s'écroule. Quels deux mécanismes l'auraient protégé ?",
+          "solution": "1) Un circuit breaker : après plusieurs échecs, il coupe les appels vers l'API en panne (échec immédiat, pas 30 s d'attente empilées) et teste la reprise plus tard. 2) Des retries avec backoff + jitter au lieu d'un retry immédiat en boucle (qui amplifie la panne). On peut ajouter un timeout plus court. Ensemble, ils évitent l'effondrement en cascade."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Building for scale",
+          "quizRef": "building-for-scale-check"
+        }
+      ]
+    },
+    {
+      "slug": "ingenierie-capacite-latence",
+      "title": "Ingénierie de la capacité & de la latence",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La moyenne ment : penser en percentiles",
+          "body": "La **latence** est le **temps de réponse** : la durée entre le moment où une requête arrive et celui où la réponse repart (par exemple 50 **ms**, millisecondes). Pour la résumer, on est tenté de regarder la **moyenne**... et c'est un piège.\n\nLa **moyenne** additionne tous les temps et divise par le nombre de requêtes. Le problème : elle est **écrasée par la masse** des requêtes rapides et **cache** les lentes. 👉 **Analogie** : dans un bar où neuf clients gagnent 20 000 € et un dixième gagne 10 millions, le revenu **moyen** dépasse le million, ce qui ne décrit **personne**. La moyenne ment de la même façon sur la latence.\n\nCe qui compte vraiment, c'est la **latence de queue** (en anglais *tail latency*) : les quelques requêtes **les plus lentes**, tout au bout de la distribution. On la lit avec des **percentiles**. Un **percentile** dit « X % des requêtes sont plus rapides que cette valeur ». Le **P99** (99e percentile) veut dire « 99 % des requêtes passent sous ce seuil » ; autrement dit, le P99 décrit le **1 % le plus lent**. **Exemple** : une latence **moyenne** de 50 ms peut cacher un **P99 de 2 secondes**, soit 1 % de requêtes **très** lentes.\n\n« Seulement 1 % », ça paraît négligeable ? Pas du tout. D'abord, ce 1 % touche **énormément** d'utilisateurs réels quand on sert des millions de requêtes. Ensuite, une seule page fait souvent **plusieurs appels** au serveur : plus il y en a, plus la probabilité d'en toucher **au moins un** lent grimpe (avec 100 appels, on tombe presque à coup sûr sur le P99).\n\nPire à grande échelle : la **tail latency amplification** (amplification de la latence de queue). Quand un service en appelle beaucoup d'autres en parallèle (**fan-out** : il éclate une requête en sous-requêtes et attend **toutes** les réponses), il ne peut répondre qu'à la vitesse du **plus lent** de ses sous-services. 👉 **Analogie** : un groupe qui ne part en randonnée que lorsque **le dernier** retardataire est prêt ; un seul traînard retarde tout le monde. Conclusion : on mesure et on optimise les **percentiles hauts** (P99, P99.9), **jamais** la moyenne seule."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La moyenne ment : on juge la latence en percentiles (p95, p99), pas en moyenne.",
+          "body": "/images/lessons/ingenierie-capacite-latence-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La loi de Little : relier débit, latence et concurrence",
+          "body": "La **loi de Little** est une petite formule étonnamment puissante : `L = λ × W`. Traduisons chaque lettre en français simple :\n- **L** = le nombre de requêtes **en cours en même temps** dans le système (la **concurrence**) ;\n- **λ** (lambda) = le **débit d'arrivée** (en anglais *throughput*) : combien de requêtes arrivent **par seconde** ;\n- **W** = le **temps** que chaque requête passe dans le système (sa latence).\n\nAutrement dit : **requêtes en vol = débit × temps passé**. 👉 **Analogie** : un **restaurant**. Si 30 clients entrent par heure (λ) et que chacun reste 2 heures (W), il y a en permanence 30 × 2 = **60 clients** attablés (L). Il te faut donc **60 couverts**, pas 30. Simple, mais ça change tout.\n\nPourquoi est-ce utile ? Parce que **L a une limite physique** : ton application traite les requêtes avec un **pool** (une réserve **de taille fixe** de ressources partagées : threads, connexions à la base...). 👉 Le pool, c'est le **parc de voitures d'une agence de location** : un nombre **fini** ; si toutes sont dehors, le client suivant **attend**.\n\nOr la loi de Little montre que si le **débit augmente** (λ monte) **ou** si la **latence augmente** (W monte), alors **L monte** mécaniquement. Dès que L dépasse la taille du pool, les requêtes s'entassent dans une **file d'attente**, ce qui **augmente encore** W... qui fait monter L... : c'est le cercle vicieux de l'**écroulement**. **Exemple** : une dépendance qui ralentit fait grimper W ; à débit constant, L explose, le pool de connexions sature, et tout le service se bloque, alors même que le nombre d'utilisateurs n'a pas bougé. Comprendre cette loi transforme le réglage **au hasard** des pools et des files en **calcul**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La loi de Little relie debit, latence et concurrence : trois grandeurs indissociables.",
+          "body": "/images/lessons/ingenierie-capacite-latence-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Lisser les pics : queue-based load leveling",
+          "body": "Le trafic n'est jamais régulier : il connaît des **pics** (soldes, envoi d'une newsletter, buzz sur les réseaux). Deux façons d'y faire face :\n- **sur-dimensionner** : garder en permanence assez de machines pour le pic maximal, mais elles sont **gâchées** (payées à ne rien faire) le reste du temps ;\n- **absorber** le pic avec une **file** (en anglais *queue*).\n\nLe **queue-based load leveling** (« lissage de charge par file d'attente ») place une **file** entre la **réception** des demandes et leur **traitement**. Concrètement, un **broker** (un intermédiaire qui **stocke et distribue** les messages, comme RabbitMQ ou Kafka) reçoit les demandes et les met en file ; des **workers** (des programmes « ouvriers » qui piochent dans la file et exécutent le travail) les consomment **à leur rythme soutenable**. 👉 **Analogie** : un **restaurant** qui prend les commandes au comptoir (rapide) et les pose sur un **rail** ; la cuisine les traite l'une après l'autre à sa cadence, sans jamais être prise d'assaut, même si 20 clients commandent d'un coup.\n\nLe pic **remplit** la file au lieu de submerger le serveur ; celui-ci ne voit jamais qu'un flux régulier. On **échange** un peu de **latence** (le travail est fait **plus tard**, en différé) contre beaucoup de **stabilité** (le backend n'est **jamais** dépassé). C'est idéal pour tout ce qui **tolère l'asynchrone** (*asynchrone* = qui n'a pas besoin d'être fait **immédiatement** pendant que l'utilisateur attend). **Exemples** : envoi d'e-mails, génération d'un export PDF, notifications, indexation pour la recherche. On **décharge** ainsi la requête synchrone (celle où l'utilisateur patiente) de tout travail lourd : elle dépose juste un message dans la file et répond aussitôt « c'est en cours »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lisser les pics avec une file (queue-based load leveling) pour absorber les a-coups.",
+          "body": "/images/lessons/ingenierie-capacite-latence-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Prouver la capacité : tester la charge (niveau expert)",
+          "body": "(Section **niveau expert**.) On ne **suppose** jamais qu'un système « tiendra la charge » : on le **prouve** avant la mise en production, avec des **tests de charge**. Un **test de charge** consiste à **simuler du trafic** (des utilisateurs virtuels qui envoient des requêtes) pour observer comment le système réagit. Des outils comme **k6**, **Gatling** ou JMeter génèrent ce trafic. 👉 **Analogie** : c'est le **crash-test** d'une voiture ; on la projette contre un mur **exprès**, en conditions maîtrisées, pour vérifier sa solidité **avant** de la vendre, pas après un vrai accident.\n\nOn cherche notamment le **point de rupture** (en anglais *breaking point*) : le niveau de charge à partir duquel le système craque, pour savoir combien il encaisse **vraiment**. Il existe plusieurs variantes, selon ce qu'on veut débusquer :\n- **stress test** : on **pousse jusqu'à la casse** pour connaître la limite et voir **comment** le système lâche (dégrade-t-il proprement, ou s'effondre-t-il d'un coup ?).\n- **soak test** (test d'endurance) : une charge **soutenue** pendant **longtemps** (des heures), pour révéler les problèmes lents comme les **fuites mémoire** (en anglais *memory leaks* : de la mémoire consommée petit à petit et jamais rendue, qui finit par tout saturer).\n- **spike test** : un **pic brutal** et soudain, pour vérifier la réaction à un afflux instantané.\n\nEnfin, on se fixe des **performance budgets** (budgets de performance) : des objectifs chiffrés à ne pas dépasser, du type « **P99 sous 200 ms à 1000 requêtes/s** ». On les **vérifie automatiquement** en **CI** (l'*intégration continue* : la chaîne qui construit et teste le code à chaque modification), pour qu'une régression de performance soit **attrapée tôt**, comme un test qui échoue. En résumé : **mesurer** sous charge réelle, pas **espérer**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Prouver la capacite en testant la charge, avant que la production ne le fasse pour vous.",
+          "body": "/images/lessons/ingenierie-capacite-latence-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Visualiser le lissage par file d'attente",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    C[\"Clients (pics de trafic)\"] --> API[\"API : réception rapide\"]\n    API -->|\"dépose un message\"| Q[(\"File d'attente / broker\")]\n    Q -->|\"à rythme soutenable\"| W1[\"Worker 1\"]\n    Q --> W2[\"Worker 2\"]\n    W1 --> R[\"Traitement différé : e-mail, export, indexation\"]\n    W2 --> R"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Un dashboard affiche une latence moyenne de 80 ms et l'équipe conclut « tout va bien », pourtant des utilisateurs se plaignent de lenteurs. Quelle métrique regarder, et pourquoi la moyenne est-elle trompeuse ici ?",
+          "solution": "Il faut regarder les percentiles hauts, notamment le P99 (et P99.9) : la moyenne de 80 ms peut masquer une queue de distribution où 1 % des requêtes prennent plusieurs secondes. Or ces requêtes lentes touchent beaucoup d'utilisateurs réels, surtout si une page fait plusieurs appels (la probabilité d'en toucher au moins un lent augmente), c'est la tail latency. La moyenne est trompeuse car elle est écrasée par la masse des requêtes rapides et invisibilise la traîne lente. On surveille et on optimise le P99, pas la moyenne, et on met en place des SLO basés sur les percentiles."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Capacité & latence",
+          "quizRef": "building-for-scale-capacite-check"
+        }
+      ]
+    },
+    {
+      "slug": "echelle-mondiale-chaos",
+      "title": "Concevoir pour l'échelle mondiale & le chaos",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le sans-état, condition non négociable",
+          "body": "On l'a effleuré : le scale horizontal **exige** des instances **sans état** (en anglais *stateless*). Décortiquons.\n\nL'**état** (en anglais *state*), c'est **tout ce qu'une application retient entre deux requêtes** : qui est connecté, le contenu d'un panier, un fichier en cours d'upload... Une instance **sans état** ne garde **rien** de tout ça **dans sa propre mémoire** : elle traite chaque requête comme si c'était la première, en allant chercher l'information nécessaire **ailleurs**.\n\nPourquoi est-ce vital ? Parce qu'avec plusieurs instances derrière un équilibreur, **deux requêtes successives du même utilisateur peuvent tomber sur deux instances différentes**. 👉 **Analogie** : un guichet administratif où **n'importe quel** agent peut te servir, parce que ton dossier est rangé dans une **archive commune**, pas dans le tiroir personnel d'un agent précis. Si ton dossier était dans le tiroir de l'agent A, changer de guichet te ferait tout perdre.\n\nLa solution : **externaliser** l'état, c'est-à-dire le **sortir** de la mémoire de l'instance pour le ranger dans un endroit **partagé** par toutes :\n- la **base de données** (pour les données durables) ;\n- un **cache distribué** comme **Redis** (une mémoire ultra-rapide **partagée** entre toutes les instances, idéale pour les sessions) ;\n- un **stockage objet** (pour les fichiers) ;\n- ou, mieux encore, on ne stocke **rien** côté serveur et on porte l'info dans un **jeton stateless** : un **JWT** (*JSON Web Token*, un petit jeton signé que le client renvoie à chaque requête et qui contient lui-même l'identité de l'utilisateur). C'est le choix de **cette plateforme**.\n\nLe **contre-exemple** à fuir : les **sticky sessions** (« sessions collantes »), qui **collent** un utilisateur à **toujours la même instance** pour retrouver son état local. C'est un pansement : ça **casse l'élasticité** (l'**élasticité** = la capacité à ajouter ou retirer des instances à la volée ; or on ne peut plus retirer une instance sans **déconnecter** brutalement tous les utilisateurs collés dessus) et ça **déséquilibre** la charge (certaines instances croulent pendant que d'autres chôment). Le vrai remède n'est pas de mieux coller, c'est le **sans-état**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le sans-etat est non negociable : seule une app sans etat se duplique librement.",
+          "body": "/images/lessons/echelle-mondiale-chaos-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Rapprocher données et utilisateurs",
+          "body": "À l'échelle **mondiale**, un ennemi inattendu apparaît : la **vitesse de la lumière**. Elle est finie, donc un signal met un temps **incompressible** à traverser la planète. Un **aller-retour** (en anglais *round-trip*) entre l'Europe et les États-Unis coûte environ **80 ms** qu'**aucune** optimisation logicielle n'effacera. 👉 **Analogie** : peu importe la puissance de ta voiture, il y a une **distance** minimale à parcourir, donc un temps de trajet plancher.\n\nLa parade : **rapprocher** physiquement le service de l'utilisateur.\n- Le **CDN** (*Content Delivery Network*, « réseau de diffusion de contenu ») : un réseau de serveurs répartis **partout dans le monde**, en **périphérie** (en anglais *edge*, au plus près des utilisateurs), qui gardent des **copies** du contenu **statique** et **cachable** (images, fichiers CSS/JS, vidéos). L'utilisateur de Tokyo est servi depuis un serveur à Tokyo, pas depuis l'Europe. 👉 **Analogie** : les **entrepôts locaux** d'un commerçant ; tu es livré depuis celui de ta ville, pas depuis l'usine à l'autre bout du monde.\n- Le déploiement **multi-région** : faire tourner l'application dans **plusieurs zones géographiques**.\n- La **data locality** (« localité des données ») : placer les **données** là où on les **lit** le plus souvent.\n\nMais rapprocher les données a un **prix** : la **cohérence**. Dès qu'on **réplique** (duplique) une donnée dans plusieurs régions, il faut du **temps** pour propager une modification de l'une à l'autre, et pendant ce temps elles **divergent**. C'est l'arbitrage fondamental des systèmes distribués (formalisé par les théorèmes **CAP** et **PACELC**) : on ne peut pas tout avoir à la fois. En pratique, on choisit souvent une **cohérence à terme** (en anglais *eventual consistency* : les régions finissent par s'accorder, avec un léger décalage) **entre** régions, et une cohérence **forte** (immédiate) **à l'intérieur** d'une région. **Exemple** : un « like » posté à Paris peut mettre une seconde à apparaître pour un utilisateur à Tokyo, et c'est **acceptable** ; en revanche, un débit bancaire doit être **immédiatement** cohérent. Concevoir global, c'est **arbitrer sciemment**, donnée par donnée, entre **latence** et **cohérence**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Rapprocher donnees et utilisateurs (CDN, regions) reduit la latence percue.",
+          "body": "/images/lessons/echelle-mondiale-chaos-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Autoscaling : réactif, prédictif, scale-to-zero",
+          "body": "L'**élasticité** dont on parlait, c'est concrètement l'**autoscaling** : **ajuster automatiquement** le nombre d'instances selon la demande, sans intervention humaine. Il en existe trois saveurs.\n\n**Autoscaling réactif** : on surveille une **métrique** (une mesure en temps réel : le **CPU** utilisé, la latence, la longueur d'une file) et on ajoute des instances dès qu'elle dépasse un seuil. Simple, mais **en retard** : il **réagit après** le début du pic, et démarrer une nouvelle instance **prend du temps**. 👉 **Analogie** : un chauffage qui ne s'allume qu'**une fois** qu'on a déjà froid ; il faut ensuite attendre qu'il réchauffe la pièce.\n\n**Autoscaling prédictif** : il **anticipe** des motifs **connus** à l'avance (« chaque jour à 9 h, le trafic explose », « chaque Black Friday ») et prépare les instances **avant** le pic. 👉 **Analogie** : un **thermostat programmé** pour chauffer **avant** ton réveil ; la pièce est déjà bonne quand tu te lèves.\n\n**Scale-to-zero** : quand il n'y a **aucun** trafic, on descend à **zéro instance** (on ne paie plus rien). C'est le principe du **serverless** (« sans serveur » du point de vue du développeur : le fournisseur cloud alloue la puissance à la demande). Très **économique**, mais au prix du **démarrage à froid** (en anglais *cold start*) : la **première** requête après une période d'inactivité doit **réveiller** une instance, ce qui la rend plus **lente**. 👉 **Analogie** : la **lumière à détecteur** d'une cave, éteinte tant que personne n'entre (zéro consommation), mais avec un court **délai** le temps qu'elle s'allume quand tu arrives.\n\nDeux prérequis valables pour **toutes** ces stratégies : un **démarrage rapide** de l'application (sinon les renforts arrivent **trop tard**, une fois le pic déjà passé ou le service déjà tombé) et, encore et toujours, le **sans-état** (sinon on ne peut ni ajouter ni retirer une instance sans casser des sessions). **L'élasticité n'existe que si l'application est conçue pour.**"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Autoscaling : s'adapter a la charge, de maniere reactive, predictive, voire scale-to-zero.",
+          "body": "/images/lessons/echelle-mondiale-chaos-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Borner l'explosion : chaos & cell-based (niveau expert)",
+          "body": "(Section **niveau expert**.) À grande échelle, une **panne partielle** n'est pas une possibilité, c'est une **certitude**. La seule vraie question est : **jusqu'où** se propage-t-elle ? C'est ce qu'on appelle le **rayon d'explosion** (en anglais *blast radius*) : le nombre d'utilisateurs ou de services touchés quand un composant lâche. Tout l'art consiste à le **réduire**. Deux pratiques phares.\n\n**Le chaos engineering** (« ingénierie du chaos »). L'idée est contre-intuitive : **provoquer volontairement** des pannes, **en production contrôlée**, pour **vérifier** que le système résiste, au lieu d'attendre qu'elles surviennent au pire moment. On tue une instance au hasard, on ajoute de la latence réseau, on coupe une dépendance... et on regarde si le système **dégrade proprement** (grâce aux mécanismes déjà vus : redondance, circuit breakers, dégradation gracieuse) ou s'il **s'effondre**. Cette pratique est née chez **Netflix** avec l'outil **Chaos Monkey** (un programme qui **éteint au hasard** des serveurs de production). 👉 **Analogie** : c'est l'**exercice d'évacuation incendie** ; on déclenche l'alarme **pour de faux**, régulièrement, pour être sûr que tout le monde sait sortir le jour où le feu est réel. On découvre les faiblesses **quand on est prêt**, pas en pleine crise.\n\n**L'architecture cellulaire** (en anglais *cell-based*). Au lieu d'un seul grand système où une panne peut tout emporter, on le **découpe** en **cellules** : des copies **indépendantes** et **complètes** du système, chacune ne servant qu'une **fraction** des utilisateurs. Si une cellule tombe, elle n'affecte **que ses** utilisateurs, pas tous les autres. 👉 **Analogie** : les **compartiments étanches** d'un navire ; une brèche dans l'un n'inonde pas tout le bateau, elle est **contenue**. **Exemple** : 10 cellules servant chacune 10 % des clients ; une panne de cellule = 10 % d'impact au lieu de 100 %.\n\nConcevoir pour l'échelle, ce n'est donc pas **seulement** encaisser du débit : c'est tout autant **contenir les pannes** quand (pas si) elles surviennent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Borner l'explosion des pannes : ingenierie du chaos et architecture en cellules.",
+          "body": "/images/lessons/echelle-mondiale-chaos-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe veut être sûre que son système survit à la perte d'une instance ou au ralentissement d'une dépendance, mais ne veut pas attendre un vrai incident pour le découvrir. Quelle pratique adopter, et quel est son principe ?",
+          "solution": "Le chaos engineering : injecter délibérément et de façon contrôlée des pannes dans le système (idéalement en production, avec un périmètre et un « disjoncteur » d'arrêt), par exemple tuer une instance au hasard, ajouter de la latence réseau, ou rendre une dépendance indisponible. Principe : plutôt qu'attendre qu'une panne survienne au pire moment, on la provoque volontairement pour VÉRIFIER que les mécanismes de résilience (redondance, circuit breakers, readiness probes, graceful degradation, autoscaling) fonctionnent réellement et que le système dégrade au lieu de s'effondrer. On découvre et corrige les faiblesses de façon proactive. On commence petit (un test en staging, puis un blast radius borné en prod) et on élargit à mesure que la confiance grandit."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références pour creuser : *Designing Data-Intensive Applications* (Kleppmann) et *Site Reliability Engineering* (Google, gratuit en ligne : SLO, percentiles, capacity planning, gestion de la charge) ; *The Tail at Scale* (Dean & Barroso, sur la latence de queue) ; *Release It!* (Nygard : stabilité, load shedding) ; les *Principles of Chaos Engineering* (principlesofchaos.org) et le blog Netflix ; **AWS Well-Architected** (piliers Performance & Reliability, architecture cellulaire) ; les outils **k6** et **Gatling** pour les tests de charge."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir la scalabilite.",
+          "body": "/images/lessons/echelle-mondiale-chaos-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Building for scale (niveau expert)",
+          "quizRef": "building-for-scale-expert"
+        }
+      ]
+    }
+  ]
+}

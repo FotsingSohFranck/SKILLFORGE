@@ -1,0 +1,96 @@
+{
+  "ref": "containerization-images-check",
+  "node": "containerization",
+  "lesson": "images-et-dockerfile",
+  "title": "Quiz, Images & Dockerfile",
+  "description": "Image vs conteneur, registre, build multi-stage, versions épinglées.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre une image et un conteneur ?",
+      "justification": "L'image est un modèle figé en lecture seule ; le conteneur est une instance en cours d'exécution de cette image (comme un moule et le gâteau qu'on en sort).",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'image est un modèle figé en lecture seule ; le conteneur est une instance qui s'exécute",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux mots pour exactement la même chose",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'image s'exécute, le conteneur n'est qu'un fichier de configuration",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un registre comme Docker Hub ou GHCR ?",
+      "justification": "Un registre stocke et distribue les images, pour les partager entre machines et coéquipiers via push et pull.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Stocker et distribuer les images pour les partager entre machines",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Compiler le code source",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Exécuter les conteneurs à ta place",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un build multi-stage produit-il une meilleure image de production ?",
+      "justification": "Il compile avec les outils lourds (Maven, JDK) dans une étape de build, puis ne garde que l'artefact dans une image finale minimale : plus petite et avec moins de surface d'attaque.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Il ne garde que l'artefact dans une image finale minimale (plus petite, moins de surface d'attaque)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il inclut Maven et le JDK complet dans l'image livrée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il chiffre automatiquement le conteneur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Épingler une version précise de l'image de base (par exemple `21-jre`) plutôt que `:latest` rend les builds plus reproductibles.",
+      "justification": "Vrai : `:latest` change de contenu dans ton dos, ce qui peut casser un build qui marchait ; une version épinglée garantit le même résultat à chaque construction.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

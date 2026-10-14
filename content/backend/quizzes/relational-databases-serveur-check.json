@@ -1,0 +1,52 @@
+{
+  "ref": "relational-databases-serveur-check",
+  "node": "relational-databases",
+  "lesson": "postgresql-le-serveur",
+  "title": "Quiz : PostgreSQL, le serveur",
+  "description": "SGBD client/serveur, bases/schémas/rôles, types riches.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie que PostgreSQL fonctionne en « client/serveur » ?",
+      "justification": "Un processus serveur détient les données et écoute sur un port (5432) ; des clients (l'application, psql) s'y connectent pour envoyer des requêtes SQL.",
+      "position": 0,
+      "options": [
+        { "label": "Un serveur détient les données ; des clients s'y connectent pour envoyer des requêtes", "correct": true, "position": 0 },
+        { "label": "Chaque application embarque sa propre copie complète de la base", "correct": false, "position": 1 },
+        { "label": "Les données sont stockées dans le navigateur du client", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit le principe du « moindre privilège » ?",
+      "justification": "On ne donne à chaque rôle que les droits strictement nécessaires ; le compte applicatif n'est jamais super-utilisateur, ce qui limite les dégâts en cas de compromission.",
+      "position": 1,
+      "options": [
+        { "label": "On accorde à chaque rôle uniquement les droits dont il a strictement besoin", "correct": true, "position": 0 },
+        { "label": "On donne tous les droits pour éviter les blocages", "correct": false, "position": 1 },
+        { "label": "On désactive complètement l'authentification", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu dois stocker un montant en euros. Quel type PostgreSQL choisir ?",
+      "justification": "numeric est décimal exact, indispensable pour l'argent ; les types à virgule flottante (float/double) arrondissent et font perdre des centimes.",
+      "position": 2,
+      "options": [
+        { "label": "numeric (décimal exact)", "correct": true, "position": 0 },
+        { "label": "double precision (virgule flottante)", "correct": false, "position": 1 },
+        { "label": "text (on formatera plus tard)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une date-heure, `timestamptz` (avec fuseau) est préférable à `timestamp` (sans fuseau).",
+      "justification": "Vrai : timestamptz stocke l'instant en UTC et évite les ambiguïtés de fuseau et d'heure d'été ; timestamp sans fuseau mène à des bugs.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

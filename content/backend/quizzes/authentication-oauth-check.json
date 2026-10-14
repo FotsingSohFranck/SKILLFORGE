@@ -1,0 +1,52 @@
+{
+  "ref": "authentication-oauth-check",
+  "node": "authentication",
+  "lesson": "oauth-et-oidc",
+  "title": "OAuth 2 & OIDC",
+  "description": "Autorisation déléguée, scopes, ID token, flow recommandé.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet OAuth 2 ?",
+      "justification": "Une autorisation déléguée : accéder à certaines ressources d'un utilisateur sans connaître son mot de passe, avec des droits limités par des scopes.",
+      "position": 0,
+      "options": [
+        { "label": "Accéder à des ressources d'un utilisateur sans son mot de passe", "correct": true, "position": 0 },
+        { "label": "Chiffrer les mots de passe en base", "correct": false, "position": 1 },
+        { "label": "Remplacer HTTPS pour le transport", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour savoir de façon fiable QUI est l'utilisateur connecté, que faut-il utiliser ?",
+      "justification": "OpenID Connect (OIDC), qui ajoute l'authentification au-dessus d'OAuth 2 via un ID token. OAuth 2 seul ne gère que l'autorisation.",
+      "position": 1,
+      "options": [
+        { "label": "OpenID Connect et son ID token", "correct": true, "position": 0 },
+        { "label": "OAuth 2 seul, en utilisant l'access token comme identité", "correct": false, "position": 1 },
+        { "label": "Le cookie de session du fournisseur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel flow est recommandé aujourd'hui pour une app web ou mobile ?",
+      "justification": "Authorization Code + PKCE : l'app obtient un code puis l'échange contre les tokens en prouvant qu'elle est l'initiatrice. Le flow implicit (token dans l'URL) est abandonné.",
+      "position": 2,
+      "options": [
+        { "label": "Authorization Code + PKCE", "correct": true, "position": 0 },
+        { "label": "Le flow implicit (token renvoyé dans l'URL)", "correct": false, "position": 1 },
+        { "label": "Envoyer le mot de passe à l'application tierce", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Utiliser l'access token OAuth 2 comme preuve d'identité de l'utilisateur est une pratique sûre.",
+      "justification": "Faux : c'est une faille connue. OAuth 2 gère l'autorisation, pas l'identité. Pour l'identité, il faut l'ID token d'OIDC.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

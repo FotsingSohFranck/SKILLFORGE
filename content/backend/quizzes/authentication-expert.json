@@ -1,0 +1,119 @@
+{
+  "ref": "authentication-expert",
+  "node": "authentication",
+  "lesson": "securiser-jwt-sessions-profondeur",
+  "title": "Authentification, niveau expert",
+  "description": "RBAC/ABAC, IDOR, validation JWT, confusion d'algorithme, rotation, passkeys.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un endpoint renvoie une ressource dès que l'appelant est authentifié, sans vérifier qu'il en est le propriétaire. Quelle faille est-ce ?",
+      "justification": "C'est un IDOR / broken object-level authorization (n°1 OWASP API) : il faut vérifier la propriété de l'objet, pas seulement l'authentification.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un IDOR (broken object-level authorization)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une injection SQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un dépassement de mémoire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre un rôle (RBAC) et un scope OAuth ?",
+      "justification": "Le rôle décrit qui est l'utilisateur ; le scope décrit ce qu'une application a le droit de faire en son nom.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le rôle décrit l'utilisateur, le scope ce qu'une app peut faire en son nom",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont strictement synonymes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le scope est réservé à SAML",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Au-delà de la signature, que faut-il impérativement valider sur un JWT reçu ?",
+      "justification": "L'algorithme attendu, l'émetteur (iss), l'audience (aud) et l'expiration (exp) : une signature valide ne suffit pas.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'algorithme, iss, aud et exp",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Uniquement que le corps est du JSON",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rien d'autre, la signature suffit",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment se protéger de l'attaque par confusion d'algorithme (RS256 → HS256, ou alg:none) ?",
+      "justification": "Imposer explicitement l'algorithme accepté côté serveur et refuser 'none' : ne jamais laisser le jeton dicter son propre algorithme.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Fixer l'algorithme accepté côté serveur et refuser 'none'",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faire confiance à l'en-tête alg du jeton",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Allonger la durée de vie des tokens",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La rotation des refresh tokens avec détection de réutilisation permet de repérer un vol : un ancien refresh déjà consommé qui réapparaît déclenche la révocation de toute la famille.",
+      "justification": "Vrai : la réapparition d'un refresh usage-unique déjà utilisé signale une compromission ; on révoque la lignée entière.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

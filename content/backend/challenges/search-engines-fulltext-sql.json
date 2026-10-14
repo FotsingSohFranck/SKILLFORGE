@@ -1,0 +1,10 @@
+{
+  "node": "search-engines",
+  "lesson": "elasticsearch-et-usage",
+  "title": "Recherche plein texte native de PostgreSQL",
+  "statement": "Sans ajouter de moteur dédié, écris une requête SQL PostgreSQL qui retrouve les lignes de la table `cours` dont le `titre` ou le `contenu` parlent de « kubernetes ». Utilise `to_tsvector('french', ...)` pour analyser le texte, `to_tsquery('french', 'kubernetes')` pour la requête, et l'opérateur de correspondance `@@`.",
+  "skeleton": "SELECT id, titre\nFROM cours\nWHERE ...;\n",
+  "solution": "SELECT id, titre\nFROM cours\nWHERE to_tsvector('french', titre || ' ' || contenu) @@ to_tsquery('french', 'kubernetes');",
+  "keyPoints": ["to_tsvector", "to_tsquery", "@@", "french"],
+  "language": "sql"
+}

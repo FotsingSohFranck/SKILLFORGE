@@ -1,0 +1,52 @@
+{
+  "ref": "authentication-autorisation-check",
+  "node": "authentication",
+  "lesson": "autorisation-en-profondeur",
+  "title": "Autorisation en profondeur",
+  "description": "Modèles RBAC/ABAC/ReBAC, rôles vs scopes, moindre privilège, IDOR.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans le modèle RBAC, à quoi sont attachées les permissions ?",
+      "justification": "RBAC (Role-Based Access Control) : les permissions sont attachées à des rôles (ADMIN, LEARNER) qu'on assigne aux utilisateurs.",
+      "position": 0,
+      "options": [
+        { "label": "À des rôles assignés aux utilisateurs", "correct": true, "position": 0 },
+        { "label": "À l'adresse IP de l'appelant", "correct": false, "position": 1 },
+        { "label": "À l'heure de la requête uniquement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie le principe « deny by default » ?",
+      "justification": "Tout est interdit par défaut, sauf ce qui est explicitement permis. Couplé au moindre privilège, il limite les accès au strict nécessaire.",
+      "position": 1,
+      "options": [
+        { "label": "Tout est interdit sauf ce qui est explicitement autorisé", "correct": true, "position": 0 },
+        { "label": "Tout est autorisé sauf ce qui est explicitement interdit", "correct": false, "position": 1 },
+        { "label": "Les administrateurs peuvent tout faire sans contrôle", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "`GET /api/v1/invoices/42` renvoie la facture dès que l'appelant est authentifié ; en changeant 42 en 43 on lit la facture d'un autre. Quelle faille et quelle parade ?",
+      "justification": "C'est une faille IDOR (broken object-level authorization). Parade : vérifier l'appartenance de la ressource à l'utilisateur courant (WHERE owner_id = :currentUser), au plus près de la donnée.",
+      "position": 2,
+      "options": [
+        { "label": "IDOR ; vérifier que la ressource appartient à l'utilisateur courant", "correct": true, "position": 0 },
+        { "label": "Injection SQL ; échapper les paramètres", "correct": false, "position": 1 },
+        { "label": "Aucune faille : l'utilisateur est authentifié, c'est suffisant", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un rôle applicatif et un scope OAuth désignent exactement la même chose.",
+      "justification": "Faux : un rôle décrit qui EST l'utilisateur ; un scope décrit ce qu'une application a le droit de faire AU NOM de l'utilisateur. Les confondre mène à des jetons trop puissants.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

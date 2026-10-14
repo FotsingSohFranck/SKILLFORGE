@@ -1,0 +1,10 @@
+{
+  "node": "programming-paradigms",
+  "lesson": "reactif-et-fonctionnel-concret",
+  "title": "D'impératif à déclaratif avec les Streams",
+  "statement": "Voici une méthode **impérative** qui calcule le total des commandes payées, avec une boucle et une variable qui s'accumule. Réécris son corps en style **déclaratif** avec l'API Stream de Java : ouvre un `stream()`, garde les commandes payées avec `filter(Order::isPaid)`, récupère leur montant avec `mapToLong(Order::amount)`, puis fais la somme avec `sum()`. Objectif : aucune boucle, aucune variable modifiable, une seule expression.",
+  "skeleton": "// Version impérative de départ (à NE PAS garder) :\n// long total = 0;\n// for (Order o : orders) {\n//     if (o.isPaid()) {\n//         total += o.amount();\n//     }\n// }\n// return total;\n\nlong totalPaid(List<Order> orders) {\n    // Réécris ici en une seule expression Stream, sans boucle ni variable mutable\n    return 0L;\n}",
+  "solution": "long totalPaid(List<Order> orders) {\n    return orders.stream()\n        .filter(Order::isPaid)\n        .mapToLong(Order::amount)\n        .sum();\n}",
+  "keyPoints": ["stream()", "filter", "isPaid", "mapToLong", "amount", "sum()"],
+  "language": "java"
+}

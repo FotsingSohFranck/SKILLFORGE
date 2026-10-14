@@ -1,0 +1,52 @@
+{
+  "ref": "linux-fundamentals-pourquoi-check",
+  "node": "linux-fundamentals",
+  "lesson": "pourquoi-linux",
+  "title": "Pourquoi Linux d'abord",
+  "description": "Noyau Linux, namespaces/cgroups, images comme mini-distributions, Docker sur Windows/Mac.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quoi reposent techniquement les conteneurs Docker ?",
+      "justification": "Les conteneurs s'appuient sur des fonctionnalités du noyau Linux : les namespaces (cloisonnement) et les cgroups (limites de ressources).",
+      "position": 0,
+      "options": [
+        { "label": "Des fonctionnalités du noyau Linux (namespaces, cgroups)", "correct": true, "position": 0 },
+        { "label": "Une carte graphique dédiée", "correct": false, "position": 1 },
+        { "label": "Un langage de programmation spécial", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sur Windows, Docker utilise directement le noyau Windows pour lancer un conteneur Linux.",
+      "justification": "Faux : Windows n'a pas de noyau Linux. Docker Desktop fait tourner un noyau Linux dans une VM légère (WSL2), et le conteneur partage ce noyau Linux caché.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que contient le plus souvent une image de conteneur ?",
+      "justification": "Une image est généralement une mini-distribution Linux (Debian, Alpine, Ubuntu) accompagnée de l'application à exécuter.",
+      "position": 2,
+      "options": [
+        { "label": "Une mini-distribution Linux plus l'application", "correct": true, "position": 0 },
+        { "label": "Uniquement un fichier de configuration", "correct": false, "position": 1 },
+        { "label": "Une copie complète de Windows", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un débutant demande pourquoi il devrait apprendre quelques bases Linux avant de faire du Docker. Quelle réponse est la plus juste ?",
+      "justification": "Un Dockerfile est fait de commandes Linux (apt, cp, chmod) et déboguer un conteneur revient à ouvrir un shell Linux dedans : sans ces bases, Docker reste une boîte noire.",
+      "position": 3,
+      "options": [
+        { "label": "Parce qu'un Dockerfile est fait de commandes Linux et que déboguer un conteneur, c'est ouvrir un shell Linux dedans", "correct": true, "position": 0 },
+        { "label": "Parce que Docker ne fonctionne que sur des serveurs Linux physiques", "correct": false, "position": 1 },
+        { "label": "Parce qu'il faut réécrire le noyau Linux pour chaque image", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

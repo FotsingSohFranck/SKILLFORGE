@@ -1,0 +1,96 @@
+{
+  "ref": "build-operator-expert",
+  "node": "extending-kubernetes",
+  "lesson": "construire-un-operator",
+  "title": "Construire un operator, expert",
+  "description": "Reconcile idempotent, Kubebuilder/Operator SDK, status, finalizers.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que doit garantir la fonction Reconcile d'un operator ?",
+      "justification": "Être idempotente et sans hypothèse d'ordre : rappelée plusieurs fois, elle compare désiré/réel et converge sans casser.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Être idempotente (converger, sans hypothèse d'ordre)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "S'exécuter une seule fois pour toujours",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer la CRD",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quels outils génèrent le squelette d'un operator (scaffolding, RBAC, code client) ?",
+      "justification": "Kubebuilder et l'Operator SDK (sur controller-runtime) génèrent le projet ; on se concentre sur la logique de Reconcile.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Kubebuilder / Operator SDK (controller-runtime)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kube-proxy",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcdctl",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment garantir qu'une ressource externe (bucket cloud) soit nettoyée à la suppression d'une CR ?",
+      "justification": "Avec un finalizer : la CR reste en Terminating jusqu'à ce que l'operator ait nettoyé l'externe, puis retire le finalizer.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un finalizer (nettoyage avant suppression définitive)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un HPA",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un Service headless",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un operator mûr met à jour le status de sa CR (conditions/phase) pour que kubectl get/describe reflètent l'état réel.",
+      "justification": "Vrai : le status subresource rend l'operator observable, comme un objet natif ; on ajoute aussi des printer columns.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

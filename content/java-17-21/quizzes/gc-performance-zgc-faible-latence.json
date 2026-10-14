@@ -1,0 +1,41 @@
+{
+  "ref": "gc-performance-zgc-faible-latence",
+  "node": "gc-performance",
+  "lesson": "zgc-faible-latence",
+  "title": "Quiz : ZGC, la faible latence",
+  "description": "ZGC, pauses courtes sur gros tas et compromis avec le débit.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour quoi ZGC est-il spécialement conçu ?",
+      "justification": "ZGC vise des pauses très courtes (faible latence), meme sur de très gros tas, là où G1 cherche un équilibre général.",
+      "position": 0,
+      "options": [
+        { "label": "Des pauses très courtes, meme sur un gros tas", "correct": true, "position": 0 },
+        { "label": "Consommer le moins de mémoire possible", "correct": false, "position": 1 },
+        { "label": "Supprimer complètement le tas", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une plateforme de jeu en ligne utilise un tas de 64 Go et subit des pauses GC de 400 ms très genantes pour les joueurs. Quel ramasse-miettes envisager en priorité ?",
+      "justification": "Gros tas et besoin avéré de pauses très courtes : c'est exactement le terrain de ZGC, dont les pauses restent minuscules meme sur un tas de 64 Go. On l'active avec -XX:+UseZGC.",
+      "position": 1,
+      "options": [
+        { "label": "ZGC, car ses pauses restent très courtes meme sur un gros tas", "correct": true, "position": 0 },
+        { "label": "Rester sur G1 sans rien changer, les pauses de 400 ms ne sont pas un problème", "correct": false, "position": 1 },
+        { "label": "Désactiver complètement le ramasse-miettes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les pauses de ZGC s'allongent fortement quand la taille du tas augmente.",
+      "justification": "Faux : l'intéret de ZGC est justement que la durée de ses pauses ne grandit pas avec la taille du tas ; elles restent très courtes meme sur de très gros tas.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

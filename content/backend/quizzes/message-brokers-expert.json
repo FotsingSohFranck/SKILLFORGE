@@ -1,0 +1,119 @@
+{
+  "ref": "message-brokers-expert",
+  "node": "message-brokers",
+  "lesson": "messagerie-fiable-outbox",
+  "title": "Message brokers, niveau expert",
+  "description": "Partitions, offsets, consumer groups, dual-write, outbox, exactly-once, lag.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans Kafka, à quel niveau l'ordre des messages est-il garanti ?",
+      "justification": "L'ordre n'est garanti qu'au sein d'une partition ; la clé du message décide de sa partition et donc du périmètre d'ordre.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Au sein d'une partition seulement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Globalement sur tout le topic",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Entre tous les consumer groups",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Commiter l'offset APRÈS traitement (plutôt qu'avant) donne quelle sémantique ?",
+      "justification": "At-least-once : un crash entre traitement et commit rejoue le message, donc pas de perte mais des doublons possibles.",
+      "position": 1,
+      "options": [
+        {
+          "label": "At-least-once (doublons possibles, pas de perte)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "At-most-once (perte possible)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Exactly-once garanti de bout en bout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un service écrit en base puis publie un message en deux appels distincts. Quel problème fondamental ?",
+      "justification": "Le dual-write problem : aucune transaction ne couvre les deux systèmes, un crash entre les deux crée une incohérence.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le dual-write problem (pas d'atomicité entre base et broker)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un simple problème de latence réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un dépassement de partition",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel pattern garantit qu'aucun événement n'est perdu ni émis sans la donnée correspondante ?",
+      "justification": "L'outbox : la donnée et le message sont écrits dans la même transaction ; un relais/CDC publie ensuite de façon fiable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le pattern outbox (message écrit dans la même transaction)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Augmenter le nombre de partitions",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Publier avant d'écrire en base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un consumer lag qui croît régulièrement indique des consommateurs trop lents ou en panne, et doit être surveillé/alerté.",
+      "justification": "Vrai : le lag (écart production/consommation) est la métrique reine ; un lag croissant signale qu'il faut scaler ou investiguer.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

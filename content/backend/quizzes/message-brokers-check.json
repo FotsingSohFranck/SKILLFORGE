@@ -1,0 +1,52 @@
+{
+  "ref": "message-brokers-check",
+  "node": "message-brokers",
+  "lesson": "garanties-de-livraison",
+  "title": "Message brokers",
+  "description": "Asynchrone, files/événements, garanties.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principal bénéfice d'un message broker ?",
+      "justification": "Il découple producteur et consommateur (dans le temps et l'espace) et absorbe les pics via la file.",
+      "position": 0,
+      "options": [
+        { "label": "Découpler producteur et consommateur", "correct": true, "position": 0 },
+        { "label": "Remplacer la base de données", "correct": false, "position": 1 },
+        { "label": "Chiffrer le disque", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un flux d'événements conservé, rejouable et à très haut débit, on choisit…",
+      "justification": "Kafka est un log distribué : messages conservés/rejouables, haut débit, plusieurs consommateurs indépendants.",
+      "position": 1,
+      "options": [
+        { "label": "Kafka", "correct": true, "position": 0 },
+        { "label": "RabbitMQ", "correct": false, "position": 1 },
+        { "label": "Une simple table SQL", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Avec une livraison at-least-once, à quoi le consommateur doit-il être prêt ?",
+      "justification": "À recevoir des doublons : il doit être idempotent pour que rejouer un message ne change rien.",
+      "position": 2,
+      "options": [
+        { "label": "À recevoir des messages en double (être idempotent)", "correct": true, "position": 0 },
+        { "label": "À perdre systématiquement des messages", "correct": false, "position": 1 },
+        { "label": "À ne jamais rien recevoir", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un message qui échoue en boucle doit pouvoir être routé vers une dead-letter queue.",
+      "justification": "Oui : après N tentatives, on l'isole en dead-letter pour ne pas bloquer la file et l'inspecter/rejouer plus tard.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

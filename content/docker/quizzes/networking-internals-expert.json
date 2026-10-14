@@ -1,0 +1,119 @@
+{
+  "ref": "networking-internals-expert",
+  "node": "container-networking",
+  "lesson": "reseau-sous-le-capot",
+  "title": "Réseau sous le capot, expert",
+  "description": "docker0, veth, iptables NAT, piège UFW, DNS embarqué 127.0.0.11.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un conteneur est-il relié au pont docker0 ?",
+      "justification": "Par une paire d'interfaces virtuelles (veth) : un bout dans le conteneur (eth0), l'autre branché sur docker0 côté hôte.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par une paire veth (un bout dans le conteneur, un bout sur docker0)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par un câble physique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par le système de fichiers en union",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait techniquement la publication de port `-p 8080:80` ?",
+      "justification": "Elle insère des règles iptables NAT (DNAT) qui redirigent le port 8080 de l'hôte vers l'IP:80 du conteneur.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Elle insère des règles iptables NAT (DNAT) vers le conteneur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle copie le port dans l'image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle chiffre le trafic",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un `-p 5432:5432` peut-il exposer une base à Internet malgré un UFW qui « bloque tout » ?",
+      "justification": "Docker insère ses règles dans la chaîne NAT, en amont/à côté de la chaîne INPUT gérée par UFW : -p contourne le pare-feu.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Les règles NAT de Docker contournent la chaîne INPUT d'UFW",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "UFW ne fonctionne jamais",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "PostgreSQL désactive le pare-feu",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quelle adresse le résolveur DNS embarqué de Docker écoute-t-il dans un conteneur ?",
+      "justification": "127.0.0.11 (visible dans /etc/resolv.conf) : il résout les noms de services et transmet le reste au DNS de l'hôte.",
+      "position": 3,
+      "options": [
+        {
+          "label": "127.0.0.11",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "8.8.8.8",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "0.0.0.0",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Publier un service sensible sur `127.0.0.1:5432:5432` le limite à l'hôte et évite l'exposition externe malgré le contournement d'UFW.",
+      "justification": "Vrai : lier la publication à loopback restreint l'accès à l'hôte ; mieux encore, ne pas publier un service qui doit rester interne.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

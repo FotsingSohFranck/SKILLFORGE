@@ -1,0 +1,63 @@
+{
+  "ref": "architectural-patterns-expert",
+  "node": "architectural-patterns",
+  "lesson": "patterns-communication-migration",
+  "title": "Patterns d'architecture : niveau expert",
+  "description": "Résilience, circuit breaker, bulkhead, orchestration, gateway, strangler fig.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel pattern fait échouer immédiatement les appels vers un service défaillant, pour le laisser récupérer ?",
+      "justification": "Le circuit breaker s'ouvre après trop d'échecs et court-circuite les appels, évitant d'attendre le timeout et d'aggraver la panne.",
+      "position": 0,
+      "options": [
+        { "label": "Le circuit breaker", "correct": true, "position": 0 },
+        { "label": "Le retry en boucle serrée", "correct": false, "position": 1 },
+        { "label": "Le cache-aside", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne retry-er que des opérations idempotentes ?",
+      "justification": "Rejouer une opération non idempotente (ex. un POST de paiement) duplique ses effets ; l'idempotence garantit un résultat identique.",
+      "position": 1,
+      "options": [
+        { "label": "Sinon un rejeu duplique les effets (ex. double paiement)", "correct": true, "position": 0 },
+        { "label": "Parce que les retries sont interdits sur GET", "correct": false, "position": 1 },
+        { "label": "Pour économiser de la mémoire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un bulkhead (cloison) dans une architecture résiliente ?",
+      "justification": "Il isole les ressources (pool dédié par dépendance) pour qu'une dépendance saturée n'épuise pas toutes les ressources.",
+      "position": 2,
+      "options": [
+        { "label": "Il isole les ressources par dépendance pour éviter la cascade", "correct": true, "position": 0 },
+        { "label": "Il chiffre le trafic entre services", "correct": false, "position": 1 },
+        { "label": "Il met en cache les réponses", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel pattern permet de migrer progressivement un monolithe vers des services sans réécriture big bang ?",
+      "justification": "Le strangler fig : une façade route peu à peu chaque capacité extraite vers un nouveau service, jusqu'à retirer le monolithe.",
+      "position": 3,
+      "options": [
+        { "label": "Le strangler fig pattern", "correct": true, "position": 0 },
+        { "label": "Le big bang rewrite", "correct": false, "position": 1 },
+        { "label": "Le singleton", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans une saga, l'orchestration centralise le pilotage (flux explicite) tandis que la chorégraphie repose sur des réactions à des événements (flux implicite, plus découplé).",
+      "justification": "Vrai : orchestration = coordinateur central lisible mais couplé ; chorégraphie = services autonomes réagissant aux événements, flux global implicite.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "docker-basics",
+  "lesson": "cycle-de-vie",
+  "title": "stop n'est pas rm",
+  "statement": "Un collègue tape `docker stop web`, puis s'étonne de retrouver le conteneur `web` avec `docker ps -a` : « je croyais l'avoir supprimé ! ». Explique-lui la différence entre `docker stop` et `docker rm`, ce que devient le conteneur (et son état) dans chaque cas, et donne la commande pour le supprimer réellement.",
+  "skeleton": "",
+  "solution": "docker stop web ne fait qu'ARRÊTER le conteneur : il passe à l'état Exited (arrêté), mais il EXISTE toujours et conserve son état, c'est-à-dire sa couche d'écriture (les fichiers créés ou modifiés pendant qu'il tournait). C'est pourquoi docker ps -a le montre encore : ps -a liste TOUS les conteneurs, y compris arrêtés. On peut le relancer tel quel avec docker start web et retrouver ses données. docker rm web, au contraire, SUPPRIME définitivement le conteneur : son état est perdu, il disparaît de docker ps -a. Un conteneur doit être arrêté avant d'être supprimé (ou on force avec docker rm -f web). Donc pour supprimer réellement web ici : docker rm web (il est déjà arrêté), ou docker rm -f web pour arrêter et supprimer d'un coup. Résumé : stop = éteindre (relançable), rm = jeter (définitif).",
+  "keyPoints": ["stop", "rm", "arrêté", "existe", "supprim", "relanc", "docker rm web"],
+  "language": "text"
+}

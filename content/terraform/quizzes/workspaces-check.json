@@ -1,0 +1,96 @@
+{
+  "ref": "workspaces-check",
+  "node": "workspaces",
+  "lesson": "gerer-plusieurs-environnements",
+  "title": "Workspaces",
+  "description": "Un code/plusieurs états, terraform.workspace, limites vs répertoires séparés.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permettent les workspaces ?",
+      "justification": "Avoir plusieurs états pour un même code : chaque workspace (dev/prod...) a son propre fichier d'état.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Plusieurs états pour un même code",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Plusieurs providers pour une ressource",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement du state",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment adapter le code selon le workspace courant ?",
+      "justification": "Via la valeur terraform.workspace (ex. instance_type selon prod/dev).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Avec terraform.workspace",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Avec terraform init",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Avec un provisioner",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle limite des workspaces pour des environnements de production critiques ?",
+      "justification": "Le risque d'erreur de contexte (appliquer dans le mauvais workspace) et la difficulté à faire diverger prod, l'état courant est implicite.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Risque d'appliquer dans le mauvais environnement (contexte implicite)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont trop lents",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ils ne gèrent qu'un seul état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour des environnements de production distincts et critiques, l'isolation par répertoire/state (voire Terragrunt) est souvent préférée aux workspaces.",
+      "justification": "Vrai : contexte explicite, isolation forte (backend/permissions propres), divergence assumée, moins d'erreur qu'un workspace implicite.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

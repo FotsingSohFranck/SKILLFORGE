@@ -1,0 +1,96 @@
+{
+  "ref": "hexagonal-testing-expert-check",
+  "node": "layered-hexagonal",
+  "lesson": "strategie-de-test-par-couche",
+  "title": "Quiz, Stratégie de test par couche (expert)",
+  "description": "Pyramide des tests, test par couche, Testcontainers, test comme conception.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment tester le domaine (entités, value objects, règles) ?",
+      "justification": "En tests unitaires purs, sans mock ni framework, en millisecondes : on instancie et on vérifie les règles/invariants, la large base de la pyramide.",
+      "position": 0,
+      "options": [
+        {
+          "label": "En tests unitaires purs, sans framework ni base",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Uniquement via des tests end-to-end",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En démarrant tout Spring à chaque test",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Avec quoi teste-t-on un adaptateur de persistance (repository) ?",
+      "justification": "Des tests d'intégration avec Testcontainers (vraie base jetable en conteneur) pour valider mapping et requêtes réelles.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des tests d'intégration avec Testcontainers (vraie base jetable)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Aucun test, c'est inutile",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un test unitaire pur sans base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une suite à 95 % de tests end-to-end lents et flaky est un anti-pattern appelé… ?",
+      "justification": "Le cornet de glace (ice cream cone) : l'inverse de la pyramide ; lent, fragile, difficile à diagnostiquer, on finit par ne plus le lancer.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le cornet de glace (ice cream cone)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La pyramide idéale",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le circuit breaker",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si un code est très difficile à tester, c'est souvent un signal de conception (couplage excessif, frontière manquante) à écouter.",
+      "justification": "Vrai : « listen to your tests », la difficulté à tester révèle un problème de découplage ; on refactore vers plus d'isolation (le TDD pousse cette logique).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

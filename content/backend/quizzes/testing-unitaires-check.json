@@ -1,0 +1,52 @@
+{
+  "ref": "testing-unitaires-check",
+  "node": "testing",
+  "lesson": "tests-unitaires",
+  "title": "Quiz : Tests unitaires",
+  "description": "Isolation, structure AAA, doubles (mocks/stubs) et leur bon dosage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise un test unitaire ?",
+      "justification": "Il vérifie une unité isolée (une règle métier) sans base ni réseau : il est donc rapide et déterministe.",
+      "position": 0,
+      "options": [
+        { "label": "Il teste une brique isolée sans base ni réseau : rapide et déterministe", "correct": true, "position": 0 },
+        { "label": "Il démarre toute l'application et une vraie base", "correct": false, "position": 1 },
+        { "label": "Il simule un utilisateur qui clique dans le navigateur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que désignent les initiales AAA d'un test ?",
+      "justification": "Arrange (préparer), Act (exécuter l'action), Assert (vérifier le résultat) : la structure classique d'un test.",
+      "position": 1,
+      "options": [
+        { "label": "Arrange, Act, Assert", "correct": true, "position": 0 },
+        { "label": "Add, Alter, Archive", "correct": false, "position": 1 },
+        { "label": "Async, Await, Assert", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un test remplace TOUTES les dépendances de l'unité par des mocks et vérifie surtout quels appels sont faits. Quel risque ?",
+      "justification": "Sur-mocker teste la mécanique interne plutôt que le comportement : au moindre refactoring, le test casse alors que le code marche encore (test fragile).",
+      "position": 2,
+      "options": [
+        { "label": "Le test devient fragile : il teste l'implémentation, pas le comportement", "correct": true, "position": 0 },
+        { "label": "Le test devient plus fiable car il vérifie tout", "correct": false, "position": 1 },
+        { "label": "Le test devient un test d'intégration", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On remplace par des doubles seulement les vraies frontières (base, réseau, services externes), pas la logique interne.",
+      "justification": "Vrai : on double les entrées-sorties, mais on laisse la logique interne s'exécuter pour tester un comportement observable.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

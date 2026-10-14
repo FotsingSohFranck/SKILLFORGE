@@ -1,0 +1,178 @@
+{
+  "node": "key-concepts",
+  "lessons": [
+    {
+      "slug": "plan-de-controle-et-noeuds",
+      "title": "Plan de contrôle & nœuds",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un cluster : un cerveau et des muscles",
+          "body": "Avant tout, deux mots à poser. Un **conteneur** (*container* en anglais) est une **application empaquetée avec tout ce dont elle a besoin pour tourner** (son code, ses bibliothèques, sa configuration), isolée du reste de la machine. 👉 **Analogie** : c'est une **boîte-repas toute prête**, tu la poses sur n'importe quelle table (n'importe quel serveur) et elle fonctionne pareil. Exemple : un conteneur `nginx` contient le serveur web nginx prêt à démarrer, sans que tu installes quoi que ce soit sur la machine hôte.\n\n**Kubernetes** (souvent abrégé **k8s**, car il y a 8 lettres entre le « k » et le « s ») est l'outil qui fait tourner et coordonne **des centaines de conteneurs sur plusieurs machines**, automatiquement. L'ensemble de ces machines qui travaillent ensemble s'appelle un **cluster** (« grappe » de machines).\n\nUn cluster se divise en deux rôles. Le **plan de contrôle** (*control plane*) est le **cerveau** : il décide de tout, mais n'exécute pas lui-même tes applications. Les **nœuds de travail** (*worker nodes*), ce sont les **muscles** : de simples machines (physiques ou virtuelles) qui font réellement tourner tes conteneurs. Un **nœud** (*node*), c'est donc juste « une machine du cluster ».\n\n👉 **Analogie** : le plan de contrôle est le **chef de chantier** (il donne les ordres, tient les plans) et les nœuds sont les **ouvriers** (ils posent les briques). Le chef ne pose pas de brique ; les ouvriers ne décident pas des plans.\n\nExemple concret : tu dis à Kubernetes « je veux 3 copies de mon site web ». Le plan de contrôle décide **sur quelles machines** les placer, et les nœuds concernés démarrent les conteneurs. En **Kubernetes managé** (managé = géré pour toi par un fournisseur cloud : **EKS** chez Amazon, **GKE** chez Google, **AKS** chez Microsoft), le fournisseur s'occupe du plan de contrôle à ta place ; tu ne gères, au plus, que les nœuds de travail."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Anatomie d'un cluster",
+          "diagramFormat": "MERMAID",
+          "body": "graph TD\n    subgraph CP[\"Plan de contrôle (le cerveau)\"]\n        API[\"kube-apiserver\\n(porte d'entrée, API REST)\"]\n        ETCD[\"etcd\\n(base clé-valeur : l'état du cluster)\"]\n        SCH[\"kube-scheduler\\n(place les pods sur les nœuds)\"]\n        CM[\"controller-manager\\n(boucles de réconciliation)\"]\n        API --- ETCD\n        API --- SCH\n        API --- CM\n    end\n    subgraph N1[\"Nœud de travail\"]\n        K1[\"kubelet\"] --> P1[\"Pods (conteneurs)\"]\n        KP1[\"kube-proxy (réseau)\"]\n        CR1[\"container runtime (containerd)\"]\n    end\n    API --> K1"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les composants du plan de contrôle",
+          "body": "Le cerveau du cluster est fait de quatre pièces. Ne les apprends pas par cœur : retiens le rôle de chacune.\n\n**Le kube-apiserver** est la **porte d'entrée unique** du cluster. Toute action (ta commande `kubectl`, un contrôleur, un kubelet) passe par lui. Il expose une **API REST** : une *API* (*Application Programming Interface*) est simplement une façade par laquelle des programmes se parlent, et *REST* est le style de dialogue standard du web (on envoie des requêtes HTTP comme un navigateur). 👉 **Analogie** : c'est l'**accueil unique** d'un immeuble ; personne n'entre ni ne sort sans passer par lui. Exemple : `kubectl get pods` est en réalité une requête HTTP envoyée au kube-apiserver.\n\n**etcd** est la **base de données** du cluster, de type **clé-valeur** (elle range des données sous forme de paires « une clé → une valeur », comme un dictionnaire). Elle stocke **tout l'état** du cluster : c'est la **source unique de vérité**. 👉 **Analogie** : c'est le **grand registre** de l'immeuble où tout est écrit ; le perdre, c'est perdre la mémoire du cluster (d'où l'importance vitale de ses sauvegardes).\n\n**Le kube-scheduler** (« l'ordonnanceur ») décide **sur quel nœud** placer chaque nouveau **pod** (le pod est la plus petite unité déployable ; retiens pour l'instant « un ou plusieurs conteneurs qui tournent ensemble »). Il choisit en fonction des ressources libres et des contraintes. 👉 **Analogie** : le **placeur d'un restaurant** qui attribue chaque groupe à une table libre et adaptée.\n\n**Le controller-manager** fait tourner les **boucles de réconciliation** : des programmes qui vérifient en permanence que la réalité correspond à ce que tu as demandé, et corrigent sinon (par exemple : maintenir en vie le bon nombre de copies d'une application). 👉 **Analogie** : le **thermostat** qui compare sans cesse la température voulue et la température réelle, et rallume le chauffage si besoin. On détaille cette idée dans la leçon suivante."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Les composants d'un nœud de travail",
+          "body": "Sur chaque nœud (chaque machine « ouvrière »), on trouve trois composants.\n\n**Le kubelet** est l'**agent** du nœud : le petit programme qui reçoit du plan de contrôle la liste des pods à faire tourner ici, puis les lance et surveille leur santé. Il ne lance pas les conteneurs lui-même : il donne les ordres au container runtime. 👉 **Analogie** : le **contremaître** de l'atelier ; il reçoit la feuille de route et fait exécuter le travail. Il vérifie aussi la santé via des **probes** (« sondes » : de petits tests réguliers pour savoir si le conteneur est vivant et prêt à répondre).\n\n**Le container runtime** (« moteur d'exécution de conteneurs ») est le logiciel qui **démarre et arrête réellement les conteneurs**. Le plus courant s'appelle **containerd** ; un autre est **CRI-O**. 👉 **Analogie** : c'est le **moteur** de la voiture ; le kubelet est le conducteur qui appuie sur l'accélérateur, mais c'est le moteur qui fait avancer.\n\n**Le kube-proxy** gère le **réseau** sur le nœud. Il programme les règles (via des outils système comme **iptables** ou **IPVS**, les mécanismes de routage réseau de Linux) pour qu'une requête envoyée à un **Service** (un point d'entrée stable vers un groupe de pods, on le verra plus loin) arrive bien jusqu'aux bons pods. 👉 **Analogie** : le **standard téléphonique** qui redirige chaque appel vers le bon poste, même si les postes changent.\n\nEn résumé : le kubelet reçoit les ordres, le container runtime exécute les conteneurs, et kube-proxy route le trafic réseau vers eux."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Quel composant du plan de contrôle stocke l'état complet du cluster, et pourquoi sa sauvegarde est-elle absolument critique ?",
+          "solution": "C'est etcd, la base de données clé-valeur distribuée du plan de contrôle. etcd contient TOUT l'état du cluster : les définitions de tous les objets (pods, deployments, services, configmaps, secrets, RBAC...), l'état désiré et une grande partie de l'état réel, c'est la source unique de vérité de Kubernetes. Sa sauvegarde est critique car, en cas de perte ou de corruption d'etcd, on perd la connaissance de tout ce que le cluster est censé faire : reconstruire un cluster sans sauvegarde d'etcd signifie tout redéclarer à la main. Un snapshot régulier d'etcd (etcdctl snapshot save) est donc une opération d'exploitation essentielle pour un cluster auto-géré, c'est d'ailleurs l'une des premières choses qu'un fournisseur managé prend en charge à votre place. Perdre etcd sans sauvegarde = perdre l'état du cluster."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Plan de contrôle & nœuds",
+          "quizRef": "key-concepts-plan-check"
+        }
+      ]
+    },
+    {
+      "slug": "modele-declaratif-reconciliation",
+      "title": "Le modèle déclaratif & la réconciliation",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Tout est un objet dans l'API",
+          "body": "Dans Kubernetes, **tout est un objet** de l'API. Un **objet**, ici, c'est simplement une **fiche décrivant une ressource** que tu veux : un Pod, un Deployment, un Service, un ConfigMap sont des objets, stockés dans etcd. Tu les décris dans un fichier **YAML** (un format texte fait pour être lisible par un humain, où l'imbrication se marque par l'**indentation**, c'est-à-dire les espaces en début de ligne). 👉 **Analogie** : un objet Kubernetes est un **formulaire administratif** ; tu remplis les cases, l'administration (Kubernetes) s'occupe du reste.\n\nTous les objets ont **la même structure**, ce qui est très pratique : une fois que tu sais lire un objet, tu sais les lire tous. Les cinq champs de base :\n- **`apiVersion`** : la **version de l'API** pour ce type d'objet (ex. `apps/v1`), un peu comme la version d'un formulaire.\n- **`kind`** : le **type** d'objet (ex. `Deployment`, `Pod`, `Service`).\n- **`metadata`** : les infos d'identité (le **nom** ; le **namespace**, c'est-à-dire l'espace de travail cloisonné qui regroupe des objets, comme un dossier ; les **labels**, des étiquettes `clé: valeur` pour retrouver et regrouper les objets).\n- **`spec`** : l'**état désiré**, ce que **toi** tu veux (ex. « 3 copies, image nginx »).\n- **`status`** : l'**état réel**, ce que l'objet **est** en ce moment, rempli automatiquement par Kubernetes (ex. « 2 copies prêtes sur 3 »).\n\n👉 **La règle d'or** : **tu écris le `spec`, Kubernetes écrit le `status`.** Exemple : tu demandes `replicas: 3` dans le `spec` ; Kubernetes met à jour le `status` au fur et à mesure que les 3 copies démarrent. Comprendre cette structure uniforme, c'est pouvoir lire et écrire n'importe quel manifeste (un **manifeste** = le fichier YAML qui décrit un ou plusieurs objets)."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Un manifeste et son application",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: apps/v1\nkind: Deployment           # le TYPE d'objet\nmetadata:\n  name: web                # son nom\n  labels: { app: web }\nspec:                      # l'ÉTAT DÉSIRÉ (ce que je veux)\n  replicas: 3\n  selector:\n    matchLabels: { app: web }\n  template:\n    metadata:\n      labels: { app: web }\n    spec:\n      containers:\n        - name: web\n          image: nginx:1.27\n# On applique en déclaratif :  kubectl apply -f web.yaml\n# Kubernetes remplit ensuite le status (répliques prêtes, etc.)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les contrôleurs : des boucles infinies",
+          "body": "Le vrai moteur de Kubernetes, ce sont les **contrôleurs**. Un **contrôleur** est un programme qui tourne **en boucle, sans jamais s'arrêter**, et répète toujours le même geste en quatre temps : **observer** l'état réel (le `status`), le **comparer** à l'état désiré (le `spec`), **agir** pour combler l'écart, puis **recommencer**. Ce geste répété s'appelle la **réconciliation** (« remettre d'accord » le réel et le voulu).\n\n👉 **Analogie** : le **thermostat** d'un chauffage. Tu règles 20°C (le `spec`). Le thermostat lit la température réelle (le `status`), et tant qu'il fait 18°C il chauffe ; dès qu'il atteint 20°C il s'arrête ; si ça retombe, il rechauffe. Il ne « chauffe pas une fois pour toutes » : il **maintient** en continu.\n\nExemples concrets : le **contrôleur de Deployment** veille à ce qu'il y ait toujours le bon nombre de copies (tu en veux 3, un pod meurt, il en recrée un pour revenir à 3) ; le **contrôleur de nœuds** détecte une machine tombée en panne et replace ailleurs les pods qu'elle faisait tourner.\n\nC'est exactement pour cela qu'on dit Kubernetes **auto-réparant** (*self-healing*) : rien n'est « fait une fois », tout est **maintenu**. Un écart (pod mort, nœud tombé) est repéré et corrigé tout seul par la boucle, sans que tu interviennes. Tu déclares ce que tu veux, les contrôleurs se chargent d'y arriver et d'y rester."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "La boucle de réconciliation",
+          "diagramFormat": "MERMAID",
+          "body": "graph LR\n    SPEC[\"spec\\n(état DÉSIRÉ,\\nécrit par toi)\"]\n    OBS[\"Observer\\nl'état réel (status)\"]\n    CMP{\"Réel = Désiré ?\"}\n    ACT[\"Agir\\n(créer / supprimer /\\najuster)\"]\n    OK[\"Ne rien faire\\n(attendre)\"]\n    SPEC --> CMP\n    OBS --> CMP\n    CMP -->|Non : écart| ACT\n    CMP -->|Oui| OK\n    ACT --> OBS\n    OK --> OBS"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Déclaratif vs impératif (niveau expert)",
+          "body": "On peut piloter Kubernetes de deux façons, et bien les distinguer est un réflexe de pro.\n\n**Impératif** (« je donne des ordres, un par un ») : des commandes ponctuelles comme `kubectl create`, `kubectl scale`, `kubectl delete`. 👉 **Analogie** : tu **conduis la voiture toi-même**, virage par virage. C'est rapide pour explorer ou déboguer, mais l'état voulu n'est écrit nulle part : difficile à reproduire à l'identique demain, et impossible à auditer (« qui a changé quoi, quand ? »). Exemple : `kubectl scale deployment/web --replicas=5` marche, mais rien ne garde la trace que tu voulais 5 copies.\n\n**Déclaratif** (« je décris le résultat voulu, l'outil se débrouille ») : tu écris des fichiers YAML, tu les ranges dans **Git** (le gestionnaire de versions), et tu les appliques avec `kubectl apply`. 👉 **Analogie** : tu **donnes une destination au GPS** et il trouve le chemin. L'état désiré vit dans Git : il est reproductible, il peut être **revu en pull request** (une *pull request*, ou PR, est une proposition de changement que des collègues relisent et valident avant qu'elle soit acceptée), et c'est le fondement du **GitOps** (« Git comme source de vérité » : ce qui est dans Git doit être ce qui tourne dans le cluster).\n\n**Règle professionnelle** : l'impératif pour l'exploration et le dépannage ; le **déclaratif (YAML dans Git)** pour tout ce qui est réel et durable. Un cluster de production doit pouvoir être **reconstruit entièrement depuis ses manifestes**, sans qu'aucune connaissance ne vive uniquement dans la tête de quelqu'un."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Dans un manifeste Kubernetes, quelle est la différence entre les champs `spec` et `status`, et lequel écrivez-vous ?",
+          "solution": "spec décrit l'état DÉSIRÉ, ce que VOUS voulez que l'objet soit (ex. replicas: 3, telle image, tel port). C'est la partie que vous écrivez et versionnez. status décrit l'état RÉEL, ce que l'objet EST actuellement (ex. 2 répliques prêtes sur 3, conditions, adresses IP), et c'est Kubernetes (via ses contrôleurs) qui le remplit et le met à jour en continu, pas vous. Le fonctionnement de Kubernetes consiste précisément à faire converger le status vers le spec : vous déclarez le spec, les contrôleurs observent le status, détectent l'écart et agissent pour le combler (boucle de réconciliation). En pratique, on n'écrit donc jamais le status ; on écrit le spec (dans des YAML versionnés) et on laisse Kubernetes maintenir le reste. Lire le status (kubectl get/describe) sert à diagnostiquer où en est la convergence."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Concepts & architecture",
+          "quizRef": "key-concepts-check"
+        }
+      ]
+    },
+    {
+      "slug": "api-machinery",
+      "title": "L'API machinery en profondeur",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "watch & informers : comment les contrôleurs voient",
+          "body": "Question naturelle : comment un contrôleur sait-il qu'un pod vient de mourir ? Première idée, mauvaise : **sonder** l'API en boucle, c'est-à-dire redemander « alors, du nouveau ? » toutes les secondes. On appelle ça le **polling** (« sondage répété »), et avec des milliers de contrôleurs ce serait ruineux, comme un enfant qui demande « on est arrivés ? » toutes les dix secondes.\n\nKubernetes fait l'inverse, en mode **abonnement**. Le contrôleur ouvre un **watch** : une connexion qui reste ouverte et par laquelle l'apiserver **pousse les changements** dès qu'ils arrivent (un objet ajouté, modifié, supprimé). 👉 **Analogie** : au lieu de vérifier ta boîte aux lettres sans arrêt, tu actives une **notification** qui te prévient quand un courrier arrive.\n\nCôté programme, on ne manipule pas le watch brut : on utilise un **informer**. Un informer est un composant qui écoute le watch et entretient un **cache** local (une copie en mémoire, rapide à consulter) des objets, toujours à jour grâce aux événements *add / update / delete* reçus. 👉 **Analogie** : l'informer est un **assistant** qui garde sur ton bureau une copie fraîche des dossiers ; tu la consultes instantanément sans courir aux archives (l'apiserver) à chaque fois.\n\nExemple concret : tu supprimes un pod géré par un Deployment. L'événement *delete* arrive par le watch, l'informer met à jour son cache, le contrôleur voit l'écart (2 pods au lieu de 3) et en recrée un aussitôt. C'est ce mécanisme qui explique la **réactivité** de Kubernetes, et pourquoi déboguer un contrôleur revient souvent à se demander « son cache a-t-il bien vu l'événement ? »."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "resourceVersion & concurrence optimiste",
+          "body": "Chaque objet porte un champ **`resourceVersion`** : un **numéro de version** qui **change à chaque modification** de l'objet. Ce n'est pas un compteur que tu lis pour savoir « combien de fois ça a changé » ; c'est un **jeton** qui sert à détecter les modifications concurrentes.\n\nLe problème qu'il résout : imagine deux personnes qui modifient le **même** objet **en même temps**. Sans précaution, la deuxième écriture écraserait la première sans que personne s'en aperçoive (« mise à jour perdue »). Kubernetes évite cela avec la **concurrence optimiste**. « Optimiste » veut dire : on **parie que les conflits sont rares**, donc on ne **bloque** personne à l'avance ; on se contente de **détecter** un conflit au moment d'écrire. 👉 **Analogie** : un document partagé où l'on ne verrouille pas la page ; mais si deux personnes enregistrent la même version en même temps, la seconde reçoit « la page a changé, recharge et refais ta modif ».\n\nEn pratique : quand tu mets à jour un objet, tu renvoies le `resourceVersion` que tu avais lu. Si quelqu'un l'a modifié entre-temps (la version en base est différente de la tienne), l'apiserver **refuse** ton écriture avec une erreur de **conflit `409`** (le code HTTP `409 Conflict`). À toi de **relire** l'objet à jour et de **réessayer**.\n\nC'est exactement le principe du **verrou optimiste** (`@Version`) que tu croises en base de données : pas de verrou bloquant, juste une détection. Exemple concret : un `kubectl apply` peut échouer sur un conflit `409` si un contrôleur a touché l'objet au même instant ; c'est pourquoi les contrôleurs bien écrits implémentent un **retry on conflict** (relire, réappliquer, retenter)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Server-side apply & field managers (niveau expert)",
+          "body": "Historiquement, `kubectl apply` calculait la mise à jour **côté client** (sur ta machine) par un **3-way merge** : il comparait trois versions (le dernier-appliqué que kubectl gardait en mémoire, l'état actuel dans le cluster, et ce que tu veux maintenant) pour deviner quoi changer. Fragile, et source de **conflits silencieux** (des champs écrasés sans prévenir).\n\nLe **server-side apply** (SSA, « application côté serveur ») déplace ce calcul **dans l'apiserver**. L'idée clé : chaque **champ** d'un objet est **« possédé »** par un **field manager**, c'est-à-dire l'acteur qui gère ce champ (kubectl, un contrôleur, un **operator**, etc. ; un operator est un contrôleur spécialisé qui automatise une application). Qui possède quoi est enregistré dans l'objet, dans une section nommée **`managedFields`**. 👉 **Analogie** : un document partagé où **chaque paragraphe a un auteur attitré** ; chacun édite ses paragraphes, et personne n'écrase silencieusement ceux d'un autre.\n\nDeux bénéfices concrets. D'abord, plusieurs acteurs peuvent gérer **des champs différents** du même objet **sans se marcher dessus** (l'un gère l'image, l'autre le nombre de répliques). Ensuite, si deux managers veulent le **même** champ, SSA fait surgir un **conflit explicite** (au lieu d'un écrasement discret) : tu es prévenu et tu tranches.\n\nC'est essentiel en **GitOps** et avec des operators : on sait **qui possède quoi**, et on évite les batailles d'écriture (le fameux « yo-yo » où deux outils se disputent une valeur) sur un objet partagé."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un HPA gère le nombre de répliques d'un Deployment, mais chaque `kubectl apply` du manifeste (qui contient `replicas: 3`) réécrase les répliques à 3, annulant l'autoscaling. Comment le server-side apply et la notion de field manager éclairent-ils ce conflit, et comment le résoudre ?",
+          "solution": "Le problème est un conflit de PROPRIÉTÉ de champ : deux acteurs veulent gérer le même champ spec.replicas, d'un côté le manifeste appliqué (qui fixe replicas: 3), de l'autre le HPA (qui ajuste replicas dynamiquement selon la charge). À chaque apply, le manifeste remet 3, écrasant la valeur choisie par le HPA ; puis le HPA réajuste ; d'où un yo-yo. Le server-side apply éclaire cela via les field managers : chaque champ est « possédé » par un manager enregistré dans managedFields. Si le manifeste (field manager = kubectl/GitOps) déclare replicas ET que le HPA le gère aussi, ils se disputent le champ, avec SSA, cela peut même remonter un conflit explicite. Résolution : NE PAS mettre replicas dans le manifeste géré par apply/GitOps quand un HPA gère le Deployment. On retire spec.replicas du YAML (ou on le laisse au HPA), de sorte qu'un seul acteur, le HPA, possède ce champ. Ainsi, apply gère l'image, les ressources, les labels..., et le HPA gère exclusivement les répliques, sans que l'un écrase l'autre. Le principe d'expert : un champ, un propriétaire. Les field managers de SSA rendent cette propriété explicite et détectable ; on conçoit ses manifestes pour que chaque champ mutable ait un seul gestionnaire."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, API machinery (expert)",
+          "quizRef": "api-machinery-expert"
+        }
+      ]
+    },
+    {
+      "slug": "finalizers-ownerrefs-admission",
+      "title": "Finalizers, ownerRefs & admission",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "ownerReferences : la suppression en cascade",
+          "body": "Question concrète : quand tu supprimes un Deployment, pourquoi ses ReplicaSets et ses Pods disparaissent-ils aussi ? (Rappel rapide de la hiérarchie : un **Deployment** gère des **ReplicaSets**, un ReplicaSet est un objet qui maintient un nombre fixe de copies, et il gère les **Pods**.) La réponse tient dans les **ownerReferences** (« références de propriétaire »).\n\nChaque objet créé par un contrôleur porte, dans ses `metadata`, une **référence vers son propriétaire** (*owner*) : le Pod pointe vers le ReplicaSet qui l'a créé, le ReplicaSet pointe vers le Deployment. On obtient un **graphe de possession** : parents et enfants. 👉 **Analogie** : un **organigramme familial** ; chaque enfant sait qui est son parent.\n\nUn composant appelé **garbage collector** (« ramasse-miettes » : le mécanisme qui nettoie automatiquement les objets devenus inutiles) suit ce graphe. Supprimer un **propriétaire** déclenche la suppression **en cascade** de tous ses enfants. Deux modes de propagation existent : **Foreground** (« au premier plan » : on attend que les enfants soient supprimés avant le parent) et **Background** (« en arrière-plan » : le parent part d'abord, les enfants sont nettoyés ensuite). Tu peux aussi **orpheliner** les enfants avec `--cascade=orphan` : ils survivent sans parent.\n\nExemple concret : `kubectl delete deployment web` fait disparaître le Deployment, puis son ReplicaSet, puis ses Pods, en cascade. Cela explique aussi deux surprises classiques : un objet qui **« refuse de mourir »** (un enfant recréé aussitôt parce que son parent, toujours vivant, réclame ses copies) et un objet resté **orphelin** (le parent a été supprimé en mode orphan)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Finalizers : bloquer la suppression le temps de nettoyer",
+          "body": "Un **finalizer** (« finaliseur ») est un **marqueur posé sur un objet qui empêche sa suppression définitive** tant qu'il n'a pas été retiré. Son but : garantir qu'un **nettoyage** a bien lieu **avant** que l'objet disparaisse pour de bon.\n\nCe qui se passe quand tu supprimes un objet portant un finalizer : il n'est **pas effacé** tout de suite. Kubernetes lui pose un **`deletionTimestamp`** (l'heure à laquelle la suppression a été demandée) et le fait passer en état **`Terminating`** (« en cours de terminaison »). Il reste là, visible, en attente. 👉 **Analogie** : avant de rendre les clés d'un logement, l'agence bloque la restitution de la caution tant que **l'état des lieux de sortie** n'est pas fait ; une fois le ménage vérifié, elle lève le blocage.\n\nDémarche normale : un contrôleur voit l'objet en `Terminating`, fait son **nettoyage** (libérer une ressource cloud, détacher un volume de stockage, retirer une entrée DNS), **puis retire son finalizer** ; à ce moment seulement, Kubernetes efface l'objet. C'est le mécanisme des nettoyages **fiables**.\n\nPiège d'exploitation très courant : un objet **bloqué en `Terminating` pour toujours**. La cause est presque toujours un **finalizer que personne ne retire**, parce que le contrôleur responsable est **mort, en erreur, ou désinstallé**. Diagnostic : `kubectl get <objet> -o yaml` et regarde le champ `finalizers` pour voir **qui** bloque. On ne force le retrait qu'en **dernier recours**, après avoir compris ce que ce nettoyage protégeait."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La chaîne d'admission (niveau expert)",
+          "body": "Quand une requête arrive à l'apiserver (par exemple « crée ce pod »), elle passe plusieurs postes de contrôle avant d'être écrite dans etcd. D'abord l'**authentification** (« qui es-tu ? ») et l'**autorisation** (« as-tu le droit ? »), cette dernière assurée par le **RBAC** (*Role-Based Access Control*, le système de permissions basé sur des rôles). Puis, juste avant l'écriture en base, la requête traverse la **chaîne d'admission controllers** : le point où l'on peut **inspecter et même modifier** l'objet avant qu'il soit persisté. 👉 **Analogie** : à l'aéroport, après avoir montré ton billet (auth), tu passes les **contrôles de sécurité** qui peuvent te faire retirer un objet interdit (modifier) ou carrément te refuser l'embarquement (rejeter).\n\nCette chaîne a **deux phases, dans un ordre précis**. D'abord les **mutating admission webhooks**, qui **modifient** l'objet (un *webhook* est un service externe que l'apiserver appelle en cours de route). Exemples : injecter un **sidecar** (un conteneur compagnon ajouté automatiquement à côté du tien, par exemple un proxy de service mesh), ou ajouter des labels et des valeurs par défaut. Ensuite les **validating admission webhooks**, qui ne modifient rien mais **acceptent ou refusent** l'objet. Exemples : **Pod Security** (refuse un pod trop privilégié), ou des outils de politique comme **Kyverno** / **OPA** (qui rejettent un pod non conforme aux règles maison).\n\nS'y branchent aussi des contrôleurs d'admission **intégrés** à Kubernetes, comme **ResourceQuota** (plafonne la consommation de ressources d'un namespace) ou **LimitRange** (impose des bornes min/max par conteneur).\n\n👉 **Pourquoi c'est fondamental** : c'est le mécanisme qui rend les règles de sécurité **inviolables**, car appliquées **côté serveur, avant** que quoi que ce soit soit enregistré. Retiens l'ordre **mutating puis validating** : on modifie d'abord, on valide ensuite (inutile de valider un objet qu'on va encore transformer). Cet ordre devient crucial dès que tu écris des politiques ou des operators."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un namespace reste bloqué en état `Terminating` depuis des heures et refuse de disparaître, alors que vous l'avez supprimé. Quel mécanisme est en cause, comment diagnostiquer, et quelle est la précaution avant d'agir ?",
+          "solution": "Le mécanisme en cause est un finalizer. Quand on supprime un objet (ici un namespace) qui porte un ou plusieurs finalizers, Kubernetes ne l'efface pas immédiatement : il pose un deletionTimestamp et le passe en Terminating, en attendant que le(s) contrôleur(s) responsable(s) fasse(nt) leur nettoyage puis retire(nt) leur finalizer. Si l'objet reste bloqué en Terminating, c'est qu'un finalizer n'est jamais retiré, typiquement parce que le contrôleur qui devait le traiter est mort, en erreur, ou n'existe plus (ex. une CRD/opérateur désinstallé qui laisse des ressources avec son finalizer ; pour un namespace, souvent des ressources d'API non nettoyées ou un apiservice agrégé en panne). Diagnostic : `kubectl get namespace <nom> -o yaml` et examiner spec.finalizers et status (conditions), cela révèle QUEL finalizer bloque et pourquoi (souvent un message sur des ressources non nettoyées ou un apiservice indisponible). Précaution AVANT d'agir : comprendre CE que le finalizer protège. Retirer un finalizer de force court-circuite le nettoyage prévu, on risque de laisser des ressources orphelines (volumes, entrées cloud) non libérées. La bonne démarche est d'abord de RÉPARER la cause (relancer/réparer le contrôleur ou l'apiservice défaillant, nettoyer les ressources bloquantes) pour que le finalizer soit retiré normalement. Le retrait manuel du finalizer (kubectl edit/patch pour vider finalizers, ou l'endpoint /finalize pour un namespace) est un DERNIER recours, en connaissance de cause, après avoir constaté que le nettoyage automatique ne se fera pas. On ne « force » jamais un Terminating sans avoir compris ce qu'on court-circuite."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Finalizers, ownerRefs & admission (expert)",
+          "quizRef": "finalizers-admission-expert"
+        }
+      ]
+    }
+  ]
+}

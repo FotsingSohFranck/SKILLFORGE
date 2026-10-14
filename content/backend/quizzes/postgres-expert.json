@@ -1,0 +1,119 @@
+{
+  "ref": "postgres-expert",
+  "node": "relational-databases",
+  "lesson": "exploiter-postgresql",
+  "title": "PostgreSQL, niveau expert",
+  "description": "PL/pgSQL, RLS, jsonb, WAL, réplication, exploitation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment garantir en multi-tenant qu'un tenant ne voie jamais les lignes d'un autre, même en cas de bug applicatif ?",
+      "justification": "La Row-Level Security applique le filtrage par ligne dans le moteur, indépendamment du code applicatif.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Activer la Row-Level Security (RLS)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter un WHERE dans chaque requête applicative",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer les lignes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel type d'index accélère les requêtes sur une colonne jsonb (opérateur @>) ?",
+      "justification": "Un index GIN indexe le contenu jsonb et accélère les recherches par contenance.",
+      "position": 1,
+      "options": [
+        {
+          "label": "GIN",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "B-tree simple",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun n'est possible sur jsonb",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le WAL (Write-Ahead Log) ?",
+      "justification": "Il journalise toute écriture avant application : durabilité, récupération après crash, réplication et PITR.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Garantir la durabilité + permettre réplication et PITR",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Stocker les logs applicatifs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer les données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Au-delà de quelques centaines de connexions, quelle solution éviter la saturation de PostgreSQL ?",
+      "justification": "Un pooler comme PgBouncer (mode transaction) réutilise un petit nombre de connexions côté base.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Un pooler comme PgBouncer",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Augmenter max_connections à 10000",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver l'autovacuum",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une sauvegarde pg_dump jamais restaurée constitue une garantie fiable en cas d'incident.",
+      "justification": "Non : une sauvegarde jamais testée peut être corrompue ou irrestaurable. On teste régulièrement la restauration.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

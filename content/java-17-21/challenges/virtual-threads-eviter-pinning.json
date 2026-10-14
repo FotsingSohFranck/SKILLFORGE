@@ -1,0 +1,10 @@
+{
+  "node": "virtual-threads",
+  "lesson": "pieges",
+  "title": "Évite le pinning du porteur",
+  "statement": "La méthode attendreSousVerrou() bloque (Thread.sleep) à l'intérieur d'un bloc synchronized : sur un thread virtuel, cela épingle (pin) le thread porteur, qui reste immobilisé pendant l'attente. Réécris la méthode pour protéger la section critique SANS épingler le porteur, en utilisant un ReentrantLock à la place de synchronized.",
+  "skeleton": "import java.util.concurrent.locks.ReentrantLock;\n\npublic class SectionCritique {\n    private final Object verrou = new Object();\n    private final ReentrantLock lock = new ReentrantLock();\n\n    // A corriger : ce synchronized + sleep epingle le porteur.\n    void attendreSousVerrou() throws InterruptedException {\n        synchronized (verrou) {\n            Thread.sleep(1000);\n        }\n    }\n}\n",
+  "solution": "import java.util.concurrent.locks.ReentrantLock;\n\npublic class SectionCritique {\n    private final ReentrantLock lock = new ReentrantLock();\n\n    void attendreSousVerrou() throws InterruptedException {\n        lock.lock();\n        try {\n            Thread.sleep(1000); // le thread virtuel peut se demonter : pas de pinning\n        } finally {\n            lock.unlock();\n        }\n    }\n}",
+  "keyPoints": ["ReentrantLock", "lock.lock()", "try / finally", "lock.unlock()", "pas de synchronized autour du blocage"],
+  "language": "java"
+}

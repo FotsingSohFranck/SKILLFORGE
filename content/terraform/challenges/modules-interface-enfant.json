@@ -1,0 +1,10 @@
+{
+  "node": "modules",
+  "lesson": "concevoir-de-bons-modules",
+  "title": "Écrire l'interface d'un module enfant",
+  "statement": "Tu écris un petit module enfant `reseau` avec une interface propre. Déclare une variable d'entrée `environment` de type `string` avec une valeur par défaut `\"dev\"`. Déclare une ressource `aws_vpc` nommée `this` avec `cidr_block = \"10.0.0.0/16\"` et un tag `Name` égal à la variable `environment`. Enfin, expose un output `vpc_id` qui renvoie l'identifiant du VPC créé (`aws_vpc.this.id`). Ne mets NI bloc `provider` NI bloc `backend` : un module réutilisable doit rester agnostique (c'est le module racine qui fournit provider et backend).",
+  "skeleton": "# variable d'entrée (avec type et valeur par défaut)\n\n# ressource aws_vpc \"this\"\n\n# output vpc_id",
+  "solution": "variable \"environment\" {\n  type    = string\n  default = \"dev\"\n}\n\nresource \"aws_vpc\" \"this\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = { Name = var.environment }\n}\n\noutput \"vpc_id\" {\n  value = aws_vpc.this.id\n}",
+  "keyPoints": ["variable \"environment\"", "type", "default", "aws_vpc", "var.environment", "output \"vpc_id\"", "aws_vpc.this.id"],
+  "language": "hcl"
+}

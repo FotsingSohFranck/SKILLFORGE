@@ -1,0 +1,53 @@
+{
+  "ref": "ci-cd-pipeline-check",
+  "node": "ci-cd",
+  "lesson": "concevoir-pipeline-robuste",
+  "title": "Quiz : Concevoir un pipeline robuste",
+  "description": "Build once deploy many, feedback rapide, expand/contract, métriques DORA.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit le principe « build once, deploy many » ?",
+      "justification": "On construit un unique artefact immuable (identifié par son digest) et on le promeut tel quel : ce qui a été testé est exactement ce qui tourne en prod.",
+      "position": 0,
+      "options": [
+        { "label": "On promeut le même artefact immuable de staging à la prod, sans le reconstruire", "correct": true, "position": 0 },
+        { "label": "On reconstruit une image neuve pour chaque environnement", "correct": false, "position": 1 },
+        { "label": "On ne teste jamais avant la production", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi reconstruire l'artefact séparément pour chaque environnement est-il risqué ?",
+      "justification": "Deux builds à deux moments peuvent différer (dépendance mise à jour, image de base changée) : l'image de prod ne serait pas celle testée en staging.",
+      "position": 1,
+      "options": [
+        { "label": "L'image de prod risque de différer de celle testée en staging", "correct": true, "position": 0 },
+        { "label": "Cela consomme trop de disque, sans autre conséquence", "correct": false, "position": 1 },
+        { "label": "Il n'y a aucun risque, c'est la bonne pratique", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans le pattern expand / contract, dans quel ordre procède-t-on pour une migration sans coupure ?",
+      "justification": "Expand (ajouter une colonne nullable sans casser), migrate (le nouveau code écrit dans les deux, on rétro-remplit), puis contract (retirer l'ancienne une fois tout le trafic basculé).",
+      "position": 2,
+      "options": [
+        { "label": "Ajouter d'abord (nullable), migrer, puis retirer l'ancienne structure plus tard", "correct": true, "position": 0 },
+        { "label": "Renommer et supprimer la colonne en une seule migration", "correct": false, "position": 1 },
+        { "label": "Supprimer d'abord l'ancienne colonne, recréer ensuite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que montrent les métriques DORA à propos de la fréquence de déploiement ?",
+      "justification": "Contre-intuitivement, les équipes qui déploient plus souvent échouent moins : de petits changements fréquents sont plus faciles à tester et à diagnostiquer.",
+      "position": 3,
+      "options": [
+        { "label": "Les équipes qui déploient plus souvent échouent moins, pas plus", "correct": true, "position": 0 },
+        { "label": "Plus on déploie souvent, plus on provoque d'incidents", "correct": false, "position": 1 },
+        { "label": "La fréquence de déploiement n'a aucun lien avec la fiabilité", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

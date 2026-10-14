@@ -1,0 +1,63 @@
+{
+  "ref": "data-persistence-check",
+  "node": "data-persistence",
+  "lesson": "volumes-vs-bind-mounts",
+  "title": "Persistance des données",
+  "description": "Couche éphémère, volumes nommés, bind mounts, permissions, sauvegarde.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que deviennent les données écrites dans un conteneur (hors volume) quand on le supprime ?",
+      "justification": "Elles disparaissent : elles étaient dans la couche d'écriture éphémère, détruite avec le conteneur.",
+      "position": 0,
+      "options": [
+        { "label": "Elles sont perdues avec la couche d'écriture éphémère", "correct": true, "position": 0 },
+        { "label": "Elles sont sauvegardées automatiquement", "correct": false, "position": 1 },
+        { "label": "Elles migrent vers l'image", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme privilégier pour les données de production (base de données) ?",
+      "justification": "Un volume nommé, géré par Docker indépendamment du conteneur : les données survivent aux suppressions/recréations.",
+      "position": 1,
+      "options": [
+        { "label": "Un volume nommé", "correct": true, "position": 0 },
+        { "label": "La couche d'écriture du conteneur", "correct": false, "position": 1 },
+        { "label": "Un fichier dans l'image", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme est idéal en développement pour voir ses modifications de code immédiatement dans le conteneur ?",
+      "justification": "Un bind mount du dossier de code de l'hôte : le conteneur lit directement les fichiers locaux (hot reload), sans reconstruire l'image.",
+      "position": 2,
+      "options": [
+        { "label": "Un bind mount du code source de l'hôte", "correct": true, "position": 0 },
+        { "label": "Reconstruire l'image à chaque changement", "correct": false, "position": 1 },
+        { "label": "Un volume nommé vide", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que risque-t-on avec `docker compose down -v` ou `docker volume rm` ?",
+      "justification": "Cela supprime les volumes et donc détruit les données : un volume n'est pas sauvegardé automatiquement.",
+      "position": 3,
+      "options": [
+        { "label": "Détruire définitivement les données du volume", "correct": true, "position": 0 },
+        { "label": "Rien, les données sont toujours sauvegardées", "correct": false, "position": 1 },
+        { "label": "Redémarrer les conteneurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une erreur « permission denied » sur un volume monté peut venir d'un décalage entre l'UID du propriétaire côté hôte et l'utilisateur du conteneur.",
+      "justification": "Vrai : si l'UID/GID des fichiers montés ne correspond pas à l'utilisateur du conteneur, l'accès est refusé ; on aligne les UID/GID.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "ref": "architectural-patterns-resilience-check",
+  "node": "architectural-patterns",
+  "lesson": "patterns-resilience-distribuee",
+  "title": "Quiz : Résilience distribuée",
+  "description": "Panne en cascade, timeout, retry/backoff, idempotence, circuit breaker, bulkhead.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi mettre un timeout sur chaque appel réseau ?",
+      "justification": "Sans timeout, on attend indéfiniment un service mort en gardant des ressources occupées, jusqu'à toutes les épuiser (et provoquer une cascade).",
+      "position": 0,
+      "options": [
+        { "label": "Pour ne pas attendre indéfiniment un service mort et épuiser ses ressources", "correct": true, "position": 0 },
+        { "label": "Pour chiffrer automatiquement les échanges", "correct": false, "position": 1 },
+        { "label": "Pour accélérer un service qui répond déjà vite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un retry doit-il utiliser un backoff exponentiel avec du jitter ?",
+      "justification": "Pour éviter le thundering herd : des réessais espacés et aléatoires évitent que tous les clients rappellent en même temps et achèvent le service qui tente de se relever.",
+      "position": 1,
+      "options": [
+        { "label": "Pour éviter le « thundering herd » en dispersant les réessais dans le temps", "correct": true, "position": 0 },
+        { "label": "Pour réessayer le plus vite possible, sans attendre", "correct": false, "position": 1 },
+        { "label": "Parce que le jitter chiffre les requêtes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un appel de paiement (POST, non idempotent) échoue avec une erreur réseau. Un développeur ajoute un retry automatique dessus. Quel risque ?",
+      "justification": "Rejouer une opération non idempotente duplique ses effets : ici, le client peut être débité deux fois. On ne retry que des opérations idempotentes.",
+      "position": 2,
+      "options": [
+        { "label": "Débiter le client deux fois, car l'opération n'est pas idempotente", "correct": true, "position": 0 },
+        { "label": "Aucun risque, un retry est toujours sûr", "correct": false, "position": 1 },
+        { "label": "Le paiement devient automatiquement gratuit", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un circuit breaker quand il est « ouvert » (open) ?",
+      "justification": "Il fait échouer immédiatement les appels vers le service défaillant, sans attendre le timeout, ce qui économise les ressources et laisse le service récupérer.",
+      "position": 3,
+      "options": [
+        { "label": "Il fait échouer immédiatement les appels, laissant le service récupérer", "correct": true, "position": 0 },
+        { "label": "Il réessaie l'appel en boucle serrée", "correct": false, "position": 1 },
+        { "label": "Il met toutes les réponses en cache", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

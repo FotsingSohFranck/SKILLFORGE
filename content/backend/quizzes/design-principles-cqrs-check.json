@@ -1,0 +1,52 @@
+{
+  "ref": "design-principles-cqrs-check",
+  "node": "design-principles",
+  "lesson": "cqrs",
+  "title": "Quiz : CQRS",
+  "description": "Séparer commands et queries, cohérence à terme, quand l'appliquer.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que sépare CQRS ?",
+      "justification": "CQRS sépare le modèle d'écriture (les commands, qui modifient l'état et appliquent les règles) du modèle de lecture (les queries, qui renvoient des vues rapides).",
+      "position": 0,
+      "options": [
+        { "label": "Le modèle d'écriture (commands) et le modèle de lecture (queries)", "correct": true, "position": 0 },
+        { "label": "Le frontend et le backend", "correct": false, "position": 1 },
+        { "label": "Le code de production et les tests", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait une command, par opposition à une query ?",
+      "justification": "Une command modifie l'état en appliquant les règles métier et les invariants ; une query se contente de lire et de renvoyer des données pour l'affichage.",
+      "position": 1,
+      "options": [
+        { "label": "Elle modifie l'état en appliquant les règles métier", "correct": true, "position": 0 },
+        { "label": "Elle lit des données sans rien changer", "correct": false, "position": 1 },
+        { "label": "Elle ouvre une connexion réseau", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une application CRUD simple sans logique complexe, CQRS est le choix recommandé.",
+      "justification": "Faux : pour un CRUD simple, CQRS est de la sur-ingénierie (deux modèles à maintenir, cohérence à terme) sans bénéfice. On le réserve aux contextes où lectures et écritures divergent vraiment.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un tableau de bord agrège beaucoup de tables en lecture, tandis que les écritures sont riches en règles métier. CQRS est-il pertinent ici ?",
+      "justification": "Oui : les profils de lecture et d'écriture sont très différents. Une vue de lecture dédiée sert le tableau de bord instantanément, sans imposer cette forme au modèle d'écriture.",
+      "position": 3,
+      "options": [
+        { "label": "Oui, les profils lecture/écriture diffèrent nettement : CQRS aide", "correct": true, "position": 0 },
+        { "label": "Non, CQRS n'est jamais utile", "correct": false, "position": 1 },
+        { "label": "Non, il faut toujours garder un seul modèle", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

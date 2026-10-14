@@ -1,0 +1,53 @@
+{
+  "ref": "sql-modeling-select-check",
+  "node": "sql-modeling",
+  "lesson": "interroger-select",
+  "title": "Interroger : SELECT",
+  "description": "SELECT, WHERE, NULL et pagination.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dire que SQL est « déclaratif », ça veut dire quoi ?",
+      "justification": "En SQL, on décrit le résultat voulu ; le moteur choisit tout seul le plan d'exécution (le comment).",
+      "position": 0,
+      "options": [
+        { "label": "On décrit le résultat voulu, le moteur décide comment l'obtenir", "correct": true, "position": 0 },
+        { "label": "On dicte au moteur chaque étape de lecture, ligne par ligne", "correct": false, "position": 1 },
+        { "label": "On doit déclarer les variables avant de s'en servir", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que trouve `WHERE email LIKE '%@dev'` ?",
+      "justification": "Le joker `%` remplace n'importe quoi ; ici on garde tout email qui se termine par `@dev`.",
+      "position": 1,
+      "options": [
+        { "label": "Tous les emails qui se terminent par @dev", "correct": true, "position": 0 },
+        { "label": "Uniquement l'email exactement égal à '@dev'", "correct": false, "position": 1 },
+        { "label": "Les emails qui ne contiennent pas d'arobase", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `WHERE phone = NULL` ne renvoie jamais aucune ligne ?",
+      "justification": "NULL veut dire « valeur inconnue » et n'est égal à rien, pas même à lui-même. On teste l'absence avec IS NULL.",
+      "position": 2,
+      "options": [
+        { "label": "NULL n'est égal à rien ; il faut écrire WHERE phone IS NULL", "correct": true, "position": 0 },
+        { "label": "Parce que NULL vaut 0 et 0 n'est jamais un téléphone", "correct": false, "position": 1 },
+        { "label": "Parce que l'opérateur = est interdit dans un WHERE", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ta liste a des millions de lignes et afficher une page très lointaine avec `LIMIT ... OFFSET ...` devient lent. Que choisir ?",
+      "justification": "Sur de gros offsets, le moteur parcourt et jette les lignes sautées. La pagination par curseur (keyset) reste rapide et stable.",
+      "position": 3,
+      "options": [
+        { "label": "La pagination par curseur (keyset) : WHERE created_at < :dernier ...", "correct": true, "position": 0 },
+        { "label": "Augmenter encore l'OFFSET jusqu'à ce que ça passe", "correct": false, "position": 1 },
+        { "label": "Retirer le ORDER BY pour aller plus vite", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

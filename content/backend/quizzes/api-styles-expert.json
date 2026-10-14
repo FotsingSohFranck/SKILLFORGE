@@ -1,0 +1,119 @@
+{
+  "ref": "api-styles-expert",
+  "node": "api-styles",
+  "lesson": "apis-asynchrones-webhooks",
+  "title": "Styles d'API, niveau expert",
+  "description": "Compatibilité protobuf, évolution GraphQL, contract testing, webhooks.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En protobuf, qu'est-ce qui définit la compatibilité binaire d'un champ ?",
+      "justification": "C'est le numéro de champ (tag), pas le nom : on ne doit jamais le réutiliser ni le changer ; renommer est sûr côté binaire.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le numéro du champ (le tag)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le nom du champ",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'ordre de déclaration dans le fichier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle évolution d'un schéma GraphQL est CASSANTE pour les clients ?",
+      "justification": "Retirer un champ ou le rendre non-nullable casse les clients ; ajouter des champs ou déprécier est sûr.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Retirer un champ ou le rendre soudain non-nullable",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter un nouveau champ optionnel",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Marquer un champ @deprecated",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les contract tests (ex. Pact) ?",
+      "justification": "Ils vérifient dans la CI qu'une évolution de l'API ne casse aucun consommateur, avant le déploiement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vérifier qu'un changement d'API ne casse aucun consommateur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Mesurer la latence de l'API",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Générer la documentation",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un webhook est livré « au moins une fois » (at-least-once). Comment le receveur évite-t-il de traiter deux fois le même événement ?",
+      "justification": "En étant idempotent : un event_id unique permet de dédupliquer les rejeux et de n'agir qu'une fois.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Il déduplique via un event_id unique (idempotence)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ignore tout webhook après le premier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il désactive les retries",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Signer un webhook avec un HMAC (secret partagé) permet au receveur de vérifier qu'il provient bien de l'émetteur attendu.",
+      "justification": "Vrai : le receveur recalcule le HMAC du corps et le compare ; une signature invalide révèle une requête falsifiée ou usurpée.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

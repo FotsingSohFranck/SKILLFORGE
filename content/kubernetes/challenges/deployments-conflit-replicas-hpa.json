@@ -1,0 +1,17 @@
+{
+  "node": "deployments",
+  "lesson": "rollouts-en-profondeur",
+  "title": "Le nombre de pods qui fait le yo-yo",
+  "statement": "Un collègue a laissé `replicas: 4` en dur dans le manifeste d'un Deployment qui est **aussi** géré par un **HPA** (Horizontal Pod Autoscaler). Il constate que le nombre de pods « saute » sans arrêt : il monte, redescend à 4, remonte... Explique la **cause** du problème, puis donne la **correction** (côté manifeste et côté GitOps).",
+  "skeleton": "",
+  "solution": "Cause : deux gestionnaires se disputent le même champ replicas. L'HPA POSSÈDE ce champ et l'ajuste selon la charge. Mais comme replicas: 4 est écrit en dur dans le manifeste, chaque kubectl apply (ou chaque synchronisation GitOps, ex. Argo CD) remet la valeur à 4 et écrase la décision de l'HPA. L'HPA la recorrige aussitôt selon la charge, l'apply/sync suivant la réécrit à 4, etc. : c'est le yo-yo de scaling, un va-et-vient permanent (un champ mutable, deux propriétaires en conflit). Correction : appliquer la règle « un champ mutable, un seul propriétaire ». (1) Côté manifeste : NE PAS déclarer replicas dans le Deployment autoscalé  -  on retire complètement le champ pour le laisser à l'HPA (server-side apply retient alors que c'est l'HPA qui possède ce champ). (2) Côté GitOps (Argo CD) : configurer le contrôleur pour IGNORER les différences sur spec.replicas (ignoreDifferences), sinon Argo verrait un écart permanent et resynchroniserait sans cesse. Résultat : l'HPA est le seul à écrire replicas, plus de bataille d'écriture, le scaling se stabilise.",
+  "keyPoints": [
+    "HPA",
+    "replicas",
+    "propriétaire",
+    "apply",
+    "yo-yo",
+    "ignore"
+  ],
+  "language": "text"
+}

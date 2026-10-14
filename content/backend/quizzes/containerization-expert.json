@@ -1,0 +1,119 @@
+{
+  "ref": "containerization-expert",
+  "node": "containerization",
+  "lesson": "deployer-kubernetes-essentiel-backend",
+  "title": "Conteneurs, niveau expert",
+  "description": "Namespaces/cgroups, cache de couches, SIGTERM, probes, requests/limits, HPA.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels mécanismes du noyau Linux isolent un conteneur (ce qu'il voit) et limitent ses ressources ?",
+      "justification": "Les namespaces isolent la vue (PID, réseau, montages) ; les cgroups limitent la consommation (CPU, mémoire).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les namespaces (isolation) et les cgroups (ressources)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un hyperviseur et une VM complète",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le BIOS et l'UEFI",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour que le cache Docker évite de retélécharger les dépendances à chaque changement de code, que faire ?",
+      "justification": "Copier d'abord le fichier de dépendances et les installer, PUIS copier le code : ce qui change souvent doit venir après.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Copier/installer les dépendances avant de copier le code source",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Mettre COPY . . en toute première instruction",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Utiliser l'image :latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une application conteneurisée doit-elle intercepter SIGTERM ?",
+      "justification": "SIGTERM déclenche l'arrêt gracieux (finir les requêtes en cours, fermer proprement) avant le SIGKILL brutal.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Pour un arrêt gracieux avant le SIGKILL forcé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour accélérer le démarrage",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour ignorer les mises à jour",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle probe Kubernetes doit vérifier la disponibilité d'une dépendance externe (comme la base) ?",
+      "justification": "La readiness probe : si la dépendance manque, le Pod est retiré du trafic sans être tué ; la liveness redémarrerait à tort.",
+      "position": 3,
+      "options": [
+        {
+          "label": "La readiness probe",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La liveness probe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune, il ne faut jamais tester les dépendances",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un conteneur qui dépasse sa limite mémoire est tué (OOMKilled) par Kubernetes.",
+      "justification": "Vrai : dépasser la limite mémoire déclenche un OOMKill ; dépasser la limite CPU throttle (ralentit) le conteneur.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

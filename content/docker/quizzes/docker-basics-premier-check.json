@@ -1,0 +1,96 @@
+{
+  "ref": "docker-basics-premier-check",
+  "node": "docker-basics",
+  "lesson": "premier-conteneur",
+  "title": "Quiz, Votre premier conteneur",
+  "description": "Image vs conteneur, docker run, publication de ports.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle phrase décrit correctement la relation entre une image et un conteneur ?",
+      "justification": "L'image est le modèle figé (le moule) ; le conteneur est une instance vivante lancée à partir de cette image (le gâteau).",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'image est un modèle figé ; le conteneur est une instance vivante lancée depuis cette image",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le conteneur est un modèle figé ; l'image est une copie qui tourne",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Image et conteneur sont deux mots pour la même chose",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `docker run <image>` en une seule commande ?",
+      "justification": "Elle télécharge l'image depuis un registre si elle est absente (pull), crée un conteneur à partir d'elle, puis le démarre.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Télécharge l'image si absente, crée un conteneur, puis le démarre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construit une image à partir d'un Dockerfile",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Affiche la configuration d'un conteneur existant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu lances `docker run -d nginx`, le conteneur tourne, mais `http://localhost:8080` ne répond pas. Que dois-tu ajouter ?",
+      "justification": "Il faut publier le port : `-p 8080:80` relie le port 8080 de l'hôte au port 80 du conteneur. Sans -p, le service reste isolé dans le réseau du conteneur.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'option de publication de port : `-p 8080:80`",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'option `--rm` pour supprimer le conteneur à la fin",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rien, il faut juste attendre plus longtemps",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sans l'option `-p`, le port 80 d'un conteneur est automatiquement accessible depuis la machine hôte.",
+      "justification": "Faux : le conteneur a son propre réseau isolé. Sans publication de port (-p hôte:conteneur), le service tourne mais reste injoignable depuis l'hôte.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

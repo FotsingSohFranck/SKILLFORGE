@@ -1,0 +1,52 @@
+{
+  "ref": "indexes-performance-nplus1-check",
+  "node": "indexes-performance",
+  "lesson": "probleme-n-plus-un",
+  "title": "Quiz : le problème N+1",
+  "description": "Reconnaître un N+1, son symptôme, le détecter et le corriger.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le problème N+1 ?",
+      "justification": "1 requête charge la liste, puis 1 requête par élément (N) : total 1 + N requêtes, d'où le nom.",
+      "position": 0,
+      "options": [
+        { "label": "1 requête pour une liste, puis 1 requête par élément de la liste", "correct": true, "position": 0 },
+        { "label": "Une requête qui échoue N fois avant de réussir", "correct": false, "position": 1 },
+        { "label": "Un index qui contient N+1 colonnes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le symptôme typique d'un N+1 ?",
+      "justification": "La lenteur croît avec la quantité de données affichées : invisible sur 5 éléments, dramatique sur 5000.",
+      "position": 1,
+      "options": [
+        { "label": "Une page dont la lenteur augmente avec la quantité de données", "correct": true, "position": 0 },
+        { "label": "Une erreur 500 dès la première ligne", "correct": false, "position": 1 },
+        { "label": "Un ralentissement uniquement la nuit", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment corriger le plus souvent un N+1 ?",
+      "justification": "On charge la liste et ses détails en une seule requête avec une jointure (ou un WHERE id IN (...)), au lieu de N requêtes séparées.",
+      "position": 2,
+      "options": [
+        { "label": "Charger liste et détails en une seule requête avec un JOIN (ou WHERE IN)", "correct": true, "position": 0 },
+        { "label": "Ajouter d'abord un cache par-dessus les N requêtes", "correct": false, "position": 1 },
+        { "label": "Supprimer les clés étrangères", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un N+1 est fiable à repérer en développement, car il apparaît toujours nettement dès les premiers tests.",
+      "justification": "Faux : avec peu de données de test il passe inaperçu ; on le détecte en comptant les requêtes (logs SQL, métriques), pas à l'œil.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

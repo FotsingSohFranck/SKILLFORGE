@@ -1,0 +1,119 @@
+{
+  "ref": "sql-expert",
+  "node": "sql-modeling",
+  "lesson": "modelisation-avancee-optimisation",
+  "title": "SQL, niveau expert",
+  "description": "Récursif, UPSERT, LATERAL, modélisation, optimisation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment parcourir une hiérarchie (tous les descendants d'un nœud) en pur SQL ?",
+      "justification": "Une CTE récursive (WITH RECURSIVE) descend la hiérarchie sans boucle applicative ni N+1.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une CTE récursive (WITH RECURSIVE)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une boucle côté application (N requêtes)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un simple GROUP BY",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle clause réalise un insert-ou-update atomique et idempotent ?",
+      "justification": "ON CONFLICT ... DO UPDATE (UPSERT) insère ou met à jour en une requête atomique.",
+      "position": 1,
+      "options": [
+        {
+          "label": "INSERT ... ON CONFLICT DO UPDATE",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "SELECT puis INSERT en deux temps",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "TRUNCATE puis INSERT",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un « top-N par groupe », quelle construction SQL est adaptée ?",
+      "justification": "Une jointure LATERAL (ou une window function row_number PARTITION BY) fait le top-N par groupe efficacement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une jointure LATERAL (ou window function)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un DISTINCT",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un HAVING",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `WHERE lower(email) = '...'` peut-il empêcher l'usage d'un index sur `email` ?",
+      "justification": "Appliquer une fonction à la colonne rend le prédicat non-sargable ; il faut un index d'expression sur lower(email).",
+      "position": 3,
+      "options": [
+        {
+          "label": "La fonction sur la colonne rend le prédicat non indexable tel quel",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "lower() est interdit en SQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "email ne peut pas être indexé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter `deleted_at` (soft delete) sur toutes les tables est sans conséquence sur les autres requêtes.",
+      "justification": "Non : toutes les lectures doivent filtrer deleted_at IS NULL, ce qui alourdit requêtes, contraintes d'unicité et jointures.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

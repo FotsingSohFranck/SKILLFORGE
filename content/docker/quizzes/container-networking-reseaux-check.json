@@ -1,0 +1,52 @@
+{
+  "ref": "container-networking-reseaux-check",
+  "node": "container-networking",
+  "lesson": "les-reseaux-docker",
+  "title": "Les réseaux Docker",
+  "description": "Network namespace, driver par défaut, DNS interne par nom, driver host.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Grâce à quel mécanisme Linux chaque conteneur possède-t-il sa propre pile réseau (interfaces, IP, ports) ?",
+      "justification": "Le network namespace est la cloison qui isole la pile réseau : chaque conteneur a ses propres interfaces, sa propre IP et ses propres ports.",
+      "position": 0,
+      "options": [
+        { "label": "Le network namespace (espace de noms réseau)", "correct": true, "position": 0 },
+        { "label": "Le système de fichiers en union", "correct": false, "position": 1 },
+        { "label": "Le hash de l'image", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel driver relie les conteneurs par défaut quand tu travailles sur une seule machine ?",
+      "justification": "Par défaut Docker utilise le driver bridge : un pont virtuel privé sur l'hôte, le cas courant sur un seul hôte.",
+      "position": 1,
+      "options": [
+        { "label": "bridge", "correct": true, "position": 0 },
+        { "label": "overlay", "correct": false, "position": 1 },
+        { "label": "macvlan", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur un réseau personnalisé, pourquoi joindre un conteneur par son nom (ex. `db`) plutôt que par son IP ?",
+      "justification": "L'IP d'un conteneur est dynamique et change à chaque recréation ; le nom est stable et le DNS interne de Docker le résout vers l'IP courante.",
+      "position": 2,
+      "options": [
+        { "label": "L'IP change à chaque recréation, le nom reste stable (résolu par le DNS interne)", "correct": true, "position": 0 },
+        { "label": "Le nom est plus rapide que l'IP", "correct": false, "position": 1 },
+        { "label": "Les IP sont interdites dans Docker", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec le driver `host`, le conteneur garde une pile réseau isolée de celle de l'hôte.",
+      "justification": "Faux : le driver host fait PARTAGER directement la pile réseau de l'hôte au conteneur, sans isolation ni traduction de ports.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

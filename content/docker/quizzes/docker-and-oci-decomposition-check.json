@@ -1,0 +1,96 @@
+{
+  "ref": "docker-and-oci-decomposition-check",
+  "node": "docker-and-oci",
+  "lesson": "docker-nest-pas-seul",
+  "title": "Quiz, Docker n'est pas seul",
+  "description": "CLI vs daemon, décomposition de Docker, standards OCI et registre.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand tu tapes `docker run`, qui fait réellement le travail (télécharger l'image, démarrer le conteneur) ?",
+      "justification": "La CLI `docker` ne fait que transmettre l'ordre ; c'est le daemon `dockerd`, qui tourne en fond, qui exécute le vrai travail.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le daemon `dockerd` (la CLI ne fait que transmettre l'ordre)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La CLI `docker` toute seule",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'entreprise Docker Inc. à distance",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que standardise l'Open Container Initiative (OCI) ?",
+      "justification": "L'OCI publie trois specs : le format d'image (image-spec), l'exécution (runtime-spec) et la distribution par les registres (distribution-spec).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le format d'image, l'exécution (runtime) et la distribution des images",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le prix des abonnements Docker",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La vitesse d'Internet nécessaire aux conteneurs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un registre (registry) dans le vocabulaire des conteneurs ?",
+      "justification": "Un registre est le serveur où l'on range et télécharge les images (par exemple Docker Hub ou GHCR) ; la distribution-spec OCI décrit son fonctionnement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le serveur où l'on range et télécharge les images (ex. Docker Hub)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le fichier de configuration d'un conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le processus qui isole un conteneur du noyau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une image construite avec Docker enferme le projet dans l'écosystème Docker pour toujours.",
+      "justification": "Faux : l'image respecte l'OCI image-spec, un standard ouvert. Elle tourne aussi avec Podman, containerd ou dans Kubernetes, sans aucune modification.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "deploying-containers",
+  "lesson": "swarm-gitops-observabilite",
+  "title": "Un service Swarm mis à jour sans coupure",
+  "statement": "Complète la section `deploy:` d'un service Docker Swarm nommé `api` (image `monorg/api:2.0.0`) pour qu'il tourne en **4 répliques** et se mette à jour **sans coupure** : Swarm doit remplacer **une seule** réplique à la fois (`parallelism`), attendre **10 secondes** entre chaque (`delay`), et **démarrer la nouvelle avant d'arrêter l'ancienne** (`order: start-first`).",
+  "skeleton": "services:\n  api:\n    image: monorg/api:2.0.0\n    deploy:\n      # complete ici : replicas + update_config\n",
+  "solution": "services:\n  api:\n    image: monorg/api:2.0.0\n    deploy:\n      replicas: 4\n      update_config:\n        parallelism: 1\n        delay: 10s\n        order: start-first",
+  "keyPoints": ["replicas: 4", "update_config", "parallelism: 1", "delay: 10s", "order: start-first"],
+  "language": "yaml"
+}

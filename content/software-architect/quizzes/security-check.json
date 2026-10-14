@@ -1,0 +1,96 @@
+{
+  "ref": "security-check",
+  "node": "security",
+  "lesson": "la-securite-se-concoit",
+  "title": "Quiz, Sécurité",
+  "description": "Security by design, hachage/chiffrement/PKI, OWASP & auth.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment stocker les mots de passe ?",
+      "justification": "Jamais en clair : on les hache avec une fonction adaptée (bcrypt/argon2) et un sel unique, le hachage est à sens unique.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Hachés avec bcrypt/argon2 et un sel, jamais en clair",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En clair, c'est plus simple",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrés avec un algorithme maison",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre hachage et chiffrement ?",
+      "justification": "Le hachage est irréversible (vérifier sans retrouver) ; le chiffrement est réversible avec une clé (symétrique ou asymétrique).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le hachage est à sens unique, le chiffrement est réversible avec une clé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux mots pour la même chose",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement est à sens unique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que faut-il absolument éviter en cryptographie ?",
+      "justification": "Ne jamais inventer sa propre crypto : presque toujours cassable ; on s'appuie sur des primitives standard, éprouvées et bien configurées.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Inventer son propre algorithme de chiffrement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Utiliser TLS pour le transport",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Se référer à l'OWASP Top 10",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La sécurité se conçoit dès le départ (security by design), pas comme une couche ajoutée à la fin.",
+      "justification": "Vrai : défense en profondeur, moindre privilège, secure defaults et threat modeling s'intègrent en amont ; l'ajouter à la fin construit sur des fondations vulnérables.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

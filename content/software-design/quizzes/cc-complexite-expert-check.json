@@ -1,0 +1,96 @@
+{
+  "ref": "cc-complexite-expert-check",
+  "node": "clean-code",
+  "lesson": "mesurer-complexite-maintenabilite",
+  "title": "Quiz, Mesurer la complexité (expert)",
+  "description": "Cyclomatique vs cognitive, quality gates, clean as you code, pièges de la couverture.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence essentielle entre complexité cyclomatique et complexité cognitive ?",
+      "justification": "La cyclomatique compte les chemins (≈ nombre de tests nécessaires) et traite tous les branchements pareil ; la cognitive mesure l'effort de lecture en pénalisant surtout l'imbrication et les ruptures de flot.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La cyclomatique mesure la testabilité (chemins) ; la cognitive mesure la lisibilité (effort humain, imbrication pénalisée)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux noms pour la même métrique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La cognitive compte les lignes, la cyclomatique les classes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un `switch` bien plat de 12 cas, sans imbrication : comment le jugent les deux métriques ?",
+      "justification": "La cyclomatique le note élevé (beaucoup de chemins), mais la cognitive le pénalise peu car il n'y a pas d'imbrication, c'est justement ce qu'elle corrige.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Cyclomatique élevée, mais cognitive faible (pas d'imbrication)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les deux le notent très mauvais",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les deux l'ignorent",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie « clean as you code » pour un quality gate en CI ?",
+      "justification": "Le gate porte sur le code neuf ou modifié, pas sur toute la dette historique : on empêche d'AJOUTER de la dette sans bloquer sur l'existant.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le gate s'applique au code neuf/modifié, pas à la dette historique",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il faut réécrire tout le legacy avant chaque merge",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On désactive le linter sur le code récent",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Viser 100 % de couverture de tests garantit des tests de qualité.",
+      "justification": "Faux : la couverture est un signal (lignes exécutées), pas une preuve. On peut atteindre 100 % avec des tests sans assertions pertinentes ; en faire une cible pousse à des tests creux (loi de Goodhart).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

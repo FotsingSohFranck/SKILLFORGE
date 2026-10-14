@@ -1,0 +1,10 @@
+{
+  "node": "structured-concurrency",
+  "lesson": "en-pratique",
+  "title": "Combine deux appels avec ShutdownOnFailure",
+  "statement": "Complète la méthode chargerPage : lance en parallèle serviceProfil.get(id) et serviceCommandes.get(id) dans une portée ShutdownOnFailure, attends les deux, relance l'erreur éventuelle, puis renvoie un record PageProfil combinant les deux résultats. On a besoin des deux résultats : c'est un cas de tout ou rien.",
+  "skeleton": "record PageProfil(Utilisateur profil, List<Commande> commandes) { }\n\nPageProfil chargerPage(String id) throws Exception {\n    // Ouvre une portee ShutdownOnFailure avec try-with-resources\n    // fork les deux appels, join(), throwIfFailed()\n    // puis renvoie new PageProfil(...)\n}",
+  "solution": "record PageProfil(Utilisateur profil, List<Commande> commandes) { }\n\nPageProfil chargerPage(String id) throws Exception {\n    try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {\n        Subtask<Utilisateur> profil = scope.fork(() -> serviceProfil.get(id));\n        Subtask<List<Commande>> commandes = scope.fork(() -> serviceCommandes.get(id));\n        scope.join();\n        scope.throwIfFailed();\n        return new PageProfil(profil.get(), commandes.get());\n    }\n}",
+  "keyPoints": ["ShutdownOnFailure", "fork", "join", "throwIfFailed", "--enable-preview"],
+  "language": "java"
+}

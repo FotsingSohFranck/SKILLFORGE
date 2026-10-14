@@ -1,0 +1,10 @@
+{
+  "node": "virtual-threads",
+  "lesson": "creer-des-virtual-threads",
+  "title": "Crée un executor de threads virtuels",
+  "statement": "Complète la méthode lancer() : ouvre un executor qui crée un thread virtuel par tâche, soumets les 3 tâches fournies, et assure toi que toutes sont terminées avant de sortir de la méthode. Indice : utilise try-with-resources pour que la fermeture attende la fin des tâches.",
+  "skeleton": "import java.util.List;\nimport java.util.concurrent.Executors;\n\npublic class Lanceur {\n    static void lancer(List<Runnable> taches) {\n        // 1. Ouvre ici un executor un-thread-virtuel-par-tache (try-with-resources)\n        // 2. Soumets chaque tache\n        // 3. La fermeture de l'executor attend la fin de toutes les taches\n    }\n}\n",
+  "solution": "import java.util.List;\nimport java.util.concurrent.Executors;\n\npublic class Lanceur {\n    static void lancer(List<Runnable> taches) {\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            for (Runnable tache : taches) {\n                executor.submit(tache);\n            }\n        } // close() attend la fin de toutes les taches soumises\n    }\n}",
+  "keyPoints": ["Executors.newVirtualThreadPerTaskExecutor", "try (var executor =", "executor.submit", "un thread virtuel par tache"],
+  "language": "java"
+}

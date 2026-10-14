@@ -1,0 +1,96 @@
+{
+  "ref": "modules-design-check",
+  "node": "modules",
+  "lesson": "concevoir-de-bons-modules",
+  "title": "Concevoir de bons modules",
+  "description": "Interface (variables/outputs), granularité, versionnage, agnostique du provider.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise un bon module ?",
+      "justification": "Une interface claire (variables typées/documentées, outputs utiles) et une responsabilité cohérente, ni trop petit, ni trop gros.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une interface claire et une responsabilité cohérente",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le plus de ressources possible dans un seul module",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un module par ressource triviale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne pas mettre de bloc provider figé dans un module réutilisable ?",
+      "justification": "Il imposerait sa région/config à tous les appelants ; le provider appartient au root, pour que le module reste agnostique et portable.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il imposerait sa config à tous ; le provider appartient au root",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les providers sont interdits partout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Cela chiffre le module",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un module ne doit-il pas contenir de bloc backend ?",
+      "justification": "Le backend (où vit l'état) est une préoccupation du module racine ; chaque projet appelant décide où va son état.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le backend appartient au module racine, pas au module réutilisé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le backend doit être dans chaque module",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le backend est optionnel partout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un bon module se traite comme un produit interne : versionné, documenté, testé et réutilisable en confiance.",
+      "justification": "Vrai : ce n'est pas juste du code déplacé ; on soigne interface, version, doc et tests pour une réutilisation fiable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

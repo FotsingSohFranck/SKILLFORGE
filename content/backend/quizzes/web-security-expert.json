@@ -1,0 +1,119 @@
+{
+  "ref": "web-security-expert",
+  "node": "web-security",
+  "lesson": "chaine-approvisionnement-crypto",
+  "title": "Sécurité web, niveau expert",
+  "description": "SSRF, désérialisation, mass assignment, supply chain, crypto appliquée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un endpoint récupère une URL fournie par l'utilisateur depuis le serveur. Quelle cible cloud une SSRF vise-t-elle typiquement ?",
+      "justification": "L'endpoint de métadonnées cloud (169.254.169.254), qui peut divulguer des identifiants IAM depuis le réseau interne.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'endpoint de métadonnées cloud (169.254.169.254)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le cache du navigateur de l'utilisateur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le certificat TLS public",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un client ajoute `\"role\": \"ADMIN\"` au JSON d'inscription et est lié directement à l'entité. Quelle faille est-ce ?",
+      "justification": "Mass assignment : lier automatiquement le corps à l'objet expose des champs non prévus ; il faut des DTO d'entrée explicites.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Mass assignment",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un déni de service",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un XSS stocké",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel principe commun relie SQLi, XSS, SSRF, XXE et l'injection de commandes ?",
+      "justification": "Une donnée contrôlée par l'attaquant finit interprétée comme une instruction ; la défense sépare structurellement donnée et code.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une donnée est interprétée comme une instruction",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un mot de passe trop court",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un certificat TLS expiré",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que faire pour chiffrer des données sensibles au repos ?",
+      "justification": "Utiliser une bibliothèque éprouvée avec un mode authentifié (AES-GCM) et confier les clés à un KMS, jamais de crypto maison.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Une lib éprouvée (AES-GCM) + clés dans un KMS",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Écrire sa propre fonction de chiffrement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Encoder en Base64",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Scanner ses dépendances (SCA) et réagir vite aux CVE fait partie de la sécurité, car une faille dans une dépendance (ex. Log4Shell) devient la vôtre.",
+      "justification": "Vrai : le code tiers est une surface d'attaque ; SCA, épinglage de versions, SBOM et mises à jour rapides sont indispensables.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

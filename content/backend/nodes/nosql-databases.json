@@ -1,0 +1,280 @@
+{
+  "node": "nosql-databases",
+  "lessons": [
+    {
+      "slug": "pourquoi-et-quand",
+      "title": "Pourquoi et quand du NoSQL",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Au-delà du relationnel",
+          "body": "Avant de parler de **NoSQL**, rappelons ce qu'est une **base de données relationnelle** (comme PostgreSQL ou MySQL) : elle range les données dans des **tables**, c'est-à-dire des tableaux faits de lignes et de colonnes, avec un **schéma** strict (chaque colonne a un type fixé) et un langage pour les interroger, le **SQL**.\n\n**NoSQL** (pour *not only SQL*, « pas seulement SQL ») regroupe les bases qui **renoncent à une partie** de ce modèle relationnel pour gagner ailleurs. Trois gains typiques :\n- l'**échelle horizontale** (*scale out*) : répartir les données sur *beaucoup* de machines ordinaires qui travaillent ensemble, plutôt que de faire grossir une seule machine très puissante (*scale up*, l'échelle verticale) ;\n- le **schéma flexible** : ne pas imposer une forme figée aux données ;\n- un **modèle de données** différent, mieux adapté à certains cas (un **graphe** pour des relations, une **série temporelle** pour des mesures horodatées).\n\n👉 **Analogie** : le relationnel, c'est un **classeur administratif** aux cases bien définies, où tout formulaire doit rentrer dans les cases prévues. Le NoSQL, c'est plutôt une **boîte à fiches** où tu ranges des documents de formes variées : plus souple, mais c'est à toi de t'y retrouver.\n\nAttention au piège : NoSQL n'est **ni « mieux » ni « plus moderne »** que le relationnel. C'est un **compromis** qu'on choisit quand le relationnel atteint une vraie limite (par exemple des millions d'écritures par seconde à répartir sur un *cluster*, un groupe de machines), pas par mode. Pour la grande majorité des applications, une base relationnelle reste le meilleur choix par défaut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le NoSQL depasse le relationnel quand le schema varie ou que l'echelle horizontale prime.",
+          "body": "/images/lessons/pourquoi-et-quand-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Schéma flexible = responsabilité déplacée",
+          "body": "On a dit que beaucoup de bases NoSQL ont un **schéma flexible**. Précisons ce que ça change concrètement.\n\nUn **schéma**, c'est la **forme imposée** aux données : en relationnel, tu déclares à l'avance qu'une table `utilisateur` a une colonne `email` de type texte, une colonne `age` de type entier, etc. Toute ligne doit respecter cette forme, sinon la base **refuse** l'insertion.\n\nBeaucoup de bases NoSQL sont au contraire **sans schéma imposé** (*schemaless*) : tu stockes des **documents** de formes variées dans un même ensemble. Un **document**, c'est un objet structuré (souvent au format JSON) qui contient toutes les infos d'une entité. Rien n'oblige deux documents à avoir exactement les mêmes champs.\n\n👉 **Analogie** : le schéma strict, c'est un **formulaire papier** où chaque case est obligatoire et typée. Le schemaless, c'est une **feuille blanche** : tu écris ce que tu veux, comme tu veux.\n\nLe revers : la **cohérence de forme** (le fait que toutes tes données se ressemblent et restent valides) ne repose plus sur la base, mais sur **ton application**. Ce qu'une contrainte SQL garantissait automatiquement (« l'email est obligatoire et unique ») devient du **code que tu dois écrire et tester** toi-même. **Exemple concret** : si un bug oublie le champ `email` dans certains documents, la base NoSQL les acceptera sans broncher, et tu ne t'en apercevras qu'en relisant ces données cassées plus tard. La flexibilité ne supprime pas la discipline : elle la **déplace** du moteur de base de données vers toi."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Schema flexible = responsabilite deplacee : c'est l'application qui garantit la coherence.",
+          "body": "/images/lessons/pourquoi-et-quand-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Choisir : relationnel ou quelle famille NoSQL ?",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Nouveau besoin de stockage\"] --> B{\"Donnees structurees, reliees, besoin de transactions ?\"}\n    B -->|Oui| C[\"Relationnel : PostgreSQL\"]\n    B -->|Non| D{\"Quel besoin domine ?\"}\n    D -->|\"Cache, sessions, latence mini\"| E[\"Cle-valeur : Redis\"]\n    D -->|\"Documents varies lus ensemble\"| F[\"Document : MongoDB\"]\n    D -->|\"Relations entre entites\"| G[\"Graphe : Neo4j\"]\n    D -->|\"Mesures horodatees\"| H[\"Time-series : InfluxDB\"]\n    D -->|\"Ecriture massive distribuee\"| I[\"Colonnes larges : Cassandra\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une équipe veut « passer au NoSQL » pour un CRUD classique de gestion d'utilisateurs et de commandes, bien structuré et relié. Bonne idée ? Justifie.",
+          "solution": "Probablement non : des données structurées et reliées, avec un besoin de transactions et de requêtes variées, sont le terrain idéal du relationnel. Passer au NoSQL perdrait les contraintes et les jointures pour un gain d'échelle dont ce CRUD n'a pas besoin. On choisit NoSQL pour un vrai besoin (débit extrême, modèle graphe ou temps réel), pas par défaut ni par effet de mode."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Pourquoi et quand du NoSQL",
+          "quizRef": "nosql-databases-pourquoi-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-familles",
+      "title": "Les familles de bases NoSQL",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Document & clé-valeur",
+          "body": "Première grande famille : les bases **document** (MongoDB, CouchDB). Elles stockent des **documents** au format **JSON** (un texte structuré en paires *clé: valeur*, avec des objets et des listes imbriqués). Un document rassemble **tout un objet métier** d'un coup.\n👉 **Analogie** : un document, c'est une **fiche cartonnée complète** : sur la même fiche « commande », tu as le client, l'adresse et la liste des articles, au lieu de les éparpiller dans plusieurs tableaux.\n**Exemple** : une commande stockée telle quelle : `{ \"client\": \"Ada\", \"articles\": [ {\"nom\": \"clavier\", \"prix\": 40} ], \"total\": 40 }`, lue en une seule requête. Idéal pour des données semi-structurées qu'on lit ensemble.\n\nDeuxième famille : les bases **clé-valeur** (Redis, DynamoDB). Le principe est minimal : tu ranges une **valeur** et tu la récupères par sa **clé**, comme dans un dictionnaire. La **latence** (le temps de réponse) se compte en **microsecondes** (des millionièmes de seconde).\n👉 **Analogie** : une **consigne à bagages** : tu donnes ton ticket (la clé), on te rend ton sac (la valeur), sans poser de question sur son contenu.\nC'est parfait pour le **cache** (garder sous la main un résultat coûteux à recalculer), les **sessions** (l'état d'un utilisateur connecté) ou des **compteurs**. Le prix de cette simplicité : tu interroges les données **uniquement par la clé**, jamais par leur contenu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Document (JSON) et cle-valeur : deux familles pour des acces simples et rapides.",
+          "body": "/images/lessons/les-familles-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Colonnes, graphe, temps réel",
+          "body": "**Colonnes larges** (*wide-column*, Cassandra) : conçues pour encaisser une **écriture massive** répartie sur de nombreuses machines, sur de très gros volumes (journaux d'activité, événements). En contrepartie, les **motifs d'accès** (la façon dont tu vas lire les données) doivent être **connus d'avance**.\n👉 **Analogie** : un **entrepôt géant** organisé pour ranger des palettes très vite, à condition d'avoir décidé le plan de rangement avant de commencer.\n\n**Graphe** (Neo4j) : ici les **nœuds** (les entités, par exemple des personnes) et les **relations** entre eux (« est ami avec », « a aimé ») sont des objets de **premier plan**, stockés explicitement. Résultat : suivre une chaîne de relations (une *traversée*) est immédiat.\n👉 **Analogie** : un **plan de métro** où les stations (les nœuds) et les lignes (les relations) sont déjà dessinées : trouver un itinéraire est direct. Imbattable pour les réseaux sociaux, les recommandations, les dépendances.\n\n**Time-series** (*série temporelle*, InfluxDB, TimescaleDB) : optimisées pour des **mesures horodatées**, c'est-à-dire des valeurs associées à un instant précis (température toutes les secondes, métriques serveur, capteurs IoT).\n👉 **Analogie** : un **carnet de bord** où chaque ligne est datée, qu'on remplit sans cesse et qu'on relit par tranches de temps.\n\nÀ retenir : chaque famille **excelle sur un modèle précis** et serait maladroite ailleurs. On choisit la famille d'après la forme de la donnée et les accès attendus, pas l'inverse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Colonnes larges, graphe, temps reel : d'autres familles pour d'autres formes de donnees.",
+          "body": "/images/lessons/les-familles-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Concevoir autour des accès (niveau expert)",
+          "body": "Voici le renversement mental le plus important du NoSQL. En **relationnel**, tu modélises d'abord les données « proprement » (chaque info une seule fois), puis tu les interroges **sous n'importe quel angle** grâce aux jointures. Tu peux même poser une question à laquelle tu n'avais pas pensé au départ.\n\nEn **NoSQL**, on fait l'**inverse** : on part des **motifs d'accès** (*access patterns*), c'est-à-dire la **liste précise des requêtes** que l'application fera et à quelle fréquence, puis on **modélise pour ces requêtes**. On range la donnée déjà « prête à être lue » telle qu'elle sera demandée, quitte à la **dupliquer** à plusieurs endroits.\n\n👉 **Analogie** : le relationnel, c'est une **cuisine avec des ingrédients bruts** que tu combines en n'importe quel plat à la demande. Le NoSQL, c'est des **plats préparés** : ultra rapides à servir, mais figés dans la recette prévue.\n\n**Exemple** : sur DynamoDB, si tu choisis une **clé** (l'identifiant qui sert à retrouver la donnée) mal adaptée, ou si tu découpes mal un document, un **nouveau** besoin de lecture peut devenir presque impossible à satisfaire sans tout remodéliser. La souplesse de lecture du relationnel n'est pas gratuite : en NoSQL, tu la troques contre de la vitesse et de l'échelle, à condition d'avoir bien anticipé tes requêtes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En NoSQL, on modelise autour des acces : la forme des donnees suit les requetes.",
+          "body": "/images/lessons/les-familles-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Pour un moteur de recommandation « les amis de mes amis qui aiment X », quelle famille NoSQL est la plus adaptée et pourquoi ?",
+          "solution": "Une base graphe (Neo4j) : les relations (amitié, préférences) sont des objets de premier plan, et la traversée « amis d'amis » est une opération native et rapide. En relationnel, cela exigerait des auto-jointures multiples coûteuses ; le graphe rend ces parcours naturels et performants."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Les familles de bases NoSQL",
+          "quizRef": "nosql-databases-familles-check"
+        }
+      ]
+    },
+    {
+      "slug": "polyglotte-et-coherence",
+      "title": "Persistance polyglotte & cohérence",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le bon outil pour chaque donnée",
+          "body": "Rien ne t'oblige à tout mettre dans **une seule** base. La **persistance polyglotte** (*polyglot persistence*) consiste à utiliser **plusieurs systèmes de stockage** dans la même application, chacun pour ce qu'il fait de mieux.\n👉 **Analogie** : tu ne transportes pas tes courses, tes enfants et ton canapé avec le même véhicule : tu choisis l'outil adapté à chaque charge. Pareil pour les données.\n\n**Exemple typique** d'architecture polyglotte :\n- **PostgreSQL** pour le **cœur transactionnel** (comptes, commandes) qui exige des garanties fortes ;\n- **Redis** pour le **cache** et les **sessions** (rapidité) ;\n- **Elasticsearch** pour la **recherche** plein texte (retrouver « chaussures rouges » dans un catalogue) ;\n- une base **time-series** pour les **métriques**.\n\nChaque donnée va là où elle est le mieux servie. La **contrepartie**, à ne pas sous-estimer : plus de systèmes à installer, surveiller, sauvegarder, et à **garder cohérents** entre eux (par exemple invalider le cache Redis quand PostgreSQL change)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Persistance polyglotte : le bon moteur pour chaque type de donnee, pas une base pour tout.",
+          "body": "/images/lessons/polyglotte-et-coherence-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Cohérence forte vs à terme",
+          "body": "Une base **distribuée** (répartie sur plusieurs machines) garde souvent **plusieurs copies** de la même donnée, appelées **réplicas**, sur des machines différentes (pour la vitesse et pour survivre aux pannes). Question clé : après une écriture, **toutes** les copies sont-elles à jour immédiatement ?\n\nBeaucoup de bases NoSQL offrent une **cohérence à terme** (*eventual consistency*) : après une écriture, les réplicas **finissent** par converger vers la même valeur, mais pendant un court instant, une lecture faite sur un autre réplica peut encore voir l'**ancienne** valeur.\n👉 **Analogie** : une **rumeur** qui se propage. Une fois lancée, tout le monde finira par la connaître, mais pendant un moment, certains sont déjà au courant et d'autres non.\n\nÀ l'opposé, la **cohérence forte** (*strong consistency*) garantit que toute lecture, juste après une écriture, voit la **nouvelle** valeur, au prix d'un peu plus de latence.\n\n**Exemple** : voir un « like » de retard sur un fil d'actualité est sans conséquence (la cohérence à terme suffit largement). Voir un **solde bancaire** périmé, en revanche, est inacceptable (il faut de la cohérence forte). On choisit donc le niveau **selon la donnée**, pas une fois pour toutes. Ce curseur est approfondi au nœud suivant avec le **théorème CAP**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Coherence forte (toujours a jour) vs a terme (converge plus tard) : un compromis a choisir.",
+          "body": "/images/lessons/polyglotte-et-coherence-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une application garde le cœur des données (comptes, commandes) en PostgreSQL et ajoute Redis pour le cache et les sessions. Comment appelle-t-on cette approche, et quel est son principal coût ?",
+          "solution": "C'est la persistance polyglotte : chaque type de donnée dans le stockage le plus adapté. Coût principal : la complexité opérationnelle (plusieurs systèmes à déployer, surveiller, sauvegarder) et la gestion de la cohérence entre eux (par exemple invalider le cache Redis quand PostgreSQL change)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Bases NoSQL",
+          "quizRef": "nosql-check"
+        }
+      ]
+    },
+    {
+      "slug": "modeliser-en-nosql",
+      "title": "Modéliser en NoSQL : patterns concrets",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Documents : imbriquer ou référencer ?",
+          "body": "En base **document** (MongoDB), la décision qui structure tout est : **imbriquer** ou **référencer** les données liées ? Deux mots à définir.\n\n**Imbriquer** (*embedding*) : ranger les sous-objets **à l'intérieur** du document parent.\n**Exemple** : une commande qui contient directement ses lignes : `{ \"numero\": 42, \"lignes\": [ {\"article\": \"clavier\", \"qte\": 1} ] }`. Avantage : tu lis toute la commande en **une seule requête**. Idéal quand les données sont **lues ensemble** et **bornées** (une commande a un nombre raisonnable de lignes).\n\n**Référencer** (*referencing*) : garder seulement un **identifiant** (*id*) qui pointe vers un autre document rangé ailleurs (dans une autre **collection**, l'équivalent d'une table en relationnel).\n**Exemple** : un auteur et ses articles : l'article stocke `\"auteurId\": \"a-123\"` au lieu de recopier tout l'auteur. Avantage : pas de duplication, et pas de document géant. Idéal pour du **partagé** ou du **non borné** (un auteur peut avoir des milliers d'articles).\n\n👉 **Analogie** : imbriquer, c'est **agrafer toutes les pièces jointes** dans une seule enveloppe ; référencer, c'est joindre un **numéro de dossier** qui renvoie à un classeur rangé à part.\n\n**Règle simple** : on **imbrique** ce qu'on lit ensemble et qui ne grandit pas sans limite ; on **référence** tout le reste."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Documents : imbriquer (lire d'un coup) ou referencer (eviter la duplication) selon l'usage.",
+          "body": "/images/lessons/modeliser-en-nosql-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Clé-valeur à l'échelle : single-table design",
+          "body": "Sur DynamoDB, les experts pratiquent une technique déroutante : le **single-table design** (« conception à table unique »). Au lieu d'une table par type d'entité (comme en relationnel), on **regroupe plusieurs types** de données dans **une seule table**.\n\nLe secret tient dans les **clés composites**, faites de deux parties :\n- la **partition key** (clé de partition) : elle **regroupe** les données qui vont ensemble et décide sur quelle machine elles vivent ;\n- la **sort key** (clé de tri) : elle **ordonne** les éléments à l'intérieur d'une même partition, ce qui permet de tous les récupérer, ou par plage, en une seule requête.\n\n👉 **Analogie** : une **armoire à tiroirs**. La partition key choisit le **tiroir** (par exemple `CLIENT#42`), la sort key **ordonne les fiches dans le tiroir** (`COMMANDE#2024-01`, `COMMANDE#2024-02`...). Ainsi, « toutes les commandes du client 42 » sortent d'un seul geste.\n\nC'est ce qui garantit une **latence constante** quelle que soit la taille de la base. Le corollaire, déjà vu : on **liste d'abord les requêtes**, puis on conçoit les clés pour les servir, jamais l'inverse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cle-valeur a l'echelle : le single-table design regroupe les acces en une seule table.",
+          "body": "/images/lessons/modeliser-en-nosql-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Colonnes larges : partition & clustering keys (niveau expert)",
+          "body": "Sur Cassandra, la modélisation tourne autour de deux clés, avec un vocabulaire proche de DynamoDB mais des pièges qui lui sont propres.\n\nLa **partition key** décide sur **quel nœud** (quelle machine du cluster) vit la donnée. Elle doit **bien répartir** la charge sur toutes les machines. Si trop de données ou de trafic tombent sur la même valeur de clé, on crée un **hot partition** (« partition brûlante ») : un nœud saturé pendant que les autres se tournent les pouces.\n👉 **Analogie** : répartir les invités d'un mariage sur les tables. Si tout le monde veut la même table, elle déborde et le service s'effondre pendant que les autres tables sont vides.\n\nLa **clustering key** **ordonne les lignes à l'intérieur** d'une partition, ce qui rend efficaces les requêtes de **plage** (« les événements de janvier à mars »).\n\nPiège classique : les **tombstones** (« pierres tombales »). Sur Cassandra, une **suppression n'efface pas** tout de suite : elle pose un marqueur disant « cette donnée est supprimée ». Trop de ces marqueurs, et les lectures doivent les enjamber un par un, ce qui **ruine les performances**.\n\nConséquence : on modélise **une table par requête**, en **dupliquant** assumément la donnée. Écrire deux fois est bon marché ; lire vite est ce qui compte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Colonnes larges : partition key (ou vivent les donnees) et clustering key (comment elles sont triees).",
+          "body": "/images/lessons/modeliser-en-nosql-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Dans une base document, tu stockes un article de blog et ses commentaires. Faut-il imbriquer les commentaires dans le document article ou les référencer dans une collection à part ? Qu'est-ce qui fait pencher la balance ?",
+          "solution": "Ça dépend du volume et des accès. Si les commentaires sont peu nombreux et toujours affichés avec l'article, on les imbrique (lecture en une requête). S'ils peuvent devenir très nombreux (des milliers), on les référence dans une collection séparée : sinon le document article gonfle sans limite, dépasse la taille max (16 Mo sur MongoDB) et devient coûteux à lire ou écrire en entier. Le critère décisif : le sous-ensemble est-il borné et lu avec le parent ?"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Modéliser en NoSQL",
+          "quizRef": "nosql-databases-modeliser-check"
+        }
+      ]
+    },
+    {
+      "slug": "coherence-distribuee-replication",
+      "title": "Cohérence distribuée & réplication",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Répliquer pour survivre aux pannes",
+          "body": "On l'a effleuré : une base distribuée **réplique** chaque donnée, c'est-à-dire en garde **plusieurs copies** sur des machines (des **nœuds**) différentes. Le nombre de copies s'appelle le **facteur de réplication**, noté **N** (par exemple N=3 : trois copies de chaque donnée). But : si un nœud tombe, les autres ont encore la donnée.\n\nSe pose alors une question de dosage : **combien** de copies doivent répondre pour qu'une opération soit considérée comme valide ? On introduit deux réglages :\n- **W** (*write*) : le nombre de réplicas qui doivent **confirmer une écriture** avant de la déclarer réussie ;\n- **R** (*read*) : le nombre de réplicas qu'on **consulte lors d'une lecture** avant de renvoyer une réponse.\n\n👉 **Analogie** : tu fais passer une info à une équipe de N personnes. W, c'est combien de « c'est noté ! » tu attends avant de considérer le message comme envoyé ; R, c'est combien de personnes tu interroges pour être sûr d'avoir la dernière version.\n\nBeaucoup de bases (Cassandra, DynamoDB) rendent W et R **ajustables par requête** (*tunable consistency*) : tu arbitres, requête par requête, entre **cohérence**, **latence** et **disponibilité**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Repliquer les donnees sur plusieurs noeuds pour survivre aux pannes.",
+          "body": "/images/lessons/coherence-distribuee-replication-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La règle du quorum : R + W > N",
+          "body": "Un **quorum** est le nombre minimal de réplicas à impliquer pour garantir quelque chose. La règle d'or de la réplication tient en une inégalité : **R + W > N**.\n\nPourquoi ça marche ? Si le nombre de réplicas lus (R) plus le nombre de réplicas écrits (W) **dépasse** le total (N), alors les deux ensembles **se recoupent forcément** : au moins un réplica consulté en lecture faisait partie de ceux qui ont reçu la dernière écriture. Donc toute lecture voit **au moins une copie à jour** : c'est la **cohérence forte** (au prix de plus de latence, car il faut attendre davantage de réponses).\n\n👉 **Analogie** : dans une classe de N=3 élèves, si tu **confies** un secret à W=2 d'entre eux et que tu en **interroges** R=2, forcément l'un des deux interrogés le connaît (2+2 > 3). Impossible de tomber uniquement sur des ignorants.\n\nÀ l'inverse, si **R + W ≤ N**, les ensembles peuvent **ne pas se recouper** : tu gagnes en vitesse et en disponibilité, mais une lecture peut renvoyer une valeur **périmée** (cohérence à terme).\n\n**Exemple** : avec N=3, choisir W=2 et R=2 (soit 4 > 3) donne de la cohérence forte ; choisir W=1 et R=1 (soit 2 ≤ 3) privilégie la vitesse mais autorise des lectures périmées. Régler R et W, c'est régler concrètement le curseur du **théorème CAP** pour **cette** requête, pas pour toute la base."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La regle du quorum R + W > N garantit qu'une lecture voit la derniere ecriture.",
+          "body": "/images/lessons/coherence-distribuee-replication-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Résoudre les conflits : LWW, vector clocks, CRDT (niveau expert)",
+          "body": "La cohérence à terme cache une difficulté : que se passe-t-il si **deux écritures concurrentes** modifient la **même clé** sur des réplicas **différents**, sans se voir ? Il faudra plus tard **réconcilier** les deux versions. Trois grandes stratégies existent.\n\n**Last-Write-Wins** (LWW, « la dernière écriture gagne ») : on garde la version au **timestamp** (horodatage) le plus récent. Simple, mais elle **perd silencieusement** l'autre écriture, sans prévenir personne.\n👉 **Analogie** : deux personnes modifient le même document partagé en même temps ; on ne garde que la dernière sauvegarde, et le travail de l'autre disparaît sans un mot.\n\n**Vector clocks** (« horloges vectorielles ») : un mécanisme qui **détecte** si deux écritures sont réellement en conflit (plutôt que successives) et **remonte le conflit à l'application** pour qu'elle tranche.\n\n**CRDT** (*Conflict-free Replicated Data Types*, « types de données répliquées sans conflit ») : des structures **conçues mathématiquement pour fusionner sans conflit** (des compteurs, des ensembles), quel que soit l'ordre des opérations. Utilisées par Redis Enterprise et Riak.\n👉 **Analogie** : deux personnes ajoutent des articles à la **même liste de courses** ; à la fin on **réunit** les deux listes, personne n'a rien perdu.\n\nLe vrai niveau expert, c'est de comprendre que « eventual » (à terme) **implique toujours** une **stratégie de résolution** de conflits : la question n'est pas *si* on réconcilie, mais *comment*."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Resoudre les conflits : last-write-wins, vector clocks ou CRDT selon les besoins.",
+          "body": "/images/lessons/coherence-distribuee-replication-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Une base distribuée a un facteur de réplication N=3. On configure W=1 et R=1 pour la vitesse. Quel problème de cohérence cela peut-il causer, et comment le corriger si nécessaire ?",
+          "solution": "Avec W=1 et R=1, R+W=2 ≤ N=3 : les réplicas lus et écrits peuvent ne pas se recouper, donc une lecture peut tomber sur un réplica qui n'a pas encore reçu la dernière écriture (valeur périmée, cohérence à terme). Si cette donnée exige la cohérence forte, on augmente les niveaux pour que R+W>N, par exemple W=2 et R=2 (2+2=4>3) : toute lecture recoupe alors au moins un réplica à jour, au prix d'un peu plus de latence."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Pour aller plus loin",
+          "body": "Références pour approfondir : *Designing Data-Intensive Applications* (Martin Kleppmann), LA référence sur la réplication, le partitionnement et la cohérence (chapitres 5 à 9) ; le papier **Dynamo** d'Amazon (quorums, vector clocks, hinted handoff) ; la documentation de modélisation **DynamoDB** (single-table design, *The DynamoDB Book* d'Alex DeBrie) et **Cassandra** (data modeling by query). Article : « CRDTs: Consistency without Consensus » pour la fusion sans conflit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le NoSQL.",
+          "body": "/images/lessons/coherence-distribuee-replication-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : NoSQL (niveau expert)",
+          "quizRef": "nosql-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,299 @@
+{
+  "node": "scaling-databases",
+  "lessons": [
+    {
+      "slug": "repliques-de-lecture",
+      "title": "Réplication & lectures",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Répliquer pour lire plus",
+          "body": "Avant même de parler de « mise à l'échelle », un constat : la plupart des applications **lisent** bien plus qu'elles n'**écrivent**. Sur un réseau social, pour un message posté (une écriture), il est ensuite lu des milliers de fois (des lectures). Les lectures sont donc, le plus souvent, le premier point qui sature.\n\nLa **réplication** est la technique qui répond à ce constat. *Répliquer*, c'est **copier en continu** les données d'un serveur vers un ou plusieurs autres, pour en avoir plusieurs exemplaires à jour. On distingue deux rôles :\n- le **serveur primaire** (en anglais *primary*, autrefois *master*) : le **seul** qui reçoit les **écritures** (les `INSERT`, `UPDATE`, `DELETE`). Il fait autorité.\n- les **réplicas** (en anglais *replicas*, ou *read replicas*) : des **copies en lecture seule** du primaire. Ils reçoivent en permanence ses changements et ne servent que des lectures (`SELECT`).\n\nL'idée : au lieu d'envoyer toutes les requêtes au primaire, on **répartit les lectures** sur les réplicas. Le primaire, soulagé, ne s'occupe plus que des écritures.\n\n👉 **Analogie** : imagine une bibliothèque avec un **seul exemplaire** d'un livre très demandé. Tout le monde fait la queue pour le consulter. La réplication, c'est **photocopier ce livre en dix exemplaires** : dix personnes lisent en même temps. L'original (le primaire) reste la référence pour les corrections ; les copies (les réplicas) servent à la lecture.\n\n**Exemple concret** : un site e-commerce avec 1 primaire et 3 réplicas. Les pages produit (lues massivement) sont servies par les 3 réplicas ; seules les commandes (écritures) vont au primaire. On a multiplié par environ 4 la capacité de lecture sans toucher au code métier. C'est souvent le **premier levier** de mise à l'échelle d'une base : simple et efficace."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les repliques de lecture dupliquent la base pour absorber plus de lectures.",
+          "body": "/images/lessons/repliques-de-lecture-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le décalage de réplication",
+          "body": "La copie vers les réplicas n'est **pas instantanée**. Entre le moment où le primaire enregistre une écriture et celui où un réplica l'a reçue, il s'écoule un petit délai : c'est le **décalage de réplication** (en anglais *replication lag*). Souvent quelques millisecondes, parfois plus si le réplica est chargé ou géographiquement éloigné.\n\nConséquence concrète : juste après une écriture, si tu lis sur un réplica **qui n'a pas encore reçu la mise à jour**, tu obtiens l'**ancienne valeur**. Le symptôme classique : « j'ai posté mon message mais je ne le vois pas », ou « j'ai changé mon nom et l'ancien s'affiche encore ».\n\n👉 **Analogie** : le primaire est le **tableau blanc** du prof ; les réplicas sont les **photocopies** distribuées aux élèves. Si le prof ajoute une ligne au tableau, les élèves dont la photocopie a été faite **il y a une minute** ne la voient pas encore : il faut refaire la photocopie (attendre que la réplication rattrape).\n\nOn dit que le système est en **cohérence à terme** (en anglais *eventual consistency*) : les réplicas finiront **tous** par avoir la bonne valeur, mais pas au même instant.\n\nComment gérer ce décalage ?\n- **Lire sur le primaire juste après une écriture** : c'est le motif *read-your-writes* (« lis tes propres écritures »). Après qu'un utilisateur modifie son profil, la page suivante lit sur le primaire pour qu'il voie bien son changement.\n- **Tolérer le décalage** là où quelques millisecondes de retard n'ont aucune importance (nombre de vues d'une vidéo, fil d'actualité...). On accepte alors la lecture sur réplica.\n\nLe bon réflexe : réserver les réplicas aux lectures qui **supportent** un léger retard, et router vers le primaire celles qui exigent la toute dernière valeur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le decalage de replication : une replique peut servir une donnee legerement en retard.",
+          "body": "/images/lessons/repliques-de-lecture-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un utilisateur met à jour son profil, puis la page suivante affiche l'ancien nom. L'application lit sur un réplica. Quelle est la cause, et une correction simple ?",
+          "solution": "Le décalage de réplication : le réplica n'a pas encore reçu la mise à jour envoyée au primaire, il renvoie donc l'ancienne valeur. Correction simple : router les lectures qui suivent immédiatement une écriture vers le primaire (motif read-your-writes), ou attendre/rafraîchir. On réserve les réplicas aux lectures qui tolèrent un léger retard."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Réplication & lectures",
+          "quizRef": "scaling-databases-repliques-check"
+        }
+      ]
+    },
+    {
+      "slug": "sharding",
+      "title": "Sharding : répartir les écritures",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Quand un seul primaire ne suffit plus",
+          "body": "La réplication (leçon précédente) met à l'échelle les **lectures**, mais **pas les écritures** : toutes les écritures passent toujours par l'unique primaire. Tant que ce primaire encaisse le volume d'écriture, tout va bien. Mais le jour où **une seule machine ne suffit plus** à absorber les écritures, il faut autre chose.\n\nCette autre chose, c'est le **sharding** (on dit aussi « partitionnement horizontal »). *Sharder*, c'est **découper les données en morceaux** et répartir ces morceaux sur **plusieurs serveurs**, chacun responsable d'un sous-ensemble. Un morceau s'appelle un **shard** (mot anglais pour « éclat, fragment »). Chaque shard est une base à part entière, sur sa propre machine, qui encaisse **sa part** des écritures.\n\nComment décider quelle donnée va sur quel shard ? Grâce à la **clé de sharding** (en anglais *shard key* ou *partition key*) : une colonne (par exemple `user_id`) dont la valeur détermine le shard de destination. Exemple de règle : « les utilisateurs dont l'`id` finit par 0 à 4 vont sur le shard A, ceux de 5 à 9 sur le shard B ».\n\n👉 **Analogie** : un annuaire téléphonique devenu trop épais pour un seul volume. On le **découpe par lettre** : A-M dans le tome 1, N-Z dans le tome 2. La première lettre du nom est la « clé » qui indique dans quel tome chercher. Deux tomes deux fois moins épais, et deux personnes peuvent consulter en même temps.\n\n**Exemple concret** : une messagerie avec 4 shards choisis par `hash(user_id)`. Les messages de l'utilisateur 42 vivent sur le shard 2, ceux de l'utilisateur 7 sur le shard 3. Leurs écritures se font **en parallèle**, sur deux machines différentes. C'est puissant : ça repousse très loin la limite d'écriture. C'est aussi **complexe**, comme le montre la section suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le sharding decoupe les donnees sur plusieurs primaires quand un seul ne suffit plus.",
+          "body": "/images/lessons/sharding-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le prix du sharding",
+          "body": "Le sharding casse des choses qui, sur une base unique, allaient de soi. Il faut en être conscient **avant** de s'y lancer.\n\n**Les jointures entre shards deviennent difficiles.** Une **jointure** (en anglais *join*) est l'opération SQL qui **combine les lignes de deux tables** liées (par ex. les commandes et leurs clients). Si les commandes sont sur le shard A et les clients sur le shard B, la base ne peut plus faire la jointure toute seule : les données sont sur des machines différentes.\n\n**Les transactions entre shards deviennent difficiles.** Une **transaction** regroupe plusieurs écritures en un tout « tout ou rien » (par ex. débiter un compte et créditer l'autre). Garantir ce « tout ou rien » **à travers plusieurs machines** est coûteux et fragile (on y consacre une leçon plus loin).\n\n**Les requêtes sans la clé de sharding coûtent cher.** Si tu cherches par une colonne **autre** que la clé de sharding (par ex. « tous les utilisateurs de Paris » alors qu'on a shardé par `user_id`), la base ignore sur quel shard chercher : elle doit **interroger tous les shards** puis rassembler les résultats. Ce motif s'appelle **scatter-gather** (« disperser puis rassembler ») ; il est lent, car la réponse arrive au rythme du **shard le plus lent**.\n\n**Un mauvais choix de clé crée des hotspots.** Un **hotspot** (« point chaud ») est un shard qui reçoit **beaucoup plus** de charge que les autres, pendant que ceux-ci restent presque oisifs. Le sharding n'apporte alors aucun gain : une machine sue, les autres dorment.\n\n👉 **Analogie** : découper l'annuaire par lettre, c'est pratique... jusqu'à ce que tu cherches « toutes les personnes nées en 1990 » (information sans lien avec la lettre) : tu dois **feuilleter les deux tomes** (scatter-gather). Et si 80 % des noms commençaient par « M », le tome A-M serait énorme et l'autre minuscule (hotspot).\n\nD'où la règle d'or : on ne shard qu'en **dernier recours**, après avoir épuisé la réplication, le cache et l'optimisation des requêtes. Le sharding résout un vrai problème d'échelle, mais en **ajoutant** beaucoup de complexité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le prix du sharding : requetes cross-shard, rebalancement, transactions distribuees.",
+          "body": "/images/lessons/sharding-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "On shard par `pays`, mais 80 % du trafic vient d'un seul pays. Quel problème, et quelle qualité doit avoir une bonne clé de sharding ?",
+          "solution": "Un hotspot : le shard de ce pays reçoit 80 % de la charge pendant que les autres restent oisifs, donc le sharding n'aide pas. Une bonne clé de sharding distribue la charge UNIFORMÉMENT (haute cardinalité, répartition équilibrée), par ex. un hachage de l'identifiant utilisateur plutôt qu'un attribut déséquilibré comme le pays."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Sharding",
+          "quizRef": "scaling-databases-sharding-check"
+        }
+      ]
+    },
+    {
+      "slug": "cap-et-choix",
+      "title": "Théorème CAP & arbitrages",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le théorème CAP",
+          "body": "Dès qu'une donnée vit sur **plusieurs machines** (réplicas, shards...), on a un **système distribué** : plusieurs serveurs qui coopèrent en s'échangeant des messages par le réseau. Or un réseau, ça tombe en panne. Le **théorème CAP** décrit un arbitrage fondamental qui en découle.\n\nD'abord, les trois lettres :\n- **C, cohérence** (en anglais *Consistency*) : tout le monde voit **la même donnée** au même instant. Une lecture renvoie toujours l'écriture la plus récente, où qu'elle ait eu lieu.\n- **A, disponibilité** (en anglais *Availability*) : le système **répond toujours** à une requête (sans erreur), même si un serveur est injoignable.\n- **P, tolérance au partitionnement** (en anglais *Partition tolerance*) : le système continue de fonctionner même si le réseau **coupe** la communication entre deux groupes de serveurs. Cette coupure s'appelle une **partition réseau** : les serveurs sont toujours vivants, mais ne peuvent plus se parler.\n\nLe théorème dit ceci : **en cas de partition réseau (P), tu dois choisir entre C et A**. Tu ne peux pas garantir les deux **pendant** la coupure. Pourquoi ? Si deux serveurs ne peuvent plus se synchroniser, soit ils **refusent de répondre** pour ne pas risquer une donnée périmée (on garde C, on sacrifie A), soit ils **répondent quand même** avec ce qu'ils ont (on garde A, on sacrifie C).\n\n👉 **Analogie** : deux caissiers d'un même magasin partagent le **même stock**, mais le téléphone entre eux est coupé (la partition). Un client veut le dernier article. Deux options : soit le caissier **refuse de vendre** tant qu'il n'a pas vérifié avec l'autre (cohérent mais indisponible), soit il **vend quand même** au risque que l'autre l'ait déjà vendu (disponible mais incohérent : survente). Impossible d'être à la fois sûr **et** de répondre tout de suite quand la ligne est coupée.\n\nPoint capital : la partition réseau n'est **pas optionnelle**. Sur un vrai réseau, des coupures **arriveront**. Le « P » est donc imposé ; le vrai choix de conception est **C ou A pendant une partition**. Ce n'est pas un défaut à corriger, c'est un arbitrage à assumer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le theoreme CAP : en cas de partition reseau, choisir entre coherence et disponibilite.",
+          "body": "/images/lessons/cap-et-choix-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "CP vs AP en pratique",
+          "body": "Selon le choix fait pendant une partition, on classe un système, ou plus précisément une **donnée**, en deux familles.\n\nUn système **CP** (cohérence + tolérance au partitionnement) préfère **refuser une réponse** plutôt que de renvoyer une donnée peut-être périmée. Il privilégie l'exactitude. C'est ce qu'il faut pour un **solde bancaire**, un **stock** de produits, un **paiement** : mieux vaut une erreur « réessaie » qu'un chiffre faux.\n\nUn système **AP** (disponibilité + tolérance au partitionnement) **répond toujours**, quitte à servir une valeur **légèrement en retard**, puis se **réconcilie** quand le réseau revient. C'est ce qu'il faut pour un **panier**, un **fil d'actualité**, un **compteur de « j'aime »** : mieux vaut afficher quelque chose, même un peu vieux, que rien.\n\n👉 **Analogie** : au guichet d'une banque, si le système doute, il te dit « patientez, je vérifie » (CP : jamais de réponse fausse sur ton argent). Sur un réseau social, si un serveur doute, il t'affiche quand même le fil, quitte à ce qu'un tout dernier message manque (AP : toujours quelque chose à l'écran).\n\nLe point clé : on choisit **par donnée, pas globalement**. Une **même application** peut être CP sur les paiements (zéro erreur tolérée) et AP sur les préférences d'affichage (un léger retard est sans conséquence). Un bon concepteur ne demande pas « mon appli est-elle CP ou AP ? » mais « **cette donnée-ci**, plutôt C ou plutôt A ? »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "CP (coherent mais parfois indisponible) vs AP (disponible mais parfois incoherent) en pratique.",
+          "body": "/images/lessons/cap-et-choix-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Le choix CAP en un schéma",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Une donnée vit sur plusieurs machines\"] --> B{\"Le réseau coupe-t-il la communication (partition) ?\"}\n    B -->|Non| C[\"Tout va bien : cohérence ET disponibilité ensemble\"]\n    B -->|Oui| D{\"Que privilégier pendant la coupure ?\"}\n    D -->|\"Cohérence (C)\"| E[\"CP : refuser ou attendre. Ex. solde, paiement, stock\"]\n    D -->|\"Disponibilité (A)\"| F[\"AP : répondre avec une valeur peut-être en retard. Ex. panier, fil d actualité\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Scaler dans le bon ordre (niveau expert)",
+          "body": "Face à une base qui sature, il existe un **ordre** de solutions, de la plus simple à la plus lourde. Les prendre dans cet ordre évite de se compliquer la vie inutilement.\n\n**1) Optimiser d'abord.** Avant tout serveur supplémentaire : ajouter les **index** manquants (des structures qui accélèrent la recherche, comme l'index à la fin d'un livre), réécrire les requêtes lentes, et corriger les **N+1**. Le *problème N+1* est un piège classique : au lieu d'une seule requête, le code en lance **une par ligne** (1 pour la liste, plus N pour les détails), ce qui écroule les performances. Souvent, l'optimisation seule suffit.\n\n**2) Mettre en cache ce qui est chaud.** Un **cache** garde en mémoire (très rapide) les données **les plus demandées**, pour ne pas retaper la base à chaque fois. Idéal pour ce qui est lu souvent et modifié rarement.\n\n**3) Ajouter des réplicas en lecture** (première leçon) pour répartir les lectures.\n\n**4) Partitionnement fonctionnel** : séparer des **tables volumineuses** ou des domaines distincts sur des bases différentes (par ex. sortir les logs ou les archives dans leur propre base).\n\n**5) Sharder en dernier**, seulement quand les écritures dépassent une machine, en acceptant la complexité vue plus haut.\n\n👉 **Analogie** : quand ta chambre déborde, tu **ranges** d'abord (optimiser), tu mets les objets courants **à portée de main** (cache), tu ajoutes **une étagère** (réplicas), tu déplaces une catégorie dans une **autre pièce** (partitionnement fonctionnel), et seulement en dernier recours tu **déménages dans un plus grand logement** (sharding). Chaque étape est plus simple et moins risquée que la suivante.\n\nL'erreur classique de **sur-ingénierie** : sauter directement au sharding « pour l'échelle » alors qu'un index ou un cache aurait suffi. On monte l'échelle **barreau par barreau**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Scaler dans le bon ordre : index, cache, repliques de lecture, puis seulement sharding.",
+          "body": "/images/lessons/cap-et-choix-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Pendant une partition réseau, votre service de paiement doit-il privilégier la cohérence ou la disponibilité ? Et un service d'affichage du fil d'actualité ?",
+          "solution": "Paiement : cohérence (CP), mieux vaut refuser ou attendre que débiter deux fois ou afficher un faux solde. Fil d'actualité : disponibilité (AP), mieux vaut afficher un contenu légèrement en retard que rien du tout. Le choix CAP dépend de la criticité de la donnée, pas d'une préférence globale : une même application peut être CP sur les paiements et AP sur le fil."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz, Scaler les bases",
+          "quizRef": "scaling-db-check"
+        }
+      ]
+    },
+    {
+      "slug": "partitionnement-haute-disponibilite",
+      "title": "Partitionnement & haute disponibilité",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Partitionner une table AVANT de sharder des serveurs",
+          "body": "Avant de se lancer dans le sharding multi-serveurs (complexe), PostgreSQL offre une solution plus douce, **sur une seule machine** : le **partitionnement déclaratif**.\n\n*Partitionner* une table, c'est la **découper en sous-tables** plus petites, appelées **partitions**, tout en continuant à l'utiliser comme **une seule table** vue de l'extérieur. Tu écris `SELECT ... FROM events` comme d'habitude ; PostgreSQL sait, en coulisses, dans quelle partition ranger ou chercher chaque ligne. On parle de partitionnement **déclaratif** parce que tu **déclares** la règle de découpage, et le moteur s'occupe du routage.\n\nTrois façons de découper :\n- par **plage** (`RANGE`) : chaque partition couvre un **intervalle de valeurs**, typiquement une période (une partition par mois sur une colonne date).\n- par **liste** (`LIST`) : chaque partition correspond à une **liste de valeurs** précises (une partition par région : `'EU'`, `'US'`...).\n- par **hachage** (`HASH`) : les lignes sont réparties **uniformément** via une fonction de hachage (utile pour équilibrer quand il n'y a pas de critère métier évident).\n\nDeux bénéfices majeurs :\n- le **partition pruning** (« élagage de partitions ») : si ta requête filtre sur la colonne de découpage (ex. `WHERE occurred_at >= '2026-07-01'`), le moteur **ignore** les partitions hors sujet et ne lit que la bonne. Moins de données scannées, requête plus rapide.\n- la **purge instantanée** : supprimer de vieilles données revient à **détacher puis supprimer une partition entière** (`DETACH` puis `DROP`), une opération de **métadonnée** quasi immédiate, au lieu d'un `DELETE` ligne à ligne, lent et bloquant.\n\n👉 **Analogie** : plutôt qu'un seul énorme **classeur** où tout s'entasse, tu ranges tes papiers dans **un dossier par mois**. Pour retrouver une facture de juillet, tu ouvres directement le dossier « juillet » (pruning). Pour jeter l'année dernière, tu **sors le dossier entier et le mets à la benne** (DETACH puis DROP) au lieu d'arracher les feuilles une par une (DELETE).\n\n**Exemple concret** : une table `events` qui grossit de millions de lignes par mois, partitionnée par mois. Les requêtes récentes ne lisent qu'une ou deux partitions ; l'archivage se fait en détachant les partitions de plus d'un an. Tout ça **sans la complexité du sharding**, sur une seule machine."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Partitionner une table (par date, par cle) avant de sharder des serveurs entiers.",
+          "body": "/images/lessons/partitionnement-haute-disponibilite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Partitionnement par plage",
+          "codeLanguage": "sql",
+          "body": "-- La table parente ne stocke rien elle-même : elle définit la RÈGLE de découpage.\nCREATE TABLE events (\n  id uuid DEFAULT uuidv7(), occurred_at timestamptz NOT NULL, payload jsonb\n) PARTITION BY RANGE (occurred_at);\n\n-- Une partition = un intervalle. Ici, tout le mois de juillet 2026.\n-- La borne haute est EXCLUE : [1er juillet, 1er août[.\nCREATE TABLE events_2026_07 PARTITION OF events\n  FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');\n\n-- Purge instantanée d'un mois : DETACH puis DROP de la partition,\n-- au lieu d'un DELETE ligne a ligne lent et bloquant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Réplication synchrone vs asynchrone",
+          "body": "Revenons à la réplication (la copie du primaire vers les réplicas) : **quand** le primaire considère-t-il une écriture comme « validée » ? Deux modes, deux compromis.\n\nEn **réplication asynchrone** (le comportement **par défaut**) : le primaire enregistre l'écriture et **confirme immédiatement** au client, **sans attendre** que les réplicas l'aient reçue. Il la leur enverra « en différé ». C'est **rapide**, mais risqué : si le primaire **tombe en panne** juste après avoir confirmé, les toutes dernières transactions **pas encore répliquées** sont **perdues**.\n\nEn **réplication synchrone** : le primaire **attend qu'au moins un réplica ait reçu** l'écriture **avant** de confirmer au client. Résultat : **aucune perte** si le primaire tombe, puisqu'un réplica a déjà la donnée. Le prix à payer : plus de **latence** (chaque écriture attend l'aller-retour vers le réplica).\n\n👉 **Analogie** : tu envoies un document important. En asynchrone, tu le **postes** et tu passes à autre chose en supposant qu'il arrivera (rapide, mais s'il se perd, tant pis). En synchrone, tu attends l'**accusé de réception** signé avant de considérer l'envoi comme fait (plus lent, mais tu es sûr).\n\nOn choisit **selon la criticité** : synchrone pour un **paiement** (zéro perte tolérée), asynchrone quand un tout petit risque de perte est acceptable au profit de la vitesse.\n\nDeux termes utiles pour finir. Les **WAL** (*Write-Ahead Log*, « journal des écritures ») sont le journal où PostgreSQL note **chaque changement avant** de l'appliquer ; c'est ce journal qui est envoyé aux réplicas pour qu'ils rejouent les mêmes changements. Un **replication slot** (« emplacement de réplication ») garantit que le primaire **conserve** ces WAL tant qu'un réplica ne les a pas consommés, ce qui évite qu'un réplica en retard ne **décroche** faute d'avoir reçu les journaux à temps."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Replication synchrone (sure, plus lente) vs asynchrone (rapide, risque de perte).",
+          "body": "/images/lessons/partitionnement-haute-disponibilite-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Bascule automatique : la vraie haute disponibilité (niveau expert)",
+          "body": "Avoir des réplicas protège tes **données**, mais pas forcément ton **service**. Pose-toi la question : si le **primaire tombe**, **qui** décide de promouvoir un réplica au rang de nouveau primaire ? Et comment les applications apprennent-elles la nouvelle adresse à contacter ? Sans réponse automatique, la réponse est « un humain, réveillé à 3 h du matin », et le service reste **à l'arrêt** en attendant.\n\nC'est le sujet de la **haute disponibilité** (en anglais *High Availability*, abrégée **HA**) : la capacité d'un système à **rester debout** malgré la panne d'un composant. Le cœur de la HA d'une base, c'est la **bascule automatique** (en anglais *failover*) : détecter la panne du primaire et **promouvoir** un réplica **sans intervention humaine**.\n\nCela demande un chef d'orchestre. Un **orchestrateur** comme **Patroni** (associé à un magasin de configuration comme **etcd** ou **Consul**) surveille le primaire en permanence et, en cas de panne :\n1. **détecte** la panne (le primaire ne répond plus) ;\n2. organise une **élection** : les réplicas se mettent d'accord sur lequel est le plus à jour ;\n3. **promeut** ce réplica en nouveau primaire ;\n4. **met à jour le point d'entrée** pour que les applications écrivent désormais au bon endroit.\n\n👉 **Analogie** : une équipe sans capitaine de remplacement désigné. Si le capitaine se blesse et qu'aucune règle ne prévoit la suite, le jeu s'arrête. L'orchestrateur, c'est le **règlement** qui dit « voici comment on désigne aussitôt un nouveau capitaine » : le match continue sans temps mort.\n\nLe message à retenir : **la HA, c'est la bascule automatique, pas seulement la copie des données**. Des réplicas sans failover, c'est une roue de secours dans le coffre... que personne n'est capable de monter quand le pneu crève."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La bascule automatique (failover) fait la vraie haute disponibilite, sans intervention humaine.",
+          "body": "/images/lessons/partitionnement-haute-disponibilite-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Une table `events` grossit de millions de lignes par mois et on veut purger les données de plus d'un an, mais un DELETE massif est trop lent et bloque. Quelle approche PostgreSQL résout élégamment ce problème ?",
+          "solution": "Le partitionnement déclaratif par plage (RANGE) sur la date : chaque mois est une partition. Purger un mois devient un DETACH PARTITION puis DROP TABLE (opération de métadonnée, quasi instantanée), sans DELETE ligne à ligne, sans bloat ni verrous massifs. En bonus, les requêtes filtrées par date profitent du partition pruning. C'est le pattern standard pour les tables temporelles à forte croissance."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz, Partitionnement & haute disponibilité",
+          "quizRef": "scaling-databases-partitionnement-check"
+        }
+      ]
+    },
+    {
+      "slug": "sharding-profondeur-pacelc",
+      "title": "Sharding en profondeur & PACELC",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le hachage cohérent : re-sharder sans tout déplacer",
+          "body": "Reprenons le sharding avec un problème très concret : comment **ajouter un shard** quand les données grossissent, sans tout casser ?\n\nLa méthode naïve choisit le shard avec un **modulo** : `shard = hash(clé) % N`, où `N` est le nombre de shards. (Le **hachage**, *hash*, transforme une clé quelconque en un grand nombre ; le **modulo** `%` donne le reste de la division, donc un numéro de shard entre 0 et N-1.) Ça marche... jusqu'au jour où tu passes de `N = 4` à `N = 5` shards : le résultat de `hash(clé) % N` **change pour presque toutes les clés**, donc **presque toutes les données doivent déménager** d'un shard à un autre. Cette migration massive est le **cauchemar du re-sharding**.\n\nLe **hachage cohérent** (en anglais *consistent hashing*) résout ce problème. L'idée : on place shards **et** clés sur un **anneau** imaginaire (un cercle de valeurs). Chaque clé appartient au **shard le plus proche** en tournant sur l'anneau. Quand tu **ajoutes un nœud** (un serveur/shard), il s'insère à un endroit de l'anneau et ne récupère que les clés **voisines** de sa position ; toutes les autres clés **ne bougent pas**. On ne déplace qu'environ **1/N** des données au lieu de la quasi-totalité.\n\n👉 **Analogie** : imagine les **fuseaux horaires** disposés en cercle, chaque ville rattachée au fuseau juste à sa gauche. Si tu ajoutes un nouveau fuseau, seules les villes **immédiatement à côté** changent de fuseau ; le reste du monde n'est pas affecté. Le modulo, à l'inverse, revient à **redécouper tous les fuseaux** dès qu'on en ajoute un : tout le monde change d'heure.\n\n**Exemple concret** : le hachage cohérent est au cœur de **Cassandra**, **DynamoDB** et des **caches distribués**. Un expert connaît ce mécanisme **avant** de choisir une stratégie de partitionnement, parce qu'il conditionne la capacité à grandir sans douleur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le hachage coherent re-shard sans tout deplacer : seules quelques cles changent de noeud.",
+          "body": "/images/lessons/sharding-profondeur-pacelc-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Vivre avec le scatter-gather",
+          "body": "On l'a vu : une requête qui **ne porte pas la clé de sharding** doit interroger **tous** les shards puis agréger les résultats. C'est le **scatter-gather** (« disperser puis rassembler »). Il est lent et fragile, car le temps de réponse est dicté par le **shard le plus lent** : si un seul rame, toute la requête rame.\n\nComme on ne peut pas l'éliminer totalement, on le **limite** par la conception :\n- **Choisir la clé de sharding d'après les requêtes dominantes.** Si 90 % des accès se font par `user_id`, on shard par `user_id` : ces requêtes ne touchent alors **qu'un seul** shard. On accepte que les 10 % restants soient plus lents.\n- **Maintenir des index secondaires ou des vues dénormalisées.** Un **index secondaire** est une structure d'accès sur une **autre** colonne que la clé de sharding, pour retrouver vite les lignes par ce second critère. Une **vue dénormalisée** est une **copie de données pré-arrangée** pour un type d'accès précis. *Dénormaliser*, c'est accepter volontairement de la redondance (les mêmes données à deux endroits) en échange de lectures rapides.\n- **Déporter la recherche vers un moteur adapté** comme **Elasticsearch** pour les recherches complexes (plein texte, filtres multiples).\n\n👉 **Analogie** : dans une chaîne de magasins où chaque boutique tient **son** registre, retrouver « toutes les commandes du client Dupont » oblige à **téléphoner à toutes les boutiques** (scatter-gather). Si on sait que ce besoin est fréquent, on tient à part un **carnet central « par client »** (index secondaire ou vue dénormalisée) qui pointe directement vers la bonne boutique.\n\nLe principe général : en environnement shardé, **on conçoit autour des motifs d'accès** (les façons dont on lira réellement les données), exactement comme en **NoSQL**. La structure suit les requêtes, pas l'inverse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le scatter-gather interroge tous les shards puis rassemble : a limiter autant que possible.",
+          "body": "/images/lessons/sharding-profondeur-pacelc-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Transactions distribuées : 2PC ou saga",
+          "body": "Sur une base unique, une **transaction** garantit qu'un ensemble d'écritures est **atomique** : « tout ou rien » (l'*atomicité*, le A de **ACID**). Débiter un compte **et** créditer l'autre réussissent ensemble, ou échouent ensemble, jamais à moitié. Mais dès qu'une opération touche **plusieurs shards** (donc plusieurs machines), cette garantie locale ne suffit plus : comment assurer le « tout ou rien » **à travers le réseau** ? Deux grandes voies.\n\n**Le two-phase commit (2PC, « validation en deux phases »).** Un **coordinateur** demande d'abord à tous les shards « êtes-vous **prêts** à valider ? » (phase 1), puis, si **tous** disent oui, leur ordonne de **valider** (phase 2). C'est **cohérent**, mais **bloquant** (chacun attend, verrous tenus) et **fragile** : si le coordinateur tombe au milieu, les participants restent coincés. Rarement souhaitable à grande échelle.\n\n**La saga.** On remplace la grosse transaction par une **suite d'étapes locales**, chacune atomique sur son propre shard. Si une étape échoue, on exécute des **compensations** : des actions qui **annulent** les étapes déjà faites (par ex. « rembourser » ce qu'on avait « débité »). Pas d'atomicité instantanée, mais une **cohérence à terme** : le système finit dans un état correct. C'est l'approche **préférée** des architectures modernes.\n\n👉 **Analogie** : réserver un **voyage** avec vol, hôtel et voiture, chacun géré par une agence différente (impossible de tout bloquer d'un coup). Le 2PC, ce serait mettre les trois agences **en attente** au téléphone jusqu'à ce que les trois confirment ensemble (bloquant, fragile). La saga, c'est réserver **l'une après l'autre**, et si la voiture n'est finalement pas disponible, **annuler** le vol et l'hôtel déjà pris (compensations).\n\nLe message de fond : **l'atomicité distribuée coûte cher**. La meilleure parade est souvent de **l'éviter**, en gardant **sur le même shard** les données qui doivent changer ensemble (par ex. tout ce qui concerne un même utilisateur). Bien choisir sa clé de sharding, c'est aussi éviter les transactions entre shards."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Transactions distribuees : 2PC (bloquant) ou saga (compensations) selon le contexte.",
+          "body": "/images/lessons/sharding-profondeur-pacelc-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Au-delà de CAP : PACELC (niveau expert)",
+          "body": "Le théorème CAP a une limite : il ne parle **que du cas de panne** (la partition réseau). Or, la plupart du temps, le réseau **fonctionne**. Que se passe-t-il alors ? C'est ce que complète **PACELC**.\n\nLa formule se lit en deux temps :\n- **PAC** : en cas de **P**artition, arbitrer entre **A** (disponibilité) et **C** (cohérence). C'est exactement CAP.\n- **ELC** : **E**lse (« sinon », c'est-à-dire en fonctionnement **normal**, sans partition), arbitrer entre **L** (latence) et **C** (cohérence).\n\nAutrement dit : **même sans aucune panne réseau**, garantir une **cohérence forte** (tous les réplicas d'accord avant de répondre) **coûte de la latence**, car il faut **coordonner** les réplicas entre eux avant chaque réponse. Si tu veux répondre **vite**, tu dois souvent **relâcher** la cohérence (accepter une valeur légèrement en retard).\n\n👉 **Analogie** : pour donner une réponse **certaine** à une question, tu **consultes tous tes collègues** avant de parler (lent mais sûr : cohérence forte, latence élevée). Pour répondre **vite**, tu réponds **de mémoire** sans vérifier auprès des autres (rapide, mais peut-être un peu périmé : basse latence, cohérence faible). Ce compromis existe **même quand tout le monde est joignable**, pas seulement en cas de panne.\n\n**Exemples concrets** : **DynamoDB** est **PA/EL** (en partition il privilégie la disponibilité, sinon la latence) ; une base fortement cohérente est **PC/EC** (cohérence dans les deux cas, au prix de la latence). PACELC est le **cadre mental** de l'architecte de données distribuées : il rappelle que le compromis cohérence/rapidité est **permanent**, pas réservé aux pannes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "PACELC prolonge CAP : meme sans panne, arbitrer entre latence et coherence.",
+          "body": "/images/lessons/sharding-profondeur-pacelc-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une base shardée par `hash(user_id) % N` doit passer de 4 à 5 shards. Pourquoi est-ce douloureux, et quelle technique l'aurait évité ?",
+          "solution": "Avec le modulo, changer N (de 4 à 5) modifie le résultat de hash(user_id) % N pour la quasi-totalité des clés : presque toutes les données doivent être déplacées vers un autre shard, d'où une migration massive, longue et risquée. Le hachage cohérent (consistent hashing) l'aurait évité : shards et clés sur un anneau, l'ajout d'un shard ne réaffecte que la portion de clés adjacente au nouveau nœud (environ 1/N des données), pas l'ensemble."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : *Designing Data-Intensive Applications* (Kleppmann, ch. 5-6 réplication/partitionnement, ch. 9 cohérence) ; l'article de Daniel Abadi sur **PACELC** ; la doc PostgreSQL *Table Partitioning* et *High Availability* ; **Citus** (PostgreSQL distribué) et **Vitess** (sharding MySQL, utilisé par YouTube) pour voir le sharding industrialisé ; le papier original sur le **consistent hashing** (Karger et al.)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir la scalabilite des bases.",
+          "body": "/images/lessons/sharding-profondeur-pacelc-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Scaler les bases (niveau expert)",
+          "quizRef": "scaling-expert"
+        }
+      ]
+    }
+  ]
+}

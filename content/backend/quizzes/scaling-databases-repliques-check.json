@@ -1,0 +1,101 @@
+{
+  "ref": "scaling-databases-repliques-check",
+  "node": "scaling-databases",
+  "lesson": "repliques-de-lecture",
+  "title": "Quiz, Réplication & lectures",
+  "description": "Primaire vs réplicas, décalage de réplication, read-your-writes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une base répliquée, qui reçoit les écritures (INSERT, UPDATE, DELETE) ?",
+      "justification": "Seul le serveur primaire reçoit les écritures ; les réplicas sont des copies en lecture seule qui servent les SELECT.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le serveur primaire uniquement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "N'importe quel réplica au choix",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Tous les serveurs en même temps",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "La réplication en lecture met à l'échelle principalement…",
+      "justification": "Elle répartit les lectures sur plusieurs réplicas ; les écritures restent concentrées sur l'unique primaire.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les lectures",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les écritures",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le décalage de réplication (replication lag) ?",
+      "justification": "C'est le petit délai avant qu'un réplica ait reçu la dernière écriture du primaire ; pendant ce délai, il peut renvoyer l'ancienne valeur.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le délai avant qu'un réplica ait reçu la dernière écriture du primaire",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le temps de démarrage d'un nouveau serveur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La durée d'une transaction sur le primaire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un utilisateur change son nom, puis la page suivante (lue sur un réplica) affiche encore l'ancien. Meilleure correction simple ?",
+      "justification": "C'est le décalage de réplication : router les lectures juste après une écriture vers le primaire (read-your-writes) garantit que l'utilisateur voit son propre changement.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Lire sur le primaire juste après une écriture (read-your-writes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer tous les réplicas",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Écrire deux fois la même donnée",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

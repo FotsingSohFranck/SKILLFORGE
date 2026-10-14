@@ -1,0 +1,235 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Index de l'item de nav actif, ENREGISTRE pour être animable (sinon un changement de
+   variable ne déclenche aucune transition). Posé directement sur l'élément animé (non hérité). */
+@property --active-index {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading);
+  color: var(--color-text);
+  /* Fond ambiant coloré très doux : donne de la matière/réfraction au verre. */
+  background:
+    radial-gradient(820px 620px at 8% -8%, var(--ambient-1), transparent 60%),
+    radial-gradient(760px 560px at 102% 2%, var(--ambient-2), transparent 58%),
+    radial-gradient(900px 640px at 60% 112%, var(--ambient-3), transparent 60%),
+    var(--color-bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0 0 var(--space-3);
+  letter-spacing: var(--tracking-snug);
+  text-wrap: balance;
+}
+
+h1 {
+  letter-spacing: var(--tracking-tight);
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+a {
+  color: var(--color-primary);
+}
+
+/* Focus visible cohérent et accessible sur tout élément interactif. */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+button {
+  font-family: inherit;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* Coloration syntaxique Prism (classes globales .token.*), couleurs pilotées par les
+   variables de thème (clair/sombre), contraste visé WCAG AA. */
+.sf-prism .token.comment,
+.sf-prism .token.prolog,
+.sf-prism .token.doctype,
+.sf-prism .token.cdata {
+  color: var(--code-comment);
+  font-style: italic;
+}
+.sf-prism .token.punctuation {
+  color: var(--code-punct);
+}
+.sf-prism .token.keyword,
+.sf-prism .token.boolean,
+.sf-prism .token.atrule,
+.sf-prism .token.important {
+  color: var(--code-keyword);
+  font-weight: 600;
+}
+.sf-prism .token.string,
+.sf-prism .token.char,
+.sf-prism .token.attr-value,
+.sf-prism .token.regex {
+  color: var(--code-string);
+}
+.sf-prism .token.function,
+.sf-prism .token.method {
+  color: var(--code-function);
+}
+.sf-prism .token.number,
+.sf-prism .token.constant,
+.sf-prism .token.symbol {
+  color: var(--code-number);
+}
+.sf-prism .token.class-name,
+.sf-prism .token.builtin,
+.sf-prism .token.tag,
+.sf-prism .token.annotation {
+  color: var(--code-class);
+}
+.sf-prism .token.operator,
+.sf-prism .token.entity,
+.sf-prism .token.url,
+.sf-prism .token.variable {
+  color: var(--code-punct);
+}
+
+/* ---------------------------------------------------------------------------
+   Système de mouvement cohérent (facon Apple) : une seule signature partout.
+   - sf-route   : entrée de page (fondu) a chaque changement de route.
+   - sf-stagger : les enfants directs apparaissent en cascade (fondu + montée).
+   - sf-pressable : retour tactile au clic (leger enfoncement) sur tout élément actionnable.
+   Tout est neutralisé par prefers-reduced-motion (bloc ci-dessous).
+--------------------------------------------------------------------------- */
+@keyframes sf-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sf-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --- Transitions de navigation « façon Apple » via la View Transitions API ---
+   Seule la zone de contenu (view-transition-name: page) est animée ; le chrome (sidebar, header)
+   reste fixe. Le sens est pilote par data-vt sur <html> (défini dans App.tsx) :
+   - fade    : fondu enchaîné (entre sections pairs de la sidebar / repli) ;
+   - forward : push (nouvelle depuis la droite, ancienne recule a gauche avec parallaxe) ;
+   - back    : push inversé (nouvelle depuis la gauche, ancienne part a droite). */
+::view-transition-group(page) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-standard);
+}
+
+/* Fondu enchaîné (défaut / sections pairs). */
+:root[data-vt='fade']::view-transition-old(page) {
+  animation: vtFadeOut var(--dur-base) var(--ease-standard) forwards;
+}
+:root[data-vt='fade']::view-transition-new(page) {
+  animation: vtFadeIn var(--dur-base) var(--ease-standard) forwards;
+}
+
+/* Push avant. */
+:root[data-vt='forward']::view-transition-old(page) {
+  animation: vtExitLeft var(--dur-slow) var(--ease-standard) forwards;
+}
+:root[data-vt='forward']::view-transition-new(page) {
+  animation: vtEnterRight var(--dur-slow) var(--ease-standard) forwards;
+}
+
+/* Push arrière (retour). */
+:root[data-vt='back']::view-transition-old(page) {
+  animation: vtExitRight var(--dur-slow) var(--ease-standard) forwards;
+}
+:root[data-vt='back']::view-transition-new(page) {
+  animation: vtEnterLeft var(--dur-slow) var(--ease-standard) forwards;
+}
+
+@keyframes vtFadeOut { to { opacity: 0; } }
+@keyframes vtFadeIn { from { opacity: 0; } }
+@keyframes vtEnterRight { from { transform: translateX(100%); } }
+@keyframes vtExitLeft { to { transform: translateX(-25%); opacity: 0.5; } }
+@keyframes vtEnterLeft { from { transform: translateX(-25%); opacity: 0.5; } }
+@keyframes vtExitRight { to { transform: translateX(100%); } }
+
+/* Pendant une transition de navigation, la cascade est rendue instantanée : l'écran poussé
+   apparaît complet (comme iOS), et la cascade reste réservée au premier chargement. */
+:root[data-vt] .sf-stagger > * {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+}
+
+/* Les enfants arrivent en cascade avec un léger ressort (montée + échelle).
+   `backwards` (et non `both`) : on garde l'état initial pendant le délai, puis on RELACHE le
+   transform a la fin -> sinon le transform figé écraserait la lévitation au survol (.sf-lift). */
+.sf-stagger > * {
+  animation: sf-rise var(--dur-slow) var(--ease-spring) backwards;
+}
+.sf-stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.sf-stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.sf-stagger > *:nth-child(3) { animation-delay: 0.11s; }
+.sf-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.sf-stagger > *:nth-child(5) { animation-delay: 0.19s; }
+.sf-stagger > *:nth-child(6) { animation-delay: 0.23s; }
+.sf-stagger > *:nth-child(7) { animation-delay: 0.27s; }
+.sf-stagger > *:nth-child(8) { animation-delay: 0.31s; }
+.sf-stagger > *:nth-child(9) { animation-delay: 0.35s; }
+.sf-stagger > *:nth-child(n + 10) { animation-delay: 0.39s; }
+
+/* Survol : légère lévitation + ombre (facon carte App Store). */
+.sf-lift {
+  transition: transform var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.sf-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+/* Au survol de la carte, la couverture retrouve un peu de couleur et zoome légèrement. */
+.sf-lift:hover [data-cover] img {
+  filter: grayscale(0.2) contrast(1.03);
+  transform: scale(1.04);
+}
+
+/* Clic : léger enfoncement. Défini APRES .sf-lift pour l'emporter sur le survol pendant l'appui. */
+.sf-pressable {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.sf-pressable:active:not(:disabled):not([aria-disabled='true']) {
+  transform: scale(0.97);
+}
+
+/* Respect de la préférence système : on neutralise animations et transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

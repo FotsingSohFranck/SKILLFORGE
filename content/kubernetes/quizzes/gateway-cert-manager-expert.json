@@ -1,0 +1,96 @@
+{
+  "ref": "gateway-cert-manager-expert",
+  "node": "ingress-networking",
+  "lesson": "gateway-api-cert-manager",
+  "title": "Gateway API & cert-manager, expert",
+  "description": "Gateway API vs Ingress, séparation des rôles, cert-manager, eBPF/MTU.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage de la Gateway API sur l'Ingress ?",
+      "justification": "Plus expressive et portable (rôles Gateway/HTTPRoute, trafic pondéré, multi-protocole) au lieu d'annotations propres à chaque contrôleur.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Séparation des rôles, trafic pondéré, portabilité",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle supprime le besoin de contrôleur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle chiffre les volumes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait cert-manager ?",
+      "justification": "Il émet et RENOUVELLE automatiquement les certificats TLS (ex. Let's Encrypt/ACME), stockés dans un Secret, plus d'expiration surprise.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Automatiser l'émission et le renouvellement des certificats TLS",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Router le trafic HTTP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Gérer les volumes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apportent les CNI basés sur eBPF (Cilium) ?",
+      "justification": "De meilleures performances (remplacent kube-proxy/iptables), de l'observabilité réseau (Hubble) et des NetworkPolicies L7.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Performances, observabilité et NetworkPolicies riches (L7)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La suppression du besoin d'IP par pod",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des images",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une MTU mal alignée sur un réseau overlay peut faire « pendre » les connexions sur les gros paquets alors que les petites requêtes passent.",
+      "justification": "Vrai : l'encapsulation (VXLAN) ajoute des octets ; une MTU incohérente casse les gros paquets, un symptôme déroutant classique.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

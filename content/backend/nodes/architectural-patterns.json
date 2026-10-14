@@ -1,0 +1,336 @@
+{
+  "node": "architectural-patterns",
+  "lessons": [
+    {
+      "slug": "monolithe-et-modulaire",
+      "title": "Monolithe & monolithe modulaire",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le monolithe, mal aimé à tort",
+          "body": "Commençons par le mot lui-même. Un **monolithe**, en architecture logicielle, c'est une application dont **tout le code tourne dans un seul programme lancé d'un bloc** : on parle d'un seul **processus** (le programme unique que le système d'exploitation exécute en mémoire). Un seul truc à lancer, un seul truc à **déployer** (déployer = mettre en service sur un serveur pour que les utilisateurs s'en servent).\n\n👉 **Analogie** : un monolithe, c'est une **maison où toutes les pièces sont sous le même toit**. La cuisine, le salon et la chambre communiquent par des couloirs internes, sans jamais passer par dehors.\n\nOn le dit souvent *old-school*, mais c'est à tort : pour démarrer, c'est presque toujours le **meilleur point de départ**. Tout est au même endroit, donc c'est simple à développer, simple à déployer (un seul artefact), simple à déboguer (tu suis une requête d'un bout à l'autre sans quitter le programme), et une seule **transaction** (une opération en base de type tout-ou-rien) peut couvrir toute une action métier. Exemple concret : cette plateforme d'apprentissage est un monolithe, un seul backend Spring Boot qui gère les comptes, le catalogue et la progression.\n\nLe vrai danger n'est pas le monolithe, c'est le monolithe **spaghetti** : un plat de code où tout s'emmêle, sans frontières internes, où le moindre changement dans un coin casse un autre coin à l'autre bout. Ce n'est pas une fatalité, ça se prévient, comme le montre la section suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le monolithe, un seul bloc deployable, reste un excellent choix par defaut : simple a developper et a deployer.",
+          "body": "/images/lessons/monolithe-et-modulaire-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le monolithe modulaire",
+          "body": "Le **monolithe modulaire** garde l'avantage du monolithe (un seul déployable) mais range le code en **modules aux frontières nettes**. Un **module**, ici, c'est un bloc de code responsable d'un domaine précis (les comptes, le catalogue, la progression...) et qui ne laisse pas les autres fouiller dans ses affaires.\n\nOn parle de **contexte borné** (*bounded context*, terme venu du Domain-Driven Design) : une zone du logiciel avec sa propre logique et son propre vocabulaire, dont les limites sont clairement tracées. Les modules ne se parlent pas en allant lire directement les données du voisin ; ils passent par un **port** (une interface publique, un contrat qui dit \"voici ce que tu peux me demander\") ou par des **événements** (des messages du type \"un apprenant s'est inscrit\", qu'un module publie et que d'autres écoutent).\n\n👉 **Analogie** : au lieu d'un grand *open space* où tout le monde crie et se marche dessus, tu as des **bureaux séparés avec des portes**. On communique par la porte (le port), pas en escaladant la cloison pour attraper le dossier du collègue.\n\nRésultat : la **simplicité opérationnelle** du monolithe (une seule chose à lancer) plus un **découpage clair** qui, le jour venu, rendra facile d'extraire un module en service séparé. C'est le choix de cette plateforme : un seul déployable, des contextes isolés (iam, catalogue, apprentissage...)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le monolithe modulaire garde un seul deployable mais le decoupe en modules aux frontieres nettes.",
+          "body": "/images/lessons/monolithe-et-modulaire-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Du monolithe aux microservices, en un coup d'œil",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n    subgraph MONO[\"Monolithe : un seul deployable\"]\n        direction LR\n        C[\"Comptes\"] --- K[\"Catalogue\"] --- P[\"Progression\"]\n    end\n    subgraph MICRO[\"Microservices : services separes\"]\n        direction LR\n        SC[\"Service Comptes\"] -. reseau .-> SK[\"Service Catalogue\"] -. reseau .-> SP[\"Service Progression\"]\n    end\n    MONO -->|\"extraction progressive, module par module\"| MICRO"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une petite équipe démarre un produit dont le domaine est encore flou. Monolithe ou microservices d'emblée ? Justifie.",
+          "solution": "Monolithe (idéalement modulaire) : le domaine n'est pas stabilisé, donc des microservices figeraient des frontières encore incertaines et ajouteraient une lourde complexité opérationnelle (réseau, déploiements multiples, observabilité distribuée). On garde un seul déployable, simple à faire évoluer, et on découpe plus tard, quand les coutures deviennent claires et qu'un besoin réel le justifie. Le monolithe modulaire (modules à frontières nettes dès le départ) offre le meilleur des deux : simplicité aujourd'hui, extraction facile demain."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Monolithe & modulaire",
+          "quizRef": "architectural-patterns-mono-check"
+        }
+      ]
+    },
+    {
+      "slug": "microservices-et-soa",
+      "title": "Microservices & SOA",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Découper en services",
+          "body": "Les **microservices** sont l'approche inverse du monolithe : au lieu d'un seul gros programme, on découpe l'application en **plusieurs petits services séparés**, chacun **déployable indépendamment**. \"Déployable indépendamment\" est le mot-clé : tu peux mettre à jour et relancer le service Paiement **sans toucher** au service Catalogue.\n\nChaque service s'occupe d'**une capacité métier** (une fonction claire du produit : la facturation, les notifications, le catalogue...) et possède **sa propre base de données** (son propre stock de données, que les autres services ne touchent jamais directement).\n\n👉 **Analogie** : le monolithe était une grande maison sous un seul toit ; les microservices, c'est un **quartier de petites maisons indépendantes**. Chacune a sa cuisine (sa base), on peut en rénover une sans couper l'eau des autres, et elles se parlent par la rue (le réseau).\n\nBénéfices concrets : chaque équipe est **autonome** sur son service (elle livre à son rythme), on peut **mettre à l'échelle** (ajouter de la puissance) uniquement le service surchargé au lieu de tout dupliquer, et une **panne** reste isolée dans son service au lieu de tout emporter.\n\nUn mot d'histoire : la **SOA** (*Service-Oriented Architecture*, architecture orientée services) est l'ancêtre des microservices. Elle découpait déjà en services, mais plus **gros**, et les faisait souvent communiquer par un **bus d'entreprise** (*ESB* : un gros tuyau central par lequel tout transite). Les microservices en sont la version plus **fine** et plus **décentralisée** (pas de tuyau central obligatoire)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les microservices decoupent l'application en services independants, deployables separement.",
+          "body": "/images/lessons/microservices-et-soa-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La complexité déplacée, pas supprimée",
+          "body": "Attention au piège : les microservices ne **suppriment** pas la complexité, ils la **déplacent**. On échange la complexité **du code** (un gros programme à organiser) contre la complexité **du réseau** (des dizaines de programmes qui doivent se parler à distance).\n\nOr un appel réseau n'a rien à voir avec un appel de fonction dans le même programme. Il apporte :\n- la **latence** (le temps que le message voyage, jamais instantané) ;\n- les **pannes partielles** (le service appelé peut être mort ou lent pendant que toi tu tournes) ;\n- la **cohérence distribuée** (plus de **transaction globale** unique tout-ou-rien : si une action touche trois services, on ne peut plus tout annuler d'un coup, il faut des mécanismes comme les *sagas* et l'*outbox*, vus plus loin) ;\n- l'**observabilité distribuée** (suivre une seule requête qui traverse cinq services demande des outils spéciaux, comme le *tracing*) ;\n- la **multiplication des déploiements** (dix services = dix choses à livrer, surveiller, versionner).\n\n👉 **Analogie** : passer d'une conversation dans la même pièce (appel de fonction) à une organisation par courrier entre dix bureaux distants (appels réseau). Le courrier se perd, arrive en retard, et coordonner tout le monde devient un métier en soi.\n\n**La règle d'or** : beaucoup d'équipes adoptent les microservices **trop tôt**, par mode, et croulent sous cette complexité pour un produit qui aurait tenu dans un monolithe. On ne choisit les microservices que pour un **besoin réel** et démontré (une échelle qui explose, plusieurs équipes qui se gênent), jamais par réflexe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les microservices ne suppriment pas la complexite : ils la deplacent vers le reseau et l'exploitation.",
+          "body": "/images/lessons/microservices-et-soa-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Cite deux difficultés qu'introduisent les microservices et qui n'existaient pas dans un monolithe.",
+          "solution": "Par exemple : 1) la cohérence distribuée, car il n'y a plus de transaction unique couvrant plusieurs services (il faut des sagas/outbox et accepter une cohérence à terme) ; 2) l'observabilité et le débogage distribués, car suivre une seule requête à travers plusieurs services exige du tracing. On peut aussi citer la latence réseau, les pannes partielles et la multiplication des déploiements. Le point commun : cette complexité est celle du réseau, absente quand tout tournait dans un seul processus."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Microservices & SOA",
+          "quizRef": "architectural-patterns-micro-check"
+        }
+      ]
+    },
+    {
+      "slug": "serverless-et-service-mesh",
+      "title": "Serverless & service mesh",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Serverless : ne plus gérer de serveur",
+          "body": "Le **serverless** (\"sans serveur\") est un modèle où tu écris seulement des **fonctions** (de petits bouts de code qui font une chose), et où la plateforme cloud s'occupe de **tout le reste**. Le nom est trompeur : il y a bien des serveurs, mais tu n'as **plus à les gérer** (pas d'installation, pas de mise à jour de machine). L'exemple type est **AWS Lambda**.\n\nTa fonction s'exécute **en réponse à un événement** (un déclencheur : un fichier déposé, une requête HTTP reçue, un message qui arrive). La plateforme **provisionne** automatiquement la puissance nécessaire (elle alloue les machines à ta place), elle **scale à zéro** (quand personne n'appelle, rien ne tourne et tu ne paies rien), et tu es **facturé à l'usage** (à la milliseconde d'exécution réelle).\n\n👉 **Analogie** : au lieu de louer une voiture au mois (un serveur allumé en permanence que tu paies même à l'arrêt), tu prends un **taxi à la demande** : il arrive quand tu l'appelles, tu paies la course, puis il repart et ne te coûte plus rien.\n\nIdéal pour des traitements **ponctuels ou en pic** (un import qui arrive de temps en temps, une charge imprévisible). Mais trois limites à connaître : le **démarrage à froid** (*cold start* : quand la fonction n'a pas tourné depuis un moment, la première invocation est plus lente, le temps que la plateforme la \"réveille\") ; une **durée d'exécution bornée** (une fonction ne peut pas tourner des heures, il y a une limite) ; et un modèle **sans état** (*stateless* : la fonction ne garde rien en mémoire d'un appel à l'autre), qui ne convient pas aux **processus longs** ou qui doivent se souvenir de choses."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le serverless laisse le fournisseur gerer les serveurs : on ne paie que l'execution.",
+          "body": "/images/lessons/serverless-et-service-mesh-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Service mesh : la plomberie inter-services",
+          "body": "Reviens aux microservices : quand ils se **multiplient** (dizaines, voire centaines), chaque service doit gérer les mêmes corvées réseau : **chiffrer** ses communications (les rendre illisibles pour un espion, ici de façon **mutuelle**, chacun prouvant son identité à l'autre), **réessayer** un appel qui a échoué (*retry*), **couper** les appels vers un service en panne (*circuit breaking*, vu en détail plus loin), choisir vers quelle instance envoyer la requête (**routage**), et remonter des mesures pour savoir ce qui se passe (**observabilité**). Réécrire tout ça dans **chaque** service est répétitif et source d'erreurs.\n\nUn **service mesh** (\"maillage de services\", comme Istio ou Linkerd) sort toute cette plomberie du code et la met dans une **couche d'infrastructure** dédiée. Concrètement, il place à côté de chaque service un **sidecar** (\"side-car\", comme le panier accroché à une moto : un petit proxy collé au service, qui intercepte tout son trafic réseau).\n\n👉 **Analogie** : plutôt que d'apprendre à chaque employé à faire lui-même la sécurité, le courrier et la traduction, tu affectes à chacun un **assistant personnel** (le sidecar) qui s'occupe de tout ça de façon identique. L'employé (le code métier) se concentre sur son vrai travail.\n\nBénéfice : le code métier redevient **simple** (il ne fait que du métier), et la politique réseau (sécurité, résilience, routage) se gère **au même endroit pour tous**, sans retoucher les services un par un."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le service mesh prend en charge la plomberie entre services : routage, retries, securite, observabilite.",
+          "body": "/images/lessons/serverless-et-service-mesh-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un traitement d'images se déclenche rarement mais par pics imprévisibles, chaque traitement durant 3 s. Le serverless est-il adapté ? Quel piège surveiller ?",
+          "solution": "Oui : le serverless scale automatiquement aux pics, facture à l'usage et convient parfaitement à un traitement court déclenché par événement (ici, l'upload d'une image). Piège à surveiller : le démarrage à froid (la latence de la première invocation après une période d'inactivité). C'est acceptable dans ce cas car le traitement n'est pas ultra-sensible à la latence, mais c'est à mesurer. La durée de 3 s reste bien en dessous des limites d'exécution, et le côté sans état ne pose pas de problème pour un traitement ponctuel."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Serverless & service mesh",
+          "quizRef": "architectural-patterns-serverless-check"
+        }
+      ]
+    },
+    {
+      "slug": "twelve-factor",
+      "title": "Twelve-Factor Apps",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des applications prêtes pour le cloud",
+          "body": "Les **Twelve-Factor Apps** (\"applications à douze facteurs\") sont une liste de douze bonnes pratiques, publiée par les créateurs de la plateforme Heroku, pour écrire des applications **robustes et portables** (qui tournent pareil partout : sur ton portable comme en production dans le cloud).\n\nQuelques facteurs clés, en clair :\n- **Config dans l'environnement** : les réglages qui changent selon l'endroit (adresses de base, mots de passe) vivent dans des **variables d'environnement** (des valeurs fournies par le système au lancement), et **jamais écrites en dur dans le code**.\n- **Dépendances déclarées** explicitement : la liste des bibliothèques nécessaires est écrite noir sur blanc (dans un `pom.xml`, un `package.json`), pour que n'importe qui reconstruise l'application à l'identique.\n- **Processus sans état** (*stateless*) : l'application ne garde rien d'important en mémoire locale entre deux requêtes ; tout ce qui doit durer va en base ou dans un cache externe.\n- **Logs comme flux** : l'application se contente d'**écrire ses messages sur la sortie standard** (le flux texte que le terminal affiche par défaut), sans gérer elle-même des fichiers de logs ; l'infrastructure se charge de les collecter.\n- **Parité dev/prod** : garder l'environnement de développement aussi proche que possible de la production (mêmes versions, même base), pour éviter le fameux \"ça marchait chez moi\".\n- **Build, release, run séparés** : distinguer nettement la construction de l'application, sa combinaison avec une config, et son exécution.\n\n👉 **Analogie** : c'est le **code de la route** des applications cloud. Rien n'est imposé de force, mais quand tout le monde le respecte, tout roule : déployer, scaler et exploiter l'application devient prévisible et sans surprise."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les douze facteurs sont une check-list pour des applications pretes pour le cloud.",
+          "body": "/images/lessons/twelve-factor-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi ça compte (niveau expert)",
+          "body": "Ces facteurs ne sont pas de la théorie d'école : chacun résout un problème concret de déploiement.\n\n- **Config par l'environnement** (facteur III) permet d'utiliser **exactement la même image** de l'application en développement et en production : seule la config injectée change, jamais le code. Tu construis une fois, tu déploies partout.\n- **Sans état** (facteur VI) permet le **scale horizontal** : puisqu'aucune instance ne détient d'information unique en mémoire, tu peux en lancer dix copies identiques derrière un répartiteur de charge, et n'importe laquelle peut répondre à n'importe quelle requête.\n- **Logs en flux** (facteur XI) permet une **agrégation centralisée** : tous les services crachant leurs logs sur la sortie standard, un outil unique les collecte et les rend cherchables au même endroit.\n\n👉 **En résumé** : suivre ces principes, c'est éviter à l'avance une foule de galères de déploiement (le secret oublié dans le code, l'instance qu'on ne peut pas dupliquer, les logs introuvables).\n\nCette plateforme les applique concrètement : configuration via variables d'environnement, authentification **JWT stateless** (le jeton porte l'info, le serveur ne garde pas de session en mémoire), front et back livrés en **conteneurs** (des paquets isolés qui tournent pareil partout), et **une seule commande** (`docker compose up`) pour tout démarrer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Respecter ces facteurs rend une app portable, scalable et facile a exploiter.",
+          "body": "/images/lessons/twelve-factor-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une application lit son mot de passe de base dans un fichier committé dans le code. Quel facteur des Twelve-Factor est violé, et quelle est la correction ?",
+          "solution": "Le facteur \"Config\" (III) est violé : la configuration, surtout les secrets, doit venir de l'environnement, pas être stockée dans le code. Correction : lire le mot de passe depuis une variable d'environnement (ou depuis un coffre à secrets), et ne jamais committer de secret. Avantage immédiat : la même image tourne alors partout (dev, préprod, prod), seule la config injectée change ; et le secret n'est plus figé pour toujours dans l'historique Git."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Patterns d'architecture",
+          "quizRef": "architectural-patterns-check"
+        }
+      ]
+    },
+    {
+      "slug": "patterns-resilience-distribuee",
+      "title": "Patterns de résilience distribuée",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "En distribué, tout finit par tomber",
+          "body": "Une vérité du distribué : **dès qu'un service en appelle un autre par le réseau, il faut concevoir en supposant la panne**. Ce n'est pas du pessimisme, c'est statistique : avec assez d'appels, le service distant sera **un jour** lent, indisponible, ou renverra n'importe quoi. La question n'est pas *si*, mais *quand*.\n\nIgnorer cela produit la catastrophe classique : la **panne en cascade** (*cascading failure*). Un service devient lent ; ceux qui l'appellent restent bloqués à l'attendre ; leurs propres ressources s'épuisent ; ils deviennent lents à leur tour ; et de proche en proche, **tout le système s'effondre** à cause d'un seul maillon.\n\n👉 **Analogie** : un carambolage sur l'autoroute. Une voiture freine brutalement, celle de derrière la percute, puis la suivante, et en quelques secondes tout le trafic est à l'arrêt, alors qu'une seule voiture avait un problème.\n\nLa **résilience** (la capacité à encaisser les pannes sans s'effondrer) n'est donc pas une option en microservices. Concrètement, c'est un ensemble de **patterns** (des solutions éprouvées et réutilisables à un problème récurrent) qu'on **compose autour de chaque appel sortant**. En pratique on ne les code pas à la main : une bibliothèque comme **Resilience4j** (bien adaptée au **réactif**, le style non bloquant de Spring WebFlux utilisé ici) les fournit prêts à l'emploi."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En distribue, tout finit par tomber : il faut concevoir pour la panne, pas l'ignorer.",
+          "body": "/images/lessons/patterns-resilience-distribuee-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Timeout, retry & backoff",
+          "body": "Premier réflexe, le plus simple et le plus important : le **timeout** (\"délai maximum\"). Tu fixes une durée au-delà de laquelle un appel réseau est abandonné. Sans lui, tu **attends indéfiniment** un service mort, en gardant une ressource (un thread, une connexion) occupée pour rien, jusqu'à les épuiser toutes. Exemple : \"si le service Paiement ne répond pas en 2 secondes, j'abandonne\".\n\nEnsuite le **retry** (\"réessai\") : re-tenter un appel qui a échoué. Utile **uniquement** pour les erreurs **transitoires** (passagères : une micro-coupure réseau, un pic momentané), jamais pour une vraie erreur de fond (réessayer ne la corrigera pas).\n\nMais un retry mal fait aggrave tout. Il faut un **backoff exponentiel** (attendre de plus en plus longtemps entre chaque essai : 100 ms, puis 200, puis 400...) avec du **jitter** (un petit délai **aléatoire** ajouté). Pourquoi l'aléatoire ? Pour éviter le **thundering herd** (\"troupeau furieux\") : si mille clients échouent en même temps et réessaient tous pile à la même seconde, ils **achèvent** le service qui tentait justement de se relever. Le jitter les disperse dans le temps.\n\n👉 **Analogie** : au standard téléphonique qui sonne occupé, tu ne rappelles pas dix fois par seconde (tu bloques la ligne). Tu attends un peu, puis un peu plus, et pas exactement en même temps que les autres.\n\n⚠️ **Piège crucial** : on ne réessaie que des opérations **idempotentes** (qu'on peut rejouer sans changer le résultat : lire une donnée, la relire, c'est pareil). Réessayer une opération **non** idempotente duplique ses effets. Un retry naïf sur un POST de paiement, et tu **débites deux fois** le client."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Timeout, retry et backoff evitent qu'une lenteur ponctuelle ne bloque tout le systeme.",
+          "body": "/images/lessons/patterns-resilience-distribuee-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Circuit breaker & bulkhead",
+          "body": "Deux défenses plus avancées contre la cascade.\n\nLe **circuit breaker** (\"disjoncteur\", exactement comme celui du tableau électrique de ta maison). Un disjoncteur coupe le courant quand ça surcharge, pour éviter l'incendie. Ici, pareil : après **trop d'échecs** vers un service, le circuit breaker **s'ouvre** (état *open*) et fait **échouer immédiatement** les appels suivants, sans même essayer (donc sans attendre le timeout). Deux bénéfices : l'appelant ne gaspille plus ses ressources à attendre un service mort, et le service en difficulté a la **paix pour récupérer** (on arrête de le bombarder). Régulièrement, le disjoncteur laisse passer **un** appel test (état *half-open*, \"demi-ouvert\") : si ça repasse, il se **referme** (état *closed*, retour à la normale) ; sinon il reste ouvert.\n\nLe **bulkhead** (\"cloison étanche\", comme dans la coque d'un navire : ces cloisons qui font qu'une voie d'eau n'inonde qu'un compartiment sans couler tout le bateau). En logiciel : tu réserves un **pool de ressources dédié** (un lot borné de threads ou de connexions) **par dépendance**. Ainsi, si le service Recommandations sature et bloque tout son pool, il n'engloutit que **son** compartiment : les ressources des autres appels restent intactes, et le reste de l'application continue de tourner.\n\n👉 **En résumé** : le circuit breaker **coupe** vite vers ce qui est cassé ; le bulkhead **cloisonne** pour qu'un problème ne déborde pas sur le reste. Deux protections complémentaires contre l'effet domino."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le circuit breaker coupe les appels vers un service en panne ; le bulkhead isole les ressources.",
+          "body": "/images/lessons/patterns-resilience-distribuee-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Dégradation gracieuse & backpressure (niveau expert)",
+          "body": "Malgré tout, une dépendance finira parfois par tomber. Le bon réflexe alors n'est pas de **planter**, mais de **dégrader** : offrir un service **amoindri mais utile** plutôt qu'une page d'erreur.\n\nC'est le rôle du **fallback** (\"solution de repli\") : une réponse de secours quand l'appel normal échoue (une valeur par défaut, une donnée un peu périmée tirée du cache, une fonctionnalité désactivée). On appelle ça la **dégradation gracieuse**.\n\n👉 **Analogie** : \"le fil d'actualité sans les recommandations personnalisées\" reste consultable et vaut mille fois mieux qu'un écran d'erreur. Comme un ascenseur en panne où l'escalier reste ouvert : moins confortable, mais tu montes quand même.\n\nAutre mécanisme, propre au **réactif** (le style non bloquant de WebFlux/Reactor utilisé sur cette plateforme) : la **backpressure** (\"contre-pression\"). Quand un producteur envoie les données plus vite que le consommateur ne peut les traiter, le consommateur **signale son rythme** au producteur (\"ralentis, je suis à 100 par seconde maximum\") au lieu de subir. Sans ça, les messages non traités **s'accumulent en mémoire** jusqu'au crash par saturation.\n\n👉 **Analogie** : à un buffet, tu remplis ton assiette à **ton** rythme ; tu ne te fais pas déverser toute la marmite dessus. La backpressure, c'est le convive qui dit \"stop, sers plus lentement\".\n\nConcevoir la dégradation, c'est accepter d'avance qu'on ne peut pas **tout** garantir, et **choisir** posément ce qu'on sacrifie en premier quand ça chauffe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Degradation gracieuse et backpressure : rendre un service partiel plutot que de s'effondrer.",
+          "body": "/images/lessons/patterns-resilience-distribuee-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un service A appelle un service B qui devient très lent. Sans protection, les requêtes vers A s'accumulent, ses threads/connexions s'épuisent, et A tombe à son tour bien que son propre code soit sain. Comment nomme-t-on ce phénomène, et quels deux patterns l'auraient évité ?",
+          "solution": "C'est une panne en cascade (cascading failure) : la lenteur de B se propage à A car les appels à B tiennent les ressources de A jusqu'à épuisement. Patterns qui l'évitent : 1) un timeout sur l'appel à B (libérer vite les ressources au lieu d'attendre indéfiniment), combiné à un circuit breaker (après trop d'échecs ou de lenteurs, ouvrir le circuit et échouer immédiatement, laissant B récupérer) ; 2) un bulkhead (isoler les appels à B dans un pool de ressources dédié et borné, pour qu'ils ne consomment jamais toutes les ressources de A). On complète idéalement par un fallback pour dégrader gracieusement pendant que B est indisponible."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : Résilience distribuée",
+          "quizRef": "architectural-patterns-resilience-check"
+        }
+      ]
+    },
+    {
+      "slug": "patterns-communication-migration",
+      "title": "Patterns de communication & de migration",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Synchrone ou asynchrone : un choix structurant",
+          "body": "Deux grands styles pour faire communiquer des services, et le choix pèse lourd.\n\n**Synchrone** (\"en même temps\") : l'appelant envoie une requête et **attend la réponse**, bloqué jusqu'à ce qu'elle arrive. C'est le modèle **requête puis réponse** de **REST** (des appels HTTP classiques) ou de **gRPC** (un protocole d'appel plus rapide et typé). Avantage : **simple à raisonner** (tu demandes, tu obtiens, comme un appel de fonction). Défaut : ça crée un **couplage temporel**, l'appelant **dépend de la disponibilité** de l'appelé au même instant. Si l'appelé est down, l'appelant est coincé.\n\n👉 **Analogie synchrone** : un **coup de téléphone**. L'autre doit décrocher **maintenant**, sinon la conversation n'a pas lieu.\n\n**Asynchrone** (\"pas en même temps\") : l'émetteur dépose un **message** (ou un **événement**, une notification du type \"commande payée\") dans un **broker** (un intermédiaire qui stocke et distribue les messages, comme RabbitMQ ou Kafka), puis **repart sans attendre**. Le destinataire le consommera **à son rythme**, plus tard. Ça **découple dans le temps** : émetteur et récepteur n'ont pas besoin d'être disponibles ensemble. Plus résilient et scalable, mais plus complexe : la **cohérence à terme** (les données ne sont alignées qu'**après** un délai, pas instantanément), l'ordre des messages et l'**idempotence** (pouvoir recevoir deux fois le même message sans dégât) deviennent tes soucis.\n\n👉 **Analogie asynchrone** : un **e-mail** (ou un SMS). Tu l'envoies, tu continues ta vie, l'autre répond quand il peut.\n\nChoisir synchrone ou asynchrone **pour chaque interaction** est l'une des décisions les plus structurantes d'une architecture distribuée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Synchrone ou asynchrone : ce choix structure tout le couplage entre services.",
+          "body": "/images/lessons/patterns-communication-migration-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Orchestration vs chorégraphie",
+          "body": "Souvent, un processus métier s'étale sur **plusieurs services** (passer une commande = vérifier le stock, débiter le paiement, préparer l'expédition). Une telle suite d'étapes réparties s'appelle une **saga**. Comme il n'y a plus de transaction globale tout-ou-rien, si une étape échoue on lance des **compensations** (des actions qui annulent proprement les étapes déjà faites : rembourser le paiement, relâcher le stock). Deux façons de coordonner tout ça.\n\nL'**orchestration** : un **chef d'orchestre central** (un service coordinateur) pilote explicitement chaque étape et déclenche les compensations en cas de pépin. Le flux est **explicite et lisible** (un seul endroit décrit tout le processus), mais ce coordinateur est un **point central couplé** à tous les services.\n\nLa **chorégraphie** : **pas de chef**. Chaque service **réagit aux événements** émis par les autres (\"paiement effectué\" déclenche l'expédition, qui émet \"colis prêt\"...). C'est **découplé et autonome**, mais le flux global est **implicite** : personne ne \"voit\" le processus entier écrit quelque part, ce qui rend le **débogage plus dur** (\"pourquoi cette commande est-elle bloquée ?\" oblige à reconstituer le puzzle).\n\n👉 **Analogie** : l'orchestration, c'est un **orchestre** avec un chef qui donne les entrées, tout le monde le regarde. La chorégraphie, c'est un **groupe de danseurs** sans chef : chacun réagit aux mouvements des autres. Plus fluide et autonome, mais si un pas est raté, plus dur de savoir qui devait faire quoi.\n\nOn choisit selon la **complexité du flux** et le **besoin de visibilité**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Orchestration : un chef dirige ; choregraphie : chaque service reagit aux evenements.",
+          "body": "/images/lessons/patterns-communication-migration-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "API gateway & BFF",
+          "body": "Exposer directement des dizaines de microservices aux applications clientes (le navigateur, le mobile) est ingérable : le client devrait connaître toutes les adresses, faire dix appels, gérer l'authentification partout.\n\nUne **API gateway** (\"passerelle d'API\") règle ça : c'est un **point d'entrée unique** placé devant tous les services. Elle prend en charge la plomberie transversale au **bord** du système : le **routage** (diriger chaque requête vers le bon service interne), l'**authentification** (vérifier une fois l'identité pour tous), le **rate limiting** (limiter le nombre de requêtes par client, pour éviter les abus et les surcharges) et l'**agrégation** (regrouper en une seule réponse ce qui vient de plusieurs services).\n\n👉 **Analogie** : la gateway est l'**accueil d'un grand immeuble d'entreprises**. Tu ne cours pas de bureau en bureau ; tu passes par la réception unique qui vérifie ton identité et t'oriente. Les visiteurs ignorent la structure interne.\n\nVariante : le **BFF** (*Backend For Frontend*, \"un backend pour chaque frontend\"). Au lieu d'une passerelle unique pour tous, on en fait **une par type de client** : une taillée pour le mobile (qui veut peu de données, pour économiser la batterie et le réseau), une pour le web (qui peut en afficher plus). Chaque BFF prépare **exactement** les données dont son client a besoin, lui évitant de jongler avec dix appels et de trier lui-même.\n\n👉 **En clair** : ces patterns **cachent la complexité interne** derrière une façade adaptée à celui qui consomme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'API gateway centralise l'entree ; le BFF adapte l'API a chaque type de client.",
+          "body": "/images/lessons/patterns-communication-migration-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Migrer un monolithe : le strangler fig (niveau expert)",
+          "body": "Comment transformer un vieux monolithe en production en un ensemble de services ? Surtout **pas d'un seul coup**. La réécriture intégrale \"big bang\" (tout refaire à neuf, puis basculer d'un bloc au jour J) est l'une des manœuvres les plus **risquées** de l'informatique : pendant des mois on ne livre rien, et le jour de bascule, tout peut exploser en même temps.\n\nLe pattern **strangler fig** (\"figuier étrangleur\", image de Martin Fowler d'après une vraie plante qui pousse **autour** d'un arbre et finit par le remplacer) migre **progressivement** :\n1. On place une **façade** (une gateway, un proxy) **devant** le monolithe ; elle intercepte tout le trafic entrant.\n2. On **extrait une seule capacité** à la fois vers un nouveau service (par exemple les notifications).\n3. On **route** ce périmètre précis vers le nouveau service, tout le reste continuant d'aller au monolithe.\n4. On **répète**, capacité par capacité, jusqu'à ce que le monolithe soit \"étranglé\", vidé de sa substance, et enfin **retirable**.\n\n👉 **Analogie** : rénover une maison **pièce par pièce en continuant d'y habiter**, plutôt que de la raser pour tout reconstruire d'un coup en dormant dehors six mois. À chaque étape, tu as un toit.\n\nL'énorme avantage : chaque étape est **petite, livrable et réversible** (si le nouveau service pose problème, on re-route vers le monolithe). Le risque est **étalé et borné** au lieu d'être concentré sur un seul grand saut. C'est aussi pourquoi un **monolithe modulaire** (dont les frontières sont déjà nettes) rend cette extraction future **bien plus facile** : les coutures sont déjà tracées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le strangler fig migre un monolithe en remplacant ses morceaux un a un, sans big bang.",
+          "body": "/images/lessons/patterns-communication-migration-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe veut migrer un gros monolithe legacy vers des services, mais craint une réécriture « big bang » risquée. Quel pattern permet une migration incrémentale et sûre, et comment fonctionne-t-il ?",
+          "solution": "Le strangler fig pattern : au lieu de tout réécrire d'un coup, on place une façade (proxy/gateway) devant le monolithe, qui intercepte le trafic. On extrait ensuite UNE capacité métier à la fois dans un nouveau service, et on route le périmètre correspondant vers lui, en laissant le reste sur le monolithe. On répète capacité par capacité ; à chaque étape le système reste fonctionnel, chaque changement est petit, livrable et réversible (on peut re-router vers le monolithe en cas de souci). Le monolithe se réduit progressivement jusqu'à pouvoir être retiré. Le risque est étalé et maîtrisé, contrairement au big bang. Bonus : un monolithe déjà modulaire rend chaque extraction bien plus simple, car les frontières sont déjà tracées."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références pour approfondir :\n- *Building Microservices* (Sam Newman) : communication, migration, découpage.\n- *Monolith to Microservices* (Sam Newman) : le strangler fig en détail.\n- *Release It!* (Michael Nygard) : circuit breaker, bulkhead, stabilité en production.\n- *Microservices Patterns* (Chris Richardson) : saga, API gateway, orchestration/chorégraphie (et le site microservices.io).\n- la documentation **Resilience4j**, bien adaptée au réactif.\n- *Enterprise Integration Patterns* (Gregor Hohpe & Bobby Woolf) : les échanges asynchrones par messages."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les patterns d'architecture.",
+          "body": "/images/lessons/patterns-communication-migration-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : Patterns d'architecture (niveau expert)",
+          "quizRef": "architectural-patterns-expert"
+        }
+      ]
+    }
+  ]
+}

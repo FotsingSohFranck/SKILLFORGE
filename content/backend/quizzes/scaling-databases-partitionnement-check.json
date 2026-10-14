@@ -1,0 +1,96 @@
+{
+  "ref": "scaling-databases-partitionnement-check",
+  "node": "scaling-databases",
+  "lesson": "partitionnement-haute-disponibilite",
+  "title": "Quiz, Partitionnement & haute disponibilité",
+  "description": "Partitionnement déclaratif, pruning, réplication sync/async, failover.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment purger efficacement un mois entier d'une table partitionnée par plage (RANGE), sans DELETE massif ni verrous ?",
+      "justification": "On DÉTACHE puis on SUPPRIME la partition concernée (DETACH puis DROP) : une opération de métadonnée quasi instantanée, sans DELETE ligne à ligne.",
+      "position": 0,
+      "options": [
+        {
+          "label": "DETACH puis DROP de la partition du mois",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un DELETE ... WHERE date < ... en boucle",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver l'autovacuum",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le compromis de la réplication synchrone par rapport à l'asynchrone ?",
+      "justification": "La synchrone attend qu'au moins un réplica ait reçu l'écriture : aucune perte si le primaire tombe, mais plus de latence à chaque écriture.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Aucune perte de transaction, au prix de plus de latence",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Plus rapide ET sans aucune perte",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle supprime le besoin de réplicas",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un orchestrateur comme Patroni ?",
+      "justification": "Il assure la bascule automatique (failover) : détecter la panne du primaire, élire et promouvoir un réplica sans intervention humaine. C'est le cœur de la haute disponibilité.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Promouvoir automatiquement un réplica si le primaire tombe",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les journaux WAL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Créer les index automatiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec le partition pruning, une requête filtrée sur la colonne de découpage ne lit que la partition pertinente.",
+      "justification": "Vrai : si la requête filtre sur la colonne de partitionnement (ex. la date), le moteur ignore les partitions hors sujet et ne scanne que la bonne.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

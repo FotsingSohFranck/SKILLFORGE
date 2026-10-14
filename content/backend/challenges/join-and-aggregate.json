@@ -1,0 +1,10 @@
+{
+  "node": "sql-modeling",
+  "lesson": "agreger-et-grouper",
+  "title": "Compter les inscriptions par parcours",
+  "statement": "Écrivez UNE requête qui, en joignant `roadmaps` (r) et `enrollments` (e sur `e.roadmap_id = r.id`), renvoie pour chaque parcours son `title` et son **nombre d'inscriptions**, du plus populaire au moins populaire. Utilisez JOIN, GROUP BY, COUNT et ORDER BY.",
+  "skeleton": "SELECT ...\nFROM roadmaps r\n-- complétez : jointure, regroupement, comptage, tri\n",
+  "solution": "SELECT r.title, count(e.id) AS inscrits\nFROM roadmaps r\nJOIN enrollments e ON e.roadmap_id = r.id\nGROUP BY r.title\nORDER BY inscrits DESC;",
+  "keyPoints": ["JOIN enrollments", "e.roadmap_id = r.id", "GROUP BY", "count(", "ORDER BY"],
+  "language": "sql"
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "authentication-sessions-check",
+  "node": "authentication",
+  "lesson": "sessions-vs-tokens",
+  "title": "Sessions vs tokens",
+  "description": "Session/cookie avec état, JWT sans état, anatomie et limites.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans l'authentification par session, où sont stockées les données de l'utilisateur connecté ?",
+      "justification": "Côté serveur (la session). Le cookie ne contient qu'un identifiant de session qui permet de la retrouver.",
+      "position": 0,
+      "options": [
+        { "label": "Côté serveur ; le cookie ne porte qu'un identifiant de session", "correct": true, "position": 0 },
+        { "label": "Entièrement dans le cookie, côté navigateur", "correct": false, "position": 1 },
+        { "label": "Dans l'URL de chaque requête", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un JWT (stateless) facilite-t-il la mise à l'échelle ?",
+      "justification": "N'importe quelle instance peut vérifier la signature et faire confiance au contenu, sans stockage de session partagé entre les serveurs.",
+      "position": 1,
+      "options": [
+        { "label": "N'importe quelle instance le valide sans stockage partagé", "correct": true, "position": 0 },
+        { "label": "Il est impossible à intercepter", "correct": false, "position": 1 },
+        { "label": "Il chiffre automatiquement toutes les données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut mettre un secret dans les claims d'un JWT car il est chiffré.",
+      "justification": "Faux : un JWT est signé (authenticité), pas chiffré. Ses claims sont lisibles par tous ; on n'y met jamais de secret.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un access token JWT est difficile à révoquer avant son expiration. Quel schéma concilie sécurité et confort ?",
+      "justification": "Un access token à durée de vie courte, renouvelé par un refresh token plus long mais révocable (stocké/haché côté serveur, avec rotation).",
+      "position": 3,
+      "options": [
+        { "label": "Access token court + refresh token long et révocable", "correct": true, "position": 0 },
+        { "label": "Un seul token valable plusieurs mois pour éviter les reconnexions", "correct": false, "position": 1 },
+        { "label": "Ne jamais faire expirer le token", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

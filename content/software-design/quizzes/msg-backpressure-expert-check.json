@@ -1,0 +1,101 @@
+{
+  "ref": "msg-backpressure-expert-check",
+  "node": "messaging-styles",
+  "lesson": "backpressure-controle-de-flux",
+  "title": "Quiz, Backpressure & contrôle de flux (expert)",
+  "description": "Consumer lag, pull vs push, Reactive Streams request(n), stratégies de saturation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment Reactive Streams intègre-t-il la backpressure ?",
+      "justification": "Le consommateur demande explicitement n éléments via request(n) ; le producteur n'émet que ce qui a été demandé (modèle pull-push hybride), propageant la lenteur de l'aval jusqu'à la source sans bloquer.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le consommateur demande n éléments via request(n) ; le producteur n'émet que la demande",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le producteur pousse toujours au débit maximum",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On bloque un thread jusqu'à ce que le consommateur suive",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi « agrandir le buffer en mémoire » ne règle-t-il pas un déséquilibre de débit structurel ?",
+      "justification": "Tant que le débit d'entrée dépasse le débit de sortie, tout buffer (même énorme) finit par se remplir : on ne fait que retarder l'OutOfMemory. Un buffer non borné est un anti-pattern.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Tout buffer finit par se remplir si l'entrée dépasse durablement la sortie : ça ne fait que retarder l'OOM",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que la mémoire est toujours suffisante",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que le buffer ralentit le CPU",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour des ticks de télémétrie périssables où seule la valeur récente compte, quelle stratégie de saturation est acceptable ?",
+      "justification": "Drop/latest (ne garder que la dernière valeur) est sain pour des données périssables. Pour des messages à ne pas perdre (transactions), il faut au contraire buffer borné + scaling, jamais drop.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Drop/latest (ne garder que la dernière valeur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un buffer non borné",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Bloquer toute la chaîne indéfiniment",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Lecture Kafka rapide → écriture API tierce lente (200 ms) ; le lag croît sans fin jusqu'à l'OOM. Meilleure correction ?",
+      "justification": "Propager la backpressure vers Kafka (borner l'in-flight, Kafka sert de tampon durable) et scaler les consommateurs (consumer group + concurrence bornée) ; les événements ne se perdent pas.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Borner l'in-flight (backpressure → Kafka comme tampon durable) et scaler les consommateurs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Doubler la taille du buffer heap",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dropper les événements en trop",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

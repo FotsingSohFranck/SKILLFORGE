@@ -1,0 +1,96 @@
+{
+  "ref": "building-images-cache-check",
+  "node": "building-images",
+  "lesson": "cache-de-couches",
+  "title": "Quiz, Cache de couches",
+  "description": "Cache de couches, invalidation en cascade, ordre des instructions, .dockerignore.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand une couche est-elle reconstruite au lieu d'être réutilisée depuis le cache ?",
+      "justification": "Dès que son instruction, ou une instruction qui la précède, change : cette couche et toutes les suivantes sont reconstruites (invalidation en cascade).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Quand son instruction ou une instruction précédente change",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Seulement quand on redémarre le daemon Docker",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais : une couche est réutilisée à vie",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel ordre d'instructions donne un cache efficace pour une app Node ?",
+      "justification": "Copier les manifestes et installer les dépendances AVANT de copier le code : une modif de code n'invalide alors pas l'installation.",
+      "position": 1,
+      "options": [
+        {
+          "label": "COPY package*.json ./ → RUN npm ci → COPY . .",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "COPY . . → RUN npm ci",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "RUN npm ci → COPY package*.json ./ → COPY . .",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le fichier `.dockerignore` ?",
+      "justification": "Il exclut des fichiers du contexte envoyé au daemon : build plus rapide, image plus propre, et moins de risque d'embarquer des secrets ou des fichiers volumineux.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Exclure des fichiers du contexte envoyé au daemon (rapidité, moins de fuite)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Empêcher le conteneur de démarrer en root",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer les couches de l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Modifier une ligne de code invalide les couches qui SUIVENT la copie du code, mais pas celles qui la précèdent.",
+      "justification": "Vrai : le cache est invalidé en cascade vers l'aval. Les couches d'avant (image de base, install des dépendances) restent réutilisées.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "optional-moderne",
+  "lesson": "transformer-map-flatmap-filter",
+  "title": "Extrais le domaine d'un email en majuscules",
+  "statement": "Complète la méthode domaineMajuscule. À partir d'un Optional<String> contenant peut-être un email, renvoie un Optional<String> avec le domaine (ce qui suit le @) en majuscules, seulement si l'email contient un @. Enchaine filter puis map. N'utilise ni get() ni null.",
+  "skeleton": "import java.util.Optional;\n\npublic class Email {\n    static Optional<String> domaineMajuscule(Optional<String> email) {\n        // Garde l'email s'il contient un @, puis renvoie le domaine en majuscules.\n    }\n}\n",
+  "solution": "import java.util.Optional;\n\npublic class Email {\n    static Optional<String> domaineMajuscule(Optional<String> email) {\n        return email\n            .filter(e -> e.contains(\"@\"))\n            .map(e -> e.substring(e.indexOf('@') + 1).toUpperCase());\n    }\n}",
+  "keyPoints": ["filter", "map", "contains", "substring", "pas de get()"],
+  "language": "java"
+}

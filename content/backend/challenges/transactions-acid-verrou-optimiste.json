@@ -1,0 +1,10 @@
+{
+  "node": "transactions-acid",
+  "lesson": "verrous-et-strategies",
+  "title": "Mise à jour en verrouillage optimiste",
+  "statement": "Écris un `UPDATE` en verrouillage optimiste sur la table `roadmaps`. Il doit changer le `title` en `'Nouveau'` et incrémenter la colonne `version`, mais seulement si la `version` en base correspond encore à celle que tu avais lue (`:versionLue`) pour la ligne `:id`. Si 0 ligne est modifiée, c'est que quelqu'un a écrit entre-temps et l'appelant devra rejouer.",
+  "skeleton": "UPDATE roadmaps\nSET ...\nWHERE ...;\n",
+  "solution": "UPDATE roadmaps\nSET title = 'Nouveau', version = version + 1\nWHERE id = :id AND version = :versionLue;",
+  "keyPoints": ["version = version + 1", "WHERE id = :id", "version = :versionLue"],
+  "language": "sql"
+}

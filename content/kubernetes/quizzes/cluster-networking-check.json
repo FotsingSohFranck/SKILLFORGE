@@ -1,0 +1,52 @@
+{
+  "ref": "cluster-networking-check",
+  "node": "ingress-networking",
+  "lesson": "reseau-du-cluster",
+  "title": "Réseau du cluster",
+  "description": "Modèle une-IP-par-pod, CNI, kube-proxy, mécanique des Services.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le modèle réseau imposé par Kubernetes ?",
+      "justification": "Chaque pod a sa propre IP et tous les pods peuvent se joindre directement, sans NAT, quel que soit le nœud.",
+      "position": 0,
+      "options": [
+        { "label": "Chaque pod a une IP, tous joignables directement sans NAT", "correct": true, "position": 0 },
+        { "label": "Il faut mapper des ports entre pods comme en Docker", "correct": false, "position": 1 },
+        { "label": "Les pods n'ont pas de réseau", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qui réalise concrètement ce modèle réseau ?",
+      "justification": "Un plugin CNI (Calico, Cilium, Flannel, VPC CNI) installé dans le cluster met en place le réseau des pods.",
+      "position": 1,
+      "options": [
+        { "label": "Un plugin CNI", "correct": true, "position": 0 },
+        { "label": "Le container runtime seul", "correct": false, "position": 1 },
+        { "label": "etcd", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment le trafic vers l'IP virtuelle d'un Service atteint-il un pod ?",
+      "justification": "kube-proxy programme des règles iptables/IPVS (ou eBPF via Cilium) qui redirigent vers une IP de pod des endpoints.",
+      "position": 2,
+      "options": [
+        { "label": "Via des règles iptables/IPVS (ou eBPF) programmées par kube-proxy", "correct": true, "position": 0 },
+        { "label": "L'IP du Service est celle d'un pod physique", "correct": false, "position": 1 },
+        { "label": "Par un câble dédié", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'IP d'un Service n'existe pas physiquement : c'est une règle de redirection vers les IP des pods prêts.",
+      "justification": "Vrai : c'est une IP virtuelle interceptée par kube-proxy/eBPF ; un pod non prêt (hors endpoints) cesse de recevoir du trafic.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

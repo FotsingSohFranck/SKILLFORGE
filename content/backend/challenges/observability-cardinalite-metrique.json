@@ -1,0 +1,10 @@
+{
+  "node": "observability",
+  "lesson": "tracing-distribue-cardinalite",
+  "title": "Corriger une métrique à cardinalité explosive",
+  "statement": "On te donne un compteur **Micrometer** qui incrémente `http_requests_total` avec trois labels : `route`, `status` et `userId`. Le label `userId` a une **forte cardinalité** (une valeur par utilisateur) : il crée une série temporelle par utilisateur et fait s'écrouler Prometheus. Corrige le compteur pour ne garder que des dimensions **bornées** : `route` (route normalisée) et `status`. Retire le label `userId` (l'identité fine doit vivre dans les traces et les logs, pas dans les labels de métrique).",
+  "skeleton": "Counter.builder(\"http_requests_total\")\n    .tag(\"route\", route)\n    .tag(\"status\", status)\n    .tag(\"userId\", userId) // a corriger : cardinalite explosive\n    .register(registry)\n    .increment();",
+  "solution": "Counter.builder(\"http_requests_total\")\n    .tag(\"route\", route)\n    .tag(\"status\", status)\n    .register(registry)\n    .increment();",
+  "keyPoints": ["http_requests_total", "route", "status", "register", "increment"],
+  "language": "java"
+}

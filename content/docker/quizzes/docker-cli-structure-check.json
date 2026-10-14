@@ -1,0 +1,96 @@
+{
+  "ref": "docker-cli-structure-check",
+  "node": "docker-cli",
+  "lesson": "structure-de-la-cli",
+  "title": "Quiz, Structure de la CLI",
+  "description": "Objets + verbes, vieux raccourcis, --format et --filter.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quel schéma la CLI Docker moderne est-elle organisée ?",
+      "justification": "Elle est structurée en groupes d'objets (image, container, volume, network, system) partageant les mêmes verbes (ls, inspect, rm, prune) : c'est ce qui la rend prévisible.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un objet (image, container, volume...) suivi d'un verbe commun (ls, inspect, rm, prune)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une seule commande géante qui prend tout en paramètre",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Des commandes rangées par ordre alphabétique sans logique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi correspond l'ancien raccourci `docker ps` dans la CLI par objet ?",
+      "justification": "`docker ps` est le vieux raccourci de `docker container ls` : il liste les conteneurs. Ces raccourcis restent valides mais penser en objets + verbes reste plus clair.",
+      "position": 1,
+      "options": [
+        {
+          "label": "À `docker container ls` (lister les conteneurs)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À `docker image ls` (lister les images)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À `docker system prune` (nettoyer)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle option de `docker inspect` extrait proprement une seule valeur (ex. l'IP) pour un script ?",
+      "justification": "`--format` avec un gabarit (template) Go renvoie directement le champ voulu, sans avoir à parser tout le bloc JSON à la main.",
+      "position": 2,
+      "options": [
+        {
+          "label": "`--format` avec un template Go, ex. `{{ .NetworkSettings.IPAddress }}`",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "`--all` qui affiche encore plus de JSON",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "`docker logs`, qui montre l'IP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'option `--filter status=exited` permet de ne cibler que les conteneurs arrêtés.",
+      "justification": "Vrai : `--filter` cible les objets selon une condition ; `status=exited` ne retient que les conteneurs arrêtés, pratique pour lister ce qu'il y a à nettoyer.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

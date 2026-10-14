@@ -1,0 +1,149 @@
+{
+  "slug": "ckad",
+  "title": "CKAD, Certified Kubernetes Application Developer",
+  "summary": "Préparation à l'examen CKAD : concevoir, déployer, configurer et exposer des applications sur Kubernetes.",
+  "kind": "CERTIFICATION",
+  "position": 3,
+  "certification": {
+    "code": "CKAD",
+    "examFormat": "PRACTICAL",
+    "durationMinutes": 120,
+    "passingScore": 66.0,
+    "domains": [
+      {
+        "name": "Application Design and Build",
+        "weight": 20,
+        "position": 0
+      },
+      {
+        "name": "Application Deployment",
+        "weight": 20,
+        "position": 1
+      },
+      {
+        "name": "Application Observability and Maintenance",
+        "weight": 15,
+        "position": 2
+      },
+      {
+        "name": "Application Environment, Configuration and Security",
+        "weight": 25,
+        "position": 3
+      },
+      {
+        "name": "Services and Networking",
+        "weight": 20,
+        "position": 4
+      }
+    ]
+  },
+  "phases": [
+    {
+      "title": "Concevoir & déployer",
+      "position": 0
+    },
+    {
+      "title": "Configurer, observer & exposer",
+      "position": 1
+    }
+  ],
+  "nodes": [
+    {
+      "slug": "design-build",
+      "title": "Concevoir & construire",
+      "summary": "Pods, jobs, multi-conteneurs et images.",
+      "phase": "Concevoir & déployer",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 0,
+      "examDomains": [
+        {
+          "domain": "Application Design and Build",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "slug": "deployment",
+      "title": "Déployer",
+      "summary": "Deployments, rolling updates, rollbacks, mise à l'échelle.",
+      "phase": "Concevoir & déployer",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1,
+      "examDomains": [
+        {
+          "domain": "Application Deployment",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "slug": "config-security",
+      "title": "Configurer & sécuriser",
+      "summary": "ConfigMaps, Secrets, ressources, SecurityContext, ServiceAccounts.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 0,
+      "examDomains": [
+        {
+          "domain": "Application Environment, Configuration and Security",
+          "weight": 25
+        }
+      ]
+    },
+    {
+      "slug": "observability",
+      "title": "Observer & maintenir",
+      "summary": "Sondes, logs, debug, mises à jour.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 1,
+      "examDomains": [
+        {
+          "domain": "Application Observability and Maintenance",
+          "weight": 15
+        }
+      ]
+    },
+    {
+      "slug": "networking",
+      "title": "Services & réseau",
+      "summary": "Services, Ingress, NetworkPolicies.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 2,
+      "examDomains": [
+        {
+          "domain": "Services and Networking",
+          "weight": 20
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "design-build",
+      "target": "deployment",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "deployment",
+      "target": "config-security",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "deployment",
+      "target": "observability",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "config-security",
+      "target": "networking",
+      "kind": "PREREQ"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "modules",
+  "lesson": "root-vs-child-modules",
+  "title": "Appeler un module publié et consommer son output",
+  "statement": "Depuis ton module racine, appelle un module publié nommé `reseau` dont la `source` est `\"terraform-aws-modules/vpc/aws\"`. Épingle sa version avec `version = \"~> 5.0\"` (pour éviter qu'une future 6.0 casse ton code). Passe-lui une variable d'entrée `cidr` valant `\"10.0.0.0/16\"`. Ensuite, écris une ressource `aws_instance` nommée `web` dont l'argument `subnet_id` consomme l'output `subnet_id` exposé par ce module. But : montrer l'appel d'un module (source + version épinglée + variable d'entrée) et la consommation d'un output (module.<nom>.<output>).",
+  "skeleton": "module \"reseau\" {\n  # source, version épinglée, et la variable d'entrée cidr\n}\n\nresource \"aws_instance\" \"web\" {\n  # consomme l'output subnet_id du module reseau\n}",
+  "solution": "module \"reseau\" {\n  source  = \"terraform-aws-modules/vpc/aws\"\n  version = \"~> 5.0\"\n  cidr    = \"10.0.0.0/16\"\n}\n\nresource \"aws_instance\" \"web\" {\n  subnet_id = module.reseau.subnet_id\n}",
+  "keyPoints": ["module \"reseau\"", "source", "version", "~> 5.0", "cidr", "module.reseau.subnet_id"],
+  "language": "hcl"
+}

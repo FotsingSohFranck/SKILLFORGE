@@ -1,0 +1,96 @@
+{
+  "ref": "workloads-advanced-statefulsets-check",
+  "node": "workloads-advanced",
+  "lesson": "statefulsets",
+  "title": "Quiz, StatefulSets",
+  "description": "Deployment vs StatefulSet, identité stable, stockage par pod (volumeClaimTemplate), ordre.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle application devrait utiliser un StatefulSet plutôt qu'un Deployment ?",
+      "justification": "Une base de données répliquée a un état identifiable : elle exige des noms stables, un stockage propre par pod et un démarrage ordonné, ce que seul le StatefulSet garantit.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une base de données répliquée à 3 nœuds",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une API web sans état derrière un load balancer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un site statique servi par nginx",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le volumeClaimTemplate d'un StatefulSet ?",
+      "justification": "Il donne à CHAQUE pod son propre volume persistant (PVC) qui le suit : db-0 retrouve toujours ses propres données, même après recréation.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Donner à chaque pod son propre volume persistant qui le suit",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Partager un seul volume unique entre tous les pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les données à chaque redémarrage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un pod de StatefulSet obtient-il une adresse réseau stable et individuelle ?",
+      "justification": "Grâce à un headless Service, qui expose une entrée DNS par pod (un nom direct comme db-0) au lieu de répartir le trafic au hasard entre les pods.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Via un headless Service qui donne une entrée DNS par pod",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Via une adresse IP aléatoire tirée à chaque démarrage",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Via le nom du nœud sur lequel il tourne",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un StatefulSet, les pods sont créés dans un ordre déterministe (db-0, puis db-1, puis db-2).",
+      "justification": "Vrai : la création est ordonnée (chaque pod attend que le précédent soit prêt) et la suppression se fait dans l'ordre inverse, ce qui est crucial pour initialiser un cluster.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "state-management",
+  "lesson": "remote-state-et-locking",
+  "title": "Configurer un backend distant S3",
+  "statement": "Configure un backend distant **S3** pour stocker le state de façon partagée, chiffrée et verrouillée. Complète le bloc `terraform { backend \"s3\" { ... } }` avec : le bucket `mon-org-tfstate`, la clé (chemin logique du state) `prod/reseau/terraform.tfstate`, la région `eu-west-3`, le chiffrement au repos activé (`encrypt = true`) et le verrouillage d'état activé (`use_lockfile = true`).",
+  "skeleton": "terraform {\n  backend \"s3\" {\n    # complète ici\n  }\n}\n",
+  "solution": "terraform {\n  backend \"s3\" {\n    bucket       = \"mon-org-tfstate\"\n    key          = \"prod/reseau/terraform.tfstate\"\n    region       = \"eu-west-3\"\n    encrypt      = true\n    use_lockfile = true\n  }\n}",
+  "keyPoints": ["backend \"s3\"", "mon-org-tfstate", "prod/reseau/terraform.tfstate", "eu-west-3", "encrypt", "use_lockfile"],
+  "language": "hcl"
+}

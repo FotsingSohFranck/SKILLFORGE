@@ -1,0 +1,96 @@
+{
+  "ref": "sec-threat-expert-check",
+  "node": "security",
+  "lesson": "threat-modeling-et-autorisation",
+  "title": "Quiz, Threat modeling & autorisation (expert)",
+  "description": "STRIDE, RBAC/ABAC/ReBAC, policy-as-code, Zero Trust.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que couvre l'acronyme STRIDE ?",
+      "justification": "Six catégories de menaces (Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege) à passer en revue par composant/flux.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Six catégories de menaces à analyser lors du threat modeling",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un algorithme de chiffrement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un framework front-end",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel modèle d'autorisation fonde les droits sur des attributs (utilisateur, ressource, contexte) ?",
+      "justification": "ABAC (Attribute-Based) : fin et puissant (« un manager voit les dossiers de son équipe aux heures ouvrées »), plus complexe que RBAC (rôles).",
+      "position": 1,
+      "options": [
+        {
+          "label": "ABAC",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "RBAC uniquement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "JWT",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment éviter d'éparpiller la logique d'autorisation dans le code ?",
+      "justification": "La externaliser en policy-as-code (OPA/Rego, Cedar) : politiques centralisées, versionnées, testables, un service gouverné, pas des if dispersés.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Policy-as-code (OPA, Cedar)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Des if de rôle dans chaque fonction",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune vérification",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En Zero Trust, un appel interne entre services doit quand même être authentifié et autorisé (l'identité, pas le réseau, est le périmètre).",
+      "justification": "Vrai : « ne jamais faire confiance, toujours vérifier » ; mTLS + autorisation à chaque frontière + micro-segmentation, contre le mouvement latéral.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

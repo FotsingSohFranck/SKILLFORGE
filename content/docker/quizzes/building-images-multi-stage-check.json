@@ -1,0 +1,96 @@
+{
+  "ref": "building-images-multi-stage-check",
+  "node": "building-images",
+  "lesson": "multi-stage-builds",
+  "title": "Quiz, Les builds multi-stage",
+  "description": "Séparer build et exécution, COPY --from, taille et sécurité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet un build multi-stage ?",
+      "justification": "Compiler avec l'outillage lourd dans une première étape, puis ne copier que l'artefact produit dans une image finale minimale.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Compiler avec l'outillage dans une étape, ne garder que l'artefact dans une image minimale",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construire obligatoirement plusieurs images en parallèle",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer chaque couche de l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que copie exactement l'instruction `COPY --from=build /app/target/app.jar app.jar` ?",
+      "justification": "Uniquement l'artefact produit par l'étape nommée `build` (ici le .jar), sans emporter le compilateur, le SDK ni les sources.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Seulement l'artefact produit par l'étape de build (le .jar)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toute l'image de l'étape de build, compilateur inclus",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le code source complet du projet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le double gain du multi-stage ?",
+      "justification": "Image bien plus petite (téléchargement/déploiement/démarrage plus rapides) ET surface d'attaque réduite (moins d'outils et de paquets, donc moins de CVE).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Image plus petite ET surface d'attaque réduite",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Build plus lent mais image plus sûre",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun gain de taille, seulement de sécurité",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'image finale d'un build multi-stage contient le compilateur et le code source.",
+      "justification": "Faux : l'étape finale repart d'une image minimale et ne reçoit que l'artefact. Ni compilateur, ni SDK, ni sources ne s'y retrouvent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

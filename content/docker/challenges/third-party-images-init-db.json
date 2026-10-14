@@ -1,0 +1,10 @@
+{
+  "node": "third-party-images",
+  "lesson": "exploiter-images-officielles",
+  "title": "Initialiser une base au premier démarrage",
+  "statement": "Complète ce fragment `docker-compose.yml` pour un service `db` basé sur `postgres:18`. Il doit : définir `POSTGRES_PASSWORD=secret` par une variable d'environnement, persister les données dans un volume nommé `pgdata` monté sur `/var/lib/postgresql/data`, et monter le fichier local `./init/schema.sql` en lecture seule dans le répertoire d'initialisation de l'image afin qu'il soit joué au premier démarrage.",
+  "skeleton": "services:\n  db:\n    image: postgres:18\n    environment:\n      # ... mot de passe\n    volumes:\n      # ... volume de donnees\n      # ... script d'init en lecture seule\nvolumes:\n  # ... declaration du volume\n",
+  "solution": "services:\n  db:\n    image: postgres:18\n    environment:\n      POSTGRES_PASSWORD: secret\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n      - ./init/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro\nvolumes:\n  pgdata:",
+  "keyPoints": ["postgres:18", "POSTGRES_PASSWORD", "pgdata:/var/lib/postgresql/data", "/docker-entrypoint-initdb.d/", ":ro", "volumes:"],
+  "language": "yaml"
+}

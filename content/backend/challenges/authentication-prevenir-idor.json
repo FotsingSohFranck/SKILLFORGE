@@ -1,0 +1,10 @@
+{
+  "node": "authentication",
+  "lesson": "autorisation-en-profondeur",
+  "title": "Prévenir une faille IDOR",
+  "statement": "Un endpoint charge une inscription (`Enrollment`) par son id, mais renvoie n'importe quelle inscription dès que l'appelant est authentifié : c'est une faille **IDOR**. Corrige la méthode `findOwnedEnrollment(UUID id, UUID currentUserId)` pour qu'elle ne renvoie l'inscription **que si elle appartient à l'utilisateur courant**. Appuie-toi sur une méthode de repository qui filtre par propriétaire (`findByIdAndUserId`) et renvoie un `Mono<Enrollment>` (vide si non trouvée ou non possédée). Ne fais jamais confiance à l'id fourni par le client.",
+  "skeleton": "import reactor.core.publisher.Mono;\nimport java.util.UUID;\n\npublic class EnrollmentService {\n    private final EnrollmentRepository repository;\n\n    public EnrollmentService(EnrollmentRepository repository) {\n        this.repository = repository;\n    }\n\n    // Vulnérable : ignore le propriétaire.\n    // Corrige pour ne renvoyer que l'inscription possédée par currentUserId.\n    public Mono<Enrollment> findOwnedEnrollment(UUID id, UUID currentUserId) {\n        return repository.findById(id);\n    }\n}",
+  "solution": "import reactor.core.publisher.Mono;\nimport java.util.UUID;\n\npublic class EnrollmentService {\n    private final EnrollmentRepository repository;\n\n    public EnrollmentService(EnrollmentRepository repository) {\n        this.repository = repository;\n    }\n\n    public Mono<Enrollment> findOwnedEnrollment(UUID id, UUID currentUserId) {\n        // On filtre par id ET par propriétaire : un id d'un autre utilisateur\n        // ne renvoie rien (Mono vide -> 404/403 côté web).\n        return repository.findByIdAndUserId(id, currentUserId);\n    }\n}",
+  "keyPoints": ["findByIdAndUserId", "currentUserId", "Mono<Enrollment>"],
+  "language": "java"
+}

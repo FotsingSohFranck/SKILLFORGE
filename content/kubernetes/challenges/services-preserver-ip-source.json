@@ -1,0 +1,10 @@
+{
+  "node": "services",
+  "lesson": "external-traffic-policy",
+  "title": "Retrouver la vraie IP des clients",
+  "statement": "Une application derrière un Service **LoadBalancer** doit filtrer ses clients par adresse IP (allowlist) et journaliser leur IP réelle. En production, elle ne voit que des **IP de nœuds internes**, jamais celle des clients. En quelques phrases : explique la **cause précise**, le **réglage à changer**, et la **contrepartie** à gérer.",
+  "skeleton": "Cause :\n\nRéglage à changer :\n\nContrepartie à gérer :\n",
+  "solution": "Cause : le Service utilise le externalTrafficPolicy par défaut, Cluster. Quand le trafic externe arrive sur un nœud mais que le pod cible est sur un autre nœud, kube-proxy fait un second saut vers le bon nœud et applique un SNAT (il réécrit l'IP source). L'application ne voit donc plus l'IP du client mais celle du nœud, ce qui casse à la fois la journalisation et l'allowlist par IP.\n\nRéglage à changer : passer le Service en externalTrafficPolicy: Local. Le trafic n'est alors routé qu'aux pods présents sur le nœud d'entrée, sans second saut ni SNAT, ce qui préserve l'IP source réelle du client.\n\nContrepartie à gérer : un nœud sans pod du service ne peut pas servir ce trafic ; le load balancer doit donc, via ses health checks, ne router que vers les nœuds ayant des pods (les intégrations cloud gèrent cela). De plus, la répartition devient dépendante du placement des pods sur les nœuds, donc potentiellement moins uniforme.",
+  "keyPoints": ["externalTrafficPolicy", "Cluster", "SNAT", "Local", "IP source", "health check"],
+  "language": "text"
+}

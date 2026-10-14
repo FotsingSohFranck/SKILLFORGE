@@ -1,0 +1,96 @@
+{
+  "ref": "services-pourquoi-check",
+  "node": "services",
+  "lesson": "pourquoi-un-service",
+  "title": "Quiz, Pourquoi un Service",
+  "description": "Pods éphémères, adresse stable, selector par labels, endpoints & readiness.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne faut-il pas coder en dur l'IP d'un pod pour l'atteindre ?",
+      "justification": "Un pod est éphémère : recréé, déplacé ou scalé, il reçoit une nouvelle IP. L'ancienne ne pointe alors plus vers rien.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Parce qu'un pod est éphémère et change d'IP à chaque recréation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce qu'un pod n'a jamais d'adresse IP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que Kubernetes interdit d'utiliser des ports",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte un Service devant un groupe de pods ?",
+      "justification": "Le Service offre une IP virtuelle et un nom DNS fixes, et répartit (load balancing) le trafic vers les pods sains.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une adresse stable (IP virtuelle + nom DNS) qui répartit le trafic vers les pods",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il supprime le besoin de conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il fige l'IP d'un pod pour qu'elle ne change plus jamais",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un Service détermine-t-il quels pods sont « les siens » ?",
+      "justification": "Par un sélecteur de labels (ex. selector: app=web). Le lien se fait par étiquettes, pas par IP, ce qui reste dynamique.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Grâce à un sélecteur de labels (ex. app=web)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Grâce à l'ordre de démarrage des pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Grâce à l'IP fixe inscrite dans chaque pod",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un pod dont la readiness probe est au rouge continue de recevoir du trafic du Service.",
+      "justification": "Faux : un pod non prêt est retiré des endpoints ; le Service cesse de lui envoyer du trafic jusqu'à ce qu'il redevienne prêt.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

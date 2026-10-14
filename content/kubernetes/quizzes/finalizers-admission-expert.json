@@ -1,0 +1,119 @@
+{
+  "ref": "finalizers-admission-expert",
+  "node": "key-concepts",
+  "lesson": "finalizers-ownerrefs-admission",
+  "title": "Finalizers, ownerRefs & admission, expert",
+  "description": "ownerReferences/GC en cascade, finalizers/Terminating, chaîne d'admission.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui permet la suppression en cascade d'un Deployment vers ses ReplicaSets et Pods ?",
+      "justification": "Les ownerReferences : chaque enfant référence son propriétaire ; le garbage collector supprime les enfants quand le propriétaire disparaît.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les ownerReferences (graphe de propriété)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le resourceVersion",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le kube-proxy",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un finalizer sur un objet ?",
+      "justification": "Il bloque la suppression définitive (état Terminating) tant qu'un contrôleur n'a pas fait son nettoyage puis retiré le finalizer.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il bloque la suppression le temps d'un nettoyage",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il accélère la suppression",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il chiffre l'objet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un objet reste bloqué en Terminating. Quelle est la cause typique ?",
+      "justification": "Un finalizer jamais retiré, car le contrôleur responsable du nettoyage est mort/en erreur/désinstallé ; on répare la cause avant de forcer.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un finalizer non retiré (contrôleur défaillant)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un manque de mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un mauvais tag d'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel ordre s'exécutent les admission webhooks ?",
+      "justification": "Les mutating (qui modifient l'objet : sidecar, defaults) d'abord, puis les validating (qui acceptent/refusent : Pod Security, Kyverno).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Mutating d'abord, puis validating",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Validating d'abord, puis mutating",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En parallèle, sans ordre",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La chaîne d'admission (avant persistance dans etcd) est ce qui rend les politiques de sécurité inviolables côté serveur.",
+      "justification": "Vrai : mutating puis validating s'exécutent avant l'écriture ; c'est là que Pod Security, Kyverno/OPA rejettent les objets non conformes.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

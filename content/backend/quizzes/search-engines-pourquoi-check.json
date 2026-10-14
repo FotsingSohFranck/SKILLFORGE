@@ -1,0 +1,52 @@
+{
+  "ref": "search-engines-pourquoi-check",
+  "node": "search-engines",
+  "lesson": "pourquoi-un-moteur",
+  "title": "Pourquoi un moteur de recherche",
+  "description": "Limites du LIKE, index inversé, recherche plein texte.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `WHERE contenu LIKE '%mot%'` devient-il lent sur beaucoup de lignes ?",
+      "justification": "Un motif `%mot%` cherche le mot au milieu du texte : aucun index classique ne peut aider, la base fait un balayage complet ligne par ligne.",
+      "position": 0,
+      "options": [
+        { "label": "La base doit balayer chaque ligne (un index classique n'aide pas pour `%mot%`)", "correct": true, "position": 0 },
+        { "label": "Le LIKE chiffre le contenu à chaque appel", "correct": false, "position": 1 },
+        { "label": "Le LIKE trie les résultats par pertinence, ce qui coûte cher", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que range un index inversé ?",
+      "justification": "L'index inversé associe chaque mot à la liste des documents qui le contiennent (mot → documents), ce qui rend la recherche instantanée.",
+      "position": 1,
+      "options": [
+        { "label": "Pour chaque mot, la liste des documents qui le contiennent", "correct": true, "position": 0 },
+        { "label": "Pour chaque document, la liste de ses mots", "correct": false, "position": 1 },
+        { "label": "Une copie chiffrée de la base de données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quel objet du quotidien ressemble le plus un index inversé ?",
+      "justification": "C'est l'index alphabétique à la fin d'un livre : tu vas au mot et il te donne directement les pages, sans relire le livre entier.",
+      "position": 2,
+      "options": [
+        { "label": "L'index alphabétique à la fin d'un livre", "correct": true, "position": 0 },
+        { "label": "La table des matières au début d'un livre", "correct": false, "position": 1 },
+        { "label": "La couverture du livre", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`LIKE '%kubernetes%'` retrouve la faute de frappe « kubernets » et classe les résultats par pertinence.",
+      "justification": "Faux : le LIKE fait une correspondance exacte de sous-chaîne (aucune tolérance aux fautes) et répond par oui/non sans classer par pertinence.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

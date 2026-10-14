@@ -1,0 +1,119 @@
+{
+  "ref": "workloads-advanced-check",
+  "node": "workloads-advanced",
+  "lesson": "daemonsets-jobs-cronjobs",
+  "title": "StatefulSets, DaemonSets & Jobs",
+  "description": "StatefulSet (identité/stockage stables), DaemonSet, Job, CronJob.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel workload donne à ses pods une identité stable et un stockage persistant dédié ?",
+      "justification": "Le StatefulSet : noms ordonnés stables (db-0...), volume par pod (volumeClaimTemplate) et ordre, pour les apps à état.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le StatefulSet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le Deployment",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le DaemonSet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel workload fait tourner un pod sur chaque nœud du cluster ?",
+      "justification": "Le DaemonSet : un exemplaire par nœud, idéal pour les agents d'infrastructure (logs, métriques, réseau, sécurité).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le DaemonSet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le Job",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le StatefulSet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel objet exécute une tâche jusqu'à complétion, avec réessais ?",
+      "justification": "Le Job : il lance un pod jusqu'au succès et gère les réessais (backoffLimit), migration, import, traitement ponctuel.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le Job",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le Deployment",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le Service",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel objet planifie une sauvegarde chaque nuit ?",
+      "justification": "Le CronJob : il déclenche un Job selon une expression cron (récurrence), pour sauvegardes, rapports, nettoyage.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le CronJob",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le DaemonSet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le ReplicaSet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une base de données répliquée devrait utiliser un Deployment car ses pods sont interchangeables.",
+      "justification": "Faux : une base répliquée a besoin d'identité et de stockage stables par pod → StatefulSet, pas Deployment.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

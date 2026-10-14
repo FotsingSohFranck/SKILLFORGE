@@ -1,0 +1,32 @@
+{
+  "node": "workloads-scheduling",
+  "lessons": [
+    {
+      "slug": "placer-les-charges",
+      "title": "Placer les charges",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Contrôler l'ordonnancement",
+          "body": "L'administrateur influence *où* tournent les pods. **Taints & tolerations** repoussent les pods d'un nœud sauf ceux qui « tolèrent » ; **nodeSelector / affinités** attirent les pods vers des nœuds étiquetés. Un **DaemonSet** garantit une instance par nœud (agent de logs, réseau). Ces mécanismes sont au cœur du domaine ordonnancement."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Taint et cordon",
+          "codeLanguage": "bash",
+          "body": "kubectl taint nodes node1 gpu=true:NoSchedule\nkubectl cordon node1     # ne plus ordonnancer dessus\nkubectl drain node1 --ignore-daemonsets  # vider pour maintenance\nkubectl uncordon node1"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Vous devez retirer un nœud pour maintenance sans interrompre les applications. Quelles commandes utiliser, dans quel ordre ?",
+          "solution": "kubectl cordon node (empêche de nouveaux pods), puis kubectl drain node --ignore-daemonsets (évacue les pods existants vers d'autres nœuds). Après maintenance : kubectl uncordon node."
+        }
+      ]
+    }
+  ]
+}

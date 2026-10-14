@@ -1,0 +1,10 @@
+{
+  "node": "relational-databases",
+  "lesson": "contraintes-et-integrite",
+  "title": "Une table avec de vraies contraintes",
+  "statement": "Écrivez le `CREATE TABLE enrollments` avec : une clé primaire `id` de type `uuid` avec `DEFAULT uuidv7()`, une colonne `user_id` (uuid) NON nulle qui **référence** `users(id)` avec suppression en cascade, une colonne `roadmap` (varchar) non nulle, et une contrainte d'**unicité** sur la paire `(user_id, roadmap)`.",
+  "skeleton": "CREATE TABLE enrollments (\n    -- complétez les colonnes et contraintes\n);",
+  "solution": "CREATE TABLE enrollments (\n    id      uuid PRIMARY KEY DEFAULT uuidv7(),\n    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n    roadmap varchar(80) NOT NULL,\n    UNIQUE (user_id, roadmap)\n);",
+  "keyPoints": ["PRIMARY KEY", "DEFAULT uuidv7()", "REFERENCES users(id)", "ON DELETE CASCADE", "UNIQUE (user_id, roadmap)"],
+  "language": "sql"
+}

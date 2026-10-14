@@ -1,0 +1,41 @@
+{
+  "ref": "scoped-values-le-probleme-de-threadlocal",
+  "node": "scoped-values",
+  "lesson": "le-probleme-de-threadlocal",
+  "title": "Quiz : le problème de ThreadLocal",
+  "description": "Rôle de ThreadLocal et ses trois faiblesses.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet un ThreadLocal ?",
+      "justification": "Un ThreadLocal donne à chaque thread sa propre copie d'une variable : plusieurs threads lisent la même variable mais voient chacun leur valeur.",
+      "position": 0,
+      "options": [
+        { "label": "Donner à chaque thread sa propre copie d'une variable partagée par son nom", "correct": true, "position": 0 },
+        { "label": "Partager une valeur identique et modifiable entre tous les threads à la fois", "correct": false, "position": 1 },
+        { "label": "Accélérer l'exécution d'un thread en le rendant prioritaire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle conséquence a l'oubli de remove() sur un ThreadLocal avec un pool de threads réutilisés ?",
+      "justification": "Sans remove(), la valeur reste collée au thread recyclé : c'est une fuite mémoire et un risque de lire une valeur d'une requête précédente.",
+      "position": 1,
+      "options": [
+        { "label": "La valeur reste attachée au thread recyclé : fuite mémoire et risque de confusion", "correct": true, "position": 0 },
+        { "label": "Le thread est automatiquement détruit à la fin de l'appel", "correct": false, "position": 1 },
+        { "label": "Rien, la valeur est toujours effacée automatiquement en fin d'appel", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec un ThreadLocal, n'importe quelle méthode peut appeler set() et changer la valeur en cours d'appel.",
+      "justification": "Vrai : la valeur d'un ThreadLocal est modifiable à tout moment, ce qui ne garantit pas qu'elle reste stable pendant tout le traitement.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

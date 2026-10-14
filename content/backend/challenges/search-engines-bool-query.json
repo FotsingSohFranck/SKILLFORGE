@@ -1,0 +1,10 @@
+{
+  "node": "search-engines",
+  "lesson": "elasticsearch-en-profondeur",
+  "title": "Composer une requête bool (query + filter)",
+  "statement": "Écris une requête Elasticsearch (JSON) qui cherche le texte `sécurité API` dans le champ `titre` ET ne garde que les cours dont le `statut` vaut `PUBLIÉ`. Mets le texte à scorer dans le `query context` (`must` avec `match`) et la condition binaire dans le `filter context` (`filter` avec `term`), le tout dans un `bool`.",
+  "skeleton": "{\n  \"query\": {\n    \"bool\": {\n      \"must\": [],\n      \"filter\": []\n    }\n  }\n}\n",
+  "solution": "{\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n        { \"match\": { \"titre\": \"sécurité API\" } }\n      ],\n      \"filter\": [\n        { \"term\": { \"statut\": \"PUBLIÉ\" } }\n      ]\n    }\n  }\n}",
+  "keyPoints": ["bool", "must", "match", "titre", "filter", "term", "statut"],
+  "language": "json"
+}

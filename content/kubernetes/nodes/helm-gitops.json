@@ -1,0 +1,121 @@
+{
+  "node": "helm-gitops",
+  "lessons": [
+    {
+      "slug": "helm",
+      "title": "Helm : packager pour Kubernetes",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème des YAML qui se multiplient",
+          "body": "Quand tu déploies une application sur **Kubernetes** (l'*orchestrateur* qui fait tourner tes conteneurs, c'est-à-dire le logiciel qui décide où et comment ils s'exécutent ; on l'abrège souvent **k8s**), tu ne cliques pas sur des boutons : tu écris des **manifestes**. Un **manifeste** est un **fichier texte au format YAML** (un format lisible où l'on décrit des objets sous forme de `clé: valeur` et de listes à puces) qui décrit **ce que tu veux** obtenir dans le cluster.\n\nUne vraie application a besoin de **plusieurs** manifestes, un par type d'objet :\n- un **Deployment** (qui lance et maintient un nombre voulu de copies de ton programme),\n- un **Service** (qui donne une adresse réseau stable pour joindre ces copies),\n- un **Ingress** (qui expose l'application vers l'extérieur, via une URL),\n- un **ConfigMap** (qui range la configuration hors de l'image),\n- un **HPA** (de l'anglais *Horizontal Pod Autoscaler* : il ajoute ou retire des copies selon la charge),\n- et souvent bien d'autres encore.\n\nPire : tu as en général **plusieurs environnements** (dev, staging, prod) qui utilisent presque les **mêmes** manifestes, à quelques valeurs près (2 répliques en dev, 10 en prod ; une URL de test ou l'URL réelle des clients).\n\n👉 **Analogie** : c'est comme rédiger trois fois le **même contrat** en ne changeant que le nom et le montant. Copier-coller puis modifier à la main, c'est long, et surtout on **oublie** toujours de reporter un changement dans l'une des copies.\n\n**Exemple concret** : tu ajoutes une sonde de santé à ton Deployment. Sans outil, tu dois faire la même modification dans le dossier dev, le dossier staging **et** le dossier prod, sans en rater un. C'est exactement le problème que **Helm** résout."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Charts, values & releases",
+          "body": "**Helm** est le **gestionnaire de paquets** de Kubernetes. Un gestionnaire de paquets, c'est l'outil qui installe un logiciel et tout ce qu'il lui faut, en une commande : `apt install` sous Linux, `npm install` en JavaScript. Helm fait pareil, mais pour des applications Kubernetes.\n\nTrois mots à retenir.\n\n**1. Le chart** (prononcé « tchart », le mot anglais pour *modèle/carte*) : c'est le **paquet** Helm. Il contient des **templates** de manifestes. Un **template** est un manifeste **à trous** : partout où une valeur doit changer, on met une variable écrite `{{ .Values.replicas }}` au lieu d'un nombre en dur. Le chart contient aussi un fichier `values.yaml` qui donne les **valeurs par défaut** de ces trous.\n\n👉 **Analogie** : le chart est un **formulaire type** (un contrat à trous). Les templates sont le texte fixe ; les `{{ .Values.xxx }}` sont les cases à remplir.\n\n**2. Les values** (les *valeurs*) : ce que tu mets dans les trous. Tu fournis un fichier de valeurs **par environnement** (`-f values-prod.yaml`) pour ne changer **que** ce qui varie, sans jamais toucher aux templates.\n\n**3. La release** (la *livraison*) : quand tu **installes** un chart avec un jeu de values, Helm calcule les manifestes finaux, les applique au cluster, et enregistre le tout comme une **release** : une **instance déployée et versionnée** de ton chart. Chaque mise à jour crée une nouvelle **révision** numérotée.\n\n**Exemple concret** : tu déploies la révision 3 et elle plante. `helm rollback mon-api 2` te ramène instantanément à la révision 2 qui marchait.\n\nBénéfices : **réutilisation** (un seul chart pour tous les environnements), **paramétrage** propre, **versionnage** avec **rollback**, et l'accès à un immense **catalogue public** de charts (installer Prometheus, une base de données ou un Ingress Controller en une commande, sans écrire un seul manifeste)."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Installer et paramétrer un chart",
+          "codeLanguage": "bash",
+          "body": "# Installer une application depuis un chart, avec des valeurs par environnement\nhelm install mon-api ./charts/api -f values-prod.yaml\n\nhelm list                       # les releases installées\nhelm upgrade mon-api ./charts/api -f values-prod.yaml   # mettre à jour\nhelm rollback mon-api 1         # revenir à une révision précédente\n\n# Installer un logiciel du catalogue public en une commande\nhelm repo add prometheus-community https://prometheus-community.github.io/helm-charts\nhelm install monitoring prometheus-community/kube-prometheus-stack"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe maintient trois copies quasi identiques de ses manifestes Kubernetes (dev, staging, prod), ne différant que par quelques valeurs (nombre de répliques, URLs, ressources). Chaque changement structurel doit être répercuté dans les trois. Comment Helm résout-il ce problème ?",
+          "solution": "Helm élimine la duplication en séparant la STRUCTURE (les templates) des VALEURS (ce qui varie par environnement). On écrit UN seul chart : des templates de manifestes paramétrés (Deployment, Service, Ingress...) où les parties variables sont des variables {{ .Values.replicas }}, {{ .Values.apiUrl }}, etc. Puis on fournit un fichier de valeurs par environnement : values-dev.yaml (2 répliques, URL de dev...), values-staging.yaml, values-prod.yaml (10 répliques, URL de prod, plus de ressources...). On déploie chaque environnement avec le MÊME chart et le bon fichier de values : `helm upgrade --install app ./chart -f values-prod.yaml`. Résultat : un changement structurel (ajouter un conteneur, modifier une sonde, ajouter un HPA) se fait UNE seule fois dans les templates du chart et se propage automatiquement aux trois environnements au prochain déploiement, plus de copier-coller ni de risque d'oublier une des trois copies. On gagne réutilisation, cohérence, paramétrage propre, versionnage des releases et rollback. C'est exactement le rôle d'un gestionnaire de paquets : un modèle unique, des valeurs par instance."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Helm",
+          "quizRef": "helm-check"
+        }
+      ]
+    },
+    {
+      "slug": "gitops-et-cicd",
+      "title": "GitOps & CI/CD",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Git comme source de vérité",
+          "body": "Le **GitOps** est la façon moderne de déployer sur Kubernetes. Le nom vient de **Git** (l'outil de gestion de versions où l'on range du code et tout son historique) et d'**Ops** (*operations*, l'exploitation des applications en production). L'idée tient en une phrase : **tout ce qui doit tourner dans le cluster est décrit dans un dépôt Git, et c'est Git qui fait foi.**\n\nDeux rappels utiles. L'**état désiré**, c'est la description de ce que tu **veux** (par exemple « 5 répliques de l'API, en version 1.4.0 »). Le **cluster**, c'est l'ensemble des machines pilotées par Kubernetes où tournent réellement tes applications. Kubernetes est déjà **déclaratif** : tu décris l'état voulu, il se débrouille pour l'atteindre. Le GitOps pousse l'idée d'un cran : cet état voulu vit désormais dans **Git**, versionné comme du code.\n\nPour que ça marche, on installe **dans le cluster** un **agent** (un programme qui tourne en permanence). Les deux plus connus sont **Argo CD** et **Flux**. Cet agent **réconcilie en continu** : en boucle, il compare l'état **réel** du cluster avec l'état **décrit dans Git**, et corrige toute différence pour que le réel colle au décrit.\n\n👉 **Analogie** : Git est la **partition** de musique (la référence écrite) ; l'agent est le **chef d'orchestre** qui écoute l'orchestre en permanence et remet chaque musicien d'accord avec la partition.\n\nPoint important : c'est un modèle **pull** (« tirer ») et non **push** (« pousser »). Personne n'envoie de commandes vers le cluster depuis l'extérieur : c'est **l'agent, depuis l'intérieur**, qui va **chercher** les changements dans Git et les applique. C'est plus sûr, car le cluster n'a pas besoin d'exposer un accès de déploiement au monde extérieur.\n\nCe que ça t'apporte concrètement :\n- **Traçabilité** : tout changement passe par un **commit** (idéalement une **pull request** relue). On sait qui a changé quoi, quand et pourquoi.\n- **Rollback simple** : revenir en arrière, c'est faire un **revert** de commit (annuler un changement dans Git), et l'agent remet le cluster dans l'état précédent.\n- **Anti-dérive** : si quelqu'un bricole le cluster à la main, l'agent détecte l'écart (la **dérive**) et **ré-applique** l'état de Git. La seule vraie façon de changer le cluster devient : changer Git."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Schéma : la boucle GitOps",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  DEV[\"Developpeur\"] -->|commit + pull request| GIT[\"Depot Git<br/>(etat desire)\"]\n  GIT -->|l'agent tire (pull)| AGENT[\"Agent GitOps<br/>Argo CD / Flux\"]\n  AGENT -->|applique| CLUSTER[\"Cluster Kubernetes<br/>(etat reel)\"]\n  CLUSTER -->|compare en continu| AGENT\n  AGENT -.->|corrige la derive| CLUSTER"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Séparer CI et CD",
+          "body": "GitOps sépare proprement deux étapes qu'on confond souvent : la **CI** et la **CD**.\n\n**CI** = **Continuous Integration** (intégration continue). C'est le **pipeline** (la chaîne de tâches automatiques déclenchée à chaque commit) qui **fabrique** ton application : il compile le code, lance les **tests**, **scanne** l'image à la recherche de failles connues, la **signe** (appose une signature cryptographique qui prouve son origine et qu'elle n'a pas été altérée), puis la **pousse dans un registre**.\n\nQuelques mots au passage :\n- une **image** est le paquet figé qui contient ton application prête à tourner ;\n- un **registre** est l'entrepôt où l'on range ces images (Docker Hub, GitHub Container Registry...) ;\n- un **tag** est l'étiquette de version d'une image. On préfère un **tag immuable** (qui ne changera jamais), typiquement le **sha du commit** (l'identifiant unique du commit Git), plutôt que `latest` (une étiquette mouvante qui rend les déploiements imprévisibles, car on ne sait jamais quelle version elle désigne vraiment).\n\nPoint clé : la CI **ne déploie pas** dans le cluster. Elle s'arrête à « l'image est construite, testée et publiée ».\n\n**CD** = **Continuous Delivery/Deployment** (livraison/déploiement continu). En GitOps, c'est là qu'intervient l'agent : on met à jour, **dans le dépôt Git de configuration**, la **référence de l'image** (par exemple faire passer le tag de `...:abc123` à `...:def456`), souvent de façon automatisée, et l'agent GitOps **déploie** ce nouvel état.\n\n👉 **Analogie** : la CI est l'**usine** qui fabrique et emballe le produit ; la CD est la **livraison** qui l'amène en rayon. Deux métiers distincts, qu'on ne mélange pas.\n\nPourquoi séparer ? Surtout pour la **sécurité**. Le pipeline de build **n'a pas** les droits de déployer en production : il se contente de publier une image et de proposer un changement dans Git. Si la CI est un jour compromise, l'attaquant ne peut pas déployer directement dans le cluster : le **rayon d'explosion** (l'étendue des dégâts possibles) est réduit. Et comme tout déploiement passe par Git, il reste **tracé** et **réversible**."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un administrateur modifie manuellement un Deployment directement dans le cluster (kubectl edit) pour un correctif urgent. Le lendemain, sa modification a disparu. Le cluster est géré en GitOps avec Argo CD. Que s'est-il passé, et quelle est la bonne pratique ?",
+          "solution": "En GitOps, l'agent (Argo CD) réconcilie EN CONTINU l'état réel du cluster avec l'état désiré déclaré dans le dépôt Git, qui est la source de vérité. La modification manuelle (kubectl edit) a créé une DÉRIVE entre le cluster et Git : au cycle de réconciliation suivant, Argo CD a détecté que l'état réel ne correspondait plus à Git (où la modification n'existe pas) et l'a AUTOMATIQUEMENT annulée, ramenant le Deployment à ce que Git décrit. D'où la disparition du correctif le lendemain. C'est un comportement voulu et sain (il empêche les dérives non tracées), pas un bug. Bonne pratique : ne jamais modifier le cluster à la main quand il est géré en GitOps. Pour appliquer un changement, même urgent, on modifie le dépôt Git (idéalement via une pull request, ou un commit direct sur une branche pour l'urgence) ; l'agent GitOps déploie alors le changement, qui est tracé, revu et réversible (revert du commit). Ainsi Git reste la source de vérité unique, le changement est auditable, et il ne sera pas écrasé par la réconciliation. Si un accès direct d'urgence est vraiment nécessaire, on peut temporairement suspendre la synchro Argo CD, mais l'objectif reste de tout passer par Git."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, GitOps & CI/CD",
+          "quizRef": "gitops-cicd-check"
+        }
+      ]
+    },
+    {
+      "slug": "kustomize-helm-gitops-avance",
+      "title": "Kustomize, Helm avancé & GitOps de pro",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Helm ou Kustomize ? Les deux",
+          "body": "Il existe deux grandes façons de gérer ses manifestes Kubernetes, aux philosophies opposées.\n\n**Helm** fait du **templating** : rappelle-toi, ses manifestes sont des modèles à trous (`{{ .Values.xxx }}`) qu'on remplit avec des valeurs. C'est **puissant et paramétrable**, et ça se **distribue** sous forme de chart. Idéal pour du **logiciel réutilisable** que d'autres vont installer (Prometheus, une base de données). Revers de la médaille : les templates (écrits dans le langage de gabarit du langage Go) peuvent devenir **illisibles**, et il faut « rendre » le template (calculer son résultat) pour voir le YAML final, ce qui complique le raisonnement.\n\n**Kustomize** (intégré directement à `kubectl`, l'outil en ligne de commande de Kubernetes) prend le chemin inverse : **pas de template du tout**. On part de vrais manifestes YAML **valides**, dits *de base*, et on applique par-dessus des **overlays** : des couches qui **patchent** (modifient par petites touches) cette base pour chaque environnement.\n\n👉 **Analogie** : Helm, c'est un **formulaire à trous** que tu remplis. Kustomize, c'est un **calque transparent** que tu poses sur un document déjà lisible pour en changer deux ou trois détails.\n\nAvantage de Kustomize : comme tout reste du YAML réel, c'est **lisible** et **diffable** (on voit clairement, ligne par ligne, ce que change chaque overlay). Idéal pour décliner **tes propres** manifestes par environnement.\n\nBonne nouvelle : les deux ne s'excluent pas. Un schéma courant est **Helm pour packager** un logiciel et **Kustomize pour surcharger** le rendu par environnement. Un professionnel choisit selon le besoin : **distribuer** un logiciel réutilisable (Helm) ou **adapter** ses manifestes maison (Kustomize)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Helm avancé : hooks, dépendances, OCI",
+          "body": "Helm ne se limite pas à remplir des trous. Trois fonctionnalités le font passer d'un usage basique à un packaging professionnel.\n\n**Les hooks** (« crochets ») : des ressources que Helm exécute à un **moment précis** du **cycle de vie** d'une release (son installation, sa mise à jour, sa suppression). Ces moments portent des noms parlants : `pre-install` (juste avant l'installation), `post-upgrade` (juste après une mise à jour), `pre-delete` (avant une suppression).\n\n**Exemple concret** : un hook `pre-upgrade` qui lance la **migration de la base de données** (adapter le schéma des tables) **avant** que la nouvelle version de l'application ne démarre, pour lui éviter de tourner sur un schéma périmé.\n\n**Les dépendances** : un chart peut en **inclure** d'autres (déclarés dans son fichier `Chart.yaml`, sous la clé `dependencies`). On appelle *subchart* un chart ainsi embarqué.\n\n👉 **Analogie** : comme un projet logiciel qui liste les bibliothèques dont il a besoin, un chart peut dire « pour fonctionner, installe aussi tel autre chart ». **Exemple** : un chart d'application qui embarque sa **base de données** et son **cache**, le tout déployé en un seul `helm install`.\n\n**Les registres OCI** : **OCI** (de l'anglais *Open Container Initiative*) est le standard qui définit le format des images de conteneurs. Les charts Helm se distribuent désormais dans **ces mêmes registres** que les images. Un chart devient alors un **artefact** (un objet livrable) **versionné** et **signable**, qu'on **pousse** et **tire** exactement comme une image, avec les mêmes outils et les mêmes contrôles de sécurité."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "GitOps de pro : app-of-apps & secrets (niveau expert)",
+          "body": "À grande échelle (des dizaines d'applications et d'environnements), le GitOps se structure avec des patterns dédiés.\n\n**Le pattern app-of-apps** (« l'appli des applis », propre à Argo CD) : une application **racine** dont le seul rôle est de **déclarer** d'autres applications Argo CD. Au lieu de créer à la main des dizaines d'applications, on n'en gère qu'une seule, hiérarchique, et tout le reste en découle, entièrement depuis Git.\n\n👉 **Analogie** : un **sommaire** de livre qui pointe vers tous les chapitres ; tu ne gères que le sommaire, il déroule le reste.\n\n**Le casse-tête des secrets.** Un **secret** est une donnée sensible (mot de passe, jeton d'accès, clé d'API). Or le GitOps veut **tout** dans Git, et un objet **Secret** de Kubernetes n'est que **encodé en base64** (un simple ré-encodage lisible par tous, **pas un chiffrement**). Committer un secret tel quel dans Git revient donc à l'**exposer**. C'est interdit. Trois solutions propres existent :\n- **Sealed Secrets** : tu **chiffres** le secret côté client avec la clé publique d'un contrôleur installé dans le cluster. Le résultat (un objet `SealedSecret` illisible) peut être commité sans risque ; **seul** le contrôleur, dans le cluster, détient la **clé privée** pour le **déchiffrer** et créer le vrai Secret. Git ne contient que du chiffré.\n- **External Secrets Operator** : Git ne contient qu'une **référence** (« va chercher le mot de passe nommé X ») pointant vers un vrai **coffre-fort** à secrets (**HashiCorp Vault**, **AWS Secrets Manager**...). Un opérateur récupère la vraie valeur depuis le coffre et crée le Secret dans le cluster. Le secret vit dans le coffre (avec rotation et audit), jamais dans Git.\n- **SOPS** : un outil qui **chiffre les fichiers** de secrets avant de les committer (souvent avec l'aide d'un **KMS**, un service de gestion de clés du cloud), déchiffrés au moment du déploiement.\n\n👉 **Le principe commun** : Git ne contient jamais que du **chiffré** ou une **référence**, jamais la valeur en clair.\n\nEnfin, des outils comme **Renovate** automatisent les **montées de version** : ils surveillent les nouvelles versions d'images et **ouvrent une pull request** pour les adopter. Mettre à jour une application devient alors une simple **revue Git**. Un GitOps mûr, c'est donc : tout déclaratif, des secrets gérés proprement, et des mises à jour tracées."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe adopte le GitOps (tout dans Git, réconcilié par Argo CD) mais bute sur un dilemme : elle a besoin de secrets (mots de passe, tokens) dans ses déploiements, or mettre un secret en clair dans Git est inacceptable. Comment concilier GitOps et gestion des secrets ?",
+          "solution": "Le dilemme est réel : le GitOps exige que l'état désiré (y compris les Secrets) soit déclaré dans Git, mais un Secret Kubernetes n'est encodé qu'en base64 (pas chiffré), donc le committer en clair l'expose. On le résout SANS renoncer au GitOps, avec l'une de ces approches : (1) Sealed Secrets (Bitnami) : on chiffre le secret côté client avec la clé publique du contrôleur, ce qui produit un objet SealedSecret chiffré que l'on peut committer sans risque dans Git ; seul le contrôleur Sealed Secrets, dans le cluster, possède la clé privée pour le déchiffrer et créer le vrai Secret. Git ne contient donc que du chiffré. (2) External Secrets Operator : Git ne contient qu'une RÉFÉRENCE (un objet ExternalSecret qui pointe vers une clé dans un vrai gestionnaire de secrets, HashiCorp Vault, AWS/GCP Secrets Manager) ; l'opérateur récupère la valeur réelle depuis le coffre et crée le Secret dans le cluster. Le secret vit dans le coffre (avec rotation, audit, RBAC), jamais dans Git. (3) SOPS (souvent avec un KMS) : chiffrer les fichiers de secrets avant de les committer, déchiffrés au moment du déploiement. Dans tous les cas, le principe est le même : Git ne contient que du chiffré ou une référence, jamais la valeur en clair ; le déchiffrement/la résolution se fait dans le cluster de façon contrôlée. On garde ainsi les bénéfices du GitOps (tout déclaratif, tracé, réconcilié) tout en respectant la règle absolue « pas de secret en clair dans Git ». On complète en s'assurant que les Secrets résultants dans le cluster sont eux-mêmes protégés (chiffrement au repos d'etcd, RBAC strict)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Kustomize, Helm & GitOps de pro (expert)",
+          "quizRef": "kustomize-helm-gitops-expert"
+        }
+      ]
+    }
+  ]
+}

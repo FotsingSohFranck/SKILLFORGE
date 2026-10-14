@@ -1,0 +1,119 @@
+{
+  "ref": "volumes-production-expert",
+  "node": "data-persistence",
+  "lesson": "volumes-en-production",
+  "title": "Volumes en production, expert",
+  "description": "Drivers/plugins, backup/restore, perf bind mount Mac/Windows, piège VOLUME.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur un cluster multi-nœuds, pourquoi un volume local ne convient-il pas pour une base de données ?",
+      "justification": "Le volume local réside sur un nœud ; si le conteneur redémarre ailleurs, il ne retrouve pas ses données. Il faut un stockage réseau/partagé.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il reste sur un nœud ; le conteneur redémarré ailleurs perd ses données",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est trop rapide",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il chiffre les données de force",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment sauvegarder le contenu d'un volume nommé ?",
+      "justification": "Via un conteneur jetable qui monte le volume et archive son contenu (tar) vers l'hôte ; pour une base, préférer un dump applicatif.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un conteneur jetable qui monte le volume et archive son contenu (tar)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les volumes se sauvegardent tout seuls",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker commit du volume",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les bind mounts sont-ils lents sur Mac/Windows pour de gros projets ?",
+      "justification": "Le code doit traverser la frontière hôte ↔ VM Linux de Docker ; on atténue avec virtiofs/WSL2 et les options cached/delegated.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La traversée de frontière entre l'OS hôte et la VM Linux de Docker",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le chiffrement systématique des fichiers",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un manque de RAM",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème pose l'instruction `VOLUME /data` dans une image applicative ?",
+      "justification": "Elle casse le cache/les écritures ultérieures sur ce chemin et crée des volumes anonymes orphelins à chaque run sans -v.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Écritures ultérieures perdues + volumes anonymes orphelins accumulés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle chiffre le dossier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle accélère les écritures",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un volume avec le driver NFS permet aux données d'être accessibles depuis plusieurs hôtes et de survivre à la perte d'un nœud.",
+      "justification": "Vrai : un volume réseau (NFS/cloud) découple les données du disque local d'un nœud, indispensable en multi-hôtes.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

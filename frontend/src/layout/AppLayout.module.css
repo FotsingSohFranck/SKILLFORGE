@@ -1,0 +1,213 @@
+.shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  background: transparent;
+}
+
+/* Lien d'évitement : masqué jusqu'au focus clavier — WCAG 2.4.1. */
+.skipLink {
+  position: absolute;
+  left: var(--space-3);
+  top: -60px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 600;
+  transition: top var(--dur-fast) var(--ease-standard);
+}
+
+.skipLink:focus {
+  top: var(--space-3);
+}
+
+.main:focus {
+  outline: none;
+}
+
+.sidebar {
+  /* App shell : la barre latérale reste FIXE (collée en haut, pleine hauteur) ;
+     seul le contenu défile. Elle défile en interne si son contenu dépasse. */
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-4);
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+}
+
+.logo {
+  display: inline-flex;
+  flex: none;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-sm);
+}
+
+.searchLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.search:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Surlignage de sélection qui glisse entre les items.
+   top = index actif x pas (hauteur de ligne 35 + gap 4 = 39px). On anime --active-index
+   (enregistrée @property, posée sur CET élément) ; top suit -> glissement fluide. */
+.navIndicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 35px;
+  top: calc(var(--active-index, 0) * 39px);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition: --active-index var(--dur-slow) var(--ease-spring),
+    opacity var(--dur-fast) var(--ease-standard);
+}
+.navIndicator[data-visible='true'] {
+  opacity: 1;
+}
+
+.link {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  /* Gap icone/label resserre (facon sidebar macOS). */
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  /* Pastille de selection tendue (~8pt), pas un gros arrondi de carte. */
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  /* Densite constante avec le rail de curriculum : texte 14px, ligne resserree. */
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  font-weight: 500;
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+
+.link:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* Item actif : le fond est fourni par l'indicateur glissant (.navIndicator). */
+.active {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.main {
+  flex: 1;
+  padding: var(--space-6);
+  /* `clip` (et non `hidden`) : bloque le débordement horizontal SANS créer de conteneur de scroll,
+     sinon le `position: sticky` du rail et du sommaire est cassé. */
+  overflow-x: clip;
+  /* Zone animée par la View Transitions API : seul le contenu glisse/fond, pas le chrome. */
+  view-transition-name: page;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    /* Barre horizontale en haut : elle reste collée au scroll, mais hauteur auto (pas 100vh). */
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    height: auto;
+    overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  /* La nav reste sur UNE ligne (pas d'orphelin) ; elle défile si l'espace manque. */
+  .nav {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .link {
+    white-space: nowrap;
+  }
+  /* La recherche (Ctrl+K) est une commodité desktop : masquée sur la barre mobile. */
+  .search {
+    display: none;
+  }
+  /* En barre horizontale, l'indicateur vertical n'a pas de sens : fond statique sur l'actif. */
+  .navIndicator {
+    display: none;
+  }
+  .active {
+    background: var(--color-primary-soft);
+  }
+}

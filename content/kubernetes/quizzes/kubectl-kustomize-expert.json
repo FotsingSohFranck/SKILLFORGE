@@ -1,0 +1,96 @@
+{
+  "ref": "kubectl-kustomize-expert",
+  "node": "getting-started",
+  "lesson": "kubectl-de-pro-kustomize",
+  "title": "kubectl de pro & Kustomize, expert",
+  "description": "explain/dry-run/diff, k9s/kubectx, Kustomize base/overlays vs Helm.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande montre ce qu'un apply changerait avant de l'appliquer ?",
+      "justification": "kubectl diff -f : un réflexe de prod pour prévisualiser les modifications avant de les appliquer.",
+      "position": 0,
+      "options": [
+        {
+          "label": "kubectl diff -f",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kubectl delete",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "kubectl logs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment générer un squelette de manifeste sans rien créer ?",
+      "justification": "Avec --dry-run=client -o yaml : on obtient le YAML sans l'appliquer, pour partir d'une base propre.",
+      "position": 1,
+      "options": [
+        {
+          "label": "kubectl create ... --dry-run=client -o yaml",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kubectl apply --force",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "kubectl exec",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que Kustomize, intégré à kubectl (apply -k) ?",
+      "justification": "Un outil sans templating qui applique des overlays (patches) sur une base commune, pattern base/overlays pour varier par environnement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un système de base + overlays (patches) sans templating",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un moteur de templating comme Helm",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un plugin réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Kustomize patche du YAML réel (sans {{ }}), tandis que Helm fait du templating paramétrable ; les deux peuvent se combiner.",
+      "justification": "Vrai : Kustomize pour des variations simples et diffables, Helm pour le packaging distribuable ; beaucoup d'équipes combinent les deux.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

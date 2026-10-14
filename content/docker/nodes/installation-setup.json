@@ -1,0 +1,135 @@
+{
+  "node": "installation-setup",
+  "lessons": [
+    {
+      "slug": "desktop-vs-engine",
+      "title": "Docker Desktop vs Docker Engine",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux façons d'installer Docker",
+          "body": "Avant de choisir comment installer Docker, un rappel en une phrase : **Docker** est l'outil qui fait tourner des **conteneurs**, c'est-à-dire des petites boîtes qui embarquent une application avec tout ce qu'il lui faut pour fonctionner (le code, les librairies, les réglages). Il existe **deux façons** d'installer Docker, et le bon choix dépend de ta machine.\n\n**Docker Desktop** est une **application complète avec interface graphique** (des fenêtres et des boutons, par opposition à la ligne de commande). Elle s'installe sur Windows, macOS ou Linux et fait trois choses d'un coup : elle pose le moteur Docker, elle démarre un **noyau Linux** dans une **machine virtuelle** légère, et elle ajoute des outils pratiques (un tableau de bord visuel, Kubernetes intégré, des extensions).\n\nDeux mots à clarifier tout de suite :\n- **noyau Linux** (en anglais *kernel*) : c'est le cœur du système d'exploitation Linux, la couche qui parle directement au matériel. Les conteneurs Docker ont **besoin** de ce noyau pour fonctionner. Or Windows et macOS n'en ont pas : ils tournent sur un autre noyau.\n- **machine virtuelle** (souvent abrégée **VM**, de l'anglais *Virtual Machine*) : c'est un **ordinateur simulé à l'intérieur de ton ordinateur**. 👉 **Analogie** : c'est comme une pièce insonorisée construite dans ta maison, avec sa propre ambiance, indépendante du reste. Docker Desktop y fait tourner un vrai Linux, invisible pour toi, juste pour donner aux conteneurs le noyau Linux qui leur manque.\n\n**Docker Engine** est le **moteur seul**, sans interface graphique, piloté uniquement en **ligne de commande** (tu tapes des ordres en texte). On l'installe **directement** sur une distribution **Linux** (Ubuntu, Debian, etc.), sans VM, puisque le noyau Linux est déjà là. C'est ce qui tourne sur les **serveurs**.\n\n👉 **En résumé** : sur un poste **Windows ou Mac**, tu prends **Docker Desktop** (il apporte le noyau Linux manquant) ; sur un **serveur Linux**, tu installes **Docker Engine** (le noyau est déjà présent, pas besoin d'interface). Exemple concret : sur ton portable Windows de développeur, Docker Desktop ; sur le serveur Ubuntu qui héberge ton site en production, Docker Engine."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Client, daemon, et la question de la licence",
+          "body": "Comment Docker fonctionne-t-il sous le capot ? Il suit une architecture **client-serveur**. Ce terme veut simplement dire qu'il y a **deux programmes** qui se parlent : l'un **demande** (le client), l'autre **exécute** (le serveur).\n\n- Le **client**, c'est la **CLI** Docker. **CLI** signifie *Command Line Interface*, soit **interface en ligne de commande** : c'est le programme `docker` que tu lances dans ton terminal en tapant par exemple `docker run`. Lui ne fait pas le travail, il **transmet ta demande**.\n- Le **serveur**, c'est le **daemon**. Un **daemon** (prononcé « démone », le mot anglais pour un programme qui tourne **en arrière-plan**, en permanence, sans fenêtre) s'appelle ici **`dockerd`** (pour *Docker daemon*). C'est **lui** qui fait le vrai boulot : télécharger les images, démarrer et arrêter les conteneurs, gérer les réseaux.\n\n👉 **Analogie** : au restaurant, tu passes commande au **serveur** (la CLI) ; c'est la **cuisine** (le daemon) qui prépare le plat. Tu ne vas jamais toi-même en cuisine : tu demandes, la cuisine exécute.\n\nSur un serveur Linux avec Engine, le client et le daemon tournent sur la **même machine**. Mais on peut aussi, depuis son poste, piloter un daemon situé **ailleurs** (sur un serveur distant) : le client ici, la cuisine là-bas. C'est justement le sujet d'une leçon plus loin.\n\nUn point **pratique et important** : **Docker Desktop** exige une **licence payante** pour les **grandes entreprises** (usage commercial). Une **licence**, c'est le droit d'utiliser un logiciel selon des conditions définies par son éditeur ; ici, au-delà d'une certaine taille d'entreprise, ce droit devient payant. **Docker Engine**, lui, est **open source** (son code est public et libre d'usage) et reste **gratuit**. C'est pour cela que certaines équipes se tournent vers **Docker Engine** directement, ou vers **Podman** (un outil concurrent compatible, sans daemon central). Exemple concret : une startup de 10 personnes peut utiliser Docker Desktop gratuitement, mais une banque de 5000 employés devra payer une licence, ou basculer sur Engine ou Podman."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Vous devez installer Docker sur un serveur de production tournant sous Ubuntu, sans interface graphique. Faut-il Docker Desktop ou Docker Engine, et pourquoi ?",
+          "solution": "Docker Engine. Le serveur tourne déjà sous Linux (Ubuntu) : il a un noyau Linux natif, donc pas besoin de la VM légère que Docker Desktop fournit pour Windows/Mac. Docker Desktop apporte une interface graphique et des outils de développement inutiles (voire indésirables) sur un serveur headless de production, et implique une licence payante en entreprise. Docker Engine est le moteur seul, en ligne de commande, gratuit et open source, exactement ce qu'il faut pour un serveur Linux."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Desktop vs Engine",
+          "quizRef": "installation-setup-desktop-check"
+        }
+      ]
+    },
+    {
+      "slug": "verifier-et-configurer",
+      "title": "Vérifier & bien configurer",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CODE",
+          "position": 0,
+          "title": "Vérifier l'installation",
+          "codeLanguage": "bash",
+          "body": "docker version        # versions du client ET du daemon\ndocker info           # état du daemon : conteneurs, images, driver de stockage\ndocker run hello-world # télécharge et lance une image de test\n#  -> \"Hello from Docker!\" confirme que toute la chaîne fonctionne"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le groupe docker : commodité et danger",
+          "body": "Sur Linux, le daemon Docker tourne en **root**. **root**, c'est le **super-utilisateur** d'un système Linux : le compte tout-puissant qui a le droit de tout faire (lire, modifier, supprimer n'importe quel fichier, installer n'importe quoi). 👉 **Analogie** : root, c'est le **passe-partout** du bâtiment, la clé qui ouvre toutes les portes.\n\nComme le daemon est en root, chaque commande `docker` doit, par défaut, être lancée avec **`sudo`**. **`sudo`** (*superuser do*) est le mot que l'on met devant une commande pour l'exécuter **avec les droits de root** le temps de cette commande. Taper `sudo docker ...` à longueur de journée est pénible.\n\nPour éviter ce `sudo` à répétition, on ajoute son utilisateur au **groupe `docker`**. Sur Linux, un **groupe** rassemble des utilisateurs qui partagent certains droits ; la commande `usermod -aG docker $USER` ajoute (`-aG` = *append to group*) ton compte au groupe `docker`. Dès lors, `docker ...` fonctionne sans `sudo`.\n\n⚠️ Mais attention, c'est un **choix de sécurité lourd**. Un membre du groupe `docker` peut lancer un conteneur qui **monte** le dossier racine de l'hôte. **Monter** (*mount*), en informatique, veut dire **rendre un dossier accessible à un autre endroit** ; ici, brancher tout le disque de la machine (noté **`/`**, la racine, le point de départ de toute l'arborescence Linux) à l'intérieur d'un conteneur. Dans ce conteneur, il est root, donc il peut **lire et modifier n'importe quel fichier de la machine hôte** : mots de passe, configuration, tout.\n\n👉 **En clair** : appartenir au groupe `docker` équivaut quasiment à avoir les droits **root** sur la machine, mais sans le `sudo` (donc sans trace). Sur un serveur **partagé** par plusieurs personnes, c'est dangereux : on préfère le **mode rootless** (le daemon tourne sans privilèges, expliqué juste après) plutôt que d'ajouter tout le monde au groupe `docker`."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Rootless & réglages utiles (niveau expert)",
+          "body": "Voici quelques réglages d'exploitation utiles. Ils sont marqués **niveau expert** : tu n'en as pas besoin pour démarrer, mais autant savoir qu'ils existent.\n\n**Le mode rootless.** Il fait tourner le daemon et les conteneurs sous un **utilisateur non privilégié** (un compte ordinaire, pas root). La magie repose sur le **user namespace** : c'est un mécanisme du noyau Linux qui fait **croire** au conteneur qu'il est root, alors qu'à l'extérieur il n'est qu'un utilisateur normal. 👉 **Analogie** : c'est un décor de théâtre : dans la pièce, l'acteur joue un roi ; une fois le rideau tombé (hors du conteneur), il redevient un citoyen ordinaire. Conséquence : si un attaquant **s'échappe** d'un conteneur, il ne récupère pas root sur la vraie machine. C'est recommandé quand la sécurité prime, au prix de quelques limitations (certains réseaux, ou les ports en dessous de 1024 réservés au système).\n\n**Le storage driver.** C'est le composant qui décide **comment** Docker empile et stocke les couches d'images sur le disque. Par défaut c'est **overlay2** (retiens juste le nom, il apparaît dans les diagnostics quand quelque chose cloche côté stockage).\n\n**La rotation des logs.** Un conteneur écrit sans cesse des **logs** (les messages de journal qu'une application produit pour raconter ce qu'elle fait). Sans limite, ces fichiers **grossissent sans fin** et peuvent **remplir tout le disque**, un piège classique en production. La parade : la **rotation**, c'est-à-dire **plafonner la taille** et ne garder qu'un nombre limité de fichiers. Avec le pilote de logs **`json-file`** (celui par défaut, qui stocke les logs au format JSON), on règle `max-size` (taille maximale d'un fichier) et `max-file` (nombre de fichiers gardés).\n\nTous ces réglages se déclarent proprement dans un seul fichier de configuration du daemon : **`daemon.json`**. 👉 **Analogie** : c'est le **tableau de bord** central de Docker, où l'on règle une fois pour toutes le comportement du moteur au lieu de bricoler à chaque démarrage."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Limiter les logs (daemon.json)",
+          "codeLanguage": "json",
+          "body": "// /etc/docker/daemon.json  -  éviter que les logs remplissent le disque\n{\n  \"log-driver\": \"json-file\",\n  \"log-opts\": {\n    \"max-size\": \"10m\",\n    \"max-file\": \"3\"\n  }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un administrateur ajoute tous les développeurs au groupe `docker` sur un serveur partagé « pour éviter d'avoir à taper sudo ». Quel risque de sécurité cela crée-t-il ?",
+          "solution": "Le groupe docker donne un accès quasi équivalent à root sur l'hôte. En effet, un membre de ce groupe peut lancer un conteneur qui monte le système de fichiers racine de l'hôte (ex. `docker run -v /:/host ...`) en tant que root du conteneur, et donc lire/modifier n'importe quel fichier de la machine, y compris /etc/shadow ou installer une porte dérobée. Autrement dit, appartenir au groupe docker = privilèges root, sans passer par sudo (ni traçabilité). Sur un serveur partagé, c'est une élévation de privilèges massive. Alternatives : réserver le groupe aux administrateurs de confiance, ou utiliser le mode rootless où le daemon ne tourne pas en root."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Installation & configuration",
+          "quizRef": "installation-setup-check"
+        }
+      ]
+    },
+    {
+      "slug": "contexts-miroirs-environnements",
+      "title": "Contexts, miroirs & environnements",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "docker context : piloter plusieurs daemons",
+          "body": "On a vu que la **CLI** (le client `docker`) envoie ses ordres à **un** daemon. Par défaut, c'est le daemon **local**, celui de ta propre machine. Mais très souvent, on veut piloter un daemon situé **ailleurs** : sur un serveur de test, un serveur de production, etc. Comment basculer facilement de l'un à l'autre ? Avec **`docker context`**.\n\nUn **contexte** (*context*) est simplement un **raccourci enregistré qui dit à la CLI à quel daemon parler**. Chaque contexte contient l'**adresse** d'un daemon, qui peut prendre plusieurs formes :\n- un **socket local** : le **socket** est le point de branchement par lequel deux programmes de la même machine se parlent (ici, la CLI et le daemon local) ;\n- une connexion **SSH** vers un serveur : **SSH** (*Secure Shell*) est le protocole standard pour se connecter **de façon chiffrée** à une machine distante et y exécuter des commandes ;\n- un **endpoint** distant, c'est-à-dire l'adresse réseau d'un daemon accessible à distance.\n\nLa commande `docker context use <nom>` **bascule** d'un simple mot. 👉 **Analogie** : c'est le **sélecteur de source** de ta télévision. La même télécommande (la CLI) pointe tantôt vers le lecteur, tantôt vers la console, selon la source choisie. Ici, la **même** commande `docker ps` (lister les conteneurs) s'exécute tantôt en local, tantôt sur le serveur de **staging** (l'environnement de pré-production, une copie qui ressemble à la prod où l'on teste avant de livrer), sans jamais réécrire d'adresse à la main.\n\nC'est **propre, traçable, et bien plus sûr** que d'exposer le daemon sur le réseau ouvert : tu ne rends pas ton moteur accessible à tous, tu passes par une connexion SSH bien gardée."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Une CLI, plusieurs daemons selon le contexte",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  CLI[\"CLI docker (client)\"]\n  CLI -->|\"context: default\"| L[\"Daemon local (socket)\"]\n  CLI -->|\"context: prod\"| P[\"Daemon distant (via SSH)\"]\n  L --> LC[\"Conteneurs locaux\"]\n  P --> PC[\"Conteneurs du serveur\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un daemon distant via SSH",
+          "codeLanguage": "bash",
+          "body": "# Créer un contexte pointant vers un serveur via SSH\ndocker context create prod --docker \"host=ssh://deploy@serveur.example.com\"\n\ndocker context ls           # lister les contextes\ndocker context use prod     # basculer : les commandes visent maintenant 'prod'\ndocker ps                   # -> conteneurs du serveur distant\ndocker context use default  # revenir au daemon local"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Miroirs de registre & rate limits",
+          "body": "Petit rappel de vocabulaire d'abord. Un **registre** (*registry*) est un **entrepôt d'images** Docker : un serveur où l'on **dépose** (push) et **récupère** (pull) des images. **Docker Hub** est le registre public le plus connu, celui utilisé par défaut. **Tirer** une image (*pull*), c'est la télécharger depuis un registre vers ta machine.\n\nProblème : **Docker Hub impose des limites de pull** (en anglais **rate limits**, littéralement « limites de débit »). Une **rate limit**, c'est un **plafond du nombre de téléchargements** autorisés sur une période donnée (par exemple X pulls toutes les 6 heures), surtout serré pour les comptes **anonymes** (non connectés). 👉 **Analogie** : c'est le distributeur de billets qui te limite à un certain montant par jour, peu importe combien il te reste sur le compte. C'est une source de pannes classique en **CI** (l'automatisation des builds et des tests) : l'erreur « too many requests ».\n\nDeux parades, réglées dans le `daemon.json` :\n- un **miroir de registre** (`registry-mirrors`) : un **miroir** est une **copie-cache** locale des images de Docker Hub. Un **cache**, c'est une réserve de ce qu'on a déjà téléchargé, gardée à portée de main pour ne pas le reprendre à chaque fois. Résultat : moins de pulls vers l'extérieur, et c'est plus rapide.\n- l'**authentification** : se connecter avec un compte (`docker login`) relève la limite par rapport à l'anonyme.\n\nOn y configure aussi les **registres non sécurisés** (`insecure-registries`) : par défaut Docker exige du **HTTPS** (la version **chiffrée** de HTTP, le protocole du web). Pour un registre **interne** joignable seulement en **HTTP** (non chiffré), on l'autorise explicitement, mais **uniquement sur un réseau de confiance**. Ces réglages évitent des pannes de build et accélèrent les pulls."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "WSL2, alternatives & storage driver (niveau expert)",
+          "body": "Quelques détails d'environnement qui, une fois compris, font gagner un temps fou. **Niveau expert** : pour plus tard.\n\n**Sur Windows : WSL2.** Docker Desktop s'appuie sur **WSL2** (*Windows Subsystem for Linux 2*), qui fournit un **vrai noyau Linux** intégré à Windows. Point de performance à connaître : les fichiers sont manipulés **bien plus vite** quand ton code vit **à l'intérieur** du système de fichiers de WSL (accessible via `\\\\wsl$`) plutôt que sur ton disque `C:` monté dans Linux. **Système de fichiers** (*filesystem*) : la manière dont un OS organise fichiers et dossiers ; Windows et Linux n'utilisent pas le même, et faire dialoguer les deux à chaque accès est **lent**. 👉 **Analogie** : c'est comme traduire chaque phrase d'une langue à l'autre en temps réel ; rester dans une seule langue (le système de fichiers de WSL) est bien plus fluide.\n\n**Sur macOS : des alternatives légères** à Docker Desktop existent : **Colima**, **Rancher Desktop**, **Podman Desktop**. Utiles pour **éviter la licence** payante de Desktop ou **gagner en performance** (certaines utilisent **virtiofs**, un mode de partage de fichiers plus rapide entre le Mac et la VM Linux).\n\n**Sur un serveur Linux :** le **storage driver** est **overlay2** (déjà croisé ; à connaître pour le débogage), et Docker s'intègre à **systemd**. **systemd** est le **chef d'orchestre des programmes** au démarrage d'un Linux moderne : il lance et surveille les **services** (des programmes qui tournent en fond en permanence). Le daemon Docker est justement l'un de ces services, et les conteneurs peuvent être supervisés par ce même mécanisme.\n\n👉 **En résumé** : maîtriser ces réglages, c'est un environnement **rapide**, **sans licence subie**, et **facile à diagnostiquer** quand un souci survient."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Un pipeline CI échoue par intermittence sur `docker pull` avec l'erreur « toomanyrequests: You have reached your pull rate limit ». Que se passe-t-il et quelles solutions au niveau de la configuration Docker ?",
+          "solution": "Docker Hub applique des limites de taux de pull (rate limits), particulièrement basses pour les requêtes anonymes (par IP). Un runner de CI partagé fait beaucoup de pulls depuis la même IP, dépasse le quota, et les builds échouent avec « toomanyrequests ». Solutions côté configuration : (1) configurer un miroir de registre (registry-mirrors dans daemon.json ou un pull-through cache comme un registre proxy) qui met en cache les images Hub localement, la CI tire alors du cache, réduisant drastiquement les pulls externes ; (2) s'authentifier auprès de Docker Hub (docker login avec un compte, même gratuit authentifié, relève la limite par rapport à l'anonyme) ; (3) héberger/mirrorer les images critiques dans son propre registre (ghcr, ECR...) et tirer de là. La combinaison miroir + authentification est la plus robuste pour un CI à fort volume."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Contexts, miroirs & environnements (expert)",
+          "quizRef": "installation-setup-expert"
+        }
+      ]
+    }
+  ]
+}

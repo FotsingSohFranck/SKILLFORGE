@@ -1,0 +1,96 @@
+{
+  "ref": "atlantis-tacos-expert",
+  "node": "cicd",
+  "lesson": "atlantis-tacos-drift",
+  "title": "Atlantis, TACOS & dérive, expert",
+  "description": "Atlantis (workflow de PR), TACOS, détection de dérive planifiée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait Atlantis dans un workflow Terraform ?",
+      "justification": "Il automatise le workflow de PR : plan posté en commentaire, apply depuis la PR après approbation, avec verrouillage.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Automatiser le plan/apply dans la PR (commentaires + verrous)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construire des images",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le state",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que désignent les TACOS ?",
+      "justification": "Terraform Automation and Collaboration Software (Spacelift, env0, Scalr, HCP Terraform) : plateformes managées pour le workflow Terraform.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des plateformes managées d'automatisation Terraform",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un type de provider",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un format d'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment détecter une dérive en CI de façon automatisée ?",
+      "justification": "Un job planifié qui lance plan -refresh-only -detailed-exitcode et alerte si le code de sortie est 2 (différences détectées).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un job planifié plan -refresh-only -detailed-exitcode (alerte si code 2)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un apply automatique toutes les heures",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le state régulièrement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un pipeline Terraform mûr automatise le workflow de PR ET surveille la dérive en continu (pas seulement appliquer).",
+      "justification": "Vrai : appliquer les changements voulus (Atlantis/TACOS) et détecter ce qui échappe à Terraform (dérive) sont complémentaires.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "headless-endpointslices-expert",
+  "node": "services",
+  "lesson": "headless-endpointslices-affinite",
+  "title": "Headless & EndpointSlices, expert",
+  "description": "Headless Service, DNS par pod, EndpointSlices, affinité/topologie.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que renvoie le DNS pour un headless Service (clusterIP: None) ?",
+      "justification": "Directement les IP de tous les pods (une entrée par pod), au lieu d'une IP virtuelle qui répartit ; on cible les pods individuellement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les IP de chaque pod (adressables individuellement)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une seule IP virtuelle",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune entrée DNS",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un StatefulSet est-il associé à un headless Service ?",
+      "justification": "Pour donner à chaque pod une entrée DNS stable (db-0.service...) et l'adresser individuellement (réplication, découverte de pairs).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Pour une entrée DNS stable et adressable par pod",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour chiffrer le trafic",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour supprimer le besoin de PVC",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que résolvent les EndpointSlices par rapport à l'objet Endpoints unique ?",
+      "justification": "Ils découpent la liste des endpoints en tranches : un changement ne réécrit qu'une tranche, réduisant la charge sur apiserver et kube-proxy à l'échelle.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La scalabilité des endpoints (tranches au lieu d'un objet géant)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le chiffrement des Services",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La suppression du DNS",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le routage topologique (topology aware) privilégie les pods de la même zone, réduisant latence et coûts de trafic inter-zones.",
+      "justification": "Vrai : un gain réel à l'échelle (le trafic inter-zones est facturé dans le cloud) ; internalTrafficPolicy: Local cantonne au nœud local.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

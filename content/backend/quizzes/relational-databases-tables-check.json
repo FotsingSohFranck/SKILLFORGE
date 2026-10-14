@@ -1,0 +1,53 @@
+{
+  "ref": "relational-databases-tables-check",
+  "node": "relational-databases",
+  "lesson": "creer-des-tables",
+  "title": "Quiz : Créer des tables (DDL)",
+  "description": "DDL vs DML, valeurs par défaut, RETURNING, migrations.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande relève du DDL (définition de la structure) ?",
+      "justification": "CREATE (comme ALTER et DROP) définit ou modifie la structure : c'est du DDL. INSERT, UPDATE, SELECT manipulent les données : c'est du DML.",
+      "position": 0,
+      "options": [
+        { "label": "CREATE TABLE", "correct": true, "position": 0 },
+        { "label": "INSERT INTO", "correct": false, "position": 1 },
+        { "label": "SELECT", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert `DEFAULT now()` sur la colonne `created_at` ?",
+      "justification": "Si on ne fournit pas la valeur à l'insertion, le serveur la calcule (ici la date-heure courante) : une seule source de vérité, aucun oubli possible.",
+      "position": 1,
+      "options": [
+        { "label": "Le serveur remplit automatiquement la date-heure courante si on ne la fournit pas", "correct": true, "position": 0 },
+        { "label": "Interdire toute insertion sans date", "correct": false, "position": 1 },
+        { "label": "Supprimer la colonne après usage", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la clause `RETURNING` sur un INSERT ?",
+      "justification": "RETURNING renvoie les valeurs générées (id, timestamps) dans la foulée, sans avoir à faire une seconde requête pour aller les relire.",
+      "position": 2,
+      "options": [
+        { "label": "Renvoyer les valeurs générées (id, timestamps) sans requête supplémentaire", "correct": true, "position": 0 },
+        { "label": "Annuler l'insertion en cas d'erreur", "correct": false, "position": 1 },
+        { "label": "Trier les lignes insérées", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu dois ajouter une colonne `phone` à `users` en production. Quelle est la bonne pratique ?",
+      "justification": "On crée une nouvelle migration versionnée (ex. V10__add_phone.sql) appliquée par Flyway ; on ne modifie jamais une migration déjà jouée ni la base à la main.",
+      "position": 3,
+      "options": [
+        { "label": "Créer une nouvelle migration versionnée avec ALTER TABLE, appliquée par Flyway", "correct": true, "position": 0 },
+        { "label": "Se connecter en production et taper l'ALTER à la main", "correct": false, "position": 1 },
+        { "label": "Éditer la migration V1 déjà appliquée pour y ajouter la colonne", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

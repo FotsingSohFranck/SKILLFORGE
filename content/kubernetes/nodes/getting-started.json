@@ -1,0 +1,129 @@
+{
+  "node": "getting-started",
+  "lessons": [
+    {
+      "slug": "un-cluster-pour-apprendre",
+      "title": "Un cluster pour apprendre",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Local ou managé ?",
+          "body": "Avant de lancer quoi que ce soit, posons le vocabulaire, mot par mot.\n\n**Kubernetes** (souvent abrégé **k8s** : la lettre `k`, puis `8` pour les 8 lettres du milieu, puis `s`) est un logiciel qui fait tourner tes applications sur un groupe de machines et les maintient en bon état **tout seul** : il les redémarre si elles plantent, il en lance des copies quand il y a beaucoup de trafic, il les répartit sur les machines disponibles.\n\nCe groupe de machines piloté par Kubernetes s'appelle un **cluster** (mot anglais qui veut dire « grappe » : un ensemble de machines qui travaillent ensemble comme si elles n'en formaient qu'une). Chaque machine du cluster est un **nœud** (*node* en anglais) : ce peut être un vrai serveur physique ou une machine virtuelle.\n\n👉 **Analogie** : un cluster, c'est la **cuisine d'un restaurant**. Les nœuds sont les plans de travail (les machines qui bossent), et Kubernetes est le **chef** : il distribue les plats à préparer, remplace un cuisinier qui s'arrête, et en appelle d'autres en renfort quand la salle se remplit. Toi, tu ne t'adresses qu'au chef ; tu ne cours pas d'un plan de travail à l'autre.\n\nPour **apprendre et développer**, pas besoin de louer de vraies machines : on lance un **cluster local**, directement sur ton propre ordinateur. Plusieurs outils gratuits font ça, tous par-dessus **Docker** (un outil qui fait tourner des applications dans des **conteneurs**, c'est-à-dire des boîtes isolées et légères contenant l'app et tout ce dont elle a besoin) :\n- **kind** : le nom veut dire *Kubernetes-in-Docker*. Chaque nœud du cluster est en réalité un simple conteneur Docker. Très rapide à créer et à jeter.\n- **minikube** : lance un cluster dans une machine virtuelle ou des conteneurs. Le plus ancien et le plus documenté.\n- **k3d** : fait tourner **k3s** (une version allégée de Kubernetes) dans Docker. Très léger.\n- Le **Kubernetes intégré à Docker Desktop** : une case à cocher dans les réglages, pratique si tu as déjà Docker Desktop.\n\n👉 **Exemple concret** : avec `kind create cluster` tu obtiens un cluster fonctionnel en une minute sur ton PC, tu t'entraînes dessus, puis `kind delete cluster` efface tout sans laisser de trace. Idéal pour expérimenter sans rien casser.\n\nPour la **vraie production** (les apps utilisées par de vrais clients), on prend plutôt un **cluster managé** : un fournisseur cloud (Amazon avec **EKS**, Google avec **GKE**, Microsoft avec **AKS**) gère à ta place la partie la plus délicate, le **plan de contrôle** (le « cerveau » du cluster, qu'on détaille juste après). Tu paies, ils s'occupent de la haute disponibilité et des mises à jour.\n\nLa bonne nouvelle : le **même** outil `kubectl` et les **mêmes** fichiers de description (les manifestes) fonctionnent à l'identique en local et en production. C'est ce qu'on appelle la **portabilité** de Kubernetes : ce que tu apprends sur ton kind local se rejoue tel quel sur un cluster managé à des milliers de machines."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Créer un cluster local avec kind",
+          "codeLanguage": "bash",
+          "body": "# Créer un cluster local (nécessite Docker)\nkind create cluster --name apprentissage\n\n# kubectl est configuré automatiquement pour ce cluster\nkubectl cluster-info\nkubectl get nodes           # voir le(s) nœud(s)\n\n# Jeter le cluster quand on a fini\nkind delete cluster --name apprentissage"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "kubectl : ta télécommande",
+          "body": "Tu ne parles jamais directement aux nœuds ni aux conteneurs. Tu passes par une seule porte d'entrée : **kubectl** (prononcé « cube-ceuteul » ou « cube-control »), l'outil en ligne de commande de Kubernetes.\n\n👉 **Analogie** : kubectl est la **télécommande** de ton cluster. Tu appuies sur un bouton (une commande), et le cluster exécute. Tu n'as pas besoin de te lever pour aller trifouiller chaque machine : tu commandes tout à distance depuis ton terminal.\n\nSous le capot, kubectl envoie tes ordres à l'**apiserver** (le *serveur d'API*) : c'est le composant central du plan de contrôle, la **seule** porte par laquelle tout passe. 👉 **Analogie** : l'apiserver est le **standard téléphonique** du cluster ; toute demande (la tienne, celle des autres outils, celle des composants internes) transite par lui, qui vérifie qui tu es et ce que tu as le droit de faire.\n\nLes commandes suivent toujours le même moule : `kubectl <verbe> <type> <nom>`. Le **verbe** est l'action, le **type** est la sorte d'objet visé (par exemple un `pod`, un `deployment`), le **nom** désigne l'objet précis. Un **pod** est la plus petite unité que Kubernetes fait tourner : une enveloppe autour d'un (ou plusieurs) conteneur(s). Retiens juste pour l'instant « pod = ton app en train de tourner ».\n\nLes verbes du quotidien, avec un exemple de ce à quoi chacun sert :\n- **`get`** : lister (« montre-moi les pods »). Ex. `kubectl get pods`.\n- **`describe`** : afficher tous les détails **et les événements** d'un objet. C'est l'**outil de diagnostic numéro 1** : quand quelque chose ne marche pas, on `describe` d'abord.\n- **`apply`** : créer ou mettre à jour des objets à partir d'un fichier **YAML** (un format texte lisible pour décrire la configuration). Ex. `kubectl apply -f web.yaml`.\n- **`delete`** : supprimer un objet.\n- **`logs`** : lire ce que ton application a écrit (ses journaux). Ex. `kubectl logs mon-pod`.\n- **`exec`** : ouvrir un shell **à l'intérieur** d'un conteneur pour fouiller de l'intérieur.\n- **`port-forward`** : créer un tunnel temporaire pour accéder à un pod depuis ton navigateur en local.\n\nUne question capitale : **à quel cluster** kubectl parle-t-il ? À celui indiqué par le **contexte** courant. Un **contexte** est un raccourci enregistré qui dit « ce cluster + cet utilisateur + ce namespace par défaut ». 👉 **Analogie** : c'est le **canal sélectionné** sur ta télécommande ; tu peux zapper entre plusieurs clusters (ton kind local, un cluster de test, la production). `kubectl config current-context` t'indique le canal actif, et `kubectl config use-context <nom>` en change. Vérifier le contexte avant toute commande sensible est un réflexe de survie, on y revient dans l'exercice."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Qui parle à qui : kubectl, apiserver et les nœuds",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  Toi[\"Toi : kubectl<br/>(la telecommande)\"] -->|commandes| API[\"apiserver<br/>(le standard du cluster)\"]\n  subgraph Cluster\n    API --> N1[\"Noeud 1\"]\n    API --> N2[\"Noeud 2\"]\n    N1 --> P1[\"Pod<br/>(ton app)\"]\n    N2 --> P2[\"Pod<br/>(ton app)\"]\n  end"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Tu as plusieurs clusters (un kind local, un staging sur GKE, une production sur EKS) configurés sur ton poste. Comment t'assures-tu que la commande `kubectl delete` que tu vas taper vise bien le cluster local, et surtout pas la production ?",
+          "solution": "kubectl agit sur le CONTEXTE courant, qui détermine à quel cluster (et namespace) les commandes s'adressent. Avant toute commande destructive, on vérifie et on fixe explicitement le contexte : `kubectl config current-context` affiche le cluster actif ; `kubectl config get-contexts` liste tous les contextes ; `kubectl config use-context kind-apprentissage` bascule sur le cluster local voulu. On peut aussi cibler ponctuellement avec l'option `--context kind-apprentissage` sur la commande elle-même. C'est une discipline de sécurité essentielle : la cause classique d'incidents graves est de lancer une commande (delete, apply) en croyant être sur le local alors qu'on est sur la production. Beaucoup d'équipes affichent le contexte courant dans leur prompt shell (kube-ps1) précisément pour éviter cette erreur. Toujours vérifier le contexte avant d'agir."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Un cluster pour apprendre",
+          "quizRef": "getting-started-cluster-check"
+        }
+      ]
+    },
+    {
+      "slug": "premier-deploiement",
+      "title": "Déployer sa première application",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Du manifeste au pod qui tourne",
+          "body": "Déployer une application, c'est décrire ce que tu veux, puis laisser Kubernetes le réaliser. Le flux tient en trois temps.\n\n**1. Écrire un manifeste.** Un **manifeste** est un fichier texte (au format YAML) qui décrit l'état souhaité, un peu comme un **formulaire de commande**. 👉 **Analogie** : tu ne dis pas au chef *comment* cuisiner étape par étape ; tu remplis un bon de commande (« je veux 3 parts de ce plat, servies sur cette table »), et il se débrouille. Pour une application web, on écrit en général deux objets dans ce manifeste :\n- un **Deployment** : il dit « fais tourner mon app en plusieurs exemplaires et garde-les en vie ». Chaque exemplaire est une **réplique** (une copie identique de l'app). Si une réplique meurt, le Deployment en recrée une automatiquement.\n- un **Service** : il **expose** l'app en lui donnant une adresse stable à l'intérieur du cluster. 👉 **Analogie** : le Service est le **standard qui redirige les appels** vers les répliques disponibles, même si celles-ci changent d'adresse en permanence.\n\n**2. Appliquer** le manifeste avec `kubectl apply -f mon-fichier.yaml`. Tu envoies ta commande ; Kubernetes la lit et se met au travail.\n\n**3. Observer.** Kubernetes crée les **pods** (rappel : un pod est ton app en train de tourner) et les **maintient** dans l'état demandé. Tu vérifies avec `kubectl get pods` (sont-ils bien `Running` ?). Pour tout savoir sur un pod, `kubectl describe pod <nom>` affiche ses détails et surtout sa section **Events** (les *événements* : le journal de ce que Kubernetes a tenté et de ce qui a réussi ou raté). Pour lire ce que ton app raconte, `kubectl logs <nom>`.\n\n👉 **Le réflexe fondamental** : si un pod ne démarre pas, la réponse est presque toujours dans `describe` (section Events) et dans `logs`. Exemple concret : un pod coincé te dira dans ses Events « image introuvable » ou « manque de mémoire », ce qui pointe directement vers la cause. On ne devine pas : on regarde."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Déployer, observer, accéder",
+          "codeLanguage": "bash",
+          "body": "kubectl apply -f web.yaml          # appliquer le manifeste (Deployment + Service)\n\nkubectl get pods                   # les pods sont-ils Running ?\nkubectl get deployment web         # répliques prêtes ? (READY 3/3)\nkubectl describe pod <nom>         # détails + Events (diagnostic n°1)\nkubectl logs <nom>                 # logs de l'application\n\n# Accéder localement à l'app sans l'exposer publiquement :\nkubectl port-forward deploy/web 8080:80\n# -> http://localhost:8080 atteint un pod"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Namespaces : cloisonner le cluster",
+          "body": "Un cluster est souvent **partagé** par plusieurs équipes ou plusieurs applications. Pour éviter que tout le monde se marche dessus, Kubernetes propose les **namespaces** (« espaces de noms »).\n\nUn **namespace** est une **cloison logique** qui découpe le cluster en zones séparées : une par équipe, une par environnement (dev, staging), une par application, comme tu veux. 👉 **Analogie** : le cluster est un **grand immeuble de bureaux**, et chaque namespace est un **étage** attribué à une équipe. Chaque étage a sa propre plaque sur les portes, ses propres règles d'accès, et son propre budget, sans déranger les voisins.\n\nConcrètement, un namespace apporte trois choses :\n- **Isolation des noms** : deux Services nommés `api` peuvent coexister sans conflit s'ils sont dans deux namespaces différents (comme deux « Bureau 12 » à deux étages distincts).\n- **Périmètre des quotas** : un **quota** est une limite de ressources (« cette équipe ne peut pas dépasser tant de processeur et de mémoire »). Il s'applique par namespace.\n- **Périmètre du RBAC** : le **RBAC** (*Role-Based Access Control*, contrôle d'accès basé sur les rôles) définit **qui a le droit de faire quoi**. On peut donner à une équipe tous les droits sur son namespace et aucun ailleurs.\n\nKubernetes fournit d'office quelques namespaces. `default` est celui utilisé quand tu n'en précises aucun ; **à éviter** pour du vrai travail, car tout s'y entasse en vrac. `kube-system` contient les composants internes du cluster : **à ne pas toucher**, c'est la salle des machines de l'immeuble.\n\n👉 **Exemple concret** : `kubectl get pods -n equipe-a` liste les pods du namespace `equipe-a`. L'option `-n <nom>` cible un namespace pour une seule commande ; on peut aussi fixer un namespace par défaut dans son contexte pour ne plus le répéter. Dès qu'un cluster est partagé, décider comment on organise ses namespaces est une vraie décision d'équipe, à prendre tôt."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Tu appliques un manifeste et `kubectl get pods` montre un pod bloqué en état `ImagePullBackOff`. Quelle est la démarche de diagnostic et la cause probable ?",
+          "solution": "ImagePullBackOff signifie que Kubernetes n'arrive pas à télécharger (pull) l'image du conteneur, et réessaie avec un délai croissant (backoff). Démarche de diagnostic : `kubectl describe pod <nom>` et regarder la section Events, qui donne la raison précise du pull échoué. Causes probables : (1) nom ou tag d'image incorrect (faute de frappe, tag inexistant) ; (2) image dans un registre PRIVÉ sans les identifiants configurés (il manque un imagePullSecret référencé dans le pod/service account) ; (3) rate limit du registre (ex. Docker Hub) ou registre injoignable depuis les nœuds ; (4) mauvaise architecture d'image (amd64 vs arm64) sur les nœuds. Corrections selon le cas : corriger le nom/tag, créer et référencer un imagePullSecret pour un registre privé, utiliser un miroir/s'authentifier contre les rate limits, ou fournir une image multi-arch. Le réflexe reste le même : `describe` (Events) donne le message d'erreur exact qui pointe vers la cause."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Mise en place & première appli",
+          "quizRef": "getting-started-check"
+        }
+      ]
+    },
+    {
+      "slug": "kubectl-de-pro-kustomize",
+      "title": "kubectl de pro & Kustomize",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les commandes qui font gagner des heures",
+          "body": "Une fois les verbes de base acquis (`get`, `describe`, `apply`...), quelques outils changent radicalement ta vitesse. Un expert n'écrit pas des YAML de mémoire : il les **génère**, les **compare**, et **navigue** vite.\n\n**`kubectl explain <ressource>`** : la documentation intégrée. Elle décrit n'importe quel champ d'un objet, directement dans le terminal, sans aller chercher sur le web. 👉 **Analogie** : c'est le **manuel intégré** de chaque pièce ; au lieu de fouiller un site, tu demandes sur place « à quoi sert ce bouton ? ». Exemple : `kubectl explain deployment.spec.strategy`.\n\n**`--dry-run=client -o yaml`** : le mode « à blanc ». Ce drapeau demande à kubectl de **faire semblant** (ne rien créer réellement) et de te sortir le YAML correspondant. 👉 **Analogie** : un **coup d'essai** ou un brouillon imprimé avant d'envoyer pour de vrai. Parfait pour partir d'un squelette de manifeste propre au lieu d'écrire de zéro.\n\n**`kubectl diff -f fichier.yaml`** : montre ce qu'un `apply` **changerait** avant de le faire (les lignes ajoutées/retirées). 👉 **Analogie** : l'**aperçu avant impression**. C'est un réflexe indispensable avant tout `apply` en production : on regarde d'abord ce qui va bouger.\n\nEt pour aller encore plus vite, des outils externes (non fournis par Kubernetes mais très répandus) :\n- **k9s** : une interface plein écran dans le terminal pour naviguer dans le cluster comme dans un tableau de bord, sans retaper des commandes.\n- **kubectx** / **kubens** : changer de **contexte** (donc de cluster) ou de **namespace** en un seul mot, au lieu des longues commandes `kubectl config`.\n- **stern** : suivre les **logs de plusieurs pods à la fois**, très pratique quand une app tourne en dizaines de répliques.\n\n👉 **Exemple concret** : `kubectl create deployment web --image=nginx --dry-run=client -o yaml > web.yaml` te génère un manifeste complet et correct en une ligne, que tu n'as plus qu'à ajuster. C'est comme ça qu'on travaille vite et sans erreurs de syntaxe."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Générer, prévisualiser, diffuser",
+          "codeLanguage": "bash",
+          "body": "kubectl explain deployment.spec.strategy   # doc d'un champ précis\n\n# Générer un squelette de manifeste sans rien créer\nkubectl create deployment web --image=nginx --dry-run=client -o yaml > web.yaml\n\n# Voir ce qu'un apply changerait AVANT de l'appliquer (réflexe prod)\nkubectl diff -f web.yaml\nkubectl apply -f web.yaml\n\n# Basculer d'environnement / namespace en un mot\nkubectx prod && kubens equipe-a"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Kustomize : varier sans dupliquer (niveau expert)",
+          "body": "Voici un problème très courant. Tu as les mêmes manifestes pour trois environnements (dev, staging, prod) qui ne diffèrent que par deux ou trois détails (le nombre de répliques, le tag de l'image). Faut-il copier-coller les fichiers dans trois dossiers ? Non : le moindre changement de structure obligerait à le refaire dans les trois, avec le risque d'en oublier un.\n\n**Kustomize** résout ça. C'est un outil **intégré à kubectl** (on l'appelle avec `kubectl apply -k`) qui applique des **surcouches** sur une **base** commune. Décryptons ces deux mots :\n- la **base** est le dossier qui contient les manifestes **génériques**, ceux qui sont identiques partout (le tronc commun).\n- une **surcouche** (*overlay* en anglais) est un dossier par environnement (dev, staging, prod) qui **repart de la base** et n'y applique que les **différences**.\n\nCes différences sont exprimées par des **patches** : un patch est une petite modification ciblée (« mets `replicas` à 5 », « change le tag de l'image en `v2.1` »). On peut aussi ajouter des transformations communes, comme un préfixe de noms ou des labels partagés.\n\n👉 **Analogie** : la base est un **plat de base** (une pâte à pizza nature). Chaque surcouche ajoute juste **ses garnitures** par-dessus, sans refaire la pâte. Tu changes la recette de la pâte une seule fois, et les trois pizzas en profitent.\n\nEn quoi est-ce différent de **Helm** (l'autre grand outil, qu'on verra plus loin) ? Helm fait du **templating** : il utilise des trous à remplir dans le YAML (une syntaxe `{{ }}`) et un fichier de valeurs. Kustomize, lui, est **sans template** : il patche du YAML **réel et lisible**, qu'on peut relire et comparer directement (`kubectl diff -k`). 👉 **Règle d'usage** : **Kustomize** pour des variations simples et déclaratives (le patron base + surcouches), **Helm** pour empaqueter une application paramétrable et distribuable à d'autres. Beaucoup d'équipes combinent les deux, sans opposition."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Une équipe copie ses manifestes dans trois dossiers (dev/staging/prod) qui ne diffèrent que par le nombre de répliques et le tag d'image, et doit répercuter tout changement structurel dans les trois. Sans introduire Helm, comment Kustomize résout-il ce problème ?",
+          "solution": "Kustomize élimine la duplication via le pattern base + overlays, intégré à kubectl (apply -k), et sans templating. On crée UNE base commune (base/) contenant les manifestes génériques (Deployment, Service, etc.) référencés par un kustomization.yaml. Puis, pour chaque environnement, un overlay (overlays/dev, overlays/staging, overlays/prod) qui référence la base et applique seulement les DIFFÉRENCES via des patches : par exemple un patch qui fixe replicas à la bonne valeur, un autre qui change le tag d'image (images: newTag), plus éventuellement des transformations communes (namePrefix, commonLabels). On déploie chaque environnement avec `kubectl apply -k overlays/prod`. Résultat : un changement structurel (ajouter un conteneur, modifier une sonde, ajouter un HPA) se fait UNE fois dans la base et se propage automatiquement aux trois environnements, plus de copier-coller ni de risque d'oublier un dossier. Différence avec Helm : Kustomize ne fait pas de templating ({{ }}), il patche du YAML réel, ce qui reste lisible et diffable (kubectl diff -k) ; c'est idéal pour des variations simples et déclaratives, là où Helm vise le packaging paramétrable et distribuable. On répond donc au besoin sans introduire Helm, en restant dans l'outillage natif de kubectl."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, kubectl de pro & Kustomize (expert)",
+          "quizRef": "kubectl-kustomize-expert"
+        }
+      ]
+    }
+  ]
+}

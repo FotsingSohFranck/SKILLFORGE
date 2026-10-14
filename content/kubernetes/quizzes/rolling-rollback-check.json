@@ -1,0 +1,52 @@
+{
+  "ref": "rolling-rollback-check",
+  "node": "deployment-strategies",
+  "lesson": "rolling-et-rollback",
+  "title": "Rolling update & rollback",
+  "description": "Rolling par défaut, maxUnavailable/maxSurge, readiness, rollback rapide.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la stratégie de déploiement par défaut d'un Deployment ?",
+      "justification": "Le rolling update : remplacement progressif des pods en gardant assez de disponibilité pour zéro coupure.",
+      "position": 0,
+      "options": [
+        { "label": "Le rolling update", "correct": true, "position": 0 },
+        { "label": "Le blue-green", "correct": false, "position": 1 },
+        { "label": "Le big-bang", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que contrôlent maxUnavailable et maxSurge ?",
+      "justification": "Le rythme du rolling update : combien de pods peuvent manquer, et combien de pods en plus créer temporairement.",
+      "position": 1,
+      "options": [
+        { "label": "Le rythme de la bascule (pods indisponibles / en surplus)", "correct": true, "position": 0 },
+        { "label": "La taille des volumes", "correct": false, "position": 1 },
+        { "label": "Le nombre de nœuds", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Le taux d'erreur grimpe pendant un rollout. Quelle première action ?",
+      "justification": "kubectl rollout undo : revenir instantanément à la version précédente (l'historique le permet), puis investiguer à froid.",
+      "position": 2,
+      "options": [
+        { "label": "kubectl rollout undo (revenir à la version précédente)", "correct": true, "position": 0 },
+        { "label": "Déboguer en production sous incident", "correct": false, "position": 1 },
+        { "label": "Supprimer le cluster", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un rollback rapide et fiable est la condition qui permet d'oser déployer souvent, en petits incréments.",
+      "justification": "Vrai : petits déploiements fréquents + rollback trivial réduisent le risque et facilitent le diagnostic.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

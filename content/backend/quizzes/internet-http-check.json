@@ -1,0 +1,96 @@
+{
+  "ref": "internet-http-check",
+  "node": "internet",
+  "lesson": "le-protocole-http",
+  "title": "Quiz, Le protocole HTTP",
+  "description": "Requête/réponse, méthodes, sémantique, codes de statut, sans état.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle méthode HTTP sert à lire une ressource sans la modifier ?",
+      "justification": "GET est une méthode sûre : elle lit sans effet de bord, on peut la répéter sans rien changer.",
+      "position": 0,
+      "options": [
+        {
+          "label": "GET",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "POST",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "DELETE",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie un code de statut de la famille 4xx ?",
+      "justification": "Les 4xx signalent une erreur du côté client (requête invalide, non authentifié, introuvable...) ; les 5xx concernent le serveur.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une erreur venant de la requête du client (ex. 404 introuvable)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un succès",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une erreur interne du serveur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "HTTP est « sans état » : le serveur ne se souvient pas d'une requête à l'autre.",
+      "justification": "Vrai : chaque requête est traitée indépendamment, ce qui permet de répliquer les serveurs mais impose de transporter l'identité à chaque appel (cookie ou jeton).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton client renvoie automatiquement une requête après un timeout. Sur laquelle est-ce risqué de créer un doublon ?",
+      "justification": "POST n'est pas idempotent : le rejouer peut créer deux ressources (ex. deux commandes). GET, PUT et DELETE sont idempotents.",
+      "position": 3,
+      "options": [
+        {
+          "label": "POST (création), car un rejeu peut créer deux ressources",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "GET, car il modifie la base",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "DELETE, car il n'est jamais idempotent",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

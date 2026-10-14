@@ -1,0 +1,192 @@
+{
+  "node": "programming-paradigms",
+  "lessons": [
+    {
+      "slug": "trois-paradigmes",
+      "title": "Trois paradigmes, trois disciplines",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un paradigme dit ce qu'on s'interdit",
+          "body": "Un **paradigme de programmation** est une grande façon d'organiser un programme, une manière de penser et de structurer ton code. Il en existe plusieurs, et un même langage peut en mélanger plusieurs.\n\nL'angle le plus éclairant (proposé par Robert C. Martin, un auteur connu du domaine) est surprenant : chaque paradigme ne t'ajoute pas des super-pouvoirs, il t'en **retire** un. Il t'enlève un outil trop libre, trop dangereux, et c'est justement cette **contrainte** qui rend ton code plus solide.\n\n👉 **Analogie** : pense aux règles d'un sport. Au foot, t'interdire de prendre le ballon avec les mains n'est pas une punition, c'est ce qui rend le jeu jouable et intéressant. Enlever une liberté crée la discipline, et la discipline rend le résultat maîtrisable.\n\n**Exemple concret** : sans aucune règle, tu pourrais écrire un programme où le code saute n'importe où et où n'importe quelle partie modifie n'importe quelle donnée. Ça marche cinq minutes, puis ça devient ingérable. Les paradigmes posent des garde-fous.\n\nLes trois grands paradigmes historiques sont le **structuré**, l'**orienté objet** et le **fonctionnel**. Chacun retire une chose précise : le saut incontrôlé, l'appel de fonction par adresse directe, et la modification de variable. On les détaille juste après. Ils ne s'excluent pas : Java ou Python en combinent plusieurs à la fois."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Programmation structurée : ordre sur le flot de contrôle",
+          "body": "La **programmation structurée** est le premier paradigme. Pour la comprendre, un mot de vocabulaire : le **flot de contrôle**, c'est simplement l'**ordre dans lequel les instructions de ton programme s'exécutent** (quelle ligne après quelle ligne).\n\nCe paradigme impose que ce flot passe uniquement par trois formes :\n- la **séquence** : des instructions les unes après les autres, de haut en bas ;\n- la **sélection** : un choix, avec `if` ou `switch` (faire ceci OU cela selon une condition) ;\n- l'**itération** : une répétition, avec une boucle (`for`, `while`).\n\nEn échange, il **retire le `goto`**. Le `goto` était une instruction qui permettait de **sauter directement** à n'importe quelle autre ligne du programme, n'importe où.\n\n👉 **Analogie** : lire un livre normalement (page après page, avec chapitres et paragraphes) versus un livre où chaque phrase te dit « saute à la page 213 », puis « saute à la page 7 »... Le second est un labyrinthe. On appelle d'ailleurs ce genre de code le **code spaghetti** : des sauts partout, emmêlés comme des pâtes.\n\n**Exemple concret** : avec le `goto`, arrivé à une ligne, tu es incapable de savoir COMMENT tu y es arrivé (par quel chemin), donc impossible de raisonner. En te limitant aux blocs structurés, chaque bloc a **une seule entrée et une seule sortie** : tu peux le comprendre isolément et **découper** un gros problème en petits.\n\nC'est le socle de toute lisibilité : les fonctions, les blocs indentés, les `return` anticipés en découlent. Et c'est la base sur laquelle les deux autres paradigmes se construisent."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Programmation orientée objet : discipline sur l'indirection",
+          "body": "La **programmation orientée objet** (souvent abrégée **POO**, en anglais *OOP*) organise le code en **objets** : de petites boîtes qui regroupent au même endroit des **données** (ce que l'objet sait) et des **comportements** (ce que l'objet sait faire, ses méthodes).\n\n👉 **Analogie** : une télécommande. Elle a un état interne (la chaîne actuelle, le volume) et des boutons pour agir dessus. Tu ne touches pas aux circuits, tu appuies sur les boutons. Un objet, c'est pareil : des données cachées à l'intérieur, et des méthodes pour interagir.\n\nCe que la POO **retire**, c'est l'usage direct du **pointeur de fonction**. Un pointeur de fonction, c'est le fait d'appeler une fonction en connaissant son **adresse** exacte en mémoire, c'est-à-dire en désignant précisément LE bout de code à exécuter. La POO remplace ça par le **polymorphisme**.\n\nLe **polymorphisme** (du grec « plusieurs formes ») : tu appelles une méthode sur une **interface** (un contrat qui dit *ce qu'on peut faire*, sans dire *comment*), et c'est le **type réel** de l'objet qui décide, au moment de l'exécution, quelle version du code s'exécute.\n\n👉 **Exemple concret** : tu appelles `animal.crier()`. Si l'objet réel est un chien, ça aboie ; si c'est un chat, ça miaule. Ton code appelant ne change pas ; il parle à l'interface `Animal`, pas à une fonction précise.\n\nÀ quoi ça sert ? À l'**inversion de dépendance** : ton code important (la logique métier) dépend d'une **interface** abstraite, pas d'un module concret (la base de données, l'écran). Du coup, les détails deviennent **branchables** : tu remplaces la vraie base par une fausse pour tester, sans toucher à la logique.\n\nLa POO repose sur quatre piliers (encapsulation, abstraction, héritage, polymorphisme) détaillés dans une phase suivante. Retiens ici l'essentiel : la POO **discipline les dépendances** entre les morceaux du programme."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Programmation fonctionnelle : discipline sur l'état",
+          "body": "La **programmation fonctionnelle** voit le calcul comme l'évaluation de **fonctions**, au sens mathématique : tu donnes des entrées, tu obtiens une sortie.\n\nCe qu'elle **retire (ou restreint fortement)**, c'est l'**affectation**, c'est-à-dire le fait de **changer la valeur d'une variable** après coup (`x = x + 1`). Dans ce paradigme, les valeurs sont **immuables** : au lieu de modifier une donnée, on en **produit une nouvelle**.\n\nDeux mots à définir :\n- une **fonction pure** : pour les mêmes entrées, elle rend toujours la même sortie, et elle ne fait **rien d'autre** (elle ne modifie aucune donnée extérieure, n'écrit pas de fichier). Ce « rien d'autre » s'appelle l'absence d'**effet de bord**. Un **effet de bord**, c'est tout ce qu'une fonction fait en plus de rendre sa valeur (modifier une variable globale, afficher à l'écran, écrire en base).\n- **immuable** : qui ne peut plus être modifié une fois créé.\n\n👉 **Analogie** : une recette de cuisine pure prend des ingrédients et rend un gâteau, toujours le même, sans jamais aller réarranger ta cuisine en douce. Une fonction impure, elle, profiterait de l'occasion pour déplacer tes meubles : c'est un effet de bord, et c'est source de mauvaises surprises.\n\nAutre idée clé : les fonctions sont des **valeurs de première classe**, c'est-à-dire qu'on peut les traiter comme n'importe quelle donnée : les **ranger** dans une variable, les **passer** en argument, les **retourner**.\n\n**Bénéfice** : sans état modifiable partagé, une énorme famille de bugs disparaît (notamment ceux qui surgissent quand plusieurs traitements tournent en même temps). Et on peut **raisonner** sur le code comme en maths : remplacer un appel par son résultat.\n\nOn ne bannit pas totalement les effets (lire un fichier, appeler une base, ça existe forcément) : on les **repousse aux frontières** du programme et on garde le **cœur** aussi pur que possible. Java emprunte ce style via les *lambdas*, les *streams*, le mot-clé `record` et les collections immuables (on les verra concrètement)."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Ce que chaque paradigme retire",
+          "diagramFormat": "MERMAID",
+          "body": "graph TD\n    A[Programmation structurée] -->|retire le goto| A2[Flot de contrôle discipliné]\n    B[Orientée objet] -->|retire le pointeur de fonction direct| B2[Indirection / polymorphisme disciplinés]\n    C[Fonctionnelle] -->|retire l'affectation| C2[État / mutation disciplinés]\n    A2 --> D[Code fiable et raisonnable]\n    B2 --> D\n    C2 --> D"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Un débutant affirme : « les paradigmes, c'est juste de la théorie ; un bon paradigme, c'est celui qui me donne le plus de liberté ». En quoi cette intuition est-elle exactement à l'envers ? Illustrez avec ce que retirent la programmation structurée, objet et fonctionnelle, et pourquoi c'est utile.",
+          "solution": "L'intuition est à l'envers parce que la valeur d'un paradigme vient précisément de ce qu'il RETIRE, pas de la liberté qu'il donne. Chaque paradigme est une discipline : il enlève un usage trop puissant/dangereux, et c'est cette contrainte qui rend le code plus fiable et plus facile à raisonner. Plus de liberté = plus de façons de se tromper et de rendre le programme impossible à comprendre. Illustration par ce que chacun retire : (1) Programmation structurée, retire le goto (le saut arbitraire). Sans cette contrainte, on obtient du code spaghetti : impossible de savoir comment on est arrivé à une ligne, donc impossible de raisonner localement. En se limitant à séquence/sélection/itération, chaque bloc a une entrée et une sortie et devient compréhensible et décomposable. C'est le fondement de la lisibilité. (2) Orientée objet, retire l'usage direct du pointeur de fonction, canalisé via le polymorphisme. La « perte » de liberté (on n'appelle plus une adresse de fonction arbitraire, mais une méthode via une interface) permet l'inversion de dépendance : le haut niveau dépend d'abstractions, les détails deviennent branchables. C'est ce qui rend possibles les architectures propres. (3) Fonctionnelle, retire (ou restreint) l'affectation : immuabilité, fonctions pures. Perdre la mutation libre supprime d'un coup des classes entières de bugs (concurrence, ordre d'exécution, aliasing) et permet de raisonner sur le code comme sur des maths (remplacer un appel par son résultat). Conclusion : un paradigme est utile justement parce qu'il vous EMPÊCHE de faire certaines choses. La discipline (contraindre le flot, l'indirection, l'état) est ce qui donne la fiabilité. D'ailleurs les langages modernes combinent les trois : on écrit du code structuré, organisé en objets pour discipliner les dépendances, avec un cœur le plus fonctionnel/immuable possible pour discipliner l'état. « Le plus de liberté » n'est pas un critère de qualité ; « la bonne contrainte pour le problème » l'est."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Paradigmes de programmation",
+          "quizRef": "paradigms-check"
+        }
+      ]
+    },
+    {
+      "slug": "reactif-et-fonctionnel-concret",
+      "title": "Réactif & fonctionnel, concrètement (expert)",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Impératif vs déclaratif",
+          "body": "Au-delà des trois grands paradigmes, un autre axe éclaire beaucoup de code moderne : **impératif** contre **déclaratif**.\n\n- Style **impératif** : tu décris **COMMENT** faire, étape par étape. Par exemple, pour additionner des nombres, tu écris une boucle qui parcourt la liste et ajoute chaque valeur dans une variable qui s'accumule.\n- Style **déclaratif** : tu décris **QUOI** obtenir, et tu laisses l'outil se débrouiller pour le *comment*. Par exemple `stream().filter(...).map(...).sum()` dit « filtre, transforme, additionne » sans que tu gères l'index ni l'accumulateur.\n\n👉 **Analogie** : le taxi contre le GPS. En impératif, tu dictes au chauffeur chaque tournant (« à gauche, tout droit, à droite... »). En déclaratif, tu donnes juste l'adresse d'arrivée et tu laisses le GPS choisir le chemin.\n\n**Exemple concret** : une requête **SQL** (`SELECT nom FROM clients WHERE ville = 'Lyon'`) est déclarative : tu dis ce que tu veux, pas comment parcourir le disque. Les **Streams** Java, les frameworks réactifs, l'infrastructure décrite avec Terraform (ce qu'on appelle l'**IaC**, *Infrastructure as Code*) sont eux aussi déclaratifs.\n\nCe n'est pas « mieux » dans l'absolu : l'impératif reste plus direct pour un algorithme précis et fin. Mais savoir **choisir le bon registre** selon la situation est une marque de maturité."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Les concepts fonctionnels, concrètement en Java",
+          "body": "La programmation fonctionnelle n'est pas réservée à des langages exotiques comme Haskell : Java en reprend les idées. Voici le vocabulaire, défini simplement.\n\n**Fonction d'ordre supérieur** : une fonction qui **prend une autre fonction en argument** ou qui **en retourne une**. 👉 **Analogie** : `trier` est d'ordre supérieur si tu lui passes la règle de tri (« trie PAR prix »). Exemple Java : la méthode `map` reçoit une petite fonction (une *lambda*) et l'applique à chaque élément.\n\n**Closure** (ou *fermeture*) : une fonction qui **capture** et retient des variables de l'endroit où elle a été créée. Exemple : `x -> x + tva` capture la variable `tva` du contexte autour.\n\n**Transparence référentielle** : un nom savant pour une idée simple. Un appel de fonction pure peut être **remplacé par son résultat** sans rien changer au programme. Si `somme(2, 3)` vaut toujours `5`, tu peux écrire `5` à la place partout. C'est ce qui autorise la mise en cache et rend le code prévisible.\n\n**Immuabilité** partout (via `record`, collections immuables) : les données ne changent pas après création.\n\n**Les monades** : le mot fait peur, l'idée est simple. Une monade est une **« boîte »** qui **enveloppe** une valeur dans un contexte et qu'on peut **enchaîner**. 👉 **Analogie** : un colis avec une étiquette. `Optional` est une boîte « il y a peut-être une valeur, peut-être rien » ; `Stream` est une boîte « une séquence de valeurs » ; `Mono` ou `CompletableFuture` est une boîte « une valeur qui arrivera plus tard ». Toutes offrent `map` et `flatMap`, ce qui te laisse **transformer le contenu sans ouvrir la boîte à la main**. Reconnaître ce motif change ta façon d'écrire du code."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le paradigme réactif",
+          "body": "La **programmation réactive** est un paradigme déclaratif tourné vers les **flux de données asynchrones**.\n\nDéfinissons **asynchrone** : au lieu de demander une valeur et d'**attendre** sans rien faire qu'elle arrive (ce qu'on appelle « bloquant »), tu déclares à l'avance ce qu'il faudra faire **quand** la donnée arrivera, et tu passes à autre chose entre-temps.\n\n👉 **Analogie** : au restaurant, le style bloquant, c'est rester planté devant la cuisine à fixer ta commande jusqu'à ce qu'elle sorte. Le style réactif, c'est le buzzer : tu vas t'asseoir, et il te prévient quand c'est prêt. Un seul serveur peut ainsi gérer beaucoup de tables.\n\nAu lieu d'attendre, on **déclare un pipeline** : `source.map(...).filter(...).subscribe(...)`, une suite d'étapes qui réagit aux données à leur arrivée.\n\nQuelques piliers, définis simplement :\n- un **thread** est un « fil d'exécution », un ouvrier qui exécute du code. Le **non-blocage** signifie qu'on n'immobilise jamais un ouvrier à attendre : un petit nombre de threads suffit alors à gérer énormément de requêtes.\n- la **back-pressure** (« contre-pression ») : quand la source produit plus vite que le consommateur ne digère, le **consommateur régule la source** (« ne m'envoie que 10 éléments à la fois ») pour ne pas être submergé.\n- les **flux** se nomment `Flux` (0 à plusieurs valeurs) et `Mono` (0 ou 1 valeur) dans la bibliothèque Reactor.\n\n**Exemple concret** : c'est exactement le modèle de **Spring WebFlux** et **R2DBC** utilisés dans SkillForge. On ne bloque jamais un thread en attendant la base ou le réseau ; on enchaîne des `Mono`/`Flux`.\n\nLe réactif combine plusieurs disciplines : déclaratif (le *quoi*), fonctionnel (des opérateurs purs et composables) et asynchrone (piloté par les événements). Son coût : une courbe d'apprentissage réelle et un débogage moins linéaire que du code classique."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Impératif → déclaratif → réactif",
+          "codeLanguage": "java",
+          "body": "// Impératif : comment (boucle + accumulateur mutable)\nlong total = 0;\nfor (Order o : orders) if (o.isPaid()) total += o.amount();\n\n// Déclaratif (fonctionnel) : quoi (pipeline pur, immuable)\nlong total2 = orders.stream()\n    .filter(Order::isPaid)\n    .mapToLong(Order::amount)\n    .sum();\n\n// Réactif : quoi, mais asynchrone et non bloquant (Reactor)\nMono<Long> total3 = orderRepository.findAll()   // Flux<Order>, ne bloque pas\n    .filter(Order::isPaid)\n    .map(Order::amount)\n    .reduce(0L, Long::sum);"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un développeur, habitué au style impératif bloquant, écrit dans un service WebFlux : `User u = userRepo.findById(id).block(); return u.getName();`. Expliquez pourquoi le `.block()` trahit le paradigme réactif, ce que sont le non-blocage et la back-pressure, et comment réécrire proprement.",
+          "solution": "Le .block() trahit tout l'intérêt du paradigme réactif et, dans un contexte WebFlux, peut être dangereux. Pourquoi c'est un problème : la programmation réactive repose sur le NON-BLOCAGE, un petit nombre de threads (event loop) traite un grand nombre de requêtes en enchaînant des étapes qui « réagissent » quand les données arrivent, sans jamais immobiliser un thread à attendre l'I/O. Appeler .block() fait précisément l'inverse : il ARRÊTE le thread courant jusqu'à ce que le résultat arrive, exactement comme du code bloquant classique. Sur la stack WebFlux/Reactor, bloquer un thread de l'event loop peut épuiser le pool et figer le serveur sous charge (voire lever une exception « block()/blockFirst()/blockLast() are blocking, which is not supported in thread ... »). On perd le bénéfice (scalabilité avec peu de threads) tout en gardant la complexité du réactif. Non-blocage : au lieu d'attendre, on DÉCLARE un pipeline de transformations (map/flatMap/filter) sur un Mono/Flux ; le framework exécute et pousse le résultat quand il est prêt, libérant le thread entre-temps. Back-pressure : dans un flux asynchrone, le producteur pourrait émettre plus vite que le consommateur ne traite ; la back-pressure est le mécanisme par lequel le CONSOMMATEUR régule le producteur (demande N éléments à la fois) pour ne pas être submergé, une garantie de stabilité propre au réactif (Reactive Streams). Réécriture propre : ne jamais dérouler le Mono avec block(). On compose et on RENVOIE le Mono, en laissant le framework s'abonner : return userRepo.findById(id).map(User::getName); (map transforme la valeur quand elle arrive). Si findById peut être vide, on gère l'absence dans le pipeline : .map(User::getName).switchIfEmpty(Mono.error(new UserNotFoundException(id))); (ou defaultIfEmpty). Si une étape suivante est elle-même asynchrone (autre appel I/O), on utilise flatMap au lieu de map pour ne pas imbriquer les Mono. Le contrôleur renvoie ce Mono<String> ; WebFlux s'en occupe de bout en bout, sans blocage. Idée directrice : en réactif, on ne « sort » pas de la valeur avec block(), on reste dans le monde des Mono/Flux et on compose des transformations (fonctionnel + déclaratif + asynchrone), le non-blocage et la back-pressure faisant le reste. block() n'est acceptable qu'aux frontières d'un monde non réactif (tests, main), jamais dans le chemin runtime WebFlux."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Réactif & fonctionnel (expert)",
+          "quizRef": "paradigms-expert-check"
+        }
+      ]
+    },
+    {
+      "slug": "erreurs-fonctionnelles-railway",
+      "title": "Gestion d'erreurs fonctionnelle : Result/Either & railway (expert)",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Modéliser l'échec comme une valeur",
+          "body": "Quand une opération peut **échouer**, comment le signale-t-on ? Deux écoles.\n\nEn style impératif, on lève une **exception** : un signal d'erreur qui **interrompt brutalement** le déroulement normal et « saute » vers un gestionnaire situé ailleurs. On dit que c'est un canal **hors bande** (l'erreur voyage en dehors du flot normal des valeurs).\n\n👉 **Analogie** : l'exception, c'est l'**alarme incendie**. Elle stoppe tout d'un coup et te propulse vers la sortie de secours. Pratique pour un vrai incendie, mais excessif si c'est juste « le formulaire est mal rempli ».\n\nEn style fonctionnel, on préfère souvent rendre l'échec **explicite dans le type de retour** : l'échec devient une **valeur ordinaire** qu'on manipule comme les autres. Trois briques :\n- **`Option`** (ou `Optional` en Java) modélise l'**absence** : soit 0, soit 1 valeur. C'est le remplaçant propre de `null`.\n- **`Result`** (ou **`Either`**) modélise **succès OU erreur**. Par convention `Either<L, R>` range l'erreur à gauche (**`Left`**) et le succès à droite (**`Right`**). Le type annonce donc *quelles* erreurs peuvent survenir.\n- **`Try`** capture « ça a réussi, OU ça a levé une exception ».\n\n**Exemple concret** : une méthode `Either<ValidationError, User> parse(String)` **dit la vérité** rien que par sa signature : elle peut échouer, et l'erreur possible est de type `ValidationError`. Le compilateur **oblige** alors l'appelant à traiter les deux cas. Impossible d'oublier l'erreur, contrairement à une exception qui peut remonter silencieusement sans que personne ne l'ait prévue."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Railway-Oriented Programming",
+          "body": "Une fois qu'on modélise l'échec comme une valeur, comment **enchaîner** plusieurs opérations qui peuvent chacune échouer, sans une pyramide de `if` et de `try` imbriqués ?\n\nLe **Railway-Oriented Programming** (« programmation orientée rails », image due à Scott Wlaschin) donne la métaphore parfaite : imagine **deux rails de train parallèles**, un **rail succès** (vert) et un **rail erreur** (rouge).\n\n👉 **Analogie** : chaque étape de ton traitement est un **aiguillage**. Si le train arrive sur le rail succès, l'étape s'exécute (et peut, en cas de pépin, faire basculer le train sur le rail erreur). Mais si le train est **déjà** sur le rail erreur, l'étape est **sautée** : l'erreur file tout droit jusqu'au bout sans qu'on tente les étapes suivantes. On appelle ça **court-circuiter**.\n\nTechniquement, deux outils :\n- **`map`** : transformer la valeur quand tout va bien (rester sur le rail succès).\n- **`flatMap`** (parfois `andThen`) : enchaîner une étape qui renvoie **elle-même** un `Result`. C'est lui qui gère l'aiguillage.\n\n**Exemple concret** : valider un formulaire en plusieurs étapes (email, âge, unicité, sauvegarde) devient un **pipeline linéaire** qui se lit d'un trait. Le chemin heureux se suit du regard, et la **première** erreur rencontrée gagne et court-circuite le reste.\n\nC'est, pour les erreurs, l'équivalent de ce que `Stream`, `Optional` et `Mono` font pour composer les traitements qui réussissent."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Les deux rails du railway",
+          "diagramFormat": "MERMAID",
+          "body": "graph LR\n    Start[Formulaire] --> S1{parse email}\n    S1 -->|succes| S2{parse age}\n    S1 -->|erreur| Err[Rail erreur]\n    S2 -->|succes| S3{verifier unicite}\n    S2 -->|erreur| Err\n    S3 -->|succes| S4[sauvegarder]\n    S3 -->|erreur| Err\n    S4 --> Ok[Rail succes : User]\n    Err --> Out[Resultat final]\n    Ok --> Out"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "try/catch imbriqués → pipeline Result",
+          "codeLanguage": "java",
+          "body": "// ❌ Impératif : imbrication, l'erreur se gère à chaque niveau\nUser register(Form f) {\n    try {\n        Email e = parseEmail(f.email());      // peut lever\n        Age a = parseAge(f.age());            // peut lever\n        checkNotTaken(e);                     // peut lever\n        return save(new User(e, a));\n    } catch (ValidationException ex) { /* ... */ }\n}\n\n// ✅ Railway : chaque étape renvoie un Result, flatMap court-circuite au 1er échec\nResult<User> register(Form f) {\n    return parseEmail(f.email())              // Result<Email>\n        .flatMap(e -> parseAge(f.age())       // Result<Age>\n            .flatMap(a -> checkNotTaken(e)    // Result<Email>\n                .map(ok -> new User(e, a))))\n        .flatMap(this::save);                 // Result<User>\n}\n// Côté réactif, l'équivalent est Mono.flatMap + onErrorResume."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Exception ou Result ? Choisir selon la nature de l'erreur",
+          "body": "Les deux mécanismes (exception et `Result`) **coexistent**. Le bon choix dépend de la **nature** de l'erreur.\n\n**Erreur attendue, métier** : email invalide, solde insuffisant, règle de gestion non respectée. Ce sont des **résultats normaux** du domaine, des cas prévus. Un **`Result`/`Either`** typé les rend visibles, oblige à les traiter, et évite de se servir des exceptions comme d'un simple `if` déguisé.\n\n**Erreur exceptionnelle, technique** : panne réseau, disque plein, bug de programmation. L'appelant local n'a rien de sensé à en faire sur le moment. Mieux vaut **laisser remonter une exception** vers un **gestionnaire central** (dans une API réactive, le *handler* global qui traduit ça en erreur 5xx pour le client).\n\n👉 **Analogie** : « il n'y a plus de lait au supermarché » est un cas de la vie courante que tu gères sur place (tu prends autre chose) : c'est un `Result`. « le supermarché est en feu » n'est pas à gérer au rayon crémerie : tu déclenches l'alarme et tu laisses les pompiers (le handler global) s'en occuper : c'est une exception.\n\n**Anti-pattern** (mauvaise pratique à éviter) : utiliser des exceptions pour du **contrôle de flot** attendu (c'est coûteux et illisible), ou à l'inverse enfermer une vraie panne technique dans un `Result` que personne ne saura traiter.\n\n**Exemple concret** dans SkillForge (stack WebFlux) : les erreurs **métier** deviennent des exceptions de domaine mappées en **422** (règle métier) ou **409** (conflit), tandis que la composition réactive (`onErrorResume`, `switchIfEmpty`) applique l'esprit railway sur le chemin réactif."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Un développeur écrit une inscription : chaque étape (parse email, parse âge, vérifier unicité, sauvegarder) lève une `RuntimeException` maison, et le contrôleur entoure tout d'un `try/catch (Exception e)` qui renvoie « 400 Bad Request » quel que soit le problème. Un product owner veut désormais des messages d'erreur précis et cumulés (« email invalide ET âge manquant »). Que reprochez-vous à la conception et comment la faites-vous évoluer ?",
+          "solution": "La conception utilise les exceptions comme flot de contrôle pour des erreurs métier ATTENDUES, ce qui la rend imprécise et rigide. Reproches : (1) Toutes les erreurs métier (email, âge, unicité) sont des RuntimeException indifférenciées, avalées par un catch générique qui renvoie un 400 unique : on perd la nature de l'erreur, impossible de donner un message précis ni le bon code HTTP (un email en double est un 409, une règle métier un 422, une entrée malformée un 400). (2) Les exceptions ne composent pas : dès la première levée, on quitte la méthode, donc on ne peut PAS cumuler « email invalide ET âge manquant », l'exception court-circuite tout. (3) La signature des étapes ment : rien dans le type ne dit qu'elles peuvent échouer ni comment. Évolution : modéliser l'échec comme une valeur. Chaque étape renvoie un Result/Either<Erreur, Valeur> où Erreur est un type de domaine riche (ex. un enum/record ValidationError avec champ et message). (a) Pour un enchaînement où la suite dépend du succès (parser puis vérifier l'unicité de l'email parsé), composer en railway avec flatMap : au premier échec, on court-circuite proprement, et le type force le contrôleur à traiter le cas erreur. (b) Pour l'exigence NOUVELLE de cumuler les erreurs indépendantes (email ET âge validés en parallèle), le simple flatMap ne suffit pas (il s'arrête à la première) : on utilise une validation applicative/accumulative, valider chaque champ indépendamment en un Result, puis COMBINER les résultats en agrégeant la liste des erreurs (Validated/accumulating d'une lib comme Vavr, ou une petite combinaison maison). On obtient soit l'objet valide, soit la liste complète des violations. (c) Le contrôleur traduit alors la valeur d'erreur typée en réponse précise : 400/422/409 selon le cas, avec messages par champ, au lieu d'un 400 générique. (d) Réserver les exceptions aux erreurs vraiment EXCEPTIONNELLES/techniques (panne base, bug), laissées remonter vers le handler global (5xx). En WebFlux, la même logique s'exprime avec Mono et onErrorResume/switchIfEmpty pour le chemin réactif. Bilan : on passe d'exceptions-flot-de-contrôle opaques à des erreurs-valeurs typées, composables (railway pour le séquentiel, validation applicative pour le cumul), ce qui rend les messages précis, les codes HTTP corrects, et l'oubli d'un cas d'erreur détecté à la compilation."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Erreurs fonctionnelles & railway (expert)",
+          "quizRef": "pp-railway-expert-check"
+        }
+      ]
+    },
+    {
+      "slug": "composition-currying",
+      "title": "Composition de fonctions : currying & application partielle (expert)",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Composer plutôt qu'imbriquer",
+          "body": "En programmation fonctionnelle, on construit un traitement en **assemblant** de petites fonctions, plutôt qu'en **imbriquant** des appels les uns dans les autres.\n\nLa **composition** de deux fonctions, notée `f ∘ g` en maths, produit une **nouvelle fonction** qui veut dire « fais `g`, puis passe le résultat à `f` ».\n\n👉 **Analogie** : une chaîne de montage. Chaque poste fait UNE opération simple (visser, peindre, emballer), et tu les mets bout à bout. Le produit avance de poste en poste. Composer des fonctions, c'est brancher ces postes ensemble.\n\nEn Java, deux méthodes : `Function.andThen` (« g PUIS f ») et `Function.compose` (« f APRÈS g »), et pour les tests logiques `Predicate.and/or/negate`.\n\n**Exemple concret** : au lieu d'écrire `format(round(tax(price)))` (à lire de l'intérieur vers l'extérieur, pénible), tu écris un **pipeline** `tax.andThen(round).andThen(format)`, qui se lit dans l'ordre d'exécution et qu'on peut **nommer** : `prixVersEtiquette`.\n\nChaque fonction reste **petite, pure et testable** ; la composition les assemble sans code de liaison impératif. C'est la version « fonctions » du principe « de petites unités avec une seule responsabilité » : on préfère des briques composables à une grosse méthode fourre-tout."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Currying & application partielle",
+          "body": "Deux techniques cousines pour **spécialiser** des fonctions.\n\nL'**application partielle** consiste à **fixer à l'avance une partie des arguments** d'une fonction, pour en obtenir une version plus spécialisée.\n\n👉 **Analogie** : une machine à café réglable (force, taille, sucre). Tu pré-règles « grand, fort, sans sucre » une fois, et tu obtiens un **bouton unique** « mon café » : c'est la même machine, mais avec des paramètres déjà fixés.\n\nLe **currying** (du nom du mathématicien Haskell Curry) est la forme poussée : transformer une fonction `f(a, b, c)` en une **chaîne** de fonctions à un seul argument `f(a)(b)(c)`, qu'on peut **arrêter en cours de route**.\n\n**Exemple concret** : d'une fonction générale `appliquerTaxe(taux, montant)`, on fabrique `appliquerTva = appliquerTaxe(0.20)`. On obtient une fonction à **un seul** argument (le montant), **préconfigurée** avec le taux de 20 %. On a créé une fonction spécialisée **sans dupliquer** la logique.\n\nCe mécanisme sert aussi d'**injection légère** : une `Function<A, B>` passée en paramètre remplace souvent toute une hiérarchie de classes (les « stratégies »). En Java, on l'imite avec des **lambdas qui capturent** leur contexte (des *closures*, vues plus tôt) : `taux -> montant -> montant * (1 + taux)`.\n\nDe là découle le style **point-free** : composer des fonctions **sans nommer** l'argument qui les traverse, en manipulant les fonctions comme de simples valeurs de configuration."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Application partielle = stratégie légère",
+          "codeLanguage": "java",
+          "body": "// Fonction générale, curryfiée : rate -> (amount -> montant taxé)\nFunction<Double, Function<Double, Double>> applyTax =\n    rate -> amount -> amount * (1 + rate);\n\n// Application partielle : on FIXE le taux → fonctions spécialisées\nFunction<Double, Double> applyVat      = applyTax.apply(0.20);\nFunction<Double, Double> applyReduced  = applyTax.apply(0.055);\n\ndouble ttc = applyVat.apply(100.0);   // 120.0\n\n// Composition : un pipeline nommé, sans classe Strategy\nFunction<Double, String> priceLabel =\n    applyVat.andThen(Math::round).andThen(v -> v + \" €\");\n// priceLabel.apply(100.0) -> \"120 €\"\n// Équivaut à une interface PricingStrategy + impl, en une ligne."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une base de code a une interface `Discount { double apply(double price); }` avec cinq implémentations quasi identiques (`TenPercentDiscount`, `TwentyPercentDiscount`, `SummerDiscount`…), chacune une classe complète ne différant que par un pourcentage. Un développeur propose de tout remplacer par des fonctions. Montrez comment, et dites où cette approche a ses limites (quand garderiez-vous des classes ?).",
+          "solution": "Ces cinq classes ne sont que la MÊME logique paramétrée par un pourcentage : c'est le cas d'école de l'application partielle, qui élimine le boilerplate. Solution fonctionnelle : définir une fabrique curryfiée qui capture le taux, par exemple `Function<Double, Double> percentOff(double rate) { return price -> price * (1 - rate); }` (une closure sur rate). On obtient les « implémentations » par application partielle : `var tenPercent = percentOff(0.10);`, `var twentyPercent = percentOff(0.20);`, etc. Plus besoin de cinq classes : ce sont cinq valeurs de type Function<Double,Double>, interchangeables là où on attendait un Discount (une interface fonctionnelle à une méthode EST déjà compatible avec une lambda, donc on peut même garder le type Discount et fournir des lambdas). On peut aussi COMPOSER : cumuler deux remises devient `first.andThen(second)`, et une remise « rien » est l'identité `Function.identity()` (Null Object gratuit). Bénéfices : suppression du boilerplate, création à la volée, composition triviale, testabilité (fonctions pures). Limites, quand garder des classes/objets : (1) Quand la variation n'est PAS qu'un paramètre mais une vraie logique différente (une remise « fidélité » qui interroge l'historique client, une remise « panier » qui dépend du contenu) : là, chaque stratégie a un comportement distinct, et une classe nommée (ou une lambda non triviale) porte mieux l'intention. (2) Quand la stratégie a un ÉTAT ou des dépendances à injecter (accès repository, configuration) : un objet géré par le conteneur DI est plus clair qu'une closure qui capture tout. (3) Quand on a besoin de MÉTADONNÉES ou de plusieurs opérations liées (un nom affichable, une clé de sérialisation, une condition d'éligibilité + le calcul) : une interface à plusieurs méthodes ou un enum riche est plus adapté qu'une simple Function. (4) Quand la lisibilité pour l'équipe l'exige : une lambda cryptique curryfiée peut être moins claire qu'une petite classe bien nommée, la composition/currying est un outil, pas un dogme. Règle : préférer les fonctions (application partielle, composition) quand la variation se réduit à des paramètres et que la logique est simple et sans état ; garder des types nommés quand il y a comportement distinct, état, dépendances ou métadonnées. Ici, les cinq classes-pourcentage tombent clairement dans le premier cas."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Composition & currying (expert)",
+          "quizRef": "pp-composition-expert-check"
+        }
+      ]
+    }
+  ]
+}

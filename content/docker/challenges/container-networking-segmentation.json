@@ -1,0 +1,10 @@
+{
+  "node": "container-networking",
+  "lesson": "ports-isolation-segmentation",
+  "title": "Isoler la base, publier seulement l'API",
+  "statement": "Écris les commandes qui : (1) créent un réseau Docker nommé `backend-net`, (2) lancent `postgres:18` en arrière-plan sous le nom `db`, attaché à `backend-net`, SANS publier aucun port, et (3) lancent l'image `monorg/api` en arrière-plan sous le nom `api`, attachée à `backend-net`, en publiant UNIQUEMENT le port 8080 vers l'hôte (`8080:8080`). L'objectif : la base reste joignable seulement en interne, seule l'API est accessible de l'extérieur.",
+  "skeleton": "# 1) créer le réseau\n\n# 2) lancer db (aucun port publié)\n\n# 3) lancer api (publie seulement 8080)\n",
+  "solution": "docker network create backend-net\ndocker run -d --name db --network backend-net postgres:18\ndocker run -d --name api --network backend-net -p 8080:8080 monorg/api",
+  "keyPoints": ["docker network create backend-net", "--name db", "--network backend-net", "postgres:18", "--name api", "-p 8080:8080", "monorg/api"],
+  "language": "bash"
+}

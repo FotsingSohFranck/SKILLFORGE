@@ -1,0 +1,62 @@
+{
+  "ref": "what-are-containers-check",
+  "node": "what-are-containers",
+  "lesson": "quand-conteneuriser",
+  "title": "Qu'est-ce qu'un conteneur",
+  "description": "Conteneurs, images, VM vs conteneurs, immuabilité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence fondamentale entre une image et un conteneur ?",
+      "justification": "L'image est un modèle en lecture seule ; le conteneur est une instance en cours d'exécution de cette image (comme classe vs objet).",
+      "position": 0,
+      "options": [
+        { "label": "L'image est un modèle en lecture seule, le conteneur une instance en exécution", "correct": true, "position": 0 },
+        { "label": "Ce sont deux mots pour la même chose", "correct": false, "position": 1 },
+        { "label": "L'image tourne, le conteneur est stocké sur disque", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui distingue principalement un conteneur d'une machine virtuelle ?",
+      "justification": "Le conteneur partage le noyau de l'hôte (léger, démarrage instantané) ; la VM embarque un OS invité complet (isolation forte, mais lourde).",
+      "position": 1,
+      "options": [
+        { "label": "Le conteneur partage le noyau de l'hôte, la VM embarque un OS invité complet", "correct": true, "position": 0 },
+        { "label": "Le conteneur est plus lent à démarrer", "correct": false, "position": 1 },
+        { "label": "La VM n'a pas besoin de système d'exploitation", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème récurrent les conteneurs résolvent-ils en priorité ?",
+      "justification": "Ils empaquètent l'application avec ses dépendances, éliminant la dérive d'environnement (« ça marche chez moi ») entre poste, CI et production.",
+      "position": 2,
+      "options": [
+        { "label": "La dérive d'environnement entre les machines", "correct": true, "position": 0 },
+        { "label": "La lenteur du processeur", "correct": false, "position": 1 },
+        { "label": "Le manque d'espace disque", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un conteneur est essentiellement une petite machine virtuelle avec son propre noyau.",
+      "justification": "Faux : un conteneur est un processus isolé qui partage le noyau de l'hôte ; il n'embarque pas de noyau, contrairement à une VM.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un conteneur doit être conçu comme immuable et jetable : on modifie l'image et on redéploie plutôt que de bricoler un conteneur en cours d'exécution.",
+      "justification": "Vrai : l'immuabilité (état éphémère, config externe) rend les conteneurs reproductibles et permet rolling update, auto-réparation et scaling.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

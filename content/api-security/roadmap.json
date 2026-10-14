@@ -1,0 +1,136 @@
+{
+  "slug": "api-security",
+  "title": "API Security",
+  "summary": "Sécuriser une API : transport, authentification, autorisation, menaces et durcissement.",
+  "kind": "TRACK",
+  "position": 7,
+  "phases": [
+    {
+      "title": "Fondamentaux",
+      "position": 0
+    },
+    {
+      "title": "Authentification & autorisation",
+      "position": 1
+    },
+    {
+      "title": "Menaces & protections",
+      "position": 2
+    },
+    {
+      "title": "Durcissement & secrets",
+      "position": 3
+    }
+  ],
+  "nodes": [
+    {
+      "slug": "security-basics",
+      "title": "Fondamentaux de sécurité",
+      "summary": "Confidentialité, intégrité, disponibilité, et penser en attaquant.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 45,
+      "position": 0
+    },
+    {
+      "slug": "transport",
+      "title": "TLS & transport",
+      "summary": "Chiffrer les échanges, de bout en bout.",
+      "phase": "Fondamentaux",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 1
+    },
+    {
+      "slug": "authn",
+      "title": "Authentification",
+      "summary": "Mots de passe, JWT, OAuth : prouver qui appelle.",
+      "phase": "Authentification & autorisation",
+      "importance": "CORE",
+      "estimatedMinutes": 90,
+      "position": 0
+    },
+    {
+      "slug": "authz",
+      "title": "Autorisation",
+      "summary": "RBAC, scopes : décider ce qui est permis.",
+      "phase": "Authentification & autorisation",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 1
+    },
+    {
+      "slug": "input-validation",
+      "title": "Validation des entrées",
+      "summary": "Injection, requêtes paramétrées, ne jamais faire confiance au client.",
+      "phase": "Menaces & protections",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 0
+    },
+    {
+      "slug": "common-attacks",
+      "title": "Attaques courantes",
+      "summary": "XSS, CSRF, SSRF, rate limiting.",
+      "phase": "Menaces & protections",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 75,
+      "position": 1
+    },
+    {
+      "slug": "secrets",
+      "title": "Gestion des secrets",
+      "summary": "Clés, jetons, mots de passe : hors du code.",
+      "phase": "Durcissement & secrets",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "hardening",
+      "title": "Durcissement",
+      "summary": "En-têtes, CORS, moindre privilège.",
+      "phase": "Durcissement & secrets",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 60,
+      "position": 1
+    }
+  ],
+  "edges": [
+    {
+      "source": "security-basics",
+      "target": "transport",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "transport",
+      "target": "authn",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "authn",
+      "target": "authz",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "security-basics",
+      "target": "input-validation",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "input-validation",
+      "target": "common-attacks",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "authz",
+      "target": "secrets",
+      "kind": "PREREQ"
+    },
+    {
+      "source": "common-attacks",
+      "target": "hardening",
+      "kind": "PREREQ"
+    }
+  ]
+}

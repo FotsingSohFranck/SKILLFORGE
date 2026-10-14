@@ -1,0 +1,41 @@
+{
+  "ref": "atelier-fil-rouge-logique-avec-pattern-matching",
+  "node": "atelier-fil-rouge",
+  "lesson": "logique-avec-pattern-matching",
+  "title": "Quiz : logique avec pattern matching",
+  "description": "Switch de patterns, record patterns et exhaustivité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le record pattern dans case Ajouter(String titre) -> ... ?",
+      "justification": "Un record pattern déconstruit le record : il vérifie que la commande est un Ajouter ET extrait directement son composant titre, sans écrire a.titre().",
+      "position": 0,
+      "options": [
+        { "label": "Il extrait directement le composant titre de l'Ajouter", "correct": true, "position": 0 },
+        { "label": "Il crée un nouvel Ajouter avec le titre donné", "correct": false, "position": 1 },
+        { "label": "Il transforme Ajouter en texte", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un case multi-lignes du switch, quel mot clé produit la valeur du switch pour ce cas ?",
+      "justification": "yield donne la valeur du bloc de case au switch. Ce n'est pas un return : il ne sort pas de la méthode, il fournit la valeur du switch pour ce cas.",
+      "position": 1,
+      "options": [
+        { "label": "yield", "correct": true, "position": 0 },
+        { "label": "return", "correct": false, "position": 1 },
+        { "label": "break", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Parce que Commande est scellée et que le switch couvre Ajouter, Terminer et Lister, aucun case default n'est nécessaire.",
+      "justification": "Avec un type scellé, le compilateur connait tous les cas. Si le switch les traite tous, il est exhaustif et le default devient inutile. Ajouter un cas au permits sans l'ajouter au switch casse alors la compilation.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

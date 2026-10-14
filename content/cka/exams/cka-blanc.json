@@ -1,0 +1,56 @@
+{
+  "title": "Examen blanc CKA",
+  "format": "PRACTICAL",
+  "durationMinutes": 120,
+  "passingScore": 66.0,
+  "items": [
+    {
+      "domain": "Cluster Architecture, Installation and Configuration",
+      "kind": "TASK",
+      "prompt": "Créez un Role `pod-reader` (get, list, watch sur pods) dans le namespace `dev`, et liez-le à l'utilisateur `alice`.",
+      "taskSolution": "kubectl create role pod-reader --verb=get,list,watch --resource=pods -n dev\nkubectl create rolebinding alice-read --role=pod-reader --user=alice -n dev",
+      "points": 12,
+      "position": 0
+    },
+    {
+      "domain": "Cluster Architecture, Installation and Configuration",
+      "kind": "TASK",
+      "prompt": "Réalisez une sauvegarde de l'état etcd dans le fichier `/opt/snapshot.db` avec etcdctl.",
+      "taskSolution": "ETCDCTL_API=3 etcdctl snapshot save /opt/snapshot.db",
+      "points": 8,
+      "position": 1
+    },
+    {
+      "domain": "Workloads and Scheduling",
+      "kind": "TASK",
+      "prompt": "Videz le nœud `node1` pour maintenance (sans toucher aux DaemonSets), puis marquez-le non ordonnançable.",
+      "taskSolution": "kubectl drain node1 --ignore-daemonsets\nkubectl cordon node1",
+      "points": 8,
+      "position": 2
+    },
+    {
+      "domain": "Services and Networking",
+      "kind": "TASK",
+      "prompt": "Exposez le Deployment `web` via un Service ClusterIP sur le port 80 (target 8080), puis vérifiez ses endpoints.",
+      "taskSolution": "kubectl expose deployment web --port=80 --target-port=8080\nkubectl get endpoints web",
+      "points": 8,
+      "position": 3
+    },
+    {
+      "domain": "Storage",
+      "kind": "TASK",
+      "prompt": "Diagnostiquez pourquoi le PVC `data` reste en Pending (affichez ses events).",
+      "taskSolution": "kubectl describe pvc data",
+      "points": 6,
+      "position": 4
+    },
+    {
+      "domain": "Troubleshooting",
+      "kind": "TASK",
+      "prompt": "Le nœud `node2` est NotReady. Sur le nœud, vérifiez l'état du kubelet et consultez ses logs.",
+      "taskSolution": "systemctl status kubelet\njournalctl -u kubelet",
+      "points": 14,
+      "position": 5
+    }
+  ]
+}

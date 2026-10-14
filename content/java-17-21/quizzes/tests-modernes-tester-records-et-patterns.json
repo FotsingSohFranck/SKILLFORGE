@@ -1,0 +1,42 @@
+{
+  "ref": "tests-modernes-tester-records-et-patterns",
+  "node": "tests-modernes",
+  "lesson": "tester-records-et-patterns",
+  "title": "Quiz : tester records et patterns",
+  "description": "Égalité par valeur des records, couverture des branches d'un switch, delta.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une seule assertEquals suffit pour comparer deux records ?",
+      "justification": "assertEquals s'appuie sur equals, et un record compare par valeur l'ensemble de ses composants en une fois.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que le record compare par valeur tous ses composants via equals", "correct": true, "position": 0 },
+        { "label": "Parce que assertEquals ignore les objets", "correct": false, "position": 1 },
+        { "label": "Parce qu'un record n'a jamais qu'un seul composant", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour tester une méthode avec un switch de patterns sur des formes, quel est le bon réflexe ?",
+      "justification": "On veut couvrir chaque branche du switch au moins une fois, en passant une valeur de chaque type possible.",
+      "position": 1,
+      "options": [
+        { "label": "Couvrir chaque branche avec une valeur de chaque type", "correct": true, "position": 0 },
+        { "label": "Tester uniquement le premier cas du switch", "correct": false, "position": 1 },
+        { "label": "Ne pas tester, un switch est toujours correct", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton test compare deux double censés être égaux mais échoue de très peu. Que faire ?",
+      "justification": "Les double sont approchés ; on utilise la variante assertEquals(attendu, obtenu, delta) pour tolérer un petit écart.",
+      "position": 2,
+      "options": [
+        { "label": "Utiliser assertEquals avec un delta, par exemple 0.0001", "correct": true, "position": 0 },
+        { "label": "Convertir les double en texte et comparer les chaines", "correct": false, "position": 1 },
+        { "label": "Supprimer l'assertion car les double ne se testent pas", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

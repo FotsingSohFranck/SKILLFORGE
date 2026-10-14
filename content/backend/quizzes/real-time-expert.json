@@ -1,0 +1,119 @@
+{
+  "ref": "real-time-expert",
+  "node": "real-time",
+  "lesson": "scaler-fanout-choisir-protocole",
+  "title": "Temps réel, niveau expert",
+  "description": "Reprise Last-Event-ID, ordre, backpressure, heartbeats, fan-out, WebRTC.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme SSE permet de rattraper les messages manqués après une coupure de connexion ?",
+      "justification": "Last-Event-ID : le client renvoie l'id du dernier message reçu, le serveur rejoue ce qui a manqué (journal + curseur).",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'en-tête Last-Event-ID (avec rejeu côté serveur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le short polling",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun, les messages sont perdus",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Si le serveur produit des messages plus vite qu'un client lent ne les consomme, que risque-t-on sans régulation ?",
+      "justification": "Les messages s'accumulent en mémoire/tampons jusqu'au débordement (OOM) ; il faut choisir backpressure, drop borné ou fermeture.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un débordement mémoire (OOM) faute de backpressure",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien, TCP gère tout automatiquement sans coût",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le client accélère de lui-même",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les heartbeats (ping/pong WebSocket, keep-alive SSE) ?",
+      "justification": "Détecter les connexions mortes (aucun FIN reçu) pour libérer les ressources, et empêcher les proxys de couper une connexion oisive.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Détecter les connexions mortes et garder la connexion ouverte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les messages",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Compresser le trafic",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment diffuser un message à tous les clients répartis sur plusieurs serveurs WebSocket ?",
+      "justification": "Via un backplane pub/sub (Redis, broker) : chaque serveur publie et s'abonne, puis rediffuse à ses connexions locales.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Un backplane pub/sub partagé entre les serveurs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Augmenter le timeout du load balancer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un seul serveur pour tous les clients",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour un flux audio/vidéo à très faible latence entre deux participants sans surcharger le serveur, WebRTC (pair-à-pair) est plus adapté que WebSocket.",
+      "justification": "Vrai : WebRTC établit une connexion P2P pour le média (le serveur ne fait que la signalisation), évitant de faire transiter le flux lourd par le serveur.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "cluster-operations",
+  "lesson": "dr-noeuds-depannage",
+  "title": "Retirer puis remettre un nœud en service",
+  "statement": "Tu dois faire une intervention de maintenance sur le nœud `node-2` sans couper le service. Donne les deux commandes `kubectl` dans l'ordre : (1) vider proprement le nœud de ses pods (qui seront évincés vers d'autres nœuds, en respectant les PodDisruptionBudgets) et empêcher de nouveaux pods d'y arriver, puis (2), une fois la maintenance terminée, remettre le nœud en service pour qu'il accepte de nouveau des pods.",
+  "skeleton": "# 1) vider le noeud avant maintenance\nkubectl \n\n# 2) remettre le noeud en service apres maintenance\nkubectl ",
+  "solution": "# 1) vider le noeud avant maintenance\nkubectl drain node-2 --ignore-daemonsets\n\n# 2) remettre le noeud en service apres maintenance\nkubectl uncordon node-2",
+  "keyPoints": ["drain node-2", "uncordon node-2"],
+  "language": "bash"
+}

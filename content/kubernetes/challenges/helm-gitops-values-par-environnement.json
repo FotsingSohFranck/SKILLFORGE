@@ -1,0 +1,10 @@
+{
+  "node": "helm-gitops",
+  "lesson": "helm",
+  "title": "Écrire un fichier de values de prod",
+  "statement": "Voici un extrait du template d'un chart Helm. La structure est déjà écrite ; seules les valeurs varient par environnement :\n\n```\n# templates/deployment.yaml (extrait)\nspec:\n  replicas: {{ .Values.replicas }}\n  template:\n    spec:\n      containers:\n        - name: api\n          image: \"monorg/api:{{ .Values.image.tag }}\"\n```\n\nÉcris le fichier **`values-prod.yaml`** qui, pour la production, demande **10 répliques** et le **tag d'image `1.4.0`**. Respecte l'indentation YAML : `tag` est une sous-clé de `image`.",
+  "skeleton": "# values-prod.yaml\n# renseigne replicas et image.tag pour la prod\n",
+  "solution": "replicas: 10\nimage:\n  tag: \"1.4.0\"",
+  "keyPoints": ["replicas: 10", "image", "tag", "1.4.0"],
+  "language": "yaml"
+}

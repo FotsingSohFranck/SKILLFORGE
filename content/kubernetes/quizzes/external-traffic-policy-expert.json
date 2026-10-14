@@ -1,0 +1,96 @@
+{
+  "ref": "external-traffic-policy-expert",
+  "node": "services",
+  "lesson": "external-traffic-policy",
+  "title": "externalTrafficPolicy, expert",
+  "description": "Cluster vs Local, second saut/SNAT, préservation de l'IP source.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une application ne voit-elle que des IP de nœuds au lieu de l'IP réelle des clients (externalTrafficPolicy par défaut) ?",
+      "justification": "Avec Cluster, kube-proxy fait un second saut vers le nœud du pod et applique un SNAT, remplaçant l'IP source par celle du nœud.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le second saut avec SNAT masque l'IP source (policy Cluster)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les clients n'ont pas d'IP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le DNS est mal configuré",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel réglage préserve l'IP source réelle du client ?",
+      "justification": "externalTrafficPolicy: Local ne route qu'aux pods du nœud d'entrée (pas de second saut ni SNAT), préservant l'IP source.",
+      "position": 1,
+      "options": [
+        {
+          "label": "externalTrafficPolicy: Local",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "externalTrafficPolicy: Cluster",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "clusterIP: None",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle contrepartie de externalTrafficPolicy: Local faut-il gérer ?",
+      "justification": "Un nœud sans pod du service ne peut pas servir le trafic ; le load balancer doit ne router que vers les nœuds ayant des pods, et l'équilibrage dépend du placement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un nœud sans pod ne sert pas ; équilibrage dépendant du placement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'IP source est toujours perdue",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le TLS est désactivé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Cluster offre un équilibrage uniforme mais masque l'IP client ; Local préserve l'IP mais dépend du placement des pods.",
+      "justification": "Vrai : c'est le compromis classique entre équilibrage uniforme (Cluster) et préservation de l'IP source (Local).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

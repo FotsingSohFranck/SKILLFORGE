@@ -1,0 +1,10 @@
+{
+  "node": "docker-and-oci",
+  "lesson": "runtimes-et-couches",
+  "title": "Expliquer la pile d'exécution d'un conteneur",
+  "statement": "Un collègue débutant croit que « Docker » est un seul programme qui fait tout. En t'appuyant sur la pile d'exécution, remets dans l'ordre (du plus haut au plus bas) les composants qui interviennent quand on tape `docker run nginx`, et donne en une phrase le rôle de chacun : la CLI docker, le daemon dockerd, containerd, runc, le noyau Linux. Termine en expliquant pourquoi cette découpe est un avantage.",
+  "skeleton": "Ordre du plus haut au plus bas + rôle de chaque composant, puis l'intérêt de la découpe.",
+  "solution": "Ordre du plus haut (ce que tu tapes) au plus bas (le matériel) : 1) la CLI docker : elle prend ta commande et la transmet, elle ne fait pas le travail elle-même ; 2) le daemon dockerd : le service qui tourne en fond et orchestre le travail demandé ; 3) containerd : le runtime haut niveau qui gère le cycle de vie complet (télécharger l'image, préparer réseau et stockage) puis délègue la création ; 4) runc : le runtime bas niveau qui crée concrètement le conteneur en parlant au noyau via les namespaces (isolation) et les cgroups (limites de ressources) ; 5) le noyau Linux : la couche qui exécute réellement le processus isolé. Intérêt de la découpe : chaque composant a une responsabilité unique et respecte les standards OCI, donc on peut remplacer une couche (par exemple exécuter les mêmes images avec containerd sans le daemon Docker, comme le fait Kubernetes) sans casser les autres. C'est cette modularité qui a fait grandir tout l'écosystème.",
+  "keyPoints": ["CLI", "dockerd", "containerd", "runc", "noyau", "namespaces", "cgroups", "OCI"],
+  "language": "text"
+}

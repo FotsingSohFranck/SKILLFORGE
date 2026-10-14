@@ -1,0 +1,10 @@
+{
+  "node": "atelier-fil-rouge",
+  "lesson": "modeliser-avec-records-et-sealed",
+  "title": "Modélise la tâche et les commandes",
+  "statement": "Construis le modèle de la mini-application. 1) Déclare un record Tache(int id, String titre, boolean faite) avec un constructeur compact qui refuse un titre null ou vide (IllegalArgumentException) et une méthode terminer() qui renvoie une nouvelle Tache avec faite à true. 2) Déclare une interface scellée Commande qui ne permet que trois records : Ajouter(String titre), Terminer(int id) et Lister() (sans composant).",
+  "skeleton": "// 1) Le record Tache avec validation et methode terminer()\nrecord Tache(int id, String titre, boolean faite) {\n    // constructeur compact ici\n\n    // methode terminer() ici\n}\n\n// 2) L'interface scellee Commande et ses trois records\nsealed interface Commande permits /* ... */ { }\n",
+  "solution": "record Tache(int id, String titre, boolean faite) {\n    Tache {\n        if (titre == null || titre.isBlank()) {\n            throw new IllegalArgumentException(\"titre obligatoire\");\n        }\n    }\n\n    Tache terminer() {\n        return new Tache(id, titre, true);\n    }\n}\n\nsealed interface Commande permits Ajouter, Terminer, Lister { }\nrecord Ajouter(String titre) implements Commande { }\nrecord Terminer(int id) implements Commande { }\nrecord Lister() implements Commande { }",
+  "keyPoints": ["record Tache", "constructeur compact", "isBlank", "terminer renvoie une nouvelle Tache", "sealed interface Commande", "permits Ajouter, Terminer, Lister", "implements Commande"],
+  "language": "java"
+}

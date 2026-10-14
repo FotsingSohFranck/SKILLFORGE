@@ -1,0 +1,10 @@
+{
+  "node": "container-security",
+  "lesson": "securite-du-runtime",
+  "title": "Durcir un docker run (moindre privilège)",
+  "statement": "Complète la commande `docker run` pour lancer une image `nginx` en appliquant le moindre privilège. Elle doit : tourner en non-root (`--user 1000:1000`), monter le système de fichiers en lecture seule (`--read-only`) tout en autorisant les écritures temporaires dans `/tmp` (`--tmpfs /tmp`), retirer TOUTES les capabilities puis ne rajouter que `NET_BIND_SERVICE` (pour écouter sur un port bas), interdire l'élévation de privilèges (`--security-opt no-new-privileges`), et borner la mémoire à 256 Mo (`--memory 256m`).",
+  "skeleton": "docker run \\\n  ... \\\n  nginx\n",
+  "solution": "docker run \\\n  --user 1000:1000 \\\n  --read-only \\\n  --tmpfs /tmp \\\n  --cap-drop ALL \\\n  --cap-add NET_BIND_SERVICE \\\n  --security-opt no-new-privileges \\\n  --memory 256m \\\n  nginx",
+  "keyPoints": ["--user 1000:1000", "--read-only", "--tmpfs /tmp", "--cap-drop ALL", "--cap-add NET_BIND_SERVICE", "--security-opt no-new-privileges", "--memory 256m"],
+  "language": "bash"
+}

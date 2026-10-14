@@ -1,0 +1,63 @@
+{
+  "ref": "indexes-perf-check",
+  "node": "indexes-performance",
+  "lesson": "defaillances-et-profiling",
+  "title": "Index & performance",
+  "description": "Index, plans d'exécution, N+1, profiling.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que signale un « Seq Scan » dans un EXPLAIN sur une grande table filtrée ?",
+      "justification": "La base parcourt toute la table faute d'index utilisable sur la colonne filtrée.",
+      "position": 0,
+      "options": [
+        { "label": "Aucun index n'est utilisé : parcours complet", "correct": true, "position": 0 },
+        { "label": "L'index fonctionne parfaitement", "correct": false, "position": 1 },
+        { "label": "La table est chiffrée", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne pas indexer toutes les colonnes « au cas où » ?",
+      "justification": "Chaque index ralentit les écritures et occupe de l'espace ; un index inutilisé est un pur coût.",
+      "position": 1,
+      "options": [
+        { "label": "Les index ralentissent les écritures et coûtent de l'espace", "correct": true, "position": 0 },
+        { "label": "Les index sont interdits au-delà de 3 par table", "correct": false, "position": 1 },
+        { "label": "Cela chiffre les données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une page fait 1 requête pour une liste puis 1 par élément. Comment nomme-t-on cela ?",
+      "justification": "C'est le problème N+1 ; on le corrige par une jointure ou un chargement par lots.",
+      "position": 2,
+      "options": [
+        { "label": "Le problème N+1", "correct": true, "position": 0 },
+        { "label": "Un deadlock", "correct": false, "position": 1 },
+        { "label": "Un dirty read", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "`WHERE lower(email) = '...'` n'utilise pas l'index sur `email`. Correctif ?",
+      "justification": "Un index d'expression sur lower(email) (ou normaliser à l'insertion) rend le filtre indexable.",
+      "position": 3,
+      "options": [
+        { "label": "Créer un index sur lower(email) (index d'expression)", "correct": true, "position": 0 },
+        { "label": "Supprimer l'index existant", "correct": false, "position": 1 },
+        { "label": "Ajouter un cache", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Face à une API lente, ajouter un cache est prioritaire avant d'analyser les requêtes.",
+      "justification": "On mesure d'abord (souvent un index manquant ou un N+1) ; cacher une requête mal fichue masque la cause.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

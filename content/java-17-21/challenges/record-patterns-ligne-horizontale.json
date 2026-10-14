@@ -1,0 +1,10 @@
+{
+  "node": "record-patterns",
+  "lesson": "dans-instanceof",
+  "title": "Détecte une ligne horizontale",
+  "statement": "On te donne record Point(int x, int y) { } et record Ligne(Point debut, Point fin) { }. Écris une méthode static boolean estHorizontale(Object obj) qui renvoie true si obj est une Ligne dont les deux points ont le même y. Utilise un record pattern imbriqué directement dans un instanceof, combiné avec && (n'appelle aucun accesseur).",
+  "skeleton": "record Point(int x, int y) { }\nrecord Ligne(Point debut, Point fin) { }\n\nstatic boolean estHorizontale(Object obj) {\n    // Déconstruis la Ligne et ses deux Points dans le instanceof, puis compare les y\n    return false;\n}\n",
+  "solution": "record Point(int x, int y) { }\nrecord Ligne(Point debut, Point fin) { }\n\nstatic boolean estHorizontale(Object obj) {\n    return obj instanceof Ligne(Point(var x1, var y1), Point(var x2, var y2))\n            && y1 == y2;\n}",
+  "keyPoints": ["instanceof", "Ligne(Point(var x1, var y1), Point(var x2, var y2))", "&& y1 == y2", "pattern imbriqué"],
+  "language": "java"
+}

@@ -1,0 +1,53 @@
+{
+  "ref": "sql-modeling-jointures-check",
+  "node": "sql-modeling",
+  "lesson": "joindre-des-tables",
+  "title": "Joindre des tables",
+  "description": "Clés, INNER JOIN, LEFT JOIN et les manquants.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une clé étrangère (foreign key) ?",
+      "justification": "Une clé étrangère est une colonne qui pointe vers la clé primaire d'une autre table, ce qui relie les deux.",
+      "position": 0,
+      "options": [
+        { "label": "Une colonne qui pointe vers la clé primaire d'une autre table", "correct": true, "position": 0 },
+        { "label": "L'identifiant unique d'une ligne dans sa propre table", "correct": false, "position": 1 },
+        { "label": "Une colonne obligatoirement chiffrée", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu veux tous les utilisateurs, MÊME ceux qui n'ont aucune inscription. Quelle jointure ?",
+      "justification": "LEFT JOIN avec users à gauche garde toutes les lignes de gauche, complétées par NULL à droite. INNER exclurait les users sans inscription.",
+      "position": 1,
+      "options": [
+        { "label": "LEFT JOIN (users à gauche)", "correct": true, "position": 0 },
+        { "label": "INNER JOIN", "correct": false, "position": 1 },
+        { "label": "Aucune jointure ne le permet", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garde un INNER JOIN ?",
+      "justification": "L'INNER JOIN ne conserve que les lignes ayant une correspondance des deux côtés (l'intersection).",
+      "position": 2,
+      "options": [
+        { "label": "Seulement les lignes avec une correspondance des deux côtés", "correct": true, "position": 0 },
+        { "label": "Toutes les lignes des deux tables sans exception", "correct": false, "position": 1 },
+        { "label": "Uniquement les lignes de la table de droite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu veux lister les utilisateurs qui n'ont AUCUNE inscription. Quelle technique ?",
+      "justification": "Un LEFT JOIN puis WHERE sur une colonne de droite IS NULL isole les lignes de gauche sans correspondance.",
+      "position": 3,
+      "options": [
+        { "label": "LEFT JOIN enrollments puis WHERE e.id IS NULL", "correct": true, "position": 0 },
+        { "label": "INNER JOIN enrollments puis WHERE e.id IS NULL", "correct": false, "position": 1 },
+        { "label": "Un simple SELECT sur users, sans jointure ni filtre", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "real-time-sse-check",
+  "node": "real-time",
+  "lesson": "server-sent-events",
+  "title": "Quiz, Server-Sent Events",
+  "description": "Flux unidirectionnel, push serveur, HTTP, reconnexion, quand préférer WebSocket.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permettent les Server-Sent Events (SSE) ?",
+      "justification": "SSE ouvrent un flux unidirectionnel : le serveur pousse des messages vers le client, sur une connexion HTTP maintenue ouverte. Le client n'envoie rien en retour sur ce canal.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un flux unidirectionnel où le serveur pousse des messages vers le client",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un canal bidirectionnel où les deux camps s'envoient des messages",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une connexion pair-à-pair directe entre deux clients",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "SSE s'appuie sur HTTP (proxys, authentification existants) et le navigateur gère la reconnexion automatiquement.",
+      "justification": "Vrai : c'est du HTTP ordinaire, donc compatible avec l'infra existante, et la reconnexion automatique est intégrée côté navigateur, sans code supplémentaire.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un tableau de bord affiche en direct la progression d'un export (« 42 % »). Le client ne renvoie jamais rien sur ce canal. Quel choix est le plus simple et suffisant ?",
+      "justification": "Le besoin est purement unidirectionnel (serveur → client). SSE suffit et reste simple ; un WebSocket bidirectionnel serait de la complexité inutile ici.",
+      "position": 2,
+      "options": [
+        {
+          "label": "SSE, car le besoin est unidirectionnel",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "WebSocket, pour profiter de la bidirectionnalité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Short polling toutes les 200 ms",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand faut-il préférer un WebSocket à SSE ?",
+      "justification": "Quand le client ET le serveur doivent tous deux envoyer des messages en continu (interactif bidirectionnel), comme un chat ou un jeu. Si un seul sens suffit, SSE reste préférable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Quand le client et le serveur doivent tous deux envoyer des messages (interactif bidirectionnel)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours, car SSE est obsolète",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Quand on veut réduire au maximum la complexité",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

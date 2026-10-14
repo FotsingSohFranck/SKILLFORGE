@@ -1,0 +1,10 @@
+{
+  "node": "architectural-patterns",
+  "lesson": "patterns-resilience-distribuee",
+  "title": "Protéger un appel réactif : timeout, retry, fallback",
+  "statement": "Le service A appelle le service B via un `WebClient` réactif (Reactor). L'appel n'a aucune protection : s'il ralentit ou échoue, A risque la panne en cascade. Complète la méthode pour ajouter, dans cet ordre : un **timeout** de 2 secondes (`.timeout(...)`), un **retry avec backoff exponentiel** (`.retryWhen(Retry.backoff(...))`, 3 tentatives, base 100 ms), puis une **dégradation gracieuse** avec un fallback si tout échoue (`.onErrorResume(...)` renvoyant `Recommendations.empty()`).",
+  "skeleton": "public Mono<Recommendations> getRecommendations(String userId) {\n    return webClient.get()\n        .uri(\"/reco/{id}\", userId)\n        .retrieve()\n        .bodyToMono(Recommendations.class);\n    // TODO: timeout + retry backoff + fallback\n}",
+  "solution": "public Mono<Recommendations> getRecommendations(String userId) {\n    return webClient.get()\n        .uri(\"/reco/{id}\", userId)\n        .retrieve()\n        .bodyToMono(Recommendations.class)\n        .timeout(Duration.ofSeconds(2))\n        .retryWhen(Retry.backoff(3, Duration.ofMillis(100)).jitter(0.5))\n        .onErrorResume(ex -> Mono.just(Recommendations.empty()));\n}",
+  "keyPoints": [".timeout(", "retryWhen", "Retry.backoff", "onErrorResume"],
+  "language": "java"
+}

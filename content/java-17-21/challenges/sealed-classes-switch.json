@@ -1,0 +1,10 @@
+{
+  "node": "sealed-classes",
+  "lesson": "pourquoi-c-est-utile",
+  "title": "Un switch exhaustif sur un type scellé",
+  "statement": "On te donne une interface scellée Forme permettant les records Cercle(double rayon) et Carre(double cote). Écris une méthode statique double aire(Forme f) qui renvoie l'aire, en utilisant un switch avec pattern matching SANS branche default. L'aire d'un cercle est Math.PI * rayon * rayon, celle d'un carré est cote * cote.",
+  "skeleton": "sealed interface Forme permits Cercle, Carre { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Carre(double cote) implements Forme { }\n\n// Ecris ici la methode statique aire(Forme f)\n",
+  "solution": "static double aire(Forme f) {\n    return switch (f) {\n        case Cercle c -> Math.PI * c.rayon() * c.rayon();\n        case Carre k  -> k.cote() * k.cote();\n    };\n}",
+  "keyPoints": ["switch (f)", "case Cercle c", "case Carre k", "pas de default", "exhaustif"],
+  "language": "java"
+}

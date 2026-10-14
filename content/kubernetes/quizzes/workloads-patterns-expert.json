@@ -1,0 +1,96 @@
+{
+  "ref": "workloads-patterns-expert",
+  "node": "workloads-advanced",
+  "lesson": "mises-a-jour-et-patterns",
+  "title": "Mises à jour & patterns, expert",
+  "description": "StatefulSet partition/OnDelete/PVC retention, Jobs parallèles, CronJob concurrency.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment faire un canary lors de la mise à jour d'un StatefulSet ?",
+      "justification": "Régler updateStrategy.rollingUpdate.partition : seuls les pods d'index ≥ partition sont mis à jour ; on valide puis on abaisse la partition.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Régler le champ partition (mettre à jour un seul pod d'abord)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer le StatefulSet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Passer en Deployment",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permettent completions et parallelism sur un Job ?",
+      "justification": "Fixer le nombre d'exécutions réussies attendues et le nombre de pods en parallèle, pour paralléliser un traitement par lot.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Contrôler le nombre d'exécutions et le parallélisme",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer le job",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Définir un Service",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un CronJob voit ses exécutions se chevaucher car elles dépassent leur créneau. Quel réglage empêche le chevauchement ?",
+      "justification": "concurrencyPolicy: Forbid saute la nouvelle exécution si la précédente n'est pas finie, adapté à une tâche non réentrante (sauvegarde).",
+      "position": 2,
+      "options": [
+        {
+          "label": "concurrencyPolicy: Forbid",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "concurrencyPolicy: Allow",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Augmenter parallelism",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La persistentVolumeClaimRetentionPolicy d'un StatefulSet décide si les volumes sont conservés ou supprimés lors d'un scale-down/suppression.",
+      "justification": "Vrai : ce champ gère le cycle de vie des PVC ; mal réglé, un scale-down peut détruire des données (ou laisser des PVC orphelins).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

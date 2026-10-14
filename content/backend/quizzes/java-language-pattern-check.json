@@ -1,0 +1,52 @@
+{
+  "ref": "java-language-pattern-check",
+  "node": "java-language",
+  "lesson": "pattern-matching-switch",
+  "title": "Quiz : pattern matching & switch moderne",
+  "description": "Switch expression, pattern matching et exhaustivité sur les sealed.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui change avec un `switch` expression (flèche `->`) ?",
+      "justification": "Il renvoie une valeur, sans break ni chute (débordement) accidentelle d'une branche sur la suivante.",
+      "position": 0,
+      "options": [
+        { "label": "Il renvoie une valeur, sans break ni débordement accidentel", "correct": true, "position": 0 },
+        { "label": "Il ne peut tester que des nombres", "correct": false, "position": 1 },
+        { "label": "Il s'exécute en parallèle sur plusieurs threads", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le pattern matching ?",
+      "justification": "Il teste le type d'une valeur et en extrait les données en une seule opération (record patterns, instanceof lié).",
+      "position": 1,
+      "options": [
+        { "label": "Il teste le type d'une valeur et en extrait les données en une fois", "correct": true, "position": 0 },
+        { "label": "Il recherche du texte avec une expression régulière", "correct": false, "position": 1 },
+        { "label": "Il trie automatiquement une collection", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte l'exhaustivité vérifiée sur un type `sealed` ?",
+      "justification": "Le compilateur connaît tous les sous-types ; oublier un cas dans un switch sans default devient une erreur de compilation.",
+      "position": 2,
+      "options": [
+        { "label": "Oublier un cas devient une erreur de compilation", "correct": true, "position": 0 },
+        { "label": "Le switch s'exécute plus vite", "correct": false, "position": 1 },
+        { "label": "Le default devient obligatoire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter un sous-type à une interface sealed fait échouer la compilation des `switch` non mis à jour.",
+      "justification": "Vrai : chaque switch sans default sur le type sealed ne compile plus tant que le nouveau cas n'est pas traité ; le compilateur sert de checklist.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

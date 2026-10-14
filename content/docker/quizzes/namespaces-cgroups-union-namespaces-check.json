@@ -1,0 +1,96 @@
+{
+  "ref": "namespaces-cgroups-union-namespaces-check",
+  "node": "namespaces-cgroups-union",
+  "lesson": "namespaces",
+  "title": "Quiz, Namespaces",
+  "description": "Isolation de la vue, PID namespace, user namespace et mode rootless.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un namespace pour un processus ?",
+      "justification": "Un namespace donne une vue partielle et privée d'une ressource (processus, réseau, montages...) : il cache le reste sans rien déplacer physiquement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il lui donne une vue partielle et privée d'une ressource système",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il lui alloue plus de mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il lui donne un noyau Linux séparé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Dans un conteneur, `ps aux` ne montre qu'un ou deux processus alors que l'hôte en fait tourner des centaines. Pourquoi ?",
+      "justification": "Le PID namespace donne au conteneur sa propre numérotation et sa propre vue : il ne voit que ses processus (son app est PID 1). Les processus de l'hôte existent toujours, ils sont juste invisibles depuis le conteneur.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le PID namespace isole la vue des processus ; les autres existent mais sont cachés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Docker a arrêté les autres processus de l'hôte",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le conteneur tourne sur un autre ordinateur physique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert principalement le user namespace ?",
+      "justification": "Le user namespace remappe les identifiants : root DANS le conteneur (uid 0) devient un utilisateur ordinaire sur l'hôte. C'est le fondement du mode rootless, qui limite l'impact d'une évasion.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Remapper root du conteneur vers un utilisateur sans privilèges sur l'hôte (rootless)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Donner plus de CPU au conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Créer un nouveau nom de machine (hostname)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'isolation par namespace signifie que le conteneur tourne sur un noyau séparé de l'hôte.",
+      "justification": "Faux : tous les conteneurs partagent le MÊME noyau que l'hôte. Le namespace n'isole que la vue, pas le noyau, et c'est justement ce qui rend les conteneurs si légers.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "authentication",
+  "lesson": "authentifier-vs-autoriser",
+  "title": "Hacher et vérifier un mot de passe (BCrypt)",
+  "statement": "Écris une classe `PasswordService` qui hache et vérifie des mots de passe **sans jamais les stocker en clair**. Utilise `BCryptPasswordEncoder` de Spring Security. Ajoute une méthode `hash(String rawPassword)` qui renvoie l'empreinte (String), et une méthode `verify(String rawPassword, String storedHash)` qui renvoie un `boolean`. Ne compare JAMAIS les chaînes directement : utilise `matches`.",
+  "skeleton": "import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\n\npublic class PasswordService {\n    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();\n\n    // 1) hash(rawPassword) : renvoie l'empreinte\n\n    // 2) verify(rawPassword, storedHash) : renvoie true si ça correspond\n}",
+  "solution": "import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\n\npublic class PasswordService {\n    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();\n\n    public String hash(String rawPassword) {\n        return encoder.encode(rawPassword);\n    }\n\n    public boolean verify(String rawPassword, String storedHash) {\n        return encoder.matches(rawPassword, storedHash);\n    }\n}",
+  "keyPoints": ["BCryptPasswordEncoder", "encoder.encode", "encoder.matches"],
+  "language": "java"
+}

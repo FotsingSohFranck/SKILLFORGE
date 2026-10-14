@@ -1,0 +1,52 @@
+{
+  "ref": "caching-niveaux-check",
+  "node": "caching",
+  "lesson": "les-niveaux-de-cache",
+  "title": "Quiz : Les niveaux de cache",
+  "description": "Cache navigateur, CDN, ETag/304, cache local vs distribué.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur une requête conditionnelle, que renvoie le serveur si la ressource n'a pas changé ?",
+      "justification": "Il renvoie 304 Not Modified, une réponse sans corps : le client réutilise sa copie, économisant la bande passante, sans risque de périmé (la validation a lieu à chaque fois).",
+      "position": 0,
+      "options": [
+        { "label": "304 Not Modified (sans corps)", "correct": true, "position": 0 },
+        { "label": "200 avec de nouveau tout le corps", "correct": false, "position": 1 },
+        { "label": "404 Not Found", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un CDN ?",
+      "justification": "Un CDN réplique le contenu sur des serveurs répartis géographiquement, pour servir chaque utilisateur depuis un serveur proche de lui : latence réduite et charge déportée du serveur d'origine.",
+      "position": 1,
+      "options": [
+        { "label": "Servir le contenu depuis des serveurs proches géographiquement des utilisateurs", "correct": true, "position": 0 },
+        { "label": "Chiffrer le trafic réseau", "correct": false, "position": 1 },
+        { "label": "Remplacer la base de données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "4 instances, chacune avec un cache en mémoire locale ; après une modification, un utilisateur voit parfois l'ancienne valeur. Meilleure solution ?",
+      "justification": "Chaque instance a son cache local : celle qui a écrit invalide le sien, les autres servent encore l'ancienne valeur. Un cache distribué partagé (Redis) donne une source unique et cohérente pour toutes les instances.",
+      "position": 2,
+      "options": [
+        { "label": "Un cache distribué partagé (Redis) commun aux instances", "correct": true, "position": 0 },
+        { "label": "Augmenter le TTL du cache local", "correct": false, "position": 1 },
+        { "label": "Réduire le nombre de requêtes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un cache en mémoire locale est automatiquement partagé entre toutes les instances de l'application.",
+      "justification": "Faux : un cache local vit dans la mémoire d'une seule instance ; les autres ne le voient pas. Pour un cache partagé, il faut un cache distribué (Redis).",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

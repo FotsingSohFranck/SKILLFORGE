@@ -1,0 +1,123 @@
+{
+  "node": "meta-arguments",
+  "lessons": [
+    {
+      "slug": "count-et-for-each",
+      "title": "count & for_each",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Créer plusieurs instances d'une ressource",
+          "body": "Avant tout, un rappel de vocabulaire. Dans **Terraform** (l'outil qui construit ton infrastructure à partir de code), une **ressource** est un bloc de code qui décrit **un morceau d'infrastructure** à créer : un serveur, une base de données, un réseau. Exemple : le bloc `resource \"aws_instance\" \"web\" { ... }` demande la création d'**un** serveur.\n\nUn **meta-argument** (« meta » veut dire « qui agit au-dessus ») est un argument **spécial** que tu peux ajouter à **n'importe quelle** ressource pour changer *son comportement*, et non ce qu'elle contient. 👉 **Analogie** : sur un formulaire, la plupart des cases décrivent le contenu (ton nom, ton adresse) ; un meta-argument, c'est plutôt la case « imprimer en 3 exemplaires » : elle ne change pas le contenu, elle change *comment* le formulaire est traité.\n\nDeux meta-arguments servent à créer **plusieurs** copies d'une même ressource, sans copier-coller le bloc à la main.\n\n**`count`** te fait dire simplement « je veux N copies ». Avec `count = 3`, Terraform crée trois **instances** (trois exemplaires) numérotées à partir de zéro : `web[0]`, `web[1]`, `web[2]`. Le numéro entre crochets s'appelle l'**index** (la position dans la liste). 👉 **Analogie** : c'est une rangée de casiers numérotés 0, 1, 2. Le souci : l'index dépend de la **position**. Si tu retires le casier du milieu, tout ce qui était après se **décale** d'un cran, et Terraform croit que ces cases ont changé (il détruit puis recrée). Exemple concret : tu passes de 3 à 2 serveurs en retirant celui du milieu ; l'ancien `web[2]` devient `web[1]`, et Terraform recrée des serveurs pour rien.\n\n**`for_each`** crée une instance par élément d'une collection, mais chaque instance est identifiée par une **clé** (un nom) au lieu d'un numéro. On lui donne soit une **map** (une liste de paires clé/valeur, comme un dictionnaire : `{ api = \"...\", web = \"...\" }`), soit un **set** (une liste sans doublon). La fonction `toset([\"api\", \"web\"])` transforme une simple liste en set (`toset` signifie « convertir en set »). Résultat : `web[\"api\"]`, `web[\"web\"]`. À l'intérieur du bloc, tu accèdes à la clé courante avec **`each.key`** et à la valeur associée avec **`each.value`**. 👉 **Analogie** : au lieu de casiers numérotés, ce sont des casiers **étiquetés au nom de leur propriétaire**. Si « Léa » s'en va, on vide *son* casier, les autres ne bougent pas : aucun décalage.\n\n**Règle d'expert** : utilise **`for_each` par défaut** (identité stable par clé). Réserve `count` aux cas où tu veux vraiment N copies **identiques et interchangeables** (un pur nombre), là où tu n'ajouteras ni ne retireras jamais un élément au milieu."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "count (index fragile) vs for_each (clé stable)",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph C[\"count : identifie par index\"]\n    direction TB\n    c1[\"3 instances : index 0, 1, 2\"]\n    c2[\"on retire l'element du milieu\"]\n    c3[\"les index suivants se decalent : recreations en cascade\"]\n    c1 --> c2 --> c3\n  end\n  subgraph F[\"for_each : identifie par cle\"]\n    direction TB\n    f1[\"3 instances : cles api, web, cron\"]\n    f2[\"on retire la cle web\"]\n    f3[\"seule l'instance web part, les autres restent intactes\"]\n    f1 --> f2 --> f3\n  end"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "count vs for_each",
+          "codeLanguage": "hcl",
+          "body": "# count : N copies numérotées (index fragile)\nresource \"aws_instance\" \"web\" {\n  count         = 3\n  instance_type = \"t3.micro\"\n  tags = { Name = \"web-${count.index}\" }\n}\n\n# for_each : une instance par clé (identité stable)\nresource \"aws_instance\" \"app\" {\n  for_each      = toset([\"api\", \"worker\", \"cron\"])\n  instance_type = \"t3.micro\"\n  tags = { Name = each.key }        # each.key / each.value\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe crée 5 serveurs avec `count = 5`. Pour retirer le 2e serveur de la liste, elle réduit à `count = 4`. Au plan, Terraform veut détruire/recréer plusieurs serveurs alors qu'elle ne voulait en supprimer qu'un. Pourquoi, et quel meta-argument aurait évité ce problème ?",
+          "solution": "Le problème vient de la façon dont count identifie les instances : par un INDEX numérique (web[0] à web[4]). Cet index dépend de la POSITION dans la liste, pas d'une identité stable. Quand on passe de count = 5 à count = 4, Terraform ne « retire pas le 2e » : il considère désormais qu'il doit y avoir les indices [0], [1], [2], [3], et compare au réel. Si l'intention était de supprimer l'élément du milieu, tout ce qui était après lui se retrouve DÉCALÉ d'un cran : l'ancien [2] devient [1], l'ancien [3] devient [2], etc. Terraform voit donc que le contenu attendu à chaque index a changé, et propose de détruire/recréer toutes les instances à partir de la position retirée (le dernier index, [4], disparaît, et les autres sont réajustés), bien plus que la seule suppression voulue. C'est le défaut connu de count : l'adressage par index est fragile aux insertions/suppressions au milieu. Meta-argument qui l'aurait évité : for_each. Avec for_each sur une map ou un set, chaque instance est identifiée par une CLÉ STABLE (par exemple le nom du serveur), pas par un index positionnel. Retirer une entrée de la map (supprimer la clé correspondant au serveur voulu) ne détruit QUE cette instance-là ; toutes les autres, identifiées par leur clé inchangée, restent intactes, aucun décalage, aucune recréation en cascade. Règle d'expert : utiliser for_each par défaut (identité stable), et réserver count aux cas de N copies purement identiques et interchangeables où l'on n'ajoute/retire jamais au milieu. Ici, for_each = toset([...noms...]) aurait permis de supprimer proprement un seul serveur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, count & for_each",
+          "quizRef": "meta-arguments-count-check"
+        }
+      ]
+    },
+    {
+      "slug": "depends-on-lifecycle-provider",
+      "title": "depends_on, lifecycle & provider",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "depends_on : les dépendances cachées",
+          "body": "Quand Terraform construit ton infrastructure, il doit respecter un **ordre** : certaines choses doivent exister avant d'autres (on ne branche pas une lampe avant d'avoir posé la prise). Une **dépendance**, c'est justement ce lien « A a besoin que B existe d'abord ».\n\nLe plus souvent, Terraform **devine cet ordre tout seul**. Comment ? Grâce aux **références**. Une référence, c'est quand un bloc utilise une valeur produite par un autre (par exemple un serveur qui écrit `subnet_id = aws_subnet.principal.id`, donc il lit l'`id` du réseau). Terraform comprend alors : « le réseau d'abord, le serveur ensuite ». On appelle ça une **dépendance implicite** (« implicite » veut dire non dite, déduite automatiquement).\n\nMais parfois, un lien existe **sans** qu'aucune valeur ne soit référencée. Exemple classique : une application ne démarrera correctement que si une **policy IAM** (un ensemble de règles d'autorisation sur le cloud, du type « ce serveur a le droit de lire ce bucket ») est déjà en place, alors que rien dans le code de l'application ne cite cette policy. Terraform ne peut pas deviner ce lien : il ne le voit nulle part.\n\nC'est là qu'intervient le meta-argument **`depends_on`** : il déclare une dépendance **explicite** (« explicite » veut dire dite noir sur blanc). Tu écris `depends_on = [aws_iam_policy.acces]` pour ordonner : « crée d'abord la policy, ensuite seulement cette ressource ».\n\n👉 **Analogie** : d'habitude Terraform range les meubles dans le bon ordre en regardant lesquels s'emboîtent (implicite). `depends_on`, c'est le **post-it** que tu colles quand deux meubles n'ont aucun lien visible, mais que tu sais, toi, que l'un doit passer avant l'autre.\n\n**À utiliser avec parcimonie** : la plupart des dépendances devraient rester implicites (via des références), car elles sont plus fiables et plus lisibles. `depends_on` est le **recours** pour les seuls cas où la dépendance réelle n'apparaît dans aucun attribut référencé."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "lifecycle : maîtriser le cycle de vie",
+          "body": "Chaque ressource a un **cycle de vie** : elle est créée, parfois modifiée, parfois **remplacée**, un jour détruite. Un **remplacement** (en anglais *replace*) arrive quand un changement ne peut pas se faire « sur place » : Terraform doit détruire l'ancienne ressource et en créer une neuve (par défaut : détruire *puis* créer).\n\nLe bloc **`lifecycle`** te laisse ajuster ces règles par défaut. Trois réglages clés :\n\n**`create_before_destroy = true`** : lors d'un remplacement, **créer la nouvelle ressource AVANT de détruire l'ancienne** (l'inverse du comportement par défaut). Cela évite une **coupure** de service. 👉 **Analogie** : pour remplacer un pont, tu construis le nouveau à côté avant de démolir l'ancien, afin que la circulation ne s'arrête jamais. Exemple : remplacer un serveur web sans que le site tombe une seule seconde.\n\n**`prevent_destroy = true`** : **interdit purement et simplement la destruction** de la ressource. C'est un **garde-fou** pour une ressource critique (une base de données de production qui contient des données irremplaçables) : si un plan implique de la détruire, Terraform s'arrête avec une erreur. 👉 **Analogie** : le petit cache en plastique posé sur un bouton d'arrêt d'urgence, pour qu'on ne l'enfonce pas par mégarde.\n\n**`ignore_changes`** : demande à Terraform d'**ignorer les modifications d'un attribut précis**. Utile quand *un autre système* modifie légitimement cette valeur (par exemple un mot de passe changé automatiquement) : sans ça, Terraform verrait à chaque fois un écart entre le code et le réel (une **dérive**, en anglais *drift*) et voudrait sans cesse « corriger ». 👉 **Analogie** : dire à Terraform « ne touche pas à cette case, quelqu'un d'autre s'en occupe ».\n\nCes réglages sont **essentiels en production** pour des mises à jour sûres et la protection des ressources sensibles.\n\nDernier meta-argument de cette famille, **`provider`** : il sert à choisir **quelle instance de provider** utiliser quand tu en as configuré plusieurs. Un **provider** est le plug-in qui sait parler à une plateforme (AWS, Azure, Google Cloud...). Tu peux en configurer plusieurs variantes, par exemple une par région, en leur donnant un **alias** (un surnom) : `provider = aws.europe` dit « crée cette ressource via le provider AWS configuré pour l'Europe ». 👉 **Analogie** : si tu as deux télécommandes (salon et chambre), l'alias précise laquelle tu prends en main."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "lifecycle en pratique",
+          "codeLanguage": "hcl",
+          "body": "resource \"aws_db_instance\" \"prod\" {\n  # ... configuration ...\n  lifecycle {\n    prevent_destroy = true        # empêche un destroy accidentel\n    ignore_changes  = [password]  # un autre système gère le mot de passe\n  }\n}\n\nresource \"aws_instance\" \"web\" {\n  # ... configuration ...\n  lifecycle {\n    create_before_destroy = true  # remplacement sans coupure\n  }\n}\n\n# Le meta-argument provider : choisir une instance de provider (alias)\n#   provider = aws.europe"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une base de données de production critique est gérée par Terraform. L'équipe craint qu'un `terraform destroy` accidentel (ou une suppression involontaire du bloc dans le code) ne détruise la base et ses données. Quel réglage `lifecycle` met en place ce garde-fou, et quelle est sa limite ?",
+          "solution": "Le réglage est `lifecycle { prevent_destroy = true }` sur la ressource de la base de données. Avec ce garde-fou, Terraform REFUSE toute opération qui détruirait cette ressource : si un plan/apply (ou un `terraform destroy`) implique la destruction de la base, que ce soit par un destroy global, un remplacement forcé (-/+), ou parce qu'on a retiré/commenté le bloc dans le code, Terraform s'arrête avec une erreur explicite indiquant que la destruction est empêchée par prevent_destroy. C'est une protection précieuse pour les ressources critiques et à état (bases de prod, buckets contenant des données) contre les suppressions accidentelles, humaines ou dues à une mauvaise manipulation du code. Limites à connaître : (1) prevent_destroy protège tant que la ressource et son réglage existent dans le code : si quelqu'un SUPPRIME entièrement le bloc de la ressource (y compris le lifecycle), Terraform ne « voit » plus la protection et proposera la destruction, le garde-fou ne survit pas à la suppression du bloc qui le porte. Il faut donc coupler cela à des revues de code (pull requests) qui bloquent ce genre de changement. (2) Il ne protège pas contre une suppression faite HORS de Terraform (à la main dans la console, ou par un autre outil), il n'agit que sur les opérations Terraform. (3) Il complique les destructions LÉGITIMES (il faut retirer temporairement le réglage pour supprimer volontairement la ressource). En pratique, on combine prevent_destroy avec d'autres protections : revues de PR obligatoires, restrictions IAM sur la suppression côté cloud, sauvegardes/snapshots réguliers de la base, et éventuellement des politiques (Sentinel/OPA) refusant les plans destructeurs sur les ressources taguées critiques. prevent_destroy est un excellent premier rempart, mais pas une garantie absolue à lui seul."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Meta-arguments",
+          "quizRef": "meta-arguments-check"
+        }
+      ]
+    },
+    {
+      "slug": "for-each-modules-et-migration",
+      "title": "for_each sur modules & migration",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "count & for_each s'appliquent aussi aux modules",
+          "body": "Bonne nouvelle : `count` et `for_each` ne servent pas qu'aux ressources, ils marchent **aussi sur les blocs `module`**.\n\nRappel : un **module** est un **paquet réutilisable** de configuration Terraform (plusieurs ressources regroupées : un réseau + des serveurs + une base, par exemple), qu'on appelle avec un bloc `module \"...\" { source = ... }`. 👉 **Analogie** : un module, c'est une **recette de cuisine** ; l'appeler, c'est préparer le plat. `for_each` sur un module, c'est préparer la **même recette plusieurs fois**, une par convive.\n\nConcrètement, `module \"stack\" { for_each = var.environments ... }` instancie **le module entier** une fois par élément. C'est idéal pour déployer un **même ensemble d'infrastructure** dans **plusieurs environnements** (dev, staging, prod) ou **plusieurs régions**, à partir d'**une seule** déclaration.\n\nPour récupérer une valeur de sortie d'une instance précise, on la référence **par sa clé**. Rappel : un **output** est une valeur qu'un module **expose** vers l'extérieur (par exemple l'URL du site qu'il a créé). On écrit alors `module.stack[\"prod\"].url` : « l'URL produite par l'instance *prod* du module ».\n\nC'est un levier puissant de **factorisation** (« factoriser » veut dire écrire une seule fois ce qui servira plusieurs fois) : un module bien conçu, instancié en boucle, génère N déploiements cohérents. Comme pour les ressources, on privilégie **`for_each`** (identité stable par clé) plutôt que `count` (index fragile) dès que les instances ont une identité (un nom d'environnement, une région)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Migrer de count à for_each sans recréer",
+          "body": "Un besoin d'expert très fréquent : tu as un vieux code qui crée des ressources avec **`count`** (adressées `[0]`, `[1]`, `[2]`), et tu veux passer à **`for_each`** (adressées par clé `[\"api\"]`, `[\"web\"]`...) pour gagner la **stabilité** vue plus haut. Problème : changer la façon d'adresser une ressource **détruirait et recréerait** tout, car les nouveaux noms (`[\"api\"]`) ne correspondent plus aux anciens (`[0]`) dans l'**état** de Terraform.\n\nRappel : l'**état** (en anglais *state*) est le **fichier de suivi** où Terraform note la correspondance entre ton code et les vraies ressources créées dans le cloud. 👉 **Analogie** : c'est le **registre d'un vestiaire**, qui associe chaque numéro de ticket (l'adresse dans le code) au bon manteau (la vraie ressource). Si tu changes les numéros de tickets sans prévenir, le gardien croit que les anciens manteaux ont disparu et que de nouveaux sont arrivés.\n\nLa solution propre est le bloc **`moved`** (vu au nœud Ressources). Il **déclare la correspondance** entre l'ancienne adresse et la nouvelle : `moved { from = aws_instance.web[0]  to = aws_instance.web[\"api\"] }`, un bloc par élément. 👉 **Analogie** : c'est le **mot laissé au gardien du vestiaire** : « le ticket numéro 0, c'est désormais le ticket *api*, même manteau ». Terraform met alors à jour son registre (l'état) **sans** toucher aux ressources réelles, donc **sans recréer**.\n\nC'est la façon propre de moderniser un ancien code `count` en `for_each` sur des ressources de production, **sans aucune interruption**. Le bloc `moved` est écrit dans le code (versionné, revu en PR, appliqué automatiquement par toute l'équipe et la CI), ce qui est bien plus sûr que des commandes manuelles poste par poste."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "for_each sur module & migration count→for_each",
+          "codeLanguage": "hcl",
+          "body": "# Un module instancié par environnement\nmodule \"stack\" {\n  for_each    = toset([\"dev\", \"staging\", \"prod\"])\n  source      = \"./modules/stack\"\n  environment = each.key\n}\noutput \"prod_url\" { value = module.stack[\"prod\"].url }\n\n# Migrer count -> for_each sans recréer (bloc moved par élément)\nmoved {\n  from = aws_instance.web[0]\n  to   = aws_instance.web[\"api\"]\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un vieux code utilise `count = 3` pour créer trois serveurs de production, indexés [0], [1], [2]. L'équipe veut passer à `for_each` (indexé par nom stable) pour éviter les problèmes de décalage d'index, mais sans détruire les serveurs existants. Comment procéder ?",
+          "solution": "Le passage de count à for_each change l'ADRESSAGE des instances dans l'état : elles passent d'aws_instance.web[0]/[1]/[2] (index numériques) à aws_instance.web[\"api\"]/[\"web\"]/[\"cron\"] (clés stables). Si on modifie simplement le code (count → for_each) sans rien de plus, Terraform ne fait pas le lien entre les anciens index et les nouvelles clés : il voit les adresses [0]/[1]/[2] disparaître (à détruire) et les adresses [\"api\"]/... apparaître (à créer), donc il propose de DÉTRUIRE et RECRÉER les trois serveurs de production, inacceptable. Pour migrer SANS recréer, on utilise des blocs moved qui déclarent la correspondance entre chaque ancien index et sa nouvelle clé. Étapes : (1) Réécrire le code en for_each avec une map/set stable (par exemple for_each = toset([\"api\", \"web\", \"cron\"]), en adaptant les attributs via each.key/each.value). (2) Ajouter un bloc moved par instance, mappant l'ancien index à la nouvelle clé selon la correspondance voulue : `moved { from = aws_instance.web[0]  to = aws_instance.web[\"api\"] }`, puis [1] → [\"web\"], [2] → [\"cron\"] (en respectant l'ordre réel des instances existantes, pour ne pas se tromper de correspondance). (3) Lancer terraform plan et VÉRIFIER que le plan ne montre QUE des déplacements (« moved ») et AUCUN create/destroy, c'est la garantie que la migration est neutre pour l'infrastructure. (4) Appliquer : Terraform met à jour l'état (les serveurs sont désormais adressés par clé) sans toucher aux instances réelles. (5) Une fois migré et appliqué partout (état partagé), on peut retirer les blocs moved. Le bloc moved est déclaratif et versionné (dans le code, revu en PR, appliqué automatiquement par toute l'équipe et la CI), ce qui est bien plus sûr que de jouer des terraform state mv manuels sur chaque poste. Cette migration count→for_each via moved est une opération d'expert courante : elle permet de moderniser un ancien code (gagner l'identité stable de for_each, qui évite les recréations en cascade lors d'ajouts/suppressions au milieu) sans aucune interruption des ressources de production. Point de vigilance : bien établir la correspondance index→clé (quel serveur existant devient quelle clé) pour ne pas intervertir les identités."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, for_each sur modules & migration (expert)",
+          "quizRef": "for-each-modules-expert"
+        }
+      ]
+    }
+  ]
+}

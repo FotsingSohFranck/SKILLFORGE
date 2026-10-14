@@ -1,0 +1,119 @@
+{
+  "ref": "indexes-expert",
+  "node": "indexes-performance",
+  "lesson": "comprendre-le-planner",
+  "title": "Index & planner, niveau expert",
+  "description": "Types d'index, index couvrant, statistiques, plans, jointures.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel type d'index rend efficace une recherche par sous-chaîne `ILIKE '%docker%'` ?",
+      "justification": "Un index GIN avec pg_trgm indexe les trigrammes et gère les recherches avec joker en tête, impossibles pour un B-tree.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un index GIN avec l'extension pg_trgm (trigrammes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un B-tree classique sur la colonne",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un index Hash",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permet un « Index Only Scan » ?",
+      "justification": "Si toutes les colonnes lues sont dans l'index (ex. via INCLUDE), PostgreSQL répond sans ouvrir la table (heap).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Répondre à la requête sans lire la table, tout étant dans l'index",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Lire uniquement les index sans jamais les mettre à jour",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ignorer les statistiques du planner",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quoi le planner de PostgreSQL se fonde-t-il pour choisir un plan ?",
+      "justification": "Il estime le coût des plans à partir de statistiques (ANALYZE) : nombre de lignes, valeurs distinctes, corrélation…",
+      "position": 2,
+      "options": [
+        {
+          "label": "Sur des statistiques de coût collectées par ANALYZE",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Sur un ordre de règles fixe et immuable",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Sur l'ordre des colonnes dans le SELECT",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment créer un index sur une grosse table en production sans bloquer les écritures ?",
+      "justification": "CREATE INDEX CONCURRENTLY construit l'index sans verrou bloquant (plus lent, hors transaction).",
+      "position": 3,
+      "options": [
+        {
+          "label": "CREATE INDEX CONCURRENTLY",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "CREATE INDEX dans une transaction longue",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il faut toujours arrêter la base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après un import massif, un plan qui estime « 1 ligne » là où il y en a des milliers indique souvent des statistiques périmées à rafraîchir avec ANALYZE.",
+      "justification": "Vrai : sans ANALYZE, le planner sous-estime le volume et choisit un mauvais plan (Nested Loop catastrophique).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

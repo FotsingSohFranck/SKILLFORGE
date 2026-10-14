@@ -1,0 +1,52 @@
+{
+  "ref": "variables-entree-check",
+  "node": "variables",
+  "lesson": "variables-dentree",
+  "title": "Les variables d'entrée",
+  "description": "Rôle des variables, type/description/default, obligatoire, validation au plan.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une variable d'entrée (input variable) ?",
+      "justification": "Elle nomme une valeur fournie à l'exécution au lieu de la coder en dur : un même code se décline par environnement, sans duplication.",
+      "position": 0,
+      "options": [
+        { "label": "Paramétrer le code : nommer une valeur fournie à l'exécution, plutôt que de la coder en dur", "correct": true, "position": 0 },
+        { "label": "Stocker l'état du déploiement à la place du fichier state", "correct": false, "position": 1 },
+        { "label": "Installer automatiquement les providers", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il si une variable est déclarée SANS valeur par défaut (default) ?",
+      "justification": "Sans default, la variable est obligatoire : Terraform réclamera une valeur (ou s'arrêtera) tant qu'on ne lui en fournit pas une.",
+      "position": 1,
+      "options": [
+        { "label": "Elle devient obligatoire : il faut lui fournir une valeur, sinon Terraform s'arrête", "correct": true, "position": 0 },
+        { "label": "Elle prend automatiquement la valeur null sans rien signaler", "correct": false, "position": 1 },
+        { "label": "Elle est ignorée par Terraform", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quel moment une règle de validation rejette-t-elle une valeur invalide ?",
+      "justification": "Au plan, avant tout appel au cloud (fail fast) : aucune ressource n'est créée, et le message d'erreur est clair et actionnable.",
+      "position": 2,
+      "options": [
+        { "label": "Au plan, avant tout appel au cloud (fail fast), avec un message clair", "correct": true, "position": 0 },
+        { "label": "Après l'apply, une fois les ressources déjà créées", "correct": false, "position": 1 },
+        { "label": "Jamais : une validation ne bloque pas l'exécution", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Déclarer une variable avec type = string suffit à garantir qu'elle ne vaudra que dev, staging ou prod.",
+      "justification": "Faux : le type string accepte n'importe quel texte, faute de frappe comprise. Pour restreindre aux valeurs autorisées, il faut un bloc validation.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

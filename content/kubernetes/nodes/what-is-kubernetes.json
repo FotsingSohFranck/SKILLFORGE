@@ -1,0 +1,146 @@
+{
+  "node": "what-is-kubernetes",
+  "lessons": [
+    {
+      "slug": "le-probleme-a-lechelle",
+      "title": "Le problème à l'échelle",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un conteneur, c'est facile ; mille, c'est un métier",
+          "body": "Avant de parler de Kubernetes, un rappel utile. Un **conteneur** est une **boîte** qui emballe une application avec tout ce dont elle a besoin pour tourner (son code, ses librairies, sa configuration), de façon à ce qu'elle s'exécute **pareil partout**. **Docker** est l'outil le plus connu pour fabriquer et lancer ces conteneurs.\n\n👉 **Analogie** : un conteneur, c'est comme un **plat préparé sous vide**. Tu l'emportes n'importe où, tu le réchauffes, et il est toujours identique, quelle que soit la cuisine dans laquelle tu le poses.\n\nDocker a très bien résolu **un** problème : emballer et lancer **un** conteneur. Mais en **production** (l'environnement réel qui sert les vrais utilisateurs, par opposition à ta machine de développement), on ne fait pas tourner un conteneur : on en fait tourner **des centaines**, répartis sur **plusieurs machines**.\n\nEt là, une foule de questions se posent, en permanence :\n- un conteneur plante à 3 h du matin : qui le **redémarre** ?\n- tu as 10 machines : comment **répartir** les conteneurs dessus intelligemment ?\n- le trafic explose : comment lancer **plus** de copies, puis en enlever quand ça se calme ?\n- tu déploies une nouvelle version : comment le faire **sans couper le service** ?\n- une machine entière tombe en panne : comment **déplacer** ses conteneurs ailleurs, tout seul ?\n\nFaire tout ça **à la main**, pour des centaines de conteneurs, est humainement ingérable. C'est le travail d'un **orchestrateur** : un chef d'orchestre logiciel qui gère automatiquement toute cette flotte de conteneurs. **Kubernetes** (souvent abrégé **K8s** : un « K », les 8 lettres du milieu « ubernete », puis un « s ») est l'orchestrateur devenu le **standard** du secteur.\n\nConcrètement : là où tu lançais `docker run` toi-même sur une machine, Kubernetes lance et surveille des milliers de conteneurs sur tout un parc de serveurs, à ta place, 24 h/24."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Kubernetes : gérer une flotte, pas un conteneur",
+          "body": "Reprenons proprement la définition. **Kubernetes** est un système **open source** (dont le code est public, gratuit et modifiable par tous, par opposition à un logiciel propriétaire fermé) qui **orchestre** des conteneurs sur un ensemble de machines.\n\nUn peu d'histoire, ça aide à se repérer : Kubernetes est né chez **Google**, inspiré de leur outil interne **Borg** qui gère leurs services depuis les années 2000. Google l'a rendu public en 2014 et l'a confié à la **CNCF** (*Cloud Native Computing Foundation*, une fondation neutre qui héberge les grands projets open source du cloud). Retiens simplement : Kubernetes n'appartient pas à une seule entreprise, il est gouverné par une fondation.\n\nL'ensemble des machines gérées par Kubernetes s'appelle un **cluster** (une « grappe » de machines qui travaillent ensemble comme si elles n'en formaient qu'une). 👉 **Analogie** : un cluster, c'est une **équipe**. Tu ne donnes pas d'ordre à chaque personne une par une ; tu dis au **chef d'équipe** (Kubernetes) ce que tu veux, et il répartit le travail.\n\nLe principe d'usage est simple : tu décris **ce que tu veux** (« je veux 5 copies de mon application, accessibles sur tel port »), et Kubernetes se débrouille avec le **comment** (sur quelle machine placer chaque copie, comment les surveiller, les redémarrer, les remplacer, répartir le trafic). Chaque copie d'une application s'appelle une **réplique**.\n\nPoint capital pour ne pas se tromper : **Kubernetes ne remplace pas Docker**. Il **réutilise** tes images de conteneurs. Une **image**, c'est le modèle figé à partir duquel on démarre un conteneur (comme un moule dont on tire des copies identiques) ; son format standard s'appelle **OCI** (*Open Container Initiative*), ce qui garantit qu'une image marche aussi bien avec Docker qu'avec Kubernetes. Kubernetes prend donc tes images existantes et ajoute, par-dessus, la **gestion de la flotte** à grande échelle.\n\nExemple concret : tu construis l'image `mon-app:1.0` avec Docker, tu la donnes à Kubernetes en lui disant « je veux 5 répliques », et il fait tourner ces 5 conteneurs sur ton cluster, les surveille, et en relance un dès qu'il tombe."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Une équipe fait tourner son application dans des conteneurs Docker sur un seul serveur avec `docker compose`. L'entreprise grandit : besoin de haute disponibilité (survivre à la panne d'un serveur), de scaling automatique et de déploiements sans coupure sur plusieurs machines. Pourquoi Compose ne suffit-il plus, et qu'apporte Kubernetes ?",
+          "solution": "docker compose orchestre des conteneurs sur UN SEUL hôte : il ne gère ni la répartition sur plusieurs machines, ni la survie à la panne d'un serveur (si la machine tombe, tout tombe), ni l'autoscaling automatique, ni les déploiements progressifs coordonnés sur un cluster. Ce sont précisément les besoins qui apparaissent à l'échelle. Kubernetes apporte cette couche manquante : il gère un CLUSTER de plusieurs machines, place les conteneurs (pods) sur les nœuds disponibles, redémarre/replanifie automatiquement ce qui tombe (auto-réparation, y compris déplacer les pods d'un nœud en panne vers un nœud sain = haute disponibilité), ajuste le nombre de répliques et de nœuds selon la charge (autoscaling), et effectue des mises à jour sans coupure (rolling update) avec rollback. On garde ses images Docker ; Kubernetes ajoute l'orchestration de flotte à l'échelle que Compose ne fournit pas."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Le problème à l'échelle",
+          "quizRef": "what-is-kubernetes-probleme-check"
+        }
+      ]
+    },
+    {
+      "slug": "ce-que-fait-kubernetes",
+      "title": "Ce que fait Kubernetes",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le modèle déclaratif : décrire, pas ordonner",
+          "body": "L'idée la plus importante de Kubernetes tient en un mot : **déclaratif**. Pour la saisir, comparons deux façons de piloter une machine.\n\n- **Impératif** = tu donnes une **suite d'ordres** précis, étape par étape : « démarre ce conteneur, puis celui-là, maintenant ouvre ce port ». Tu diriges chaque geste.\n- **Déclaratif** = tu décris seulement le **résultat voulu** (l'**état désiré**), et le système se débrouille pour l'atteindre **et le maintenir** dans le temps.\n\n👉 **Analogie** : l'impératif, c'est **indiquer la route** virage par virage à un chauffeur. Le déclaratif, c'est donner une **destination au GPS** : tu dis « je veux arriver ici », et il recalcule tout seul le chemin, même si une route est bloquée. Kubernetes est un GPS pour tes applications.\n\nEn pratique, tu écris cet état désiré dans des fichiers **YAML** (un format texte simple et lisible, fait de listes et de paires `clé: valeur`, très utilisé pour la configuration). Par exemple : « je veux 5 répliques de l'application `mon-app`, en permanence ».\n\nEnsuite, Kubernetes exécute sans arrêt une **boucle de réconciliation** : en boucle, il compare l'**état réel** (ce qui tourne vraiment) à l'**état désiré** (ce que tu as déclaré), et il corrige tout écart. Deux mots de vocabulaire à connaître ici :\n- un **pod** est la plus petite unité que déploie Kubernetes : une enveloppe qui contient un (parfois quelques) conteneur(s). Retiens « un pod ≈ une instance de ton application qui tourne ».\n- un **nœud** (*node* en anglais) est une machine du cluster (physique ou virtuelle) sur laquelle tournent des pods.\n\nAlors la magie opère toute seule :\n- un pod meurt ? La boucle voit qu'il en manque un, et **en recrée un**.\n- un nœud tombe en panne ? Kubernetes **replanifie** ses pods sur d'autres nœuds sains.\n- tu demandes 8 répliques au lieu de 5 ? Il en **crée 3 de plus**.\n\nC'est cette boucle permanente qui rend le système **auto-réparant** : tu n'interviens pas à la main, tu ajustes seulement la description, et Kubernetes fait converger la réalité vers elle."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Les super-pouvoirs qu'on obtient",
+          "body": "Grâce à cette boucle, Kubernetes t'offre une série de capacités qu'il faudrait sinon coder soi-même. Passons-les en revue, chacune définie simplement.\n\n- **Auto-réparation** : redémarrer ou déplacer automatiquement ce qui échoue. *Exemple* : un conteneur bloqué est tué puis relancé sans que personne ne lève le petit doigt.\n- **Scaling horizontal** : ajuster le **nombre de répliques** (des copies identiques) selon la charge. « Horizontal » veut dire « ajouter des copies » (par opposition à « vertical » = donner plus de puissance à une seule copie). *Exemple* : passer de 3 à 20 répliques pendant un pic de trafic, puis redescendre. Kubernetes peut même le faire **automatiquement**.\n- **Déploiements sans coupure** (**rolling update**, « mise à jour par roulement ») : remplacer l'ancienne version par la nouvelle **progressivement**, réplique par réplique, pour que le service ne s'arrête jamais. Et si la nouvelle version est buguée, le **rollback** (retour arrière) revient à la version précédente. 👉 **Analogie** : on remplace les ampoules d'un couloir **une par une** ; il n'y a jamais de noir complet.\n- **Découverte de services et équilibrage de charge** : la **découverte de services** (*service discovery*) permet à tes composants de se trouver **par nom** plutôt que par une adresse qui change tout le temps ; l'**équilibrage de charge** (*load balancing*) répartit le trafic entre les répliques pour ne pas en surcharger une seule. *Exemple* : ton front appelle simplement `http://api`, et Kubernetes route l'appel vers l'une des répliques disponibles de l'API.\n- **Gestion de la configuration et des secrets** : ranger séparément les réglages de l'application et les **secrets** (mots de passe, clés d'accès), au lieu de les coder en dur dans l'image.\n- **Orchestration du stockage** : attacher automatiquement de l'espace disque aux applications qui en ont besoin.\n\nLe tout est **portable** : le même fichier de description (on l'appelle un **manifeste**) tourne sur **n'importe quel cluster conforme**, que ce soit sur tes propres serveurs, chez AWS, Google ou Azure. Tu écris une fois, tu déploies partout.\n\n👉 **En une phrase** : Kubernetes est une sorte de **système d'exploitation pour tes applications distribuées**. Là où un système d'exploitation classique gère les programmes d'**une** machine, Kubernetes gère les applications d'**un parc entier** de machines."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "La boucle de réconciliation en un schéma",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Etat desire declare en YAML : 5 repliques\"] --> R{\"Reconciliation : comparer reel et desire\"}\n    B[\"Etat reel constate : 4 repliques en cours\"] --> R\n    R -->|\"ecart : il manque 1 pod\"| C[\"Creer 1 pod\"]\n    C --> B\n    R -->|\"conforme : 5 = 5\"| D[\"Ne rien faire, surveiller\"]\n    D --> R"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Tu déclares à Kubernetes que tu veux 5 répliques d'une application. Un administrateur en supprime manuellement une (il en reste 4). Que se passe-t-il, et pourquoi ?",
+          "solution": "Kubernetes recrée automatiquement une réplique pour revenir à 5. C'est le cœur du modèle déclaratif et de la boucle de réconciliation : tu as déclaré un état DÉSIRÉ (5 répliques), et un contrôleur compare en permanence l'état réel (désormais 4) à cet état désiré. Constatant l'écart, il agit pour le corriger, ici en créant une nouvelle réplique. On ne « pilote » pas Kubernetes par des ordres ponctuels ; on lui décrit ce qu'on veut, et il maintient cet état envers et contre tout (pannes, suppressions accidentelles, redémarrages de nœuds). Corollaire important : pour réellement réduire à 4 répliques, il ne faut pas en supprimer une à la main (elle reviendra), mais MODIFIER l'état désiré (déclarer 4). C'est ce qui rend le système résilient et prévisible."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Ce que fait Kubernetes",
+          "quizRef": "what-is-kubernetes-actions-check"
+        }
+      ]
+    },
+    {
+      "slug": "alternatives-et-pertinence",
+      "title": "Alternatives & pertinence",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Kubernetes n'est pas toujours la réponse",
+          "body": "Kubernetes est puissant, mais il est aussi **complexe à opérer** : ce n'est pas parce qu'il existe qu'il faut l'utiliser partout. Selon le besoin, il existe des alternatives, souvent plus simples.\n\nDes orchestrateurs plus **légers** :\n- **Docker Swarm** : l'orchestrateur intégré à Docker, bien plus simple à prendre en main, pour des besoins modestes.\n- **HashiCorp Nomad** : un orchestrateur flexible, capable de gérer aussi bien des conteneurs que des programmes classiques.\n\nDes solutions plus **managées**, c'est-à-dire où un fournisseur s'occupe de l'infrastructure à ta place. En particulier les **PaaS** conteneur. Un **PaaS** (*Platform as a Service*, « plateforme en tant que service ») est un service où tu fournis juste ton application, et le fournisseur gère tout le reste (les serveurs, la mise à l'échelle, les certificats de sécurité). 👉 **Analogie** : au lieu d'**acheter et entretenir une voiture** (gérer ton propre cluster), tu prends un **VTC** (le PaaS conduit pour toi). *Exemples* : **Google Cloud Run**, **AWS App Runner**, **Render**, **Fly.io**. Il existe aussi **AWS ECS** (*Elastic Container Service*), l'orchestrateur maison d'Amazon, plus simple que Kubernetes.\n\nLa leçon pratique : pour beaucoup de projets (petite équipe, trafic modeste, produit encore incertain), une **PaaS** ou un simple serveur avec **Docker Compose** (l'outil qui lance plusieurs conteneurs sur une seule machine) suffit **largement**, et t'évite le lourd coût d'exploitation d'un cluster Kubernetes. Choisir Kubernetes « parce que c'est à la mode » est une erreur fréquente."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Managé plutôt qu'auto-géré",
+          "body": "Admettons maintenant que Kubernetes soit **vraiment** le bon choix. Reste une décision clé : le **gérer soi-même** ou le prendre **managé** ?\n\nPour comprendre, il faut savoir qu'un cluster Kubernetes a deux parties :\n- le **plan de contrôle** (*control plane*) : le « cerveau » du cluster, qui prend les décisions (où placer les pods, surveiller l'état désiré). Il contient notamment **etcd**, la base de données qui mémorise **tout l'état** du cluster. C'est la partie **critique** : si elle tombe ou est mal sauvegardée, c'est le drame.\n- les **nœuds de travail** : les machines qui font tourner tes applications (tes pods).\n\nUn **Kubernetes managé** signifie qu'un fournisseur cloud **exploite le plan de contrôle à ta place** (disponibilité, mises à jour, sauvegardes d'etcd), et que tu te concentres sur tes applications. 👉 **Analogie** : tu **loues un appartement** (le propriétaire gère la toiture et la plomberie) au lieu de **construire et entretenir toute la maison** toi-même.\n\nLes offres managées principales : **EKS** (chez AWS), **GKE** (chez Google), **AKS** (chez Azure), plus des offres comme DigitalOcean ou Scaleway. Ces sigles se lisent « *Elastic / Google / Azure Kubernetes Service* ».\n\nÀ l'inverse, **auto-gérer** son cluster (l'installer à la main avec un outil comme **kubeadm**) veut dire assumer soi-même tout le plan de contrôle. C'est réservé à des besoins spécifiques : **souveraineté** des données, **on-premise** (héberger dans ses propres locaux, par opposition au cloud), et cela demande une vraie expertise d'exploitation.\n\nRègle d'entrée à retenir : **Kubernetes managé, pas auto-géré**, sauf raison forte et compétence dédiée."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Une jeune startup de 4 personnes lance un produit avec un backend, une base et un front, trafic faible et incertain. Un ingénieur veut « faire les choses bien » en montant immédiatement un cluster Kubernetes auto-géré. Est-ce un bon choix ? Justifie et propose une trajectoire.",
+          "solution": "Non, ce n'est pas adapté à ce stade. Un cluster Kubernetes, surtout AUTO-GÉRÉ, apporte une complexité d'exploitation énorme (gérer le plan de contrôle, etcd, le réseau CNI, les mises à jour, l'observabilité, la sécurité, les manifestes...), un investissement disproportionné pour 4 personnes, un trafic faible et un produit encore incertain, au détriment du temps consacré au produit lui-même. Trajectoire recommandée : commencer simple, un serveur avec Docker Compose, ou mieux une PaaS conteneur (Cloud Run, Render, Fly.io) qui exécute les conteneurs, gère le TLS, le scaling et les déploiements sans administrer de cluster. Cela couvre largement les besoins initiaux. Si l'échelle, la haute disponibilité multi-nœuds ou l'autonomie de plusieurs équipes le justifient PLUS TARD, on migre alors vers un Kubernetes MANAGÉ (EKS/GKE/AKS), jamais auto-géré d'emblée, car le fournisseur prend en charge la partie la plus critique et pénible. Choisir le plus simple qui répond au besoin réel, et monter en puissance quand c'est justifié, est une décision d'ingénierie mature."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Qu'est-ce que Kubernetes",
+          "quizRef": "what-is-kubernetes-check"
+        }
+      ]
+    },
+    {
+      "slug": "kubernetes-dans-son-ecosysteme",
+      "title": "Kubernetes dans son écosystème",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "De Borg à la CNCF",
+          "body": "Kubernetes n'est pas né de rien. Il **descend de Borg** (l'orchestrateur interne de Google, déjà évoqué) et, depuis 2014, il est gouverné par la **CNCF** (la fondation neutre du cloud open source). Mais le point clé de cette leçon est ailleurs : Kubernetes n'est pas un produit isolé, c'est le **noyau** d'un immense **écosystème** d'outils qui se branchent autour de lui.\n\nCet écosystème est si vaste qu'on l'a cartographié : le **CNCF Landscape** (le « paysage », une carte géante des projets du cloud natif). Kubernetes est conçu pour être **extensible** : il définit des **interfaces standard** (des prises normalisées) où l'on branche des briques au choix. Voici les principales familles, avec la signification de chaque sigle :\n- **Réseau** : le **CNI** (*Container Network Interface*) est la prise standard pour brancher la solution qui connecte les pods entre eux (par exemple Calico, Cilium).\n- **Stockage** : le **CSI** (*Container Storage Interface*) est la prise standard pour brancher le stockage disque.\n- **Observabilité** (la capacité de **voir ce qui se passe** dans le cluster, via des mesures, des journaux et des traces) : **Prometheus** (collecte de mesures), **OpenTelemetry** (standard de collecte), **Jaeger** (suivi des requêtes de bout en bout).\n- **Sécurité** : **Falco** (détection de comportements suspects), **OPA** (*Open Policy Agent*, un moteur de règles).\n- **Packaging** : **Helm**, une sorte de « gestionnaire de paquets » de Kubernetes, qui installe des applications toutes prêtes en une commande.\n- **GitOps** (piloter le cluster depuis **Git**, le dépôt de code servant de source de vérité de l'état désiré) : **Argo CD**, **Flux**.\n\n👉 **Analogie** : Kubernetes est comme un **système d'exploitation avec des ports USB standardisés**. Le noyau est commun, et tu branches les périphériques (réseau, stockage, sécurité) que tu veux. Comprendre ça t'évite de chercher **une** solution monolithique : ici, on **assemble** des briques."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Kubernetes n'est pas le produit final",
+          "body": "Une erreur de perspective très courante : croire que « faire du Kubernetes » est un but en soi. Ce n'en est pas un. Kubernetes **brut** est **trop bas niveau** pour la plupart des développeurs : écrire des fichiers YAML, configurer le réseau, gérer les droits d'accès (le **RBAC**, *Role-Based Access Control*, « contrôle d'accès basé sur les rôles » : qui a le droit de faire quoi dans le cluster), ce n'est pas le métier d'un développeur d'applications.\n\nD'où une pratique montante : le **platform engineering** (« ingénierie de plateforme »). Des équipes dédiées construisent, **au-dessus** de Kubernetes, une **IDP** (*Internal Developer Platform*, « plateforme interne pour développeurs ») : une couche qui **cache la complexité** et offre au développeur une expérience simple, du genre « pousse ton code, je m'occupe du reste ».\n\n👉 **Analogie** : la plupart des gens conduisent une voiture sans jamais ouvrir le capot. Kubernetes est le **moteur** (indispensable, mais technique) ; l'IDP est le **tableau de bord** simple que touchent les développeurs.\n\nÀ retenir : Kubernetes est le **socle d'infrastructure**, pas l'interface finale. Bien le voir ainsi évite de l'exposer brut à toute l'entreprise, et pousse à construire de bonnes abstractions par-dessus."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le coût réel & quand ne pas l'utiliser (niveau expert)",
+          "body": "Terminons par un réflexe d'expert : **peser le coût**. Kubernetes a un prix souvent sous-estimé, qu'on surnomme le **« Kubernetes tax »** (la « taxe Kubernetes »). Il y a un coût **matériel** (les ressources consommées par le plan de contrôle et les add-ons, ces modules ajoutés au cluster), mais surtout un coût **humain** : l'expertise, l'exploitation au quotidien, la sécurité, les mises à jour régulières.\n\nSur les gros clusters, maîtriser la facture devient un métier : la discipline **FinOps** (contraction de *Finance* et *Operations* : optimiser en continu le coût du cloud). Quelques leviers concrets, définis rapidement :\n- **right-sizing** : donner à chaque application **juste** les ressources qu'il lui faut, ni trop ni trop peu.\n- **spot instances** : des machines cloud très bon marché, mais qui peuvent être reprises par le fournisseur à tout moment.\n- **bin packing** : « remplir les cartons au mieux », c'est-à-dire tasser les pods sur le moins de machines possible.\n- **scale-to-zero** : descendre à **zéro** réplique quand une application ne sert momentanément à rien, pour ne rien payer.\n\nEt il y a des cas où Kubernetes est carrément **surdimensionné** :\n- une application **unique et stable** : une PaaS suffit.\n- l'**edge** (l'informatique « en périphérie » : de petits équipements loin des grands centres de données, souvent très contraints en ressources) : des versions allégées comme **k3s**, ou du serverless, sont mieux adaptées.\n- une **petite équipe** sans besoin d'échelle.\n\n👉 **La marque d'un expert** : ne pas imposer Kubernetes par principe, mais le recommander **quand il apporte plus qu'il ne coûte** (échelle, haute disponibilité, autonomie de plusieurs équipes, portabilité), et proposer plus simple dans le cas contraire."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un directeur technique veut « migrer tout vers Kubernetes pour être moderne », y compris une petite application interne stable, à faible trafic, maintenue par une seule personne. Quels arguments d'expert opposer, et quelle grille de décision proposer ?",
+          "solution": "Arguments à opposer : Kubernetes n'est pas une fin en soi mais un socle d'orchestration à l'échelle, avec un coût réel (le « Kubernetes tax »), ressources du plan de contrôle et des add-ons, et surtout un coût humain considérable : expertise, exploitation continue, sécurité (RBAC, NetworkPolicies, admission), mises à jour régulières (skew), observabilité. Pour une petite application interne stable, à faible trafic, maintenue par une seule personne, ce coût est disproportionné : on ajoute une énorme complexité opérationnelle sans bénéfice réel (pas de besoin d'échelle, de HA multi-nœuds ni d'autonomie de plusieurs équipes), et on détourne l'unique mainteneur de la valeur métier. « Être moderne » n'est pas un critère technique. Grille de décision à proposer : choisir en fonction du BESOIN réel, (1) trafic/échelle : faible et prévisible → un serveur + Compose ou une PaaS (Cloud Run, Render, App Runner) ; (2) équipes : une seule petite équipe → PaaS/serverless ; plusieurs équipes autonomes → Kubernetes commence à se justifier ; (3) exigences HA/portabilité/multi-cloud fortes → Kubernetes (managé) ; (4) edge très contraint → k3s ou serverless. Règle : Kubernetes quand il apporte plus qu'il ne coûte (échelle, HA, autonomie d'équipes, portabilité), et une option plus simple sinon, quitte à migrer plus tard SI le besoin apparaît. On combat l'adoption « par mode » par une décision fondée sur le besoin et le coût total."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Kubernetes dans son écosystème (expert)",
+          "quizRef": "k8s-ecosystem-expert"
+        }
+      ]
+    }
+  ]
+}

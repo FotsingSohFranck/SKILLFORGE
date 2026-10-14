@@ -1,0 +1,10 @@
+{
+  "node": "transactions-acid",
+  "lesson": "isolation-et-anomalies",
+  "title": "Décrémenter un stock sans lost update",
+  "statement": "Écrivez UNE requête `UPDATE` atomique qui décrémente de 1 le `stock` du produit `:id`, mais **uniquement si** le stock est strictement positif (pour ne jamais passer sous zéro, même sous concurrence). Ne faites pas de SELECT préalable.",
+  "skeleton": "UPDATE products\nSET ...\nWHERE ...;",
+  "solution": "UPDATE products\nSET stock = stock - 1\nWHERE id = :id AND stock > 0;",
+  "keyPoints": ["UPDATE products", "stock = stock - 1", "WHERE id = :id", "stock > 0"],
+  "language": "sql"
+}

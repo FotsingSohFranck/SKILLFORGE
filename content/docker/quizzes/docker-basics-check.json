@@ -1,0 +1,63 @@
+{
+  "ref": "docker-basics-check",
+  "node": "docker-basics",
+  "lesson": "cycle-de-vie",
+  "title": "Les bases de Docker",
+  "description": "docker run, publication de ports, cycle de vie, logs, exec.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `docker run <image>` en une seule commande ?",
+      "justification": "Elle télécharge l'image si absente (pull), crée un conteneur à partir d'elle, puis le démarre.",
+      "position": 0,
+      "options": [
+        { "label": "Télécharge l'image (si absente), crée puis démarre un conteneur", "correct": true, "position": 0 },
+        { "label": "Construit une image à partir d'un Dockerfile", "correct": false, "position": 1 },
+        { "label": "Supprime tous les conteneurs arrêtés", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un conteneur nginx tourne mais localhost:8080 ne répond pas. Que manque-t-il ?",
+      "justification": "La publication de port : -p 8080:80 relie le port 80 du conteneur au 8080 de l'hôte ; sans -p, le service reste isolé.",
+      "position": 1,
+      "options": [
+        { "label": "La publication de port (-p 8080:80)", "correct": true, "position": 0 },
+        { "label": "L'option --rm", "correct": false, "position": 1 },
+        { "label": "Un volume", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la première commande pour comprendre pourquoi un conteneur a planté au démarrage ?",
+      "justification": "docker logs affiche la sortie du conteneur, où figure presque toujours le message d'erreur de l'arrêt.",
+      "position": 2,
+      "options": [
+        { "label": "docker logs <conteneur>", "correct": true, "position": 0 },
+        { "label": "docker rm <conteneur>", "correct": false, "position": 1 },
+        { "label": "docker pull <image>", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre `docker stop` et `docker rm` ?",
+      "justification": "stop arrête le conteneur (il existe encore, relançable) ; rm le supprime définitivement (état perdu).",
+      "position": 3,
+      "options": [
+        { "label": "stop arrête (relançable), rm supprime définitivement", "correct": true, "position": 0 },
+        { "label": "Ce sont des synonymes", "correct": false, "position": 1 },
+        { "label": "stop supprime, rm met en pause", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Installer un paquet via `docker exec` dans un conteneur est une façon durable de modifier une application.",
+      "justification": "Faux : exec modifie la couche d'écriture éphémère ; tout est perdu au prochain conteneur. Les changements durables passent par le Dockerfile (ou un volume pour les données).",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

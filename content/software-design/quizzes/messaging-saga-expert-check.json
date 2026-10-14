@@ -1,0 +1,96 @@
+{
+  "ref": "messaging-saga-expert-check",
+  "node": "messaging-styles",
+  "lesson": "saga-outbox-garanties",
+  "title": "Quiz, Saga, Outbox & garanties (expert)",
+  "description": "Saga & compensation, transactional outbox, at-least-once, idempotence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment une Saga gère-t-elle l'échec d'une étape d'un processus multi-services ?",
+      "justification": "Par des transactions de compensation : des actions métier inverses qui annulent sémantiquement les étapes déjà faites (rembourser, libérer le stock).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par des transactions de compensation (annulation sémantique)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par un rollback ACID global (two-phase commit)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En ignorant l'échec",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que résout le pattern Transactional Outbox ?",
+      "justification": "Le dual write : écrire l'événement dans une table outbox de la même base, dans la même transaction que le changement métier ; un process séparé publie ensuite de façon fiable.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'incohérence entre écrire en base et publier un événement (dual write)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La lenteur du réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des messages",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Puisque les brokers livrent souvent « at-least-once », que doit garantir chaque consommateur ?",
+      "justification": "L'idempotence : traiter deux fois le même message produit le même effet (déduplication par ID, upsert, vérification d'état), pas de double facturation.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'idempotence (traiter un doublon sans doubler l'effet)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Refuser tout message répété en erreur fatale",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Publier chaque message deux fois",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'« exactly-once » de bout en bout est facile et gratuit à obtenir dans un système de messages.",
+      "justification": "Faux : il est très coûteux et souvent illusoire ; en pratique on vise un « effectively-once » via at-least-once + idempotence.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

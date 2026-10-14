@@ -1,0 +1,41 @@
+{
+  "ref": "pattern-matching-switch-en-pratique",
+  "node": "pattern-matching-switch",
+  "lesson": "en-pratique",
+  "title": "Quiz : en pratique",
+  "description": "Remplacer une cascade de if/else instanceof par un switch moderne.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel signe dans du code ancien indique qu'un switch sur le type serait preferable ?",
+      "justification": "Une cascade de plusieurs if/else instanceof distinguant des types se reecrit avantageusement en switch, plus court et verifiable.",
+      "position": 0,
+      "options": [
+        { "label": "Une cascade de plusieurs if/else instanceof distinguant des types", "correct": true, "position": 0 },
+        { "label": "Un simple if qui teste une valeur numerique", "correct": false, "position": 1 },
+        { "label": "Une boucle for sur un tableau", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu reecris une cascade sur sealed interface Paiement permits Carte, Especes, Virement en switch, et tu veux etre averti a la compilation si un nouveau moyen de paiement est ajoute plus tard. Que fais tu ?",
+      "justification": "En listant chaque sous type sans default, le switch reste exhaustif par le compilateur : ajouter un type sans traiter son cas casse la compilation et t'avertit.",
+      "position": 1,
+      "options": [
+        { "label": "Je traite chaque sous type et je NE mets PAS de default", "correct": true, "position": 0 },
+        { "label": "J'ajoute un default qui renvoie une valeur par defaut", "correct": false, "position": 1 },
+        { "label": "Je garde la cascade de if, c'est plus sur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le pattern matching pour switch est une fonctionnalite stable de Java 21 (JEP 441), utilisable sans option d'apercu.",
+      "justification": "Vrai : la JEP 441 a rendu cette fonctionnalite stable en Java 21, donc aucune option d'apercu n'est necessaire.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

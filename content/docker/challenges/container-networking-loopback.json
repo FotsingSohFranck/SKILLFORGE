@@ -1,0 +1,10 @@
+{
+  "node": "container-networking",
+  "lesson": "reseau-sous-le-capot",
+  "title": "Publier une base sans percer le pare-feu",
+  "statement": "Ton hôte a un pare-feu UFW, mais tu sais que `-p` le contourne via les règles NAT de Docker. Tu dois quand même pouvoir te connecter à une base Postgres depuis l'hôte lui-même (par exemple avec un client local), sans jamais l'exposer à l'extérieur. Écris la commande `docker run` qui lance `postgres:18` en arrière-plan sous le nom `db` et publie le port 5432 UNIQUEMENT sur l'interface loopback (`127.0.0.1`), pour qu'il ne soit joignable que depuis l'hôte.",
+  "skeleton": "docker run -d --name db ... postgres:18\n",
+  "solution": "docker run -d --name db -p 127.0.0.1:5432:5432 postgres:18",
+  "keyPoints": ["docker run", "-d", "--name db", "-p 127.0.0.1:5432:5432", "postgres:18"],
+  "language": "bash"
+}

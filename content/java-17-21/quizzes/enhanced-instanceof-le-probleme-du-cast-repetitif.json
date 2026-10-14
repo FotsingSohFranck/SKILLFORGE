@@ -1,0 +1,41 @@
+{
+  "ref": "enhanced-instanceof-le-probleme-du-cast-repetitif",
+  "node": "enhanced-instanceof",
+  "lesson": "le-probleme-du-cast-repetitif",
+  "title": "Quiz : le problème du cast répétitif",
+  "description": "L'ancien schéma test puis transtypage et ses défauts.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait l'opérateur instanceof ?",
+      "justification": "instanceof teste si un objet est d'un type donné et renvoie vrai ou faux ; il ne le transtype pas tout seul dans le Java classique.",
+      "position": 0,
+      "options": [
+        { "label": "Il vérifie si un objet est d'un type donné et renvoie vrai ou faux", "correct": true, "position": 0 },
+        { "label": "Il transforme définitivement l'objet en un autre type", "correct": false, "position": 1 },
+        { "label": "Il crée un nouvel objet du type demandé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans le code if (o instanceof String) { String s = (String) o; ... }, à quoi sert (String) o ?",
+      "justification": "(String) o est un transtypage (cast) : il dit au compilateur de traiter o comme une String pour pouvoir utiliser ses méthodes. C'est cette redite que le pattern matching supprime.",
+      "position": 1,
+      "options": [
+        { "label": "C'est un transtypage qui dit de traiter o comme une String", "correct": true, "position": 0 },
+        { "label": "C'est un second test de type, plus strict que instanceof", "correct": false, "position": 1 },
+        { "label": "Cela copie o dans une nouvelle zone mémoire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans l'ancien schéma, le type est écrit deux fois : une fois dans le test instanceof et une fois dans le cast.",
+      "justification": "C'est exactement la répétition pointée du doigt : le type apparait dans instanceof String et dans (String) o, ce qui est redondant et source d'erreurs.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

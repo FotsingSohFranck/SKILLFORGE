@@ -1,0 +1,96 @@
+{
+  "ref": "ksm-events-otel-expert",
+  "node": "observability",
+  "lesson": "kube-state-metrics-events-otel",
+  "title": "kube-state-metrics, events & OTel, expert",
+  "description": "metrics-server vs KSM, Events fugaces, OpenTelemetry Collector/corrélation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre metrics-server et kube-state-metrics ?",
+      "justification": "metrics-server = consommation CPU/mémoire (top, HPA) ; kube-state-metrics = état des objets (répliques, phases, PVC, Jobs...).",
+      "position": 0,
+      "options": [
+        {
+          "label": "metrics-server = consommation, KSM = état des objets",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux noms du même composant",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "KSM = consommation, metrics-server = état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant alimente une alerte « répliques prêtes < désirées » ?",
+      "justification": "kube-state-metrics expose l'état des Deployments (désiré vs disponible), scrapé par Prometheus pour l'alerting.",
+      "position": 1,
+      "options": [
+        {
+          "label": "kube-state-metrics",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "metrics-server",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcd",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel piège concernant les Events Kubernetes ?",
+      "justification": "Ils ont une rétention courte (≈1h) et disparaissent ; en prod on les exporte pour ne pas perdre ces signaux après coup.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Rétention courte : ils disparaissent, il faut les exporter",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont chiffrés et illisibles",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ils remplacent les logs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "OpenTelemetry unifie logs, métriques et traces (une API + un Collector) et permet la corrélation via un contexte commun (trace id).",
+      "justification": "Vrai : instrumenter une fois, router partout, et passer d'une alerte à la trace puis aux logs du pod concerné.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

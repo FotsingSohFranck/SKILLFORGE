@@ -1,0 +1,63 @@
+{
+  "ref": "container-networking-check",
+  "node": "container-networking",
+  "lesson": "ports-isolation-segmentation",
+  "title": "Réseau des conteneurs",
+  "description": "Drivers, DNS par nom, EXPOSE vs publier, segmentation, overlay.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur un réseau Docker personnalisé, comment un conteneur en atteint-il un autre de façon fiable ?",
+      "justification": "Par le nom du service/conteneur, résolu par le DNS interne de Docker : l'IP change à chaque recréation, pas le nom.",
+      "position": 0,
+      "options": [
+        { "label": "Par son nom de service (résolution DNS interne)", "correct": true, "position": 0 },
+        { "label": "Par son adresse IP codée en dur", "correct": false, "position": 1 },
+        { "label": "Par son numéro de PID", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre EXPOSE (Dockerfile) et publier un port (-p) ?",
+      "justification": "EXPOSE est purement documentaire ; -p crée réellement le pont vers l'hôte et rend le service joignable de l'extérieur.",
+      "position": 1,
+      "options": [
+        { "label": "EXPOSE documente, -p ouvre réellement le port vers l'hôte", "correct": true, "position": 0 },
+        { "label": "EXPOSE ouvre le port, -p le documente", "correct": false, "position": 1 },
+        { "label": "Ce sont deux syntaxes équivalentes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne PAS publier le port de la base de données quand seule l'API l'utilise ?",
+      "justification": "Publier expose la base sur l'hôte (surface d'attaque) ; l'API l'atteint via le réseau interne, la base doit rester injoignable de l'extérieur.",
+      "position": 2,
+      "options": [
+        { "label": "Cela expose la base à l'extérieur inutilement (risque de sécurité)", "correct": true, "position": 0 },
+        { "label": "Cela ralentit la base", "correct": false, "position": 1 },
+        { "label": "Cela empêche l'API de s'y connecter", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel driver réseau permet à des conteneurs sur des hôtes différents de communiquer ?",
+      "justification": "Le driver overlay crée un réseau virtuel par-dessus le réseau physique (multi-hôtes), utilisé par Swarm/Kubernetes.",
+      "position": 3,
+      "options": [
+        { "label": "overlay", "correct": true, "position": 0 },
+        { "label": "none", "correct": false, "position": 1 },
+        { "label": "bridge (limité à un seul hôte)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Deux conteneurs sur le même réseau Docker peuvent communiquer sans qu'aucun port ne soit publié vers l'hôte.",
+      "justification": "Vrai : la communication interne au réseau ne nécessite pas -p ; on ne publie que ce qui doit être accessible depuis l'extérieur.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

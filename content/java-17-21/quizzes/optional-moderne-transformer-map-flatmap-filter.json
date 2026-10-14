@@ -1,0 +1,41 @@
+{
+  "ref": "optional-moderne-transformer-map-flatmap-filter",
+  "node": "optional-moderne",
+  "lesson": "transformer-map-flatmap-filter",
+  "title": "Quiz : transformer map, flatMap, filter",
+  "description": "map pour transformer, flatMap pour aplatir, filter pour garder sous condition.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Ta transformation renvoie elle même un Optional. Quelle méthode évite d'obtenir un Optional dans un Optional ?",
+      "justification": "flatMap applique la transformation et aplatit le résultat en une seule boite. map, lui, produirait un Optional<Optional<...>>.",
+      "position": 0,
+      "options": [
+        { "label": "flatMap", "correct": true, "position": 0 },
+        { "label": "map", "correct": false, "position": 1 },
+        { "label": "filter", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait map sur un Optional vide ?",
+      "justification": "Sur une boite vide, map ne fait rien et renvoie une boite vide : aucune transformation, aucun NullPointerException.",
+      "position": 1,
+      "options": [
+        { "label": "Rien : il renvoie une boite vide", "correct": true, "position": 0 },
+        { "label": "Il lève un NullPointerException", "correct": false, "position": 1 },
+        { "label": "Il applique quand même la transformation à null", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "filter garde la valeur seulement si elle respecte la condition, sinon la boite devient vide.",
+      "justification": "Vrai : si la valeur présente échoue au test, filter renvoie une boite vide ; si elle passe, la boite pleine est conservée.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

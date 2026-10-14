@@ -1,0 +1,96 @@
+{
+  "slug": "backend-performance",
+  "title": "Backend Performance",
+  "summary": "Mesurer, trouver les goulots et optimiser sans deviner : base de données, I/O, cache et charge.",
+  "kind": "TRACK",
+  "position": 8,
+  "phases": [
+    { "title": "Mesurer", "position": 0 },
+    { "title": "Base de données", "position": 1 },
+    { "title": "Application & I/O", "position": 2 },
+    { "title": "Charge & résilience", "position": 3 }
+  ],
+  "nodes": [
+    {
+      "slug": "measure-first",
+      "title": "Mesurer d'abord",
+      "summary": "Latence, percentiles, débit : optimiser le prouvé, pas l'imaginé.",
+      "phase": "Mesurer",
+      "importance": "CORE",
+      "estimatedMinutes": 50,
+      "position": 0
+    },
+    {
+      "slug": "profiling",
+      "title": "Profiling & métriques",
+      "summary": "Trouver où le temps part réellement.",
+      "phase": "Mesurer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "db-indexes",
+      "title": "Index & plans d'exécution",
+      "summary": "Le premier levier, presque toujours.",
+      "phase": "Base de données",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 0
+    },
+    {
+      "slug": "n-plus-one",
+      "title": "Le problème N+1",
+      "summary": "Le goulot silencieux qui empire avec les données.",
+      "phase": "Base de données",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "caching-perf",
+      "title": "Cache et performance",
+      "summary": "Servir le chaud sans retaper la base.",
+      "phase": "Application & I/O",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "async-reactive",
+      "title": "Asynchrone & réactif",
+      "summary": "Tenir la charge en libérant les threads.",
+      "phase": "Application & I/O",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 75,
+      "position": 1
+    },
+    {
+      "slug": "pooling",
+      "title": "Pools de connexions & threads",
+      "summary": "Réutiliser au lieu de recréer.",
+      "phase": "Charge & résilience",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "load-resilience",
+      "title": "Charge & résilience",
+      "summary": "Timeouts, backpressure, tests de charge.",
+      "phase": "Charge & résilience",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 60,
+      "position": 1
+    }
+  ],
+  "edges": [
+    { "source": "measure-first", "target": "profiling", "kind": "PREREQ" },
+    { "source": "measure-first", "target": "db-indexes", "kind": "PREREQ" },
+    { "source": "db-indexes", "target": "n-plus-one", "kind": "PREREQ" },
+    { "source": "n-plus-one", "target": "caching-perf", "kind": "PREREQ" },
+    { "source": "measure-first", "target": "async-reactive", "kind": "PREREQ" },
+    { "source": "async-reactive", "target": "pooling", "kind": "PREREQ" },
+    { "source": "pooling", "target": "load-resilience", "kind": "PREREQ" }
+  ]
+}

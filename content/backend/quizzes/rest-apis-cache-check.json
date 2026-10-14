@@ -1,0 +1,53 @@
+{
+  "ref": "rest-apis-cache-check",
+  "node": "rest-apis",
+  "lesson": "cache-http-conditionnel",
+  "title": "Quiz : Cache HTTP & requêtes conditionnelles",
+  "description": "ETag, 304, Cache-Control et écritures conditionnelles.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Le client envoie If-None-Match avec l'ETag qu'il possède, et rien n'a changé. Que renvoie le serveur ?",
+      "justification": "304 Not Modified, sans corps : le client réutilise sa copie locale, ce qui économise bande passante et latence.",
+      "position": 0,
+      "options": [
+        { "label": "304 Not Modified, sans corps", "correct": true, "position": 0 },
+        { "label": "200 OK avec la représentation complète", "correct": false, "position": 1 },
+        { "label": "412 Precondition Failed", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un ETag ?",
+      "justification": "L'ETag est une empreinte de la représentation : si le contenu change, l'empreinte change. Il permet les requêtes conditionnelles (lecture et écriture).",
+      "position": 1,
+      "options": [
+        { "label": "Une empreinte de la représentation, pour détecter un changement", "correct": true, "position": 0 },
+        { "label": "Un identifiant de session utilisateur", "correct": false, "position": 1 },
+        { "label": "La durée de vie du cache en secondes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle directive Cache-Control pour une donnée sensible qui ne doit jamais être mise en cache ?",
+      "justification": "no-store interdit toute copie. public autoriserait proxies et CDN à cacher (fuite de données) ; max-age fixerait au contraire une durée de fraîcheur.",
+      "position": 2,
+      "options": [
+        { "label": "no-store", "correct": true, "position": 0 },
+        { "label": "public, max-age=3600", "correct": false, "position": 1 },
+        { "label": "max-age=60", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Deux clients éditent la même ressource ; le second écrase le premier sans le savoir (lost update). Quel mécanisme HTTP l'empêche ?",
+      "justification": "L'écriture conditionnelle If-Match : si l'ETag envoyé est périmé, le serveur répond 412 Precondition Failed au lieu d'écraser. C'est le verrou optimiste au niveau HTTP.",
+      "position": 3,
+      "options": [
+        { "label": "If-Match sur le PUT/PATCH, avec réponse 412 si l'ETag est périmé", "correct": true, "position": 0 },
+        { "label": "Cache-Control: no-store sur les lectures", "correct": false, "position": 1 },
+        { "label": "Renvoyer 429 Too Many Requests", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "hcl-basics",
+  "lesson": "quest-ce-que-hcl",
+  "title": "Écrire ton premier bloc de ressource",
+  "statement": "Écris un bloc HCL qui décrit une ressource de type `aws_instance` nommée `web`. Elle doit avoir un argument `instance_type` valant `\"t3.micro\"`, et un argument `tags` (une map) contenant une clé `Name`. Pour cette clé `Name`, utilise l'**interpolation** afin que la valeur soit `\"serveur-\"` suivi de la valeur de la variable `var.env` (par exemple `serveur-prod`).",
+  "skeleton": "resource \"aws_instance\" \"web\" {\n  instance_type = \n\n  tags = {\n    Name = \n  }\n}",
+  "solution": "resource \"aws_instance\" \"web\" {\n  instance_type = \"t3.micro\"\n\n  tags = {\n    Name = \"serveur-${var.env}\"\n  }\n}",
+  "keyPoints": ["resource \"aws_instance\" \"web\"", "instance_type = \"t3.micro\"", "tags", "Name", "${var.env}"],
+  "language": "hcl"
+}

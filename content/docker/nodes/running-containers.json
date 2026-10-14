@@ -1,0 +1,180 @@
+{
+  "node": "running-containers",
+  "lessons": [
+    {
+      "slug": "run-en-profondeur",
+      "title": "docker run en profondeur",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Au-delà des bases",
+          "body": "Petit rappel avant d'aller plus loin. Une **image** est un modèle figé qui contient ton application et tout ce qu'il lui faut pour tourner (un gabarit, en lecture seule). Un **conteneur**, c'est cette image **en train de s'exécuter** : une instance vivante, isolée du reste de la machine.\n\n👉 **Analogie** : l'image est la **recette de cuisine** (le document écrit), le conteneur est le **plat** que tu prépares à partir de cette recette. Avec une seule recette, tu peux cuisiner plein de plats identiques.\n\nLa commande **`docker run`** part d'une image et démarre un conteneur. On l'a vue dans sa forme la plus simple ; en vrai, on lui ajoute des **options** qui décrivent **comment** le conteneur doit tourner. Les plus utiles :\n- **`-d`** (*detached*, « détaché ») : lance le conteneur **en arrière-plan**, il tourne sans bloquer ton terminal. Exemple : un serveur web qu'on laisse tourner.\n- **`-it`** : ouvre une session **interactive** avec un **shell** (le programme qui lit les commandes que tu tapes) à l'intérieur du conteneur. Exemple : `docker run -it alpine sh` te donne une invite pour taper des commandes dedans.\n- **`--rm`** : **supprime** automatiquement le conteneur dès qu'il s'arrête (pratique pour un test jetable, ça ne laisse rien traîner).\n- **`-e`** ou **`--env-file`** : passe des **variables d'environnement** (des réglages, comme une URL ou un mot de passe) au conteneur, sans les écrire dans l'image.\n- **`-p`** (*publish*, « publier ») : ouvre un **port** pour joindre le conteneur depuis l'extérieur (par ex. `-p 8080:8080`).\n- **`-v`** : **monte un volume**, un espace de stockage qui **survit** à la suppression du conteneur (pour ne pas perdre les données).\n- **`--network`** : rattache le conteneur à un **réseau** pour qu'il parle à d'autres conteneurs.\n\nUne ligne `docker run` complète peut vite devenir **très longue** et pénible à retaper. C'est exactement le problème que **Docker Compose** (leçon suivante) résout en écrivant tout cela une fois pour toutes dans un fichier."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Un run réaliste",
+          "codeLanguage": "bash",
+          "body": "docker run -d \\\n  --name api \\\n  --env-file .env \\                # charger un fichier de variables\n  -p 8080:8080 \\\n  -v app-data:/var/lib/app \\        # volume nommé pour persister\n  --restart unless-stopped \\        # politique de redémarrage\n  --memory=512m --cpus=1 \\          # limites de ressources (cgroups)\n  monorg/api:1.4.0\n\n# Shell interactif dans une image, jetable\ndocker run -it --rm alpine sh"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Politiques de redémarrage",
+          "body": "Un conteneur n'est pas éternel : son programme peut **planter** (s'arrêter sur une erreur), ou la machine qui l'héberge (l'**hôte**) peut redémarrer. Que doit faire Docker dans ces cas ? C'est la **politique de redémarrage** (en anglais *restart policy*) qui le décide, via l'option **`--restart`**.\n\n👉 **Analogie** : c'est comme régler le **redémarrage automatique** d'un appareil après une coupure de courant. Certains appareils se rallument tout seuls, d'autres restent éteints : à toi de choisir le comportement.\n\nLes quatre choix possibles :\n- **`no`** (le défaut) : **jamais** de redémarrage automatique. Si le conteneur s'arrête, il reste arrêté.\n- **`on-failure`** : redémarre **seulement en cas d'erreur** (quand le programme se termine sur un code de sortie non nul, signe d'un plantage), avec un nombre maximal d'essais. Utile pour une tâche qui doit réussir.\n- **`always`** : redémarre **toujours**, y compris après un redémarrage de l'hôte, et même si tu l'avais arrêté toi-même.\n- **`unless-stopped`** : comme `always`, **sauf** si tu as arrêté le conteneur **volontairement** (avec `docker stop`). Dans ce cas, Docker respecte ta décision et ne le relance pas.\n\nPour un service qui doit **rester disponible** (une API, une base), `unless-stopped` est le choix courant : il survit aux plantages et aux redémarrages machine, tout en respectant un arrêt manuel que tu fais pour, disons, une maintenance. Exemple concret : `docker run -d --restart unless-stopped monorg/api:1.4.0`."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un service en conteneur doit redémarrer automatiquement s'il plante et même après un redémarrage du serveur, mais ne pas relancer si un opérateur l'a arrêté volontairement pour maintenance. Quelle restart policy choisir ?",
+          "solution": "`--restart unless-stopped`. Elle redémarre le conteneur automatiquement en cas de crash ET au redémarrage de l'hôte (comme `always`), garantissant la disponibilité. Mais, contrairement à `always`, elle NE relance PAS un conteneur qui a été arrêté manuellement (docker stop) : l'arrêt volontaire pour maintenance est respecté. C'est le bon compromis pour un service de production : résilient aux pannes, mais qui n'ignore pas les décisions de l'opérateur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, docker run en profondeur",
+          "quizRef": "running-containers-run-check"
+        }
+      ]
+    },
+    {
+      "slug": "docker-compose",
+      "title": "Docker Compose : orchestrer un stack",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Décrire un stack en YAML",
+          "body": "Une vraie application, ce n'est presque jamais **un seul** conteneur. C'est souvent : l'application elle-même, une **base de données**, un **cache** (une mémoire rapide qui évite de recalculer sans arrêt les mêmes choses), parfois un **reverse proxy** (un portier qui reçoit les requêtes et les distribue au bon service). Cet ensemble de conteneurs qui forment **une** application, on l'appelle un **stack** (une « pile » de services).\n\nLes lancer un par un avec de longues commandes `docker run`, dans le bon ordre, est **pénible** et surtout **non reproductible** : le lendemain, tu ne te souviens plus des options exactes.\n\n**Docker Compose** règle cela. C'est un outil qui décrit **tout le stack dans un seul fichier texte** nommé **`compose.yaml`**. Ce fichier est écrit en **YAML** (un format de texte pensé pour être **lu par un humain** : on y structure l'information avec de l'**indentation**, c'est-à-dire des décalages faits d'espaces, plutôt qu'avec des accolades). Dans ce fichier, chaque conteneur devient un **service** que tu décris une fois : quelle **image**, quels **ports**, quelles **variables**, quels **volumes**, de quoi il dépend.\n\n👉 **Analogie** : répéter `docker run`, c'est **cuisiner de tête** en refaisant les proportions à chaque fois. `compose.yaml`, c'est la **recette écrite** : n'importe qui la relance à l'identique, sans se tromper.\n\nEnsuite, deux commandes suffisent :\n- **`docker compose up`** : démarre **tout le stack**, relié, en une fois.\n- **`docker compose down`** : **arrête** et nettoie l'ensemble.\n\nC'est la façon standard de lancer un environnement multi-services en local (c'est exactement ce que fait cette plateforme avec sa base PostgreSQL, son backend et son frontend)."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Un compose.yaml multi-services",
+          "codeLanguage": "yaml",
+          "body": "services:\n  api:\n    build: .                     # construire depuis le Dockerfile local\n    ports: [\"8080:8080\"]\n    environment:\n      DATABASE_URL: r2dbc:postgresql://db:5432/app\n    depends_on:\n      db:\n        condition: service_healthy   # attendre que db soit prête\n\n  db:\n    image: postgres:18\n    environment:\n      POSTGRES_PASSWORD: secret\n    volumes: [\"pgdata:/var/lib/postgresql/data\"]   # persister les données\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]\n      interval: 5s\n      retries: 5\n\nvolumes:\n  pgdata:"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Réseau et dépendances gérés pour vous",
+          "body": "Quand tu lances un stack avec Compose, deux choses compliquées sont gérées **automatiquement** pour toi.\n\n**1. Le réseau.** Pour que deux conteneurs se parlent, il leur faut un **réseau** commun (un canal de communication privé). Compose en crée un tout seul pour le stack et, mieux, chaque service y est joignable par son **nom**. Concrètement, le service `api` atteint la base en écrivant simplement `db` comme adresse, sans avoir à connaître une **adresse IP** (le numéro qui identifie une machine sur un réseau, du genre `172.18.0.3`, et qui change à chaque redémarrage). 👉 **Analogie** : au lieu de retenir le **numéro de téléphone** de chacun (l'IP), tu appelles les gens par leur **prénom** (le nom du service), et Compose tient l'annuaire.\n\n**2. L'ordre de démarrage.** Souvent, un service en a besoin d'un autre : l'API ne sert à rien si la base n'est pas là. Le mot-clé **`depends_on`** dit à Compose « démarre `db` **avant** `api` ». Mais attention à un piège très fréquent : « démarré » ne veut pas dire « **prêt** ». Une base de données peut avoir son processus lancé tout en étant encore en train de s'initialiser, donc **incapable d'accepter des connexions**.\n\nC'est là qu'intervient le **healthcheck** (« test de santé ») : une petite commande que Docker répète régulièrement pour vérifier qu'un service est **vraiment opérationnel** (par exemple `pg_isready`, qui demande à Postgres « es-tu prêt ? »). En combinant `depends_on` avec `condition: service_healthy`, Compose **attend** que la base soit réellement prête avant de démarrer l'API.\n\n👉 **Analogie** : `depends_on` seul, c'est allumer le four avant d'enfourner le plat. Le `healthcheck`, c'est **attendre le bip** qui confirme que le four est à température. Sans lui, tu enfournes trop tôt (l'API se connecte avant que la base réponde, d'où l'erreur classique `connection refused`)."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Ce que Compose met en place pour toi",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  dev([\"Toi (developpeur)\"]) -->|\"docker compose up\"| api\n  user([\"Navigateur\"]) -->|\"localhost:8080\"| api\n  subgraph net[\"Reseau prive cree par Compose\"]\n    api[\"service : api<br/>port 8080\"] -->|\"adresse : db\"| db[\"service : db<br/>postgres:18\"]\n  end\n  db --> vol[(\"volume pgdata<br/>donnees persistees\")]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Dans un stack Compose, l'API démarre mais échoue avec « connection refused » vers la base, alors que la base est déclarée avec `depends_on`. Pourquoi, et comment corriger ?",
+          "solution": "`depends_on` sans condition ne garantit que l'ORDRE de démarrage (démarrer db avant api), pas que db soit PRÊTE : le conteneur postgres peut être « démarré » (processus lancé) mais pas encore prêt à accepter des connexions (initialisation en cours). L'API tente de se connecter trop tôt → connection refused. Correction : ajouter un healthcheck sur le service db et utiliser `depends_on: { db: { condition: service_healthy } }` pour que Compose attende que la base soit réellement prête avant de démarrer l'API. Alternative complémentaire : rendre l'API résiliente au démarrage (retry de connexion), car en production réelle la base peut aussi tomber en cours de route."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Docker Compose",
+          "quizRef": "running-containers-compose-check"
+        }
+      ]
+    },
+    {
+      "slug": "options-runtime-durcissement",
+      "title": "Options de runtime & durcissement",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Healthcheck : savoir si l'app est vraiment prête",
+          "body": "Un conteneur affiché comme **`running`** (« en cours d'exécution ») n'est pas forcément **fonctionnel**. Le processus tourne, oui, mais l'application peut être **en train de démarrer**, **bloquée**, ou incapable de joindre sa base de données. « Le processus vit » et « le service répond » sont deux choses différentes.\n\nUn **healthcheck** (« test de santé ») comble cet écart : c'est une **commande que Docker exécute périodiquement** à l'intérieur du conteneur pour juger s'il va bien. Par exemple `curl` (un outil qui interroge une adresse web) sur un *endpoint de santé* (une adresse spéciale de l'app qui répond « je vais bien »), ou `pg_isready` pour une base Postgres. Selon le résultat, Docker marque le conteneur **`healthy`** (« en bonne santé ») ou **`unhealthy`** (« défaillant »).\n\n👉 **Analogie** : c'est le **pouls** qu'on prend à intervalles réguliers. Le patient est peut-être allongé tranquillement (le conteneur est « running »), mais seul le pouls confirme qu'il va **réellement** bien.\n\nÀ quoi cela sert-il concrètement ? À deux choses : Compose peut **attendre** qu'un service soit `healthy` avant d'en démarrer un autre (on l'a vu), et un **orchestrateur** (un chef d'orchestre de conteneurs, comme Kubernetes) peut **retirer ou redémarrer** automatiquement un conteneur `unhealthy`. Sans healthcheck, on risque d'**envoyer du trafic** vers une application pas encore prête, et les utilisateurs voient des erreurs."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Limites de ressources & isolation",
+          "body": "Par défaut, un conteneur peut consommer **toute** la mémoire et tout le processeur de la machine. Problème : si l'un s'emballe, il **affame** les autres. On appelle cela le *noisy neighbor* (le « voisin bruyant » qui monopolise les ressources de l'immeuble).\n\nPour éviter ça, on **borne** ce qu'un conteneur a le droit de prendre, avec deux options :\n- **`--memory`** : la mémoire (RAM) maximale, par ex. `--memory=512m` pour 512 mégaoctets.\n- **`--cpus`** : la puissance processeur maximale, par ex. `--cpus=1` pour l'équivalent d'un cœur.\n\nEn coulisses, c'est une fonctionnalité du noyau Linux nommée **cgroups** (*control groups*, « groupes de contrôle ») qui applique ces limites. 👉 **Analogie** : les cgroups sont le **compteur d'eau et d'électricité** de chaque appartement : chacun a son quota, personne ne peut vider le château d'eau de tout l'immeuble.\n\nAttention à une conséquence : si un conteneur **dépasse** sa limite mémoire, le noyau le tue brutalement. Dans les logs, tu verras le statut **`OOMKilled`** (*Out Of Memory Killed*, « tué pour dépassement mémoire »). C'est un signal clair qu'il faut augmenter la limite ou corriger une fuite de mémoire.\n\nAu-delà des limites, on peut **durcir** (rendre plus résistante aux attaques) l'exécution d'un conteneur :\n- **`--read-only`** : rend le **système de fichiers racine en lecture seule**, donc un attaquant ne peut rien y écrire. Les écritures légitimes doivent alors passer par des volumes explicites.\n- **`--cap-drop ALL`** : retire toutes les **capabilities** Linux. Une *capability* est une **mini-permission** du noyau (le droit d'ouvrir un port réservé, de changer l'horloge du système...). En les retirant, on ne laisse au conteneur que le strict nécessaire.\n- **`--security-opt no-new-privileges`** : empêche un processus de **gagner plus de droits** qu'il n'en avait au démarrage.\n\nTout cela réduit la **surface d'attaque** (l'ensemble des points par lesquels un pirate pourrait entrer) **sans** modifier l'image elle-même : ce sont des réglages au lancement."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un conteneur durci au runtime",
+          "codeLanguage": "bash",
+          "body": "docker run -d \\\n  --name api \\\n  --read-only \\                         # FS racine en lecture seule\n  --tmpfs /tmp \\                         # sauf /tmp (écritures temporaires)\n  --cap-drop ALL \\                       # retirer toutes les capabilities\n  --security-opt no-new-privileges \\    # pas d'élévation de privilèges\n  --memory=512m --cpus=1 \\\n  --user 10001 \\                        # non-root\n  monorg/api:1.4.0"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "La config vient de l'extérieur (niveau expert)",
+          "body": "Voici le principe directeur de l'exécution : **le conteneur est immuable, la configuration vient de l'extérieur**. « **Immuable** » veut dire qu'on ne modifie **jamais** une image après l'avoir construite : elle est figée, comme un CD gravé.\n\nConséquence : on ne construit **pas** une image différente par environnement (une pour le dev, une pour la prod...). On construit **une seule** image, et on lui **injecte** la configuration **au moment du lancement** :\n- les réglages simples (URLs, options) via des **variables d'environnement** (`-e`, `--env-file`) ;\n- les fichiers (config, certificats) via des **montages** (`-v`) ;\n- les **secrets** (mots de passe, clés) montés en lecture seule, **jamais** écrits en dur dans l'image.\n\n👉 **Analogie** : l'image est une **console de jeu**, identique pour tout le monde ; la config, c'est la **carte mémoire** qu'on insère, différente pour chaque joueur. On ne fabrique pas une console par joueur, on change la carte.\n\nPourquoi est-ce capital ? Parce que la **même image** exactement, testée en *staging* (l'environnement de pré-production qui imite la prod), est celle qui tourne en **production**. Rien ne change entre les deux, à part la config injectée. Tu as ainsi la garantie que **ce qui a été testé est ce qui tourne**. Cette règle « construire une fois, déployer partout, config par l'environnement » est l'un des principes du **12-factor** (une liste reconnue de bonnes pratiques pour les applications modernes).\n\nEn résumé : les options de runtime (ports, ressources, réseau, montages, durcissement) décrivent le **comment tourner**, distinct du **quoi exécuter**, qui est figé dans l'image."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une équipe construit trois images distinctes de la même application, une pour dev, une pour staging, une pour prod, chacune avec ses URLs et mots de passe « en dur » dedans. Quel principe est violé et quelle est la bonne approche ?",
+          "solution": "Le principe violé est « build once, deploy many » / la config par l'environnement (12-factor). Construire une image par environnement casse la reproductibilité : l'image de prod n'est pas exactement celle testée en staging (contenus différents), et des secrets sont figés dans les images (faille). Bonne approche : construire UNE seule image immuable, sans config ni secret dedans, et injecter les différences au RUNTIME, URLs et réglages via variables d'environnement (`--env-file` par environnement), secrets via montage/gestionnaire de secrets. La même image circule de dev à prod ; seule la configuration injectée au lancement change. C'est plus sûr (pas de secret dans l'image) et garantit que ce qui est testé est ce qui tourne."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Exécuter des conteneurs",
+          "quizRef": "running-containers-check"
+        }
+      ]
+    },
+    {
+      "slug": "compose-avance-et-pid1",
+      "title": "Compose avancé & le problème de PID 1",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Profiles : activer des services à la demande",
+          "body": "À force d'ajouter des outils annexes (une interface d'admin pour la base, un service qui remplit la base de données de démo, du monitoring), ton `compose.yaml` **grossit**, et tu ne veux pas **tout** lancer à chaque `docker compose up`. Les **profiles** (« profils ») règlent ce problème.\n\nLe principe : tu **étiquettes** un service avec un ou plusieurs profils. Un service étiqueté ne démarre **que si** son profil est **activé**. 👉 **Analogie** : c'est un **menu à la carte**. Le plat principal (le cœur de l'appli) arrive toujours ; les suppléments (les outils) ne viennent que si tu les **commandes** explicitement.\n\nEn pratique, un service marqué `profiles: [\"tools\"]` reste au repos quand tu lances `docker compose up` normalement. Il ne démarre que si tu actives le profil, avec `docker compose --profile tools up` (ou en réglant la variable d'environnement `COMPOSE_PROFILES`).\n\nRésultat : le stack de base reste **léger et rapide**, et tu actives à la demande les extras (un **pgAdmin** pour inspecter la base, un **mailhog** pour capturer les e-mails de test, un service de tests). C'est la façon propre de faire **cohabiter, dans un seul fichier**, le cœur de l'application et l'outillage optionnel."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Profiles, override & interpolation .env",
+          "codeLanguage": "yaml",
+          "body": "# compose.yaml\nservices:\n  api:\n    image: monorg/api:${API_VERSION:-latest}   # interpolation depuis .env, défaut latest\n    ports: [\"${API_PORT:-8080}:8080\"]\n  pgadmin:\n    image: dpage/pgadmin4\n    profiles: [\"tools\"]        # démarre seulement avec --profile tools\n\n# Docker fusionne AUTOMATIQUEMENT compose.yaml + compose.override.yaml\n# -> l'override sert au dev (bind mounts, ports de debug) sans toucher au fichier de base\ndocker compose up                     # api seule (+ override dev)\ndocker compose --profile tools up     # api + pgadmin"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "override, extends & compose watch",
+          "body": "Trois mécanismes permettent de **composer** ta configuration au lieu de tout entasser dans un seul gros fichier.\n\n**1. `compose.override.yaml`.** Si un fichier portant ce nom existe à côté de `compose.yaml`, Docker le **fusionne automatiquement** par-dessus. C'est le motif standard pour ajouter les réglages de **développement** (par ex. un **bind mount**, c'est-à-dire un montage qui relie directement un dossier de ton disque à l'intérieur du conteneur, pour voir tes changements de code en direct, plus des ports de debug) **sans toucher** au fichier de base. En production, on ne prend pas l'override : on écrit `docker compose -f compose.yaml -f compose.prod.yaml up` pour empiler la config de prod.\n\n👉 **Analogie** : `compose.yaml` est le **contrat type**, l'override est l'**avenant** qui ajuste quelques clauses pour ton cas, sans réécrire tout le contrat.\n\n**2. `extends`.** Ce mot-clé **réutilise** la définition d'un service écrite ailleurs, pour ne pas la répéter (le principe « ne te répète pas »).\n\n**3. `docker compose watch`.** Cette commande récente **surveille** tes fichiers et, dès que tu modifies du code, **synchronise** le conteneur ou le **reconstruit** à la volée (réglé par `develop.watch` avec les actions `sync` ou `rebuild`). C'est le *hot reload* (« rechargement à chaud » : voir ses modifications appliquées sans tout relancer à la main), une alternative moderne au bind mount, mieux intégrée.\n\nEnsemble, ces trois outils rendent **un même projet** exploitable proprement en **dev** et en **prod**, sans dupliquer sa configuration."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "PID 1 & les processus zombies (niveau expert)",
+          "body": "Voici un détail technique aux grandes conséquences. Dans un système Linux, le tout premier processus lancé porte le numéro **1** : on l'appelle **PID 1** (*Process IDentifier 1*, l'« identifiant de processus numéro 1 »). C'est un rôle **spécial** aux yeux du noyau. Dans un conteneur, c'est **ton application** qui se retrouve à cette place de PID 1.\n\nOr PID 1 a un **devoir** particulier : **récolter les processus zombies**. Explication : quand un processus enfant se termine, il ne disparaît pas tout de suite ; il devient un **zombie** (un processus « défunt » qui attend juste que quelqu'un lise son **code de sortie**, c'est-à-dire son résultat). Ce ménage s'appelle *reap* (« moissonner ») et incombe à PID 1. 👉 **Analogie** : PID 1 est le **fossoyeur** du conteneur ; si personne n'enterre les défunts, les corps (les zombies) **s'accumulent** et finissent par saturer la **table des processus** du système.\n\nLe hic : la plupart des applications **n'ont pas été écrites** pour être PID 1, donc elles ne moissonnent pas les zombies. Pire, si PID 1 est un **shell** (un interpréteur de commandes), il ne **transmet pas les signaux** à ses enfants. Concrètement, quand tu fais `docker stop`, Docker envoie un signal poli **`SIGTERM`** (« termine-toi proprement ») ; s'il n'est pas relayé, tes vrais processus ne le reçoivent pas et sont **tués brutalement** (`SIGKILL`) après un délai, sans arrêt gracieux.\n\nLa parade est simple : glisser un **init léger**, un vrai PID 1 minimal dont c'est justement le métier. Docker le fournit avec l'option **`--init`** (ou l'outil **`tini`**, ou `init: true` dans un service Compose). Cet init **moissonne** les zombies **et** **propage** les signaux aux enfants, réglant les deux problèmes d'un coup. À activer dès qu'un conteneur lance des **sous-processus**."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un conteneur qui lance plusieurs sous-processus voit, au fil du temps, des processus « défunts » (zombies) s'accumuler, et son application ne s'arrête pas proprement sur `docker stop`. Quelle est la cause liée à PID 1, et quelle solution simple ?",
+          "solution": "La cause est le rôle particulier de PID 1 dans un conteneur, mal assumé par l'application. (1) Zombies : quand un processus enfant se termine, il devient « zombie » jusqu'à ce que son parent lise son code de sortie (reap). Ce devoir revient normalement à PID 1 (l'init du système), mais l'application lancée comme PID 1 n'a souvent pas été conçue pour reaper les enfants orphelins → les zombies s'accumulent. (2) Arrêt non gracieux : si PID 1 est un shell ou un process qui ne propage pas les signaux, le SIGTERM de `docker stop` n'atteint pas les vrais processus de travail, qui sont donc tués brutalement (SIGKILL après le délai). Solution simple : ajouter un init léger qui joue correctement le rôle de PID 1, l'option `--init` de `docker run` (ou `init: true` dans le service Compose, ou embarquer `tini` comme entrypoint). Cet init minimal reap les zombies et transmet les signaux aux enfants, réglant les deux problèmes d'un coup. À activer systématiquement dès qu'un conteneur lance des sous-processus."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Compose avancé & PID 1 (expert)",
+          "quizRef": "compose-advanced-pid1-expert"
+        }
+      ]
+    }
+  ]
+}

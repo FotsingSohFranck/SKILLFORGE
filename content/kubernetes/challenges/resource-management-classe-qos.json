@@ -1,0 +1,10 @@
+{
+  "node": "resource-management",
+  "lesson": "qos-quotas-limitrange",
+  "title": "Déterminer la classe QoS et l'ordre d'éviction",
+  "statement": "Trois pods tournent sur le même nœud :\n- **Pod A** : requests `cpu:500m, memory:512Mi` ET limits `cpu:500m, memory:512Mi` (requests = limits).\n- **Pod B** : requests `cpu:250m, memory:256Mi` mais limits `cpu:1, memory:512Mi` (requests < limits).\n- **Pod C** : aucune request, aucune limit.\n\nDonne la **classe QoS** de chaque pod, puis indique **dans quel ordre** ils seraient évincés si le nœud vient à manquer de mémoire. Justifie brièvement.",
+  "skeleton": "Pod A : classe QoS = ...\nPod B : classe QoS = ...\nPod C : classe QoS = ...\n\nOrdre d'éviction (du premier sacrifié au dernier) : ...\nPourquoi : ...\n",
+  "solution": "Pod A = Guaranteed (requests = limits sur toutes les ressources) : la classe la plus protégée, évincée en dernier. Pod B = Burstable (il a des requests, mais inférieures aux limits) : entre les deux. Pod C = BestEffort (aucune request ni limit) : la première sacrifiée.\n\nOrdre d'éviction quand le nœud manque de mémoire : d'abord Pod C (BestEffort), puis Pod B (Burstable), et en tout dernier Pod A (Guaranteed).\n\nPourquoi : Kubernetes déduit la classe QoS de la façon dont requests et limits sont réglées, et s'en sert pour décider qui expulser en premier sous pression mémoire. On protège donc les charges critiques en les mettant en Guaranteed (requests = limits) pour qu'elles survivent aux évictions, et on laisse les tâches jetables en BestEffort.",
+  "keyPoints": ["Guaranteed", "Burstable", "BestEffort", "évinc", "premier", "dernier"],
+  "language": "text"
+}

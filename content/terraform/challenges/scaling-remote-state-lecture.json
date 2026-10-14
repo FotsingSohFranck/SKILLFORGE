@@ -1,0 +1,10 @@
+{
+  "node": "scaling",
+  "lesson": "passer-a-lechelle",
+  "title": "Relier deux états découpés",
+  "statement": "Tu as découpé ton infrastructure : la couche **réseau** a son propre état, la couche **apps** aussi. La couche apps a besoin de l'identifiant du VPC (`vpc_id`) produit par la couche réseau. Écris le bloc `data \"terraform_remote_state\"` qui lit **en lecture seule** l'état du réseau depuis un backend **S3** (bucket `mon-org-tfstate`, clé `prod/reseau/terraform.tfstate`, région `eu-west-3`), puis, en commentaire, montre l'expression exacte qui référence l'output `vpc_id` de cet état.",
+  "skeleton": "data \"terraform_remote_state\" \"reseau\" {\n  # complète ici\n}\n\n# expression pour référencer l'output vpc_id :\n# ...\n",
+  "solution": "data \"terraform_remote_state\" \"reseau\" {\n  backend = \"s3\"\n  config = {\n    bucket = \"mon-org-tfstate\"\n    key    = \"prod/reseau/terraform.tfstate\"\n    region = \"eu-west-3\"\n  }\n}\n\n# expression pour référencer l'output vpc_id :\n# data.terraform_remote_state.reseau.outputs.vpc_id",
+  "keyPoints": ["terraform_remote_state", "backend = \"s3\"", "mon-org-tfstate", "prod/reseau/terraform.tfstate", "eu-west-3", "outputs.vpc_id"],
+  "language": "hcl"
+}

@@ -1,0 +1,53 @@
+{
+  "ref": "observability-tracing-check",
+  "node": "observability",
+  "lesson": "tracing-distribue-cardinalite",
+  "title": "Quiz : Tracing distribué & cardinalité",
+  "description": "Spans, propagation de contexte, head/tail sampling, ThreadLocal en réactif, cardinalité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment relie-t-on les spans d'une même requête à travers plusieurs services ?",
+      "justification": "En propageant un contexte de trace (un trace id identique + le span parent) via l'en-tête standard W3C traceparent, hérité à l'entrée de chaque service et réinjecté dans ses appels sortants.",
+      "position": 0,
+      "options": [
+        { "label": "En propageant un contexte de trace (trace id) via l'en-tête W3C traceparent", "correct": true, "position": 0 },
+        { "label": "En comparant les horodatages des logs de chaque service", "correct": false, "position": 1 },
+        { "label": "Grâce à l'adresse IP du client", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'avantage du tail sampling sur le head sampling ?",
+      "justification": "Le tail sampling décide à la fin, une fois la trace complète : il garde en priorité les traces lentes ou en erreur (les plus utiles), là où le head sampling, décidant au hasard au début, les rate souvent.",
+      "position": 1,
+      "options": [
+        { "label": "Il garde en priorité les traces lentes ou en erreur", "correct": true, "position": 0 },
+        { "label": "Il ne nécessite aucun collecteur ni mémoire tampon", "correct": false, "position": 1 },
+        { "label": "Il garde toujours 100 % des traces gratuitement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi le MDC (ThreadLocal) perd-il le trace id dans une pile WebFlux/Reactor ?",
+      "justification": "En réactif, un même traitement saute de thread en thread ; une valeur collée à un ThreadLocal ne suit pas quand le traitement reprend sur un autre thread. Il faut propager via le Reactor Context.",
+      "position": 2,
+      "options": [
+        { "label": "Le traitement change de thread, et le ThreadLocal ne suit pas", "correct": true, "position": 0 },
+        { "label": "Le MDC est interdit depuis Java 21", "correct": false, "position": 1 },
+        { "label": "Les logs sont désactivés en mode réactif", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne faut-il pas mettre un `user_id` comme label d'une métrique Prometheus ?",
+      "justification": "Un label à forte cardinalité crée une explosion de séries temporelles (une par valeur), ce qui écroule le système de métriques. L'identité fine va dans les traces et les logs, pas les labels.",
+      "position": 3,
+      "options": [
+        { "label": "Cela explose la cardinalité (une série temporelle par utilisateur)", "correct": true, "position": 0 },
+        { "label": "Prometheus interdit de stocker des nombres", "correct": false, "position": 1 },
+        { "label": "Cela ralentit uniquement le réseau, sans autre effet", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

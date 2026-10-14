@@ -1,0 +1,63 @@
+{
+  "ref": "web-security-check",
+  "node": "web-security",
+  "lesson": "owasp-et-durcissement",
+  "title": "Sécurité web",
+  "description": "TLS, injections, XSS/CSRF/CORS, OWASP.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment se prémunir des injections SQL de façon robuste ?",
+      "justification": "Les requêtes paramétrées lient les valeurs sans jamais les interpréter comme du code.",
+      "position": 0,
+      "options": [
+        { "label": "Requêtes paramétrées (bind)", "correct": true, "position": 0 },
+        { "label": "Concaténer proprement les chaînes", "correct": false, "position": 1 },
+        { "label": "Faire confiance au client authentifié", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Contre le XSS, quelle combinaison est efficace ?",
+      "justification": "Échapper les données affichées + une Content-Security-Policy limitent l'exécution de scripts injectés.",
+      "position": 1,
+      "options": [
+        { "label": "Échapper les sorties + Content-Security-Policy", "correct": true, "position": 0 },
+        { "label": "Augmenter la taille du pool de connexions", "correct": false, "position": 1 },
+        { "label": "Désactiver HTTPS", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la faille n°1 des APIs (OWASP API Top 10) ?",
+      "justification": "Le BOLA : l'API vérifie l'authentification mais pas le droit d'accès à l'objet précis demandé.",
+      "position": 2,
+      "options": [
+        { "label": "Broken Object Level Authorization (BOLA)", "correct": true, "position": 0 },
+        { "label": "Un index manquant", "correct": false, "position": 1 },
+        { "label": "Un cache mal configuré", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`Access-Control-Allow-Origin: *` avec cookies d'authentification est une bonne configuration.",
+      "justification": "Non : avec des credentials, on doit lister explicitement les origines de confiance, jamais *.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que protège TLS/HTTPS ?",
+      "justification": "TLS protège les données en transit (écoute, altération) ; pas les données au repos ni une app vulnérable.",
+      "position": 4,
+      "options": [
+        { "label": "Les données en transit", "correct": true, "position": 0 },
+        { "label": "Les données stockées en base", "correct": false, "position": 1 },
+        { "label": "Un jeton déjà volé côté client", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

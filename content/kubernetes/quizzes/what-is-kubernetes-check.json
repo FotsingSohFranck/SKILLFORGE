@@ -1,0 +1,63 @@
+{
+  "ref": "what-is-kubernetes-check",
+  "node": "what-is-kubernetes",
+  "lesson": "alternatives-et-pertinence",
+  "title": "Qu'est-ce que Kubernetes",
+  "description": "Orchestration, modèle déclaratif, auto-réparation, alternatives, managé.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème Kubernetes résout-il que Docker Compose sur un seul hôte ne couvre pas ?",
+      "justification": "L'orchestration de flotte : répartir sur plusieurs machines, survivre aux pannes de nœuds, autoscaler, déployer sans coupure à l'échelle.",
+      "position": 0,
+      "options": [
+        { "label": "Orchestrer des conteneurs sur un cluster multi-machines (HA, scaling)", "correct": true, "position": 0 },
+        { "label": "Construire des images de conteneurs", "correct": false, "position": 1 },
+        { "label": "Remplacer le noyau Linux", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le modèle déclaratif de Kubernetes ?",
+      "justification": "On déclare l'état désiré (ex. 5 répliques) ; Kubernetes réconcilie en continu l'état réel vers cet état désiré.",
+      "position": 1,
+      "options": [
+        { "label": "Déclarer l'état désiré ; K8s réconcilie l'état réel vers lui", "correct": true, "position": 0 },
+        { "label": "Donner des ordres impératifs étape par étape", "correct": false, "position": 1 },
+        { "label": "Écrire du code en YAML impératif", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Vous déclarez 5 répliques et un admin en supprime une manuellement. Que fait Kubernetes ?",
+      "justification": "La boucle de réconciliation recrée une réplique pour revenir à l'état désiré (5) ; pour réduire, on modifie l'état désiré.",
+      "position": 2,
+      "options": [
+        { "label": "Il en recrée une pour revenir à 5", "correct": true, "position": 0 },
+        { "label": "Il en reste 4 définitivement", "correct": false, "position": 1 },
+        { "label": "Il supprime toutes les répliques", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour débuter avec Kubernetes en production, que privilégier ?",
+      "justification": "Un Kubernetes managé (EKS/GKE/AKS) : le fournisseur gère le plan de contrôle critique ; l'auto-géré est réservé à des besoins spécifiques.",
+      "position": 3,
+      "options": [
+        { "label": "Un Kubernetes managé (EKS/GKE/AKS)", "correct": true, "position": 0 },
+        { "label": "Un cluster auto-géré installé soi-même", "correct": false, "position": 1 },
+        { "label": "Aucun cluster, Kubernetes est inutile", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Kubernetes remplace Docker : on n'utilise plus d'images de conteneurs avec lui.",
+      "justification": "Faux : Kubernetes orchestre des conteneurs et utilise vos images OCI (construites avec Docker/BuildKit) ; il ajoute la gestion de flotte par-dessus.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

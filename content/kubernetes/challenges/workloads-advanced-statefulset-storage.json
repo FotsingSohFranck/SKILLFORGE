@@ -1,0 +1,10 @@
+{
+  "node": "workloads-advanced",
+  "lesson": "statefulsets",
+  "title": "Donner à chaque pod son propre volume",
+  "statement": "Complète ce StatefulSet pour que CHAQUE pod obtienne son propre volume persistant de 5Gi, monté dans le conteneur sur `/var/lib/data`. Ajoute le bloc `volumeClaimTemplates` (le modèle de PVC par pod) et le `volumeMounts` correspondant. Le volume s'appelle `data`.",
+  "skeleton": "apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: db\nspec:\n  serviceName: db\n  replicas: 3\n  selector:\n    matchLabels:\n      app: db\n  template:\n    metadata:\n      labels:\n        app: db\n    spec:\n      containers:\n        - name: db\n          image: postgres:18\n          # ____ : monter le volume \"data\" sur /var/lib/data\n  # ____ : un PVC de 5Gi par pod (volumeClaimTemplates)\n",
+  "solution": "apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: db\nspec:\n  serviceName: db\n  replicas: 3\n  selector:\n    matchLabels:\n      app: db\n  template:\n    metadata:\n      labels:\n        app: db\n    spec:\n      containers:\n        - name: db\n          image: postgres:18\n          volumeMounts:\n            - name: data\n              mountPath: /var/lib/data\n  volumeClaimTemplates:\n    - metadata:\n        name: data\n      spec:\n        accessModes: [\"ReadWriteOnce\"]\n        resources:\n          requests:\n            storage: 5Gi\n",
+  "keyPoints": ["volumeClaimTemplates", "storage: 5Gi", "volumeMounts", "mountPath: /var/lib/data", "name: data"],
+  "language": "yaml"
+}

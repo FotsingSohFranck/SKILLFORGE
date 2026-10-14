@@ -1,0 +1,96 @@
+{
+  "ref": "solid-isp-srp-expert-check",
+  "node": "solid",
+  "lesson": "isp-vs-srp",
+  "title": "Quiz, ISP vs SRP (expert)",
+  "description": "Point de vue client vs raison de changer, cas où les deux principes divergent.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Depuis quel point de vue raisonne l'ISP ?",
+      "justification": "ISP raisonne côté client/dépendances : aucun client ne doit être forcé de dépendre de méthodes qu'il n'utilise pas. C'est une propriété des interfaces telles qu'elles sont consommées.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le point de vue du client : ne pas dépendre de ce qu'on n'utilise pas",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le point de vue de la base de données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le point de vue du compilateur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quoi raisonne le SRP ?",
+      "justification": "SRP raisonne sur la raison de changer / l'acteur : une classe ne doit avoir qu'une seule raison de changer (répondre à un seul acteur). C'est une propriété de cohésion.",
+      "position": 1,
+      "options": [
+        {
+          "label": "La raison de changer / l'acteur : une seule raison de changer par unité",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le nombre de lignes d'une classe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La vitesse d'exécution",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une `SimplePrinter` implémente `Machine { print(); scan(); fax(); staple(); }` en levant `UnsupportedOperationException` sur trois méthodes. Quel principe est violé ?",
+      "justification": "ISP : l'interface obèse force la classe (et ses clients) à dépendre de méthodes non utilisées. La classe peut avoir une seule raison de changer (SRP ok) tout en violant ISP.",
+      "position": 2,
+      "options": [
+        {
+          "label": "ISP : interface obèse imposant des méthodes non utilisées",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "LSP uniquement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun principe",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Extraire « une seule interface bien nommée » de 12 méthodes garantit à la fois SRP et ISP.",
+      "justification": "Faux : une interface unique à 12 méthodes viole ISP (clients forcés de dépendre du tout) et masque souvent une violation de SRP (plusieurs acteurs derrière l'implémentation). Il faut segréger par rôle (ISP) et séparer par acteur (SRP).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

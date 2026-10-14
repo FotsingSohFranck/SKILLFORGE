@@ -1,0 +1,119 @@
+{
+  "ref": "transactions-expert",
+  "node": "transactions-acid",
+  "lesson": "verrouillage-avance-patterns",
+  "title": "Transactions, niveau expert",
+  "description": "MVCC, snapshot isolation, SKIP LOCKED, advisory locks, deadlocks.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Grâce au MVCC de PostgreSQL, que se passe-t-il entre un lecteur et un écrivain sur la même ligne ?",
+      "justification": "Le MVCC crée une nouvelle version à l'écriture : les lecteurs voient l'ancienne version et ne bloquent pas, les écrivains non plus.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Ni l'un ni l'autre ne bloque : le lecteur voit une version antérieure",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le lecteur attend que l'écrivain committe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'écrivain est rejeté tant qu'un lecteur est actif",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle clause permet à plusieurs workers de piocher des jobs différents dans une file sans se bloquer ?",
+      "justification": "FOR UPDATE SKIP LOCKED ignore les lignes déjà verrouillées et prend les suivantes : chaque worker prend un job distinct.",
+      "position": 1,
+      "options": [
+        {
+          "label": "FOR UPDATE SKIP LOCKED",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "FOR UPDATE NOWAIT sur toutes les lignes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "SELECT ... LIMIT 1 sans verrou",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une table très mise à jour peut-elle gonfler (bloat) et ralentir ?",
+      "justification": "Chaque UPDATE laisse une version morte ; si l'autovacuum ne recycle pas assez vite, les versions mortes s'accumulent.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Les versions de lignes mortes s'accumulent faute de vacuum suffisant",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "PostgreSQL duplique les index à chaque COMMIT",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les transactions courtes fragmentent le disque",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle règle prévient efficacement la plupart des deadlocks entre transactions ?",
+      "justification": "Acquérir les verrous toujours dans le même ordre (ex. par id croissant) empêche les cycles d'attente mutuelle.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Verrouiller les ressources toujours dans le même ordre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Augmenter le timeout de verrou",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver la détection de deadlock",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En niveau Serializable, le code applicatif doit être prêt à rejouer une transaction qui échoue avec une serialization failure (40001).",
+      "justification": "Vrai : le SSI annule une transaction en cas de dépendance non sérialisable ; l'appelant doit la relancer.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

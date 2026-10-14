@@ -1,0 +1,279 @@
+{
+  "node": "records",
+  "lessons": [
+    {
+      "slug": "pourquoi-les-records",
+      "title": "Pourquoi les records",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le problème : des classes de données bavardes",
+          "position": 0,
+          "body": "En Java, on a souvent besoin d'une classe dont le seul rôle est de **transporter des données** : un point (x, y), un utilisateur (nom, email), une ligne de commande. On appelle ça une **classe de données** (en anglais *data class*), c'est à dire une classe sans logique, juste des valeurs regroupées.\n\nAvant Java 16, écrire une telle classe correctement demandait beaucoup de code répétitif : un champ privé par donnée, un constructeur, un **accesseur** (une méthode qui renvoie la valeur d'un champ, souvent nommée `getX()`) par champ, puis `equals`, `hashCode` et `toString`.\n\n👉 Imagine devoir remplir un formulaire de 40 lignes à chaque fois que tu veux simplement dire \"un point, c'est un x et un y\". C'est long, et surtout facile à rater : on oublie un champ dans `equals`, on recopie mal un accesseur. Les **records** règlent ce problème."
+        },
+        {
+          "type": "CODE",
+          "title": "La version longue, écrite à la main",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Une classe de données classique : 30+ lignes pour dire \"un point a un x et un y\".\nfinal class Point {\n    private final int x;\n    private final int y;\n\n    Point(int x, int y) {\n        this.x = x;\n        this.y = y;\n    }\n\n    int x() { return x; }\n    int y() { return y; }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (!(o instanceof Point other)) return false;\n        return x == other.x && y == other.y;\n    }\n\n    @Override\n    public int hashCode() {\n        return java.util.Objects.hash(x, y);\n    }\n\n    @Override\n    public String toString() {\n        return \"Point[x=\" + x + \", y=\" + y + \"]\";\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce que les records changent",
+          "position": 2,
+          "body": "Un **record** est un type spécial introduit en Java 16 (et disponible dans le socle stable depuis Java 17) qui déclare une classe de données **immuable** en une seule ligne. **Immuable** veut dire : une fois l'objet créé, ses valeurs ne changent plus jamais.\n\nÀ partir de la seule déclaration des données, le compilateur génère automatiquement : le constructeur, un accesseur par donnée, `equals`, `hashCode` et `toString`. Tu écris l'intention, la machine écrit la plomberie.\n\n👉 C'est la différence entre dicter une fiche d'identité (\"nom, prénom, date de naissance\") et devoir dessiner toi même toutes les cases du formulaire. Avec un record, tu dictes, Java dessine."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Repère le code répétitif",
+          "position": 3,
+          "body": "Dans la classe `Point` écrite à la main plus haut, liste les parties qui ne font que répéter l'information \"un Point a un x (int) et un y (int)\". Combien de fois le mot `x` apparait il ?",
+          "solution": "Le constructeur (affectation des deux champs), les deux accesseurs `x()` et `y()`, le corps de `equals`, l'appel dans `hashCode`, et la chaine de `toString` répètent tous la même information. Le mot `x` apparait environ 7 fois alors que l'intention \"un x de type int\" ne devrait être exprimée qu'une seule fois. C'est exactement cette répétition que le record supprime."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : pourquoi les records",
+          "position": 4,
+          "quizRef": "records-pourquoi-les-records"
+        }
+      ]
+    },
+    {
+      "slug": "declarer-un-record",
+      "title": "Déclarer un record",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "La syntaxe de base",
+          "position": 0,
+          "body": "On déclare un record avec le mot clé `record`, suivi du nom, puis entre parenthèses de la liste des données. Chaque donnée s'appelle un **composant** (en anglais *component*) : c'est une valeur que porte le record, avec son type et son nom.\n\n```\nrecord Point(int x, int y) { }\n```\n\nCette seule ligne remplace les 30 lignes de la leçon précédente. `int x` et `int y` sont les deux composants. Les accolades `{ }` peuvent rester vides : c'est le cas le plus fréquent."
+        },
+        {
+          "type": "CODE",
+          "title": "Déclarer et utiliser un record",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Déclaration complète d'un record : une ligne.\nrecord Point(int x, int y) { }\n\npublic class Demo {\n    public static void main(String[] args) {\n        // On crée une instance comme avec n'importe quelle classe : new + constructeur.\n        Point p = new Point(3, 4);\n\n        // Les accesseurs portent le nom du composant (x() et y()), PAS getX().\n        System.out.println(p.x()); // 3\n        System.out.println(p.y()); // 4\n\n        // toString est déjà fourni, lisible et utile.\n        System.out.println(p);     // Point[x=3, y=4]\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un détail qui surprend : x() et non getX()",
+          "position": 2,
+          "body": "Avec les classes classiques, la convention historique était `getX()`. Les records rompent avec cette habitude : l'accesseur porte **exactement le nom du composant**, donc `x()` et `y()`.\n\n👉 Pense au composant comme à une étiquette collée sur une boite : pour lire ce qu'il y a dans la boite `x`, tu demandes `x()`. Pas besoin de préfixe `get`, le nom suffit.\n\nCe n'est pas grave si ton équipe utilise encore `getX()` ailleurs : les deux styles coexistent. Simplement, pour un record, c'est le nom nu qui est généré."
+        },
+        {
+          "type": "CODE",
+          "title": "Un record peut avoir plusieurs composants de types variés",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "// Les composants peuvent être de n'importe quel type.\nrecord Utilisateur(String nom, String email, int age) { }\n\nrecord LigneCommande(String produit, int quantite, double prixUnitaire) { }\n\n// Un record peut même porter d'autres records.\nrecord Adresse(String rue, String ville, String codePostal) { }\nrecord Client(String nom, Adresse adresse) { }"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Écris ton premier record",
+          "position": 4,
+          "body": "Déclare un record `Livre` qui porte un titre (String), un auteur (String) et un nombre de pages (int). Crée une instance pour le livre de ton choix et affiche le.",
+          "solution": "record Livre(String titre, String auteur, int pages) { }\n\nLivre l = new Livre(\"Le Petit Prince\", \"Antoine de Saint-Exupery\", 96);\nSystem.out.println(l);\n// Affiche : Livre[titre=Le Petit Prince, auteur=Antoine de Saint-Exupery, pages=96]\n// On lit un champ avec l.titre(), l.auteur(), l.pages()."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : déclarer un record",
+          "position": 5,
+          "quizRef": "records-declarer-un-record"
+        }
+      ]
+    },
+    {
+      "slug": "ce-que-genere-le-compilateur",
+      "title": "Ce que génère le compilateur",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Cinq cadeaux automatiques",
+          "position": 0,
+          "body": "Quand tu écris `record Point(int x, int y) { }`, le compilateur génère pour toi, sans que tu le voies :\n\n1. Un **constructeur canonique** : celui qui prend tous les composants dans l'ordre, ici `Point(int x, int y)`. \"Canonique\" veut dire \"la forme de référence, standard\".\n2. Un **accesseur** par composant : `x()`, `y()`.\n3. `equals(Object)` : deux points sont égaux si tous leurs composants sont égaux.\n4. `hashCode()` : cohérent avec `equals` (deux objets égaux ont le même code de hachage).\n5. `toString()` : la forme lisible `Point[x=3, y=4]`.\n\n👉 Un **code de hachage** (*hash code*) est un entier qui résume un objet, utilisé par les tables de hachage comme `HashMap` pour ranger les objets dans des cases. La règle d'or : si deux objets sont égaux, leur code de hachage doit être identique. Les records respectent cette règle automatiquement."
+        },
+        {
+          "type": "CODE",
+          "title": "equals et hashCode marchent du premier coup",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "record Point(int x, int y) { }\n\npublic class Demo {\n    public static void main(String[] args) {\n        Point a = new Point(3, 4);\n        Point b = new Point(3, 4);\n        Point c = new Point(9, 9);\n\n        // Égalité par VALEUR, pas par référence : a et b ont les mêmes composants.\n        System.out.println(a.equals(b)); // true\n        System.out.println(a.equals(c)); // false\n\n        // Du coup, un record s'utilise sans surprise comme clé de Map ou dans un Set.\n        var vus = new java.util.HashSet<Point>();\n        vus.add(a);\n        System.out.println(vus.contains(b)); // true : b est \"le même\" que a\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Égalité par valeur contre égalité par référence",
+          "position": 2,
+          "body": "Par défaut, pour une classe normale, `equals` compare les **références** : deux objets ne sont égaux que s'ils occupent la même case mémoire. Une **référence** est l'adresse qui désigne un objet, un peu comme le numéro de place d'une voiture dans un parking.\n\nUn record compare par **valeur** : il regarde le contenu, pas l'emplacement. Deux `Point(3, 4)` créés séparément sont considérés comme égaux, car ce qui compte, c'est ce qu'ils représentent.\n\n👉 Deux billets de 10 euros sont \"le même\" du point de vue de la valeur, même si ce sont deux morceaux de papier différents. C'est cette égalité là que donne un record."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "De la déclaration aux membres générés",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"record Point(int x, int y)\"] --> B[\"Constructeur canonique\\nPoint(int x, int y)\"]\n    A --> C[\"Accesseurs\\nx(), y()\"]\n    A --> D[\"equals(Object)\\négalité par valeur\"]\n    A --> E[\"hashCode()\\ncohérent avec equals\"]\n    A --> F[\"toString()\\nPoint[x=.., y=..]\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Prédis le résultat",
+          "position": 4,
+          "body": "Soit `record Couleur(int r, int v, int b) { }`. On crée `Couleur rouge1 = new Couleur(255, 0, 0);` et `Couleur rouge2 = new Couleur(255, 0, 0);`. Que renvoient `rouge1 == rouge2` et `rouge1.equals(rouge2)` ? Explique la différence.",
+          "solution": "rouge1 == rouge2 renvoie false : l'opérateur == compare les références (deux objets distincts en mémoire). rouge1.equals(rouge2) renvoie true : un record compare par valeur, et les trois composants sont identiques. Conclusion : pour comparer le contenu d'un record, on utilise equals (ou le pattern matching), jamais ==."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : ce que génère le compilateur",
+          "position": 5,
+          "quizRef": "records-ce-que-genere-le-compilateur"
+        }
+      ]
+    },
+    {
+      "slug": "constructeur-compact-et-validation",
+      "title": "Constructeur compact et validation",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Valider les données à la création",
+          "position": 0,
+          "body": "Souvent, toutes les valeurs ne sont pas acceptables : un age négatif, un email vide, une quantité à zéro n'ont pas de sens. On veut **refuser** ces valeurs dès la création de l'objet, pour qu'un record invalide ne puisse jamais exister.\n\nPour ça, les records offrent le **constructeur compact** (en anglais *compact constructor*) : une forme raccourcie où tu écris seulement les vérifications, sans réécrire la liste des paramètres ni les affectations `this.x = x` (le compilateur les ajoute pour toi à la fin)."
+        },
+        {
+          "type": "CODE",
+          "title": "Un constructeur compact qui valide",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "record Utilisateur(String nom, String email, int age) {\n    // Constructeur compact : PAS de parenthèses avec les paramètres.\n    Utilisateur {\n        // On vérifie, et on lève une exception si c'est invalide.\n        if (nom == null || nom.isBlank()) {\n            throw new IllegalArgumentException(\"nom obligatoire\");\n        }\n        if (age < 0) {\n            throw new IllegalArgumentException(\"age negatif interdit\");\n        }\n        // Pas besoin d'écrire this.nom = nom; etc.\n        // Le compilateur ajoute automatiquement les affectations APRÈS ce bloc.\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Normaliser une valeur au passage",
+          "position": 2,
+          "body": "Le constructeur compact ne sert pas qu'à rejeter : il peut aussi **normaliser**, c'est à dire remettre une valeur dans une forme standard avant qu'elle soit stockée. Par exemple retirer les espaces autour d'un nom, ou passer un email en minuscules.\n\nPour ça, tu réaffectes le paramètre (`email = email.toLowerCase();`). Comme les affectations `this.email = email;` sont ajoutées **après** ton bloc, c'est bien la version normalisée qui est enregistrée.\n\n👉 Vois le constructeur compact comme un contrôle à l'entrée : il peut refouler une donnée invalide, ou la mettre en ordre (redresser une étiquette de travers) avant de la laisser entrer."
+        },
+        {
+          "type": "CODE",
+          "title": "Validation et normalisation ensemble",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "record Email(String valeur) {\n    Email {\n        if (valeur == null || !valeur.contains(\"@\")) {\n            throw new IllegalArgumentException(\"email invalide : \" + valeur);\n        }\n        // Normalisation : on enlève les espaces et on met en minuscules.\n        valeur = valeur.trim().toLowerCase();\n    }\n}\n\npublic class Demo {\n    public static void main(String[] args) {\n        Email e = new Email(\"  Jean.Dupont@Example.COM \");\n        System.out.println(e.valeur()); // jean.dupont@example.com\n    }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Ajoute une règle",
+          "position": 4,
+          "body": "Reprends le record `Utilisateur(String nom, String email, int age)`. Ajoute une règle dans le constructeur compact : l'age doit être au plus 150. Que se passe t il si on écrit new Utilisateur(\"Ana\", \"a@b.c\", 200) ?",
+          "solution": "Utilisateur {\n    if (nom == null || nom.isBlank()) throw new IllegalArgumentException(\"nom obligatoire\");\n    if (age < 0 || age > 150) throw new IllegalArgumentException(\"age hors limites\");\n}\n\nAvec age=200, la condition age > 150 est vraie, donc une IllegalArgumentException est levee et l'objet n'est jamais cree. C'est le but : un Utilisateur invalide ne peut pas exister."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : constructeur compact et validation",
+          "position": 5,
+          "quizRef": "records-constructeur-compact-et-validation"
+        }
+      ]
+    },
+    {
+      "slug": "records-et-immuabilite",
+      "title": "Records et immuabilité",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Les composants ne changent jamais",
+          "position": 0,
+          "body": "Un record est **immuable** : après création, aucun de ses composants ne peut être modifié. Il n'y a pas de méthode `setX()`, et les champs internes sont `final` (un champ `final` ne peut recevoir sa valeur qu'une fois).\n\nPourquoi c'est une bonne chose ? Parce qu'un objet qui ne change jamais est **facile à comprendre et sûr à partager** : tu peux le passer à dix méthodes ou à plusieurs threads sans craindre que l'une d'elles le modifie dans ton dos.\n\n👉 Un record, c'est comme une photo : une fois prise, elle ne bouge plus. Si tu veux une image différente, tu prends une nouvelle photo, tu ne retouches pas l'ancienne."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Modifier = créer une nouvelle instance",
+          "position": 1,
+          "body": "Comme on ne peut pas changer un record, la façon d'obtenir une valeur modifiée est d'en **créer une nouvelle** à partir de l'ancienne. On ajoute souvent une petite méthode qui renvoie une copie avec un champ changé.\n\nC'est la même idée que les `String` en Java, que tu connais peut être déjà : `\"abc\".toUpperCase()` ne modifie pas `\"abc\"`, il renvoie une **nouvelle** chaine `\"ABC\"`."
+        },
+        {
+          "type": "CODE",
+          "title": "Une méthode \"with\" qui renvoie une copie modifiée",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "record Point(int x, int y) {\n    // On n'a pas de setX : on renvoie un NOUVEAU Point avec un x différent.\n    Point withX(int nouveauX) {\n        return new Point(nouveauX, y);\n    }\n}\n\npublic class Demo {\n    public static void main(String[] args) {\n        Point p1 = new Point(3, 4);\n        Point p2 = p1.withX(10);\n\n        System.out.println(p1); // Point[x=3, y=4]  (inchangé)\n        System.out.println(p2); // Point[x=10, y=4] (nouvelle instance)\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Attention : l'immuabilité est superficielle",
+          "position": 3,
+          "body": "Un record empêche de **remplacer** un composant, mais si un composant est lui même un objet modifiable (comme une `List` classique), on peut encore changer son contenu. On dit que l'immuabilité est **superficielle** (*shallow*) : elle protège la surface, pas forcément le contenu profond.\n\n👉 La photo est figée, mais si elle montre une ardoise, quelqu'un pourrait effacer ce qui est écrit sur l'ardoise réelle. Pour une vraie sécurité, on range des valeurs elles mêmes immuables (par exemple `List.copyOf(...)` qui crée une liste non modifiable)."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Protège une liste",
+          "position": 4,
+          "body": "Soit record Panier(List<String> articles) { }. Un appelant garde une référence sur la liste passée et y ajoute un article APRÈS création. Le panier change t il ? Comment empêcher ça dans le constructeur compact ?",
+          "solution": "Oui, le panier change : le record stocke la MÊME liste, donc une modification externe se répercute. Pour l'éviter, on copie la liste en version non modifiable dans le constructeur compact :\n\nPanier {\n    articles = List.copyOf(articles);\n}\n\nAinsi le record détient sa propre copie figée ; toute tentative d'ajout ultérieure, interne ou externe, échoue."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : records et immuabilité",
+          "position": 5,
+          "quizRef": "records-records-et-immuabilite"
+        }
+      ]
+    },
+    {
+      "slug": "records-en-pratique",
+      "title": "Records en pratique",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Où les records brillent",
+          "position": 0,
+          "body": "Les records sont parfaits pour tout ce qui est **donnée transportée** :\n\n- Les **DTO** (*Data Transfer Object*, objet de transfert de données) : les objets qu'on échange avec une API ou une base, dont le seul rôle est de porter des valeurs.\n- Les **résultats** d'une méthode qui doit renvoyer plusieurs valeurs à la fois (au lieu d'un tableau peu clair).\n- Les **clés** composites de Map ou les éléments de Set, grace à `equals`/`hashCode` gratuits et corrects.\n\n👉 Dès que tu te dis \"j'ai juste besoin de regrouper deux ou trois valeurs qui vont ensemble\", pense record."
+        },
+        {
+          "type": "CODE",
+          "title": "Renvoyer plusieurs valeurs proprement",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Un record local, déclaré DANS une méthode : pratique pour un résultat ponctuel.\nstatic MinMax bornes(int[] valeurs) {\n    record MinMax(int min, int max) { }\n    int min = valeurs[0], max = valeurs[0];\n    for (int v : valeurs) {\n        if (v < min) min = v;\n        if (v > max) max = v;\n    }\n    return new MinMax(min, max);\n}\n// L'appelant lit resultat.min() et resultat.max() : clair et sans ambiguite."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un record peut faire plus que porter des données",
+          "position": 2,
+          "body": "Un record reste une classe : il peut avoir des **méthodes**, des **constantes**, et **implémenter des interfaces**. Ce qu'il ne peut pas faire : hériter d'une autre classe (il hérite déjà, en interne, de `Record`), ni avoir des champs d'instance en plus de ses composants.\n\nUne méthode bien placée sur un record le rend expressif. Par exemple, un `record Point(int x, int y)` peut offrir une méthode `distanceOrigine()` calculée à partir de ses composants."
+        },
+        {
+          "type": "CODE",
+          "title": "Méthodes et interface sur un record",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "interface Forme {\n    double aire();\n}\n\n// Un record qui implémente une interface et ajoute ses propres méthodes.\nrecord Cercle(double rayon) implements Forme {\n    @Override\n    public double aire() {\n        return Math.PI * rayon * rayon;\n    }\n\n    // Méthode utilitaire supplémentaire.\n    double diametre() {\n        return rayon * 2;\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Quand ne PAS utiliser un record",
+          "position": 4,
+          "body": "Un record n'est pas toujours le bon choix. Évite le quand :\n\n- L'objet a une **identité propre** qui ne se résume pas à ses valeurs (par exemple une entité métier avec un cycle de vie, qu'on suit même si ses données changent).\n- Tu as besoin d'un objet **modifiable** (dont l'état évolue dans le temps).\n- Tu veux cacher ou transformer fortement la représentation interne.\n\n👉 Règle simple : record pour \"un paquet de valeurs qui vont ensemble et ne changent pas\" ; classe normale pour \"une chose qui a une vie, un état qui évolue\"."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Choisis le bon outil",
+          "position": 5,
+          "body": "Pour chacun, record ou classe classique ? 1) La réponse JSON d'une API meteo (ville, temperature, humidite). 2) Un compte bancaire dont le solde change à chaque opération. 3) Une clé composite (anneeScolaire, numeroEleve) pour une Map.",
+          "solution": "1) Record : donnée transportée, immuable, idéale en DTO. 2) Classe classique : le solde évolue, l'objet a un état mutable et une identité (ce compte reste ce compte). 3) Record : parfait comme clé de Map grace à equals/hashCode corrects et gratuits."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : records en pratique",
+          "position": 6,
+          "quizRef": "records-records-en-pratique"
+        }
+      ]
+    }
+  ]
+}

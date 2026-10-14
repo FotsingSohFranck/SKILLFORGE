@@ -1,0 +1,10 @@
+{
+  "node": "storage-volumes",
+  "lesson": "volumes-pv-pvc",
+  "title": "Écrire un PersistentVolumeClaim",
+  "statement": "Écris un manifeste Kubernetes pour un `PersistentVolumeClaim` nommé `data`. Il doit : demander `5Gi` de stockage, être monté en lecture-écriture par un seul nœud (mode `ReadWriteOnce`), et utiliser la StorageClass `ssd-cloud` pour le provisionnement dynamique. Souviens-toi : c'est ce PVC (la demande) que le pod montera, pas le PV directement.",
+  "skeleton": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data\nspec:\n  # accessModes: ...\n  # storageClassName: ...\n  # resources:\n  #   requests:\n  #     storage: ...\n",
+  "solution": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data\nspec:\n  accessModes:\n    - ReadWriteOnce\n  storageClassName: ssd-cloud\n  resources:\n    requests:\n      storage: 5Gi",
+  "keyPoints": ["kind: PersistentVolumeClaim", "name: data", "ReadWriteOnce", "storageClassName: ssd-cloud", "storage: 5Gi"],
+  "language": "yaml"
+}

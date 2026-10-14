@@ -1,0 +1,96 @@
+{
+  "ref": "providers-registry-check",
+  "node": "providers",
+  "lesson": "le-registry-et-les-providers",
+  "title": "Quiz, Le Registry & les providers",
+  "description": "Rôle d'un provider, le Registry, credentials hors du code.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle d'un provider dans Terraform ?",
+      "justification": "Le provider est un plugin qui traduit ton HCL en appels d'API vers une plateforme précise (AWS, GCP, Kubernetes...) et sait lire l'état réel.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Traduire ton code HCL en appels d'API vers une plateforme donnée",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Héberger tes fichiers d'état dans le cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer automatiquement tes mots de passe",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où Terraform télécharge-t-il le provider dont tu as besoin ?",
+      "justification": "Sur le Terraform Registry, la bibliothèque publique des providers ; le téléchargement se fait au moment du terraform init.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Sur le Terraform Registry, au moment du terraform init",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans le fichier .terraform.lock.hcl",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Directement depuis le fichier d'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Écrire ses clés d'accès AWS directement dans le bloc `provider \"aws\"` d'un fichier .tf est acceptable tant que le dépôt est privé.",
+      "justification": "Faux : les .tf sont versionnés dans Git et une clé committée reste dans l'historique pour toujours. Les credentials doivent venir de l'environnement (variables, profil, identité fédérée), jamais du code.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu dois passer d'un déploiement AWS à un déploiement Google Cloud. Quel est le principal changement côté Terraform ?",
+      "justification": "Le langage HCL et le workflow restent les mêmes ; on installe et configure un autre provider (google au lieu de aws). C'est ce qui rend Terraform universel.",
+      "position": 3,
+      "options": [
+        {
+          "label": "On installe et configure le provider google au lieu du provider aws ; le langage HCL reste le même",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "On doit apprendre un tout nouveau langage propre à Google Cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On doit réécrire Terraform lui-même pour qu'il connaisse Google Cloud",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

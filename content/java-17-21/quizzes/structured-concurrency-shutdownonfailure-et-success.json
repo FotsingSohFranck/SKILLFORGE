@@ -1,0 +1,41 @@
+{
+  "ref": "structured-concurrency-shutdownonfailure-et-success",
+  "node": "structured-concurrency",
+  "lesson": "shutdownonfailure-et-success",
+  "title": "Quiz : ShutdownOnFailure et ShutdownOnSuccess",
+  "description": "Choisir la bonne politique d'arrêt du groupe.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait ShutdownOnFailure quand une sous-tâche échoue ?",
+      "justification": "C'est la politique du tout ou rien : dès qu'une sous-tâche échoue, la portée annule toutes les autres car leurs résultats ne servent plus.",
+      "position": 0,
+      "options": [
+        { "label": "Elle annule toutes les autres sous-tâches", "correct": true, "position": 0 },
+        { "label": "Elle ignore l'échec et attend les autres", "correct": false, "position": 1 },
+        { "label": "Elle relance la sous-tâche échouée", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu interroges trois miroirs du même service et une seule réponse te suffit, la plus rapide. Quelle politique choisir ?",
+      "justification": "ShutdownOnSuccess garde la première réussite et annule les autres : idéal quand un seul résultat suffit, peu importe lequel.",
+      "position": 1,
+      "options": [
+        { "label": "ShutdownOnSuccess", "correct": true, "position": 0 },
+        { "label": "ShutdownOnFailure", "correct": false, "position": 1 },
+        { "label": "Aucune politique, une portée de base suffit toujours", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec ShutdownOnFailure, on appelle throwIfFailed() après join() pour relancer l'éventuelle erreur dans la tâche principale.",
+      "justification": "throwIfFailed() relance l'exception de la sous-tâche échouée dans ton code, pour que tu la traites au même endroit que du code séquentiel.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

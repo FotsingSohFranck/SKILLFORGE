@@ -1,0 +1,10 @@
+{
+  "node": "workspaces",
+  "lesson": "gerer-plusieurs-environnements",
+  "title": "Créer un workspace et adapter le code",
+  "statement": "Tu veux gérer deux environnements avec le MÊME code Terraform, via les workspaces. Écris : (1) la commande pour CRÉER un workspace nommé `dev` ; (2) la commande pour BASCULER sur le workspace `prod` ; (3) dans le code, la ligne HCL qui affecte à `instance_type` la valeur `m5.large` si le workspace courant est `prod`, sinon `t3.micro` (utilise la valeur spéciale `terraform.workspace`).",
+  "skeleton": "# 1) créer le workspace dev\n\n# 2) basculer sur prod\n\n# 3) ligne HCL : instance_type selon le workspace courant\n",
+  "solution": "terraform workspace new dev\nterraform workspace select prod\ninstance_type = terraform.workspace == \"prod\" ? \"m5.large\" : \"t3.micro\"",
+  "keyPoints": ["terraform workspace new dev", "terraform workspace select prod", "terraform.workspace", "\"prod\"", "m5.large", "t3.micro"],
+  "language": "bash"
+}

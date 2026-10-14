@@ -1,0 +1,52 @@
+{
+  "ref": "architectural-patterns-serverless-check",
+  "node": "architectural-patterns",
+  "lesson": "serverless-et-service-mesh",
+  "title": "Quiz : Serverless & service mesh",
+  "description": "Serverless, cold start, modèle sans état, service mesh et sidecars.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie « serverless » ?",
+      "justification": "Tu écris des fonctions déclenchées par des événements ; la plateforme gère les serveurs, provisionne, scale à zéro et facture à l'usage.",
+      "position": 0,
+      "options": [
+        { "label": "Tu écris des fonctions déclenchées par événement, la plateforme gère les serveurs", "correct": true, "position": 0 },
+        { "label": "Il n'y a réellement aucun serveur nulle part", "correct": false, "position": 1 },
+        { "label": "Tu dois installer et maintenir toi-même chaque serveur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel piège classique surveiller avec les fonctions serverless ?",
+      "justification": "Le démarrage à froid (cold start) : la première invocation après une période d'inactivité est plus lente, le temps de « réveiller » la fonction.",
+      "position": 1,
+      "options": [
+        { "label": "Le démarrage à froid (cold start)", "correct": true, "position": 0 },
+        { "label": "L'impossibilité totale de scaler", "correct": false, "position": 1 },
+        { "label": "L'absence de toute facturation", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un service mesh ?",
+      "justification": "Il déporte la plomberie réseau répétitive (chiffrement mutuel, retries, circuit breaking, routage, observabilité) dans des sidecars, hors du code métier.",
+      "position": 2,
+      "options": [
+        { "label": "Déporter la plomberie réseau (sécurité, retries, routage) dans des sidecars", "correct": true, "position": 0 },
+        { "label": "Remplacer la base de données de chaque service", "correct": false, "position": 1 },
+        { "label": "Compiler le code métier plus vite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le serverless est idéal pour un processus long qui garde un état en mémoire d'un appel à l'autre.",
+      "justification": "Faux : le serverless est sans état et à durée d'exécution bornée ; il ne convient pas aux processus longs ni à ceux qui doivent mémoriser des choses.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

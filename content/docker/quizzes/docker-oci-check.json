@@ -1,0 +1,63 @@
+{
+  "ref": "docker-oci-check",
+  "node": "docker-and-oci",
+  "lesson": "runtimes-et-couches",
+  "title": "Docker & l'OCI",
+  "description": "Standards OCI, runc/containerd, CRI, alternatives et isolation renforcée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit l'Open Container Initiative (OCI) ?",
+      "justification": "L'OCI standardise le format d'image, le runtime et la distribution, assurant l'interopérabilité entre outils (Docker, Podman, containerd, K8s).",
+      "position": 0,
+      "options": [
+        { "label": "Des standards ouverts d'images, de runtime et de distribution", "correct": true, "position": 0 },
+        { "label": "Un abonnement payant à Docker Inc.", "correct": false, "position": 1 },
+        { "label": "Un langage de programmation pour conteneurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant crée concrètement le conteneur en parlant au noyau (namespaces, cgroups) ?",
+      "justification": "runc est le runtime bas niveau de référence (runtime-spec OCI) ; containerd le pilote à un niveau supérieur.",
+      "position": 1,
+      "options": [
+        { "label": "runc (runtime bas niveau)", "correct": true, "position": 0 },
+        { "label": "La CLI docker", "correct": false, "position": 1 },
+        { "label": "Le registre Dockerhub", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie « Kubernetes a abandonné Docker » ?",
+      "justification": "K8s a retiré le dockershim et parle directement à un runtime CRI (containerd/CRI-O) ; les images OCI restent exécutées normalement.",
+      "position": 2,
+      "options": [
+        { "label": "K8s exécute les images via containerd/CRI-O, pas via le daemon Docker", "correct": true, "position": 0 },
+        { "label": "Les images Docker ne fonctionnent plus dans Kubernetes", "correct": false, "position": 1 },
+        { "label": "Il faut réécrire toutes ses images", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une isolation plus forte que le noyau partagé (code non fiable), quelle solution reste compatible avec des images OCI ?",
+      "justification": "gVisor ou Kata Containers implémentent la runtime-spec OCI : ils exécutent les mêmes images avec une frontière renforcée (noyau applicatif ou micro-VM).",
+      "position": 3,
+      "options": [
+        { "label": "Un runtime isolant comme gVisor ou Kata Containers", "correct": true, "position": 0 },
+        { "label": "Désactiver les namespaces", "correct": false, "position": 1 },
+        { "label": "Convertir les images en .exe", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une image construite avec Docker peut être exécutée par Podman ou containerd sans modification.",
+      "justification": "Vrai : les images respectent l'OCI image-spec, standard ouvert interopérable entre tous les runtimes et registres compatibles.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

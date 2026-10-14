@@ -1,0 +1,142 @@
+{
+  "node": "docker-cli",
+  "lessons": [
+    {
+      "slug": "structure-de-la-cli",
+      "title": "La structure de la CLI",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une CLI organisée par objet",
+          "body": "Avant tout, un mot sur **CLI** : c'est l'abréviation de l'anglais *Command Line Interface*, en français **interface en ligne de commande**. C'est la façon de piloter Docker en **tapant des commandes en texte** dans un terminal (la fenêtre où l'on écrit des ordres), au lieu de cliquer dans une application.\n\n👉 **Analogie** : commander au restaurant. Plutôt que de te lever et de te servir toi-même (comme des clics dans une interface graphique), tu **dis au serveur** ce que tu veux, avec une phrase toujours construite pareil : un **plat** (l'objet) et une **façon de le préparer** (l'action). « Le poisson, grillé. »\n\nLa CLI Docker moderne est justement organisée en **groupes d'objets**, c'est-à-dire les grandes choses que Docker manipule :\n- `docker image ...` : les **images** (les modèles figés dont on lance des conteneurs) ;\n- `docker container ...` : les **conteneurs** (les instances qui tournent) ;\n- `docker volume ...` : les **volumes** (les espaces où sont rangées les données) ;\n- `docker network ...` : les **réseaux** (comment les conteneurs se parlent) ;\n- `docker system ...` : le **système** Docker dans son ensemble.\n\nÀ l'intérieur de chaque groupe, on retrouve **toujours les mêmes verbes** (les actions) : `ls` (de *list*, « lister »), `inspect` (« inspecter en détail »), `rm` (de *remove*, « supprimer »), `prune` (« élaguer, nettoyer »). Exemple concret : `docker container ls` liste les conteneurs, `docker image ls` liste les images, `docker volume ls` liste les volumes. Même verbe, objets différents.\n\nTu croiseras aussi de **vieux raccourcis** hérités des débuts de Docker : `docker ps` (= `docker container ls`) et `docker images` (= `docker image ls`). Ils marchent encore et tu les verras partout, mais **penser en objets + verbes** rend la CLI **prévisible** : dès que tu connais le schéma, tu **devines** une commande sans l'avoir apprise."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Le schéma objet + verbe, en image",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  D[\"docker\"] --> O1[\"image\"]\n  D --> O2[\"container\"]\n  D --> O3[\"volume\"]\n  D --> O4[\"network\"]\n  O1 --> V[\"ls · inspect · rm · prune\"]\n  O2 --> V\n  O3 --> V\n  O4 --> V"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le schéma objet + verbe",
+          "codeLanguage": "bash",
+          "body": "docker image ls           # = docker images\ndocker container ls -a    # = docker ps -a\ndocker volume ls\ndocker network ls\n\n# Mêmes verbes partout\ndocker image inspect nginx\ndocker container inspect web\ndocker volume inspect pgdata\ndocker container rm web\ndocker image rm nginx"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Inspecter finement : format & filtres",
+          "body": "La commande `docker inspect` te donne **tout** ce que Docker sait d'un objet, mais sous une forme intimidante : un gros bloc de **JSON**. Le **JSON** (prononce « dji-sonne », de l'anglais *JavaScript Object Notation*) est simplement un **format texte** pour représenter des données structurées, sous forme de paires `\"nom\": valeur` rangées en arborescence. C'est lisible par une machine, mais indigeste quand on cherche **une seule** info au milieu de centaines de lignes.\n\nDeux options transforment ce fouillis en réponse nette :\n\n**`--format`** te laisse **extraire exactement le champ voulu**, à l'aide d'un petit **gabarit** (en anglais *template*) écrit dans le langage de gabarits de Go (le langage dans lequel Docker est programmé). Concrètement, tu écris entre `{{ }}` le chemin vers la donnée, par exemple `{{ .NetworkSettings.IPAddress }}` pour l'adresse IP. Docker te renvoie **juste cette valeur**, rien d'autre.\n\n👉 **Analogie** : sans `--format`, tu reçois **l'annuaire entier** et tu cherches un numéro à la main. Avec `--format`, tu demandes « le numéro de Dupont » et on te lit **cette ligne-là**.\n\n**`--filter`** sert à **cibler** : n'afficher que les objets qui remplissent une condition. Par exemple `--filter status=exited` ne garde que les conteneurs arrêtés, `--filter dangling=true` ne garde que les images sans nom.\n\nPourquoi est-ce important ? Parce que ces deux options font passer la CLI du statut de « commandes tapées à la main » à celui d'**outil de script et d'automatisation** : récupérer l'IP d'un conteneur dans une variable, lister automatiquement les conteneurs à nettoyer, extraire un détail précis pendant un débogage. Maîtriser `--format` et `--filter` fait gagner un temps considérable au quotidien."
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Format & filtres en action",
+          "codeLanguage": "bash",
+          "body": "# Extraire l'IP d'un conteneur\ndocker inspect --format '{{ .NetworkSettings.IPAddress }}' web\n\n# Lister les IDs des conteneurs arrêtés\ndocker ps -a --filter status=exited --format '{{ .ID }} {{ .Names }}'\n\n# Lister les images sans tag (dangling)\ndocker image ls --filter dangling=true"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Vous voulez un script qui récupère automatiquement l'adresse IP d'un conteneur nommé `db` pour l'utiliser ailleurs. Quelle commande évite de parser à la main tout le JSON de `docker inspect` ?",
+          "solution": "On utilise l'option --format avec un template Go pour extraire directement le champ voulu : `docker inspect --format '{{ .NetworkSettings.IPAddress }}' db`. Elle renvoie uniquement l'adresse IP, prête à être capturée dans une variable de script (IP=$(docker inspect --format '{{...}}' db)), sans avoir à parser tout le JSON avec des outils externes. C'est le mécanisme standard pour extraire une valeur précise de la CLI Docker de façon fiable et scriptable. (Note : sur un réseau personnalisé, l'IP peut être sous .NetworkSettings.Networks.<reseau>.IPAddress.)"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Structure de la CLI",
+          "quizRef": "docker-cli-structure-check"
+        }
+      ]
+    },
+    {
+      "slug": "nettoyage-et-hygiene",
+      "title": "Nettoyage & hygiène",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Docker mange de l'espace disque",
+          "body": "Plus tu utilises Docker, plus il **accumule des choses sur ton disque dur**, souvent sans que tu t'en rendes compte. Passons en revue ce qui s'entasse :\n- des **conteneurs arrêtés** : quand un conteneur finit, il n'est pas effacé tout seul, sa carcasse reste ;\n- des **images non utilisées** : des modèles téléchargés ou construits dont plus aucun conteneur ne se sert ;\n- des **images dangling** (en anglais *dangling* = « qui pend dans le vide ») : des images **sans nom ni étiquette**, laissées derrière par des reconstructions successives. Quand tu reconstruis une image, l'ancienne version perd son nom au profit de la nouvelle, et cette ancienne reste là, anonyme et inutile ;\n- des **volumes orphelins** : des espaces de stockage de données qui ne sont plus rattachés à aucun conteneur ;\n- le **cache de build** : pour reconstruire plus vite, Docker garde en mémoire les étapes des constructions passées, ce qui prend de la place à la longue.\n\n👉 **Analogie** : c'est un **grenier**. Tu y montes des cartons « au cas où », et au fil des années il déborde d'objets dont tu ne te sers plus, jusqu'à ce qu'on ne puisse plus y entrer.\n\nSur un poste de développeur ou sur un serveur d'**intégration continue** (la **CI**, de l'anglais *Continuous Integration* : le serveur qui reconstruit et teste le projet automatiquement à chaque changement de code), tout cela peut représenter **des dizaines de Go** (gigaoctets) et finir par **saturer le disque**. Résultat classique : une panne « no space left on device » (« plus d'espace disponible sur le disque »). Deux commandes gèrent ça : **`docker system df`** montre **ce qui consomme** l'espace (`df` vient de *disk free*), et **`docker system prune`** **nettoie** (`prune` = « élaguer »). Cette hygiène du disque fait partie du métier quotidien avec Docker."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Nettoyer sans tout casser",
+          "codeLanguage": "bash",
+          "body": "docker system df                 # que consomme Docker ?\ndocker container prune           # supprimer les conteneurs arrêtés\ndocker image prune               # supprimer les images dangling\ndocker volume prune              # supprimer les volumes NON utilisés (attention !)\ndocker system prune              # tout le superflu d'un coup\ndocker system prune -a --volumes # TOUT : images non utilisées + volumes (DANGER)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "prune : puissant et dangereux (niveau expert)",
+          "body": "`prune` (« élaguer, tailler ») est indispensable, mais c'est un **outil tranchant** : bien manié il nettoie, mal manié il **coupe ce qu'il ne fallait pas**.\n\nDeux dangers concrets à connaître :\n- **`docker volume prune`** supprime les volumes **non attachés** (rattachés à aucun conteneur en cours). Or un volume qui n'est *momentanément* rattaché à rien peut très bien **contenir des données précieuses** (une base de données arrêtée le temps d'une maintenance, par exemple). Il peut donc **partir avec ses données**.\n- **`docker system prune -a`** (l'option **`-a`**, de *all*, « tout ») supprime **toutes** les images qu'aucun conteneur en cours n'utilise, pas seulement les anonymes. Sur un serveur, cela peut effacer des images qu'il faudra **re-télécharger**, voire des images qu'on croyait à l'abri.\n\n👉 **Analogie** : `prune` sans option, c'est **ramasser les feuilles mortes** tombées au sol. `prune -a --volumes`, c'est **passer la tronçonneuse** : très efficace, mais tu peux couper une branche vivante, ou pire.\n\nRègle d'expert :\n- sur un **poste de développement** (où l'on peut tout reconstruire facilement), `prune` **généreusement** : ça libère de l'espace sans drame ;\n- sur un **serveur de production**, **cibler précisément** : n'utiliser que des filtres et l'option `--until` (« seulement ce qui est plus vieux que... », par exemple `--until=24h`), **jamais** `-a --volumes` à l'aveugle, et **s'assurer que les données sont sauvegardées** avant de purger quoi que ce soit."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un serveur CI tombe en panne : « no space left on device ». En investiguant, vous constatez que Docker occupe 60 Go. Quelle commande diagnostique le problème, et quelle précaution avant de nettoyer les volumes ?",
+          "solution": "Diagnostic : `docker system df` montre la répartition de l'espace (images, conteneurs, volumes, cache de build) et révèle ce qui consomme les 60 Go, typiquement, sur un CI, un empilement d'images de builds et de cache. Nettoyage : `docker system prune` (conteneurs arrêtés + images dangling + cache) libère souvent beaucoup sans risque ; pour aller plus loin, `docker image prune -a` retire les images non utilisées. Précaution AVANT de toucher aux volumes : `docker volume prune` supprime les volumes non attachés, qui peuvent contenir des DONNÉES (une base momentanément détachée). Il faut donc vérifier qu'aucun volume nécessaire n'est concerné et que les données importantes sont sauvegardées avant de purger les volumes. Sur un CI, mettre en place un nettoyage automatique régulier et ciblé évite ce genre de panne."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, La CLI Docker",
+          "quizRef": "docker-cli-check"
+        }
+      ]
+    },
+    {
+      "slug": "cli-de-pro",
+      "title": "La CLI de pro : plugins, context, automatisation",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La CLI est extensible par plugins",
+          "body": "La CLI Docker moderne n'est pas un bloc unique : c'est un **socle que l'on peut étendre** avec des **plugins**. Un **plugin** (« greffon » en français) est un **module qui vient s'ajouter** à un logiciel pour lui donner de nouvelles capacités, sans le réécrire.\n\n👉 **Analogie** : les **applications** que tu installes sur ton téléphone. Le téléphone (le socle) sait faire l'essentiel ; chaque appli ajoutée lui donne une fonction en plus, tout en s'intégrant au même écran d'accueil.\n\nDans Docker, beaucoup de sous-commandes sont en réalité des plugins :\n- **`docker buildx`** : la construction d'images **avancée**, dont le **multi-arch** (construire une même image pour plusieurs types de processeurs, par exemple Intel/AMD et ARM) ;\n- **`docker compose`** : lancer **plusieurs conteneurs à la fois**, décrits ensemble dans un fichier ;\n- **`docker scout`** : analyser les images à la recherche de **failles de sécurité**.\n\nC'est aussi ce qui explique un changement que tu croiseras partout : `docker compose` (avec un **espace**) a remplacé l'ancien `docker-compose` (avec un **tiret**). L'ancien était un **binaire séparé** (un programme installé à part, écrit en Python) ; le nouveau est un **plugin** intégré à la CLI, réécrit en **Go** (le langage de Docker), plus rapide et cohérent avec le reste.\n\nExemple concret : tu peux voir les plugins installés à la fin de la sortie de `docker info`. Comprendre cette architecture éclaire toute la structure des commandes, et pourquoi les fonctions pointues (build multi-arch, scan de sécurité) passent par un plugin dédié : ce sont des **extensions du cœur**, pas des outils étrangers posés à côté."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "context : basculer d'environnement",
+          "body": "Voici un levier essentiel pour un usage professionnel, déjà entrevu à l'installation : **`docker context`**.\n\nD'abord un rappel utile : quand tu tapes une commande `docker`, la CLI ne fait pas le travail elle-même, elle **transmet l'ordre au daemon**. Le **daemon** (prononce « dé-mone », mot anglais désignant un programme qui tourne en arrière-plan en permanence) est le **moteur** de Docker : c'est lui qui construit les images et fait tourner les conteneurs. Par défaut, ce daemon est celui de **ta propre machine**.\n\nUn **context** est un **profil de connexion** qui dit à la CLI **à quel daemon parler**. En changeant de context, la **même** commande `docker` peut piloter un **autre** moteur, par exemple celui d'un **serveur distant** joint via **SSH** (de *Secure Shell*, le protocole standard pour se connecter de façon chiffrée à une machine à distance).\n\n👉 **Analogie** : une **télécommande universelle**. Le même bouton « lecture » commande soit la télé du salon, soit celle de la chambre, selon l'appareil que la télécommande vise à cet instant. `docker context use prod` fait viser le serveur de production ; le `docker ps` suivant liste alors les conteneurs **de ce serveur**.\n\nPourquoi est-ce la bonne méthode ? Parce qu'elle administre un hôte distant **sans réécrire d'adresses** partout et **sans exposer le moteur Docker sur le réseau**. L'alternative dangereuse serait d'**ouvrir le port** du daemon (2375 en clair, 2376 chiffré) pour l'atteindre directement : c'est risqué, car qui contrôle le daemon contrôle toute la machine. Passer par `context` + SSH est **propre et sûr**. Combiné aux plugins, tu obtiens **une seule CLI cohérente** pour piloter tous tes environnements."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Automatiser avec --format & jq",
+          "codeLanguage": "bash",
+          "body": "# Sortie JSON exploitable par des scripts (--format json ou template Go)\ndocker ps --format json | jq -r 'select(.State==\"running\") | .Names'\n\n# Extraire une valeur précise sans parser tout le JSON\ndocker inspect web --format '{{ .State.Health.Status }}'   # healthy / unhealthy\n\n# Réagir aux événements du daemon en temps réel (automatisation/monitoring)\ndocker events --filter 'event=die' --format '{{.Actor.Attributes.name}} est mort'\n#   -> déclencher une alerte, un redémarrage, un log..."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "events : la CLI comme source d'automatisation (niveau expert)",
+          "body": "Dernier étage de la fusée : **`docker events`**. Cette commande **diffuse en direct** un **flux** (un défilement continu) de **tout ce qui se passe** dans le daemon : un conteneur qui démarre, s'arrête ou **meurt** (*die*), une image téléchargée, un volume monté, un changement d'état de **santé**.\n\nUn mot sur la **santé** : Docker peut surveiller si un conteneur fonctionne réellement bien, et lui attribuer l'état **`healthy`** (« en bonne santé ») ou **`unhealthy`** (« en mauvaise santé »). C'est très utile pour réagir avant la panne complète.\n\n👉 **Analogie** : `docker events`, c'est le **moniteur de surveillance** d'un hôpital. Il n'attend pas que tu demandes des nouvelles : il **signale en temps réel** chaque événement, et une alarme peut se déclencher toute seule dès qu'un signe vire au rouge.\n\nC'est **la** brique d'**automatisation** : un petit script qui **écoute** `docker events --filter event=health_status` peut agir **automatiquement** dès qu'un conteneur devient `unhealthy` (envoyer une alerte, le redémarrer, écrire un journal). Couplé à `--format` (les gabarits Go vus plus haut, ou la sortie `json` passée à **`jq`**, un petit outil qui découpe et filtre du JSON en ligne de commande), la CLI devient **scriptable de bout en bout**.\n\n👉 **L'état d'esprit d'expert** : ne pas voir la CLI Docker comme une simple liste de commandes qu'on tape à la main, mais comme une **interface programmable** (une façon de piloter Docker depuis des scripts) qui permet de construire ses propres outils d'exploitation, sans dépendre d'une API plus lourde."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Pourquoi `docker compose` (avec un espace) a-t-il remplacé l'ancienne commande `docker-compose` (avec un tiret), et qu'est-ce que cela révèle de l'architecture de la CLI ?",
+          "solution": "`docker-compose` (avec tiret) était un outil SÉPARÉ, écrit en Python, installé à part. `docker compose` (avec espace) est un PLUGIN de la CLI Docker, réécrit en Go, intégré au binaire docker via son architecture de plugins. Cela révèle que la CLI Docker moderne est un socle extensible : de nombreuses sous-commandes (compose, buildx, scout) sont des plugins qui étendent le cœur, plutôt que des binaires indépendants. Avantages du changement : intégration cohérente (mêmes conventions, mêmes contextes, même authentification), meilleures performances (Go vs Python), maintenance unifiée, et accès aux fonctionnalités modernes (BuildKit, contexts). Concrètement, on privilégie aujourd'hui `docker compose` ; `docker-compose` (v1) est déprécié. Comprendre l'architecture de plugins explique aussi pourquoi le build avancé passe par `docker buildx` : c'est une extension du cœur, exposant BuildKit."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, La CLI de pro (expert)",
+          "quizRef": "docker-cli-expert"
+        }
+      ]
+    }
+  ]
+}

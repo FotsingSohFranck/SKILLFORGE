@@ -1,0 +1,119 @@
+{
+  "ref": "pods-debug-expert",
+  "node": "pods",
+  "lesson": "debug-et-patterns-avances",
+  "title": "Debug & patterns avancés, expert",
+  "description": "Ephemeral containers/kubectl debug, sidecars natifs, Downward API, probes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment déboguer un pod dont l'image est distroless (sans shell) sans le reconstruire ?",
+      "justification": "kubectl debug injecte un ephemeral container (image outillée) partageant les namespaces du pod, sans reconstruction ni redémarrage.",
+      "position": 0,
+      "options": [
+        {
+          "label": "kubectl debug (ephemeral container partageant les namespaces)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter bash à l'image et redéployer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est impossible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte un sidecar natif (init container avec restartPolicy: Always, 1.29+) ?",
+      "justification": "Il démarre avant les conteneurs principaux et s'arrête après eux, réglant les problèmes d'ordre (proxy prêt avant l'app, logs à l'arrêt).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un ordre garanti : démarre avant, s'arrête après l'app",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il double la mémoire du pod",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il remplace le conteneur principal",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la Downward API ?",
+      "justification": "À exposer au conteneur des infos sur lui-même (nom de pod, namespace, nœud, labels, limites) via env/fichiers, sans appeler l'API.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Exposer au conteneur des infos sur lui-même",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Télécharger des images plus vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer les secrets",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel réglage évite qu'une liveness probe tue une application lente à démarrer ?",
+      "justification": "Une startupProbe (ou un initialDelaySeconds adapté) laisse le temps au démarrage avant que la liveness ne surveille.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Une startupProbe (ou initialDelaySeconds adapté)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer toutes les probes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Mettre la liveness très agressive",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il existe des probes de type httpGet, tcpSocket, exec et grpc, à choisir selon le type de service.",
+      "justification": "Vrai : grpc est natif pour les services gRPC, tcpSocket pour un simple port, exec pour une commande, httpGet pour du HTTP.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

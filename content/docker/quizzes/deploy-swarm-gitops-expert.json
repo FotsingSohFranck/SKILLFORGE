@@ -1,0 +1,119 @@
+{
+  "ref": "deploy-swarm-gitops-expert",
+  "node": "deploying-containers",
+  "lesson": "swarm-gitops-observabilite",
+  "title": "Swarm, GitOps & observabilité, expert",
+  "description": "Swarm services/stacks, rolling update, GitOps ArgoCD/Flux, observabilité conteneurs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans Docker Swarm, quel objet maintient N répliques réparties avec rolling update ?",
+      "justification": "Le service : Swarm maintient le nombre de répliques désiré, gère les mises à jour progressives, le réseau overlay et les secrets.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le service",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le volume",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le Dockerfile",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En GitOps, où est déclaré l'état désiré du déploiement ?",
+      "justification": "Dans un dépôt Git ; un agent (Argo CD/Flux) réconcilie en continu l'état réel avec Git (modèle pull), traçable et rollback par revert.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Dans un dépôt Git, réconcilié par un agent du cluster",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans le daemon Docker local",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans l'image elle-même",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi centraliser les logs des conteneurs ?",
+      "justification": "Les logs d'un conteneur disparaissent quand il est supprimé/recréé ; la centralisation les rend durables et interrogeables pour l'analyse.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Les logs d'un conteneur détruit sont perdus sans centralisation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour accélérer les conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour chiffrer les images",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil expose les métriques CPU/mémoire par conteneur, scrapées par Prometheus ?",
+      "justification": "cAdvisor expose les métriques par conteneur ; Prometheus les collecte et Grafana les visualise.",
+      "position": 3,
+      "options": [
+        {
+          "label": "cAdvisor",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker commit",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "runc",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'observabilité (logs centralisés, métriques, traces) fait partie intégrante d'un déploiement de production, pas d'une étape ultérieure.",
+      "justification": "Vrai : sans elle, on est aveugle et on découvre les incidents par les utilisateurs ; un conteneur éphémère emporte ses données sinon.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

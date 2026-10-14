@@ -1,0 +1,119 @@
+{
+  "ref": "what-are-containers-expert",
+  "node": "what-are-containers",
+  "lesson": "aux-frontieres-du-conteneur",
+  "title": "Frontières du conteneur, expert",
+  "description": "Histoire, conteneurs Windows, WASM, frontière de sécurité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle a été la contribution majeure de Docker (2013) aux conteneurs ?",
+      "justification": "Docker n'a pas inventé l'isolation (cgroups/namespaces/LXC existaient) : il a apporté un format d'image portable, un outillage ergonomique et un registre partagé.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un format d'image portable, l'outillage et un registre (démocratisation)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'invention des namespaces et cgroups",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le premier système d'exploitation conteneurisé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Peut-on exécuter un conteneur Windows sur un noyau Linux (et inversement) ?",
+      "justification": "Non : le noyau étant partagé, la parenté d'OS est imposée ; un conteneur Windows exige un noyau Windows (mode process ou Hyper-V).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Non, le noyau partagé impose la parenté d'OS",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, les conteneurs sont indépendants de l'OS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, mais seulement en mode process",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise WebAssembly (WASM) comme modèle d'exécution ?",
+      "justification": "Un binaire portable et sandboxé, à démarrage quasi instantané et empreinte minuscule, intégrable à Docker via runwasi, un complément aux conteneurs.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Binaire portable et sandboxé, démarrage quasi instantané",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une machine virtuelle complète avec OS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un format de registre d'images",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour exécuter du code non fiable en multi-tenant, pourquoi un conteneur Docker standard ne suffit-il pas ?",
+      "justification": "Le noyau partagé n'est pas une frontière forte : une faille noyau permet une évasion ; on renforce avec gVisor/Kata ou des micro-VM.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le noyau partagé n'est pas une frontière de sécurité forte (évasion possible)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les conteneurs ne peuvent pas exécuter de code utilisateur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Docker interdit le multi-tenant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le niveau d'isolation à choisir dépend du modèle de menace : conteneur standard pour du code de confiance, runtime isolant (gVisor/Kata) ou micro-VM pour du code hostile.",
+      "justification": "Vrai : on calibre l'isolation selon l'adversaire, sans surestimer l'isolation par défaut ni la sous-estimer pour du code de confiance.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

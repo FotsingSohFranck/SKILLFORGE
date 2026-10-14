@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>dev.skillforge</groupId>
+    <artifactId>skillforge-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>SkillForge</name>
+    <description>Plateforme e-learning locale — monolithe modulaire hexagonal (WebFlux/R2DBC)</description>
+
+    <!-- Un module par contexte borné + common (noyau partagé) + app (assemblage). -->
+    <modules>
+        <module>common</module>
+        <module>iam</module>
+        <module>catalogue</module>
+        <module>contenu</module>
+        <module>apprentissage</module>
+        <module>evaluation</module>
+        <module>gamification</module>
+        <module>analytics</module>
+        <module>app</module>
+    </modules>
+
+    <properties>
+        <!-- Cible bytecode Java 21 (LTS figée), compilable sous un JDK plus récent. -->
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <uuid-creator.version>6.0.0</uuid-creator.version>
+        <springdoc.version>3.0.3</springdoc.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Testcontainers 2.x (version alignée sur celle gérée par le BOM Boot 4.1) -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Modules internes -->
+            <dependency>
+                <groupId>dev.skillforge</groupId>
+                <artifactId>common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- UUID v7 côté Java (jamais UUID.randomUUID / v4) -->
+            <dependency>
+                <groupId>com.github.f4b6a3</groupId>
+                <artifactId>uuid-creator</artifactId>
+                <version>${uuid-creator.version}</version>
+            </dependency>
+            <!-- OpenAPI (springdoc 3.x pour Spring Framework 7 / Boot 4) -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Dépendances de test communes à tous les modules -->
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

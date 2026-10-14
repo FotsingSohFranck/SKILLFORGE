@@ -1,0 +1,10 @@
+{
+  "node": "key-concepts",
+  "lesson": "plan-de-controle-et-noeuds",
+  "title": "Sauvegarder l'état du cluster (snapshot etcd)",
+  "statement": "etcd est la base clé-valeur qui stocke TOUT l'état du cluster : sa sauvegarde est l'opération d'exploitation la plus critique d'un cluster auto-géré. Écris la commande `etcdctl` qui prend un instantané (snapshot) d'etcd et l'enregistre dans un fichier nommé `snapshot.db`. On te donne les variables d'environnement déjà positionnées pour l'authentification (endpoints, cacert, cert, key) ; concentre-toi sur la sous-commande de snapshot et le fichier de sortie.",
+  "skeleton": "# Snapshot de sauvegarde d'etcd\netcdctl ",
+  "solution": "etcdctl snapshot save snapshot.db\n# Forme complète typique avec authentification :\n# ETCDCTL_API=3 etcdctl \\\n#   --endpoints=https://127.0.0.1:2379 \\\n#   --cacert=/etc/kubernetes/pki/etcd/ca.crt \\\n#   --cert=/etc/kubernetes/pki/etcd/server.crt \\\n#   --key=/etc/kubernetes/pki/etcd/server.key \\\n#   snapshot save snapshot.db\n# La sous-commande est bien 'snapshot save <fichier>'. Ce fichier snapshot.db contient tout l'état du cluster ; le conserver hors du cluster permet de le restaurer (snapshot restore) après une perte d'etcd.",
+  "keyPoints": ["snapshot save", "snapshot.db"],
+  "language": "bash"
+}

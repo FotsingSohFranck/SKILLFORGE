@@ -1,0 +1,96 @@
+{
+  "ref": "observability-logs-check",
+  "node": "observability",
+  "lesson": "logs-et-metriques",
+  "title": "Quiz, Logs & métriques",
+  "description": "Logs sur stdout/stderr, pods éphémères, DaemonSet de collecte, metrics-server et Prometheus.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi faut-il centraliser les logs des pods au lieu de compter sur `kubectl logs` ?",
+      "justification": "Un pod est éphémère : quand il est supprimé (crash, redéploiement), ses logs disparaissent. Un DaemonSet de collecte les exporte en continu vers une plateforme durable (Loki, Elasticsearch).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Parce que les pods sont éphémères : leurs logs disparaissent à la suppression, il faut les exporter vers un stockage durable",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que `kubectl logs` ne fonctionne que pour l'utilisateur admin",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que centraliser les logs accélère le démarrage des pods",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel objet Kubernetes garantit un pod agent de collecte de logs sur CHAQUE nœud du cluster ?",
+      "justification": "Un DaemonSet place exactement un pod par nœud. C'est le modèle utilisé par Fluent Bit, Fluentd ou Vector pour lire les logs de tous les pods d'un nœud.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un DaemonSet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un Deployment à une réplique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un CronJob",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant fournit le CPU/mémoire de base pour `kubectl top` et l'HPA ?",
+      "justification": "metrics-server est le minimum vital pour la consommation de ressources ; il alimente `kubectl top` et l'autoscaling. Pour l'observabilité complète, on ajoute Prometheus + Grafana.",
+      "position": 2,
+      "options": [
+        {
+          "label": "metrics-server",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "etcd",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "kube-proxy",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Prometheus « scrape » périodiquement un endpoint `/metrics` exposé par les applications pour collecter leurs métriques.",
+      "justification": "Vrai : le modèle de Prometheus est le pull (scraping). Il interroge à intervalle régulier l'endpoint /metrics de chaque cible et range les valeurs en séries temporelles interrogeables en PromQL.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

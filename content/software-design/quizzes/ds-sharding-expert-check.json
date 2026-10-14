@@ -1,0 +1,101 @@
+{
+  "ref": "ds-sharding-expert-check",
+  "node": "distributed-styles",
+  "lesson": "partitionnement-sharding-replication",
+  "title": "Quiz, Sharding & réplication (expert)",
+  "description": "Range vs hash, consistent hashing, leader-follower vs leaderless, quorum W+R>N, choix de clé.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel risque principal du partitionnement par intervalle (range) sur une clé temporelle ?",
+      "justification": "Hot spot : toutes les écritures récentes tombent sur la même partition (la plage « maintenant »), concentrant la charge sur un seul nœud.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un hot spot : toutes les écritures récentes vont sur la même partition",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une distribution parfaitement uniforme",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'impossibilité de faire des requêtes par plage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte le consistent hashing par rapport à un hachage modulo simple ?",
+      "justification": "L'ajout/retrait d'un nœud ne déplace qu'une fraction des clés (au lieu de tout re-hacher), clé de l'élasticité.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Ajouter/retirer un nœud ne déplace qu'une fraction des clés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il supprime le besoin de répliquer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il garantit les requêtes par plage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit l'inégalité de quorum W + R > N ?",
+      "justification": "Toute lecture recoupe au moins une réplique à jour → cohérence forte. Baisser W ou R gagne en disponibilité/latence mais risque de lire une donnée périmée.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Toute lecture recoupe au moins une réplique à jour (cohérence forte)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Que les écritures sont impossibles",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Que la latence est toujours minimale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Messagerie, besoin dominant « charger tous les messages d'une conversation ». Meilleure clé de partition ?",
+      "justification": "conversationId (hash) co-localise les messages d'une conversation sur une partition (lecture sans scatter-gather) et répartit les écritures ; timestamp décroissant sert de clé de tri intra-partition.",
+      "position": 3,
+      "options": [
+        {
+          "label": "conversationId (hash), avec timestamp décroissant en clé de tri intra-partition",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "timestamp (range)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un identifiant aléatoire par message",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

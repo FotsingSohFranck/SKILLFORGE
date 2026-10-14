@@ -1,0 +1,10 @@
+{
+  "node": "deployment-strategies",
+  "lesson": "blue-green-et-canary",
+  "title": "Une migration de base compatible avec le canary",
+  "statement": "Ton équipe déploie en **canary** une nouvelle version qui a besoin de **renommer** une colonne de la base de données (`login` devient `username`). Un développeur veut faire la migration qui renomme la colonne d'un coup, juste avant le déploiement. (1) Explique pourquoi c'est dangereux pendant un canary. (2) Décris la méthode **expand/contract** pour faire ce changement sans casser l'ancienne version qui tourne encore.",
+  "skeleton": "Réponds en quelques phrases :\n(1) le danger pendant un canary\n(2) les étapes expand/contract\n",
+  "solution": "Pendant un canary, l'ancienne version (v1) et la nouvelle (v2) COEXISTENT : les deux tournent en même temps et tapent dans la MÊME base. (1) Le danger : si on renomme la colonne `login` en `username` d'un coup, la v1, qui cherche toujours `login`, casse immédiatement pour la fraction d'utilisateurs restée dessus. La règle est que toute migration doit rester RÉTROCOMPATIBLE tant que les deux versions cohabitent. (2) La méthode expand/contract se fait en plusieurs temps. EXPAND : on AJOUTE la nouvelle colonne `username` sans toucher à `login`, et on fait en sorte que les écritures alimentent les DEUX colonnes pendant la transition (la v2 écrit dans `username`, un mécanisme recopie aussi vers `login`, ou inversement). Les deux versions fonctionnent alors : v1 lit `login`, v2 lit `username`. On peut dérouler le canary jusqu'à 100 % en toute sécurité. CONTRACT : une fois la v1 totalement retirée (plus personne ne lit `login`), on SUPPRIME l'ancienne colonne `login` dans une migration ultérieure. Idée clé : on ne casse jamais la voie sur laquelle des utilisateurs roulent encore ; on étend, on bascule, puis seulement on retire.",
+  "keyPoints": ["coexist", "rétrocompat", "ajoute", "supprime"],
+  "language": "text"
+}

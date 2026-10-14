@@ -1,0 +1,52 @@
+{
+  "ref": "api-styles-graphql-check",
+  "node": "api-styles",
+  "lesson": "graphql",
+  "title": "GraphQL",
+  "description": "Endpoint unique, over/under-fetching, resolvers, N+1, cache.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels deux maux de REST GraphQL résout-il en laissant le client choisir ses champs ?",
+      "justification": "L'over-fetching (trop de champs renvoyés) et l'under-fetching (plusieurs appels nécessaires) : le client demande exactement ce qu'il veut.",
+      "position": 0,
+      "options": [
+        { "label": "L'over-fetching et l'under-fetching", "correct": true, "position": 0 },
+        { "label": "Le chiffrement et l'authentification", "correct": false, "position": 1 },
+        { "label": "La sauvegarde de la base de données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment GraphQL expose-t-il ses opérations, côté URL ?",
+      "justification": "Par un endpoint unique (souvent /graphql) par lequel passent toutes les requêtes, contrairement à REST où chaque ressource a son URL.",
+      "position": 1,
+      "options": [
+        { "label": "Un endpoint unique par lequel passent toutes les requêtes", "correct": true, "position": 0 },
+        { "label": "Une URL différente par champ demandé", "correct": false, "position": 1 },
+        { "label": "Aucune URL, tout passe par e-mail", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une requête liste 100 articles avec leur auteur, et le serveur fait 1 requête pour la liste puis 100 requêtes pour les auteurs. Comment corriger ce problème N+1 ?",
+      "justification": "Un dataloader regroupe les accès aux auteurs en une seule requête groupée, au lieu de N requêtes séparées.",
+      "position": 2,
+      "options": [
+        { "label": "Utiliser un dataloader qui regroupe les accès", "correct": true, "position": 0 },
+        { "label": "Ajouter plus de champs à la requête", "correct": false, "position": 1 },
+        { "label": "Passer le endpoint en GET", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le cache HTTP classique est plus difficile à exploiter avec GraphQL qu'avec REST.",
+      "justification": "Vrai : en GraphQL tout passe par un POST sur un endpoint unique, que les caches HTTP classiques ne savent pas indexer comme des URL GET REST.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

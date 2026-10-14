@@ -1,0 +1,96 @@
+{
+  "ref": "admission-webhooks-expert",
+  "node": "extending-kubernetes",
+  "lesson": "admission-webhooks",
+  "title": "Admission webhooks, expert",
+  "description": "Validating vs mutating, injection de sidecar, failurePolicy, précautions.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de webhook accepte ou refuse un objet (ex. refuser un pod sans limites) ?",
+      "justification": "Le validating webhook accepte/refuse ; le mutating modifie l'objet (ex. injecter un sidecar).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le validating webhook",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le mutating webhook",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le CSI webhook",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de webhook injecte automatiquement un sidecar dans un pod ?",
+      "justification": "Le mutating webhook modifie l'objet avant persistance (c'est ainsi qu'Istio injecte Envoy).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le mutating webhook",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le validating webhook",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un DaemonSet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel danger d'une failurePolicy: Fail sur un webhook ?",
+      "justification": "Si le webhook est injoignable, il refuse les objets, pouvant bloquer tout le cluster (y compris son propre redéploiement).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un webhook en panne peut bloquer tout le cluster",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il chiffre les objets",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il double la latence réseau des pods",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un webhook est sur le chemin critique de l'API : on limite son scope, on soigne timeouts/HA et on exclut les namespaces système pour ne pas se verrouiller.",
+      "justification": "Vrai : un webhook mal conçu (lent, injoignable, trop large) est une panne globale en puissance ; on le teste rigoureusement.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

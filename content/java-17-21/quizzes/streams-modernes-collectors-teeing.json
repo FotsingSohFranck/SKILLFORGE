@@ -1,0 +1,41 @@
+{
+  "ref": "streams-modernes-collectors-teeing",
+  "node": "streams-modernes",
+  "lesson": "collectors-teeing",
+  "title": "Quiz : Collectors.teeing",
+  "description": "Combiner deux collecteurs en un seul résultat, en un seul parcours.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Combien d'arguments prend Collectors.teeing ?",
+      "justification": "teeing prend trois arguments : deux collecteurs et une fonction de fusion qui combine leurs deux résultats en un seul.",
+      "position": 0,
+      "options": [
+        { "label": "Trois : deux collecteurs et une fonction de fusion", "correct": true, "position": 0 },
+        { "label": "Deux : un collecteur et un comparateur", "correct": false, "position": 1 },
+        { "label": "Un seul : la fonction de fusion", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec teeing, le flux n'est parcouru qu'une seule fois, même si deux calculs sont faits.",
+      "justification": "Vrai : chaque élément alimente les deux collecteurs en parallèle lors d'un unique parcours, puis la fonction de fusion produit le résultat final.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu veux calculer une moyenne (somme divisée par compte) en un seul passage. Quel montage convient ?",
+      "justification": "teeing avec summingDouble (la somme), counting (le compte) et une fusion (somme, compte) -> somme / compte donne la moyenne en un seul parcours.",
+      "position": 2,
+      "options": [
+        { "label": "teeing(summingDouble(...), counting(), (s, c) -> s / c)", "correct": true, "position": 0 },
+        { "label": "map(...).filter(...).toList()", "correct": false, "position": 1 },
+        { "label": "Parcourir le stream deux fois de suite", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

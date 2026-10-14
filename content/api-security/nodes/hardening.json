@@ -1,0 +1,30 @@
+{
+  "node": "hardening",
+  "lessons": [
+    {
+      "slug": "fermer-les-portes",
+      "title": "Fermer les portes",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "CORS : qui peut appeler l'API",
+          "body": "Le **CORS** contrôle quels sites web (origines) peuvent appeler votre API depuis un navigateur. On autorise **explicitement** les origines de confiance, jamais `*` en présence de credentials. Mal configuré, le CORS ouvre l'API à n'importe quel site ; bien configuré, il verrouille l'accès navigateur."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Des en-têtes qui protègent",
+          "body": "Quelques en-têtes de réponse durcissent l'API à moindre coût : `Content-Security-Policy` (limite les scripts), `X-Content-Type-Options: nosniff`, `Strict-Transport-Security` (HSTS). Et on **ne renvoie jamais** de stacktrace ni de détail interne au client : un message d'erreur normalisé, rien de plus."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Moindre privilège partout",
+          "body": "Le compte de base n'a que les droits nécessaires ; le conteneur tourne en non-root ; l'API n'expose que les champs utiles (pas de sur-exposition de données). Réduire la surface, c'est réduire ce qu'un attaquant peut atteindre s'il franchit une barrière."
+        }
+      ]
+    }
+  ]
+}

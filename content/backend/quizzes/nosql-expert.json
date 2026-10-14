@@ -1,0 +1,119 @@
+{
+  "ref": "nosql-expert",
+  "node": "nosql-databases",
+  "lesson": "coherence-distribuee-replication",
+  "title": "NoSQL, niveau expert",
+  "description": "Embedding/referencing, single-table, quorum, résolution de conflits.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une base document, quand privilégier le référencement plutôt que l'imbrication ?",
+      "justification": "On référence quand le sous-ensemble n'est pas borné (risque de document géant) ou est partagé ; on imbrique ce qu'on lit ensemble et qui reste petit.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Quand le sous-ensemble peut grandir sans limite ou est partagé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours, l'imbrication est déconseillée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais, on imbrique toujours tout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur DynamoDB, par quoi commence la conception en single-table design ?",
+      "justification": "On liste d'abord les motifs d'accès (les requêtes), puis on conçoit les clés composites pour les servir, l'inverse du relationnel.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Par la liste des motifs d'accès (les requêtes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par la normalisation des entités",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par la création d'une table par entité",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Avec un facteur de réplication N, quelle condition sur R et W garantit qu'une lecture voit toujours la dernière écriture ?",
+      "justification": "R + W > N force le recoupement des réplicas lus et écrits : la lecture voit au moins un réplica à jour (cohérence forte).",
+      "position": 2,
+      "options": [
+        {
+          "label": "R + W > N",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "R + W < N",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "R = W = 1 suffit toujours",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le défaut de la stratégie Last-Write-Wins pour résoudre des écritures concurrentes ?",
+      "justification": "LWW garde la plus récente selon un timestamp et perd donc silencieusement l'autre écriture concurrente.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Elle perd silencieusement une des écritures concurrentes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle bloque toutes les écritures",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle exige une cohérence forte",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les CRDT sont des structures conçues pour fusionner des écritures concurrentes sans conflit.",
+      "justification": "Vrai : les CRDT (compteurs, sets…) convergent automatiquement sans coordination, offrant une cohérence sans consensus.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

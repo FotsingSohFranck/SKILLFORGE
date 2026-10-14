@@ -1,0 +1,52 @@
+{
+  "ref": "caching-pourquoi-check",
+  "node": "caching",
+  "lesson": "pourquoi-cacher",
+  "title": "Quiz : Pourquoi cacher",
+  "description": "À quoi sert un cache, taux de hit, l'ordre des priorités (assainir la base avant de cacher).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert principalement un cache ?",
+      "justification": "Un cache garde le résultat d'un travail coûteux (requête, calcul) pour le resservir instantanément la fois suivante, sans le refaire.",
+      "position": 0,
+      "options": [
+        { "label": "Garder le résultat d'un travail coûteux pour le resservir sans le refaire", "correct": true, "position": 0 },
+        { "label": "Stocker définitivement toutes les données à la place de la base", "correct": false, "position": 1 },
+        { "label": "Chiffrer les mots de passe des utilisateurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que mesure le taux de hit (hit ratio) d'un cache ?",
+      "justification": "Le taux de hit est la proportion de requêtes trouvées directement dans le cache (les hits). Un taux faible (par ex. 5 %) signifie que le cache sert rarement et ajoute de la complexité pour peu de gain.",
+      "position": 1,
+      "options": [
+        { "label": "La proportion de requêtes servies directement depuis le cache", "correct": true, "position": 0 },
+        { "label": "Le nombre total de clés stockées dans le cache", "correct": false, "position": 1 },
+        { "label": "La taille mémoire du cache en Mo", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une API est lente à cause d'un N+1 en base. Que faire en premier ?",
+      "justification": "On assainit la base d'abord (corriger le N+1, une cause simple et durable). Cacher par-dessus masque le problème, complique l'invalidation et laisse la requête inefficace.",
+      "position": 2,
+      "options": [
+        { "label": "Corriger le N+1, puis éventuellement cacher ce qui reste chaud", "correct": true, "position": 0 },
+        { "label": "Ajouter un cache tout de suite pour masquer la lenteur", "correct": false, "position": 1 },
+        { "label": "Augmenter la mémoire du serveur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Servir une donnée périmée est toujours préférable à une réponse un peu plus lente.",
+      "justification": "Faux : une donnée périmée (fausse) est souvent pire qu'une réponse simplement lente. Tout l'enjeu du cache est de rester cohérent, pas seulement rapide.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

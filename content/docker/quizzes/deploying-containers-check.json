@@ -1,0 +1,63 @@
+{
+  "ref": "deploying-containers-check",
+  "node": "deploying-containers",
+  "lesson": "orchestrateurs",
+  "title": "Déployer des conteneurs",
+  "description": "CI/CD, build-once-deploy-many, PaaS vs orchestrateurs, Swarm/Nomad/K8s.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit le principe « build once, deploy many » dans un pipeline de déploiement ?",
+      "justification": "On construit une image une fois, testée, et on promeut exactement celle-ci : l'artefact déployé est celui qui a passé les tests.",
+      "position": 0,
+      "options": [
+        { "label": "L'image déployée est exactement celle testée, non reconstruite", "correct": true, "position": 0 },
+        { "label": "On reconstruit l'image à chaque environnement", "correct": false, "position": 1 },
+        { "label": "On déploie sans tester", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un petit projet à trafic modeste, quelle option de déploiement privilégier avant Kubernetes ?",
+      "justification": "Un serveur avec Docker Compose ou une PaaS conteneur : simple, suffisant, sans la complexité d'exploitation d'un cluster.",
+      "position": 1,
+      "options": [
+        { "label": "Docker Compose sur un serveur, ou une PaaS conteneur", "correct": true, "position": 0 },
+        { "label": "Toujours un cluster Kubernetes multi-nœuds", "correct": false, "position": 1 },
+        { "label": "Bare metal sans conteneurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un orchestrateur (Kubernetes, Nomad, Swarm) ?",
+      "justification": "Il maintient l'état réel conforme à l'état désiré : réplication, auto-réparation, scheduling, réseau et scaling à l'échelle de plusieurs machines.",
+      "position": 2,
+      "options": [
+        { "label": "Gérer une flotte de conteneurs (réplication, auto-réparation, scaling)", "correct": true, "position": 0 },
+        { "label": "Construire les images à la place de Docker", "correct": false, "position": 1 },
+        { "label": "Remplacer le noyau Linux", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Passer à Kubernetes oblige-t-il à changer sa façon de construire les images ?",
+      "justification": "Non : K8s exécute les mêmes images OCI construites avec Docker (via containerd/CRI-O) ; les bonnes pratiques d'image restent identiques.",
+      "position": 3,
+      "options": [
+        { "label": "Non, il exécute les mêmes images OCI standard", "correct": true, "position": 0 },
+        { "label": "Oui, il faut abandonner les Dockerfiles", "correct": false, "position": 1 },
+        { "label": "Oui, il faut un format d'image propriétaire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un déploiement sans coupure (rolling, blue-green, canary) suppose des conteneurs sans état, un healthcheck fiable et un rollback rapide.",
+      "justification": "Vrai : sans état pour l'interchangeabilité, healthcheck pour ne router que vers des instances prêtes, et rollback pour revenir vite en cas de problème.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

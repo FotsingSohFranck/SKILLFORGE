@@ -1,0 +1,41 @@
+{
+  "ref": "build-dependances-ajouter-une-dependance",
+  "node": "build-dependances",
+  "lesson": "ajouter-une-dependance",
+  "title": "Quiz : ajouter une dépendance",
+  "description": "Dépôt central, versions et dépendances transitives.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "D'où un outil de build télécharge t il par défaut les bibliothèques open source Java ?",
+      "justification": "Maven Central est le dépôt central le plus utilisé, par Maven comme par Gradle. L'outil y télécharge le JAR puis le garde dans un cache local.",
+      "position": 0,
+      "options": [
+        { "label": "Depuis le dépôt central Maven (Maven Central)", "correct": true, "position": 0 },
+        { "label": "Depuis le site officiel de Java uniquement", "correct": false, "position": 1 },
+        { "label": "Depuis le disque dur, les bibliothèques sont livrées avec le JDK", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu ajoutes une bibliothèque A qui a elle même besoin des bibliothèques B et C. Que fait l'outil de build ?",
+      "justification": "B et C sont des dépendances transitives : l'outil les récupère automatiquement en plus de A, sans que tu aies à les lister.",
+      "position": 1,
+      "options": [
+        { "label": "Il télécharge automatiquement A, B et C", "correct": true, "position": 0 },
+        { "label": "Il télécharge seulement A, tu dois ajouter B et C à la main", "correct": false, "position": 1 },
+        { "label": "Il refuse A tant que tu n'as pas déclaré B et C toi même", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Indiquer une version précise pour une dépendance aide à rendre le build reproductible.",
+      "justification": "Une version fixe garantit le même résultat dans le temps, alors qu'une version floue pourrait changer le code utilisé d'un build à l'autre.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

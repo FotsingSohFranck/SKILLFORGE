@@ -1,0 +1,119 @@
+{
+  "ref": "supply-chain-detection-expert",
+  "node": "container-security",
+  "lesson": "chaine-appro-et-detection",
+  "title": "Chaîne d'appro & détection, expert",
+  "description": "Signature cosign, SBOM/SLSA, admission control, secrets, Falco, CIS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment prouver que l'image déployée est bien celle construite, non altérée ?",
+      "justification": "La signer (cosign/Sigstore) avec SBOM et provenance (SLSA), puis vérifier signature et provenance au déploiement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La signer (cosign) + provenance/SBOM, et vérifier au déploiement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Utiliser le tag latest",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La renommer",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme impose « aucune image non signée ni conteneur privilégié » sans compter sur la discipline manuelle ?",
+      "justification": "Un contrôleur d'admission de politique (Kyverno, OPA/Gatekeeper) rejette au déploiement toute demande non conforme (policy as code).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un contrôleur d'admission (Kyverno / OPA-Gatekeeper)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un e-mail de rappel aux équipes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker scan",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où fournir un secret nécessaire au runtime d'un conteneur ?",
+      "justification": "Variables injectées, fichier monté, ou mieux un gestionnaire de secrets (Vault), jamais dans l'image ni le Dockerfile.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Injecté au runtime (env/montage) ou via un gestionnaire de secrets",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En dur dans le Dockerfile (ENV)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Committé dans Git",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil détecte en temps réel un comportement anormal dans un conteneur (ex. shell lancé en prod) ?",
+      "justification": "Falco surveille les syscalls en temps réel et alerte sur les comportements suspects, détection d'intrusion pour conteneurs.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Falco (surveillance des syscalls en temps réel)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker tag",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La sécurité conteneur est une boucle continue : durcir, imposer (admission), détecter (Falco), auditer (CIS Benchmark).",
+      "justification": "Vrai : ce n'est pas une case cochée mais un processus continu combinant durcissement, politique appliquée, détection et audit.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

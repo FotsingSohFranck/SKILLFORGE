@@ -1,0 +1,96 @@
+{
+  "ref": "ds-horloges-expert-check",
+  "node": "distributed-styles",
+  "lesson": "horloges-logiques-ordonnancement",
+  "title": "Quiz, Horloges logiques & ordonnancement (expert)",
+  "description": "Clock skew, horloges de Lamport, vector clocks, détection de concurrence, CRDT.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le timestamp système (wall-clock), même synchronisé par NTP, permet d'ordonner de façon fiable des événements proches sur deux nœuds.",
+      "justification": "Faux : les horloges dérivent (clock skew) et NTP garde une incertitude de plusieurs ms, assez pour inverser l'ordre de deux événements proches. Il faut des horloges logiques pour l'ordre causal.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la limite fondamentale des horloges de Lamport ?",
+      "justification": "Si A cause B alors L(A)<L(B), mais l'inverse n'est pas vrai : L(A)<L(B) n'implique pas la causalité. Elles respectent la causalité mais ne détectent pas la concurrence.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L(A)<L(B) n'implique pas que A a causé B : elles ne détectent pas la concurrence",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elles nécessitent une horloge physique synchronisée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elles ne fonctionnent que sur un seul nœud",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apportent les vector clocks par rapport aux horloges de Lamport ?",
+      "justification": "Ils permettent de distinguer A précède B, B précède A, ou A et B concurrents (aucun ne domine l'autre), donc de détecter les conflits.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Détecter la causalité et distinguer les événements concurrents (conflits)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Synchroniser les horloges physiques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Réduire la taille des métadonnées",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Panier multi-DC : ajout (DC-1) et retrait (DC-2) concurrents ; le last-write-wins par timestamp fait « disparaître » un article. Meilleure approche ?",
+      "justification": "Détecter la concurrence (vector clocks) et fusionner les intentions (résolution applicative, idéalement un CRDT type OR-Set) au lieu d'écraser une écriture par l'autre sur un timestamp non fiable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Détecter la concurrence (vector clocks) et fusionner les intentions (CRDT/OR-Set)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Garder l'écriture au plus grand timestamp système",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Interdire les écritures simultanées globalement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "network-security-check",
+  "node": "cluster-security",
+  "lesson": "network-policies",
+  "title": "Sécurité réseau",
+  "description": "NetworkPolicies, deny-by-default, déplacement latéral, prérequis CNI.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que contrôlent les NetworkPolicies ?",
+      "justification": "Quels pods peuvent communiquer entre eux (ingress/egress) via des sélecteurs de labels, le pare-feu interne du cluster.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Quels pods peuvent parler à quels pods",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La quantité de CPU des pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le nombre de répliques",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Par défaut (sans NetworkPolicy), quels pods peuvent se joindre dans un cluster ?",
+      "justification": "Tous : le modèle réseau laisse tous les pods communiquer ; d'où le besoin de segmenter pour limiter les déplacements latéraux.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Tous les pods peuvent se joindre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Aucun pod ne peut communiquer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Seuls les pods du même nœud",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle approche recommandée pour segmenter le réseau ?",
+      "justification": "Deny-by-default (bloquer tout) puis autoriser explicitement les flux légitimes, chaque flux est justifié.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Deny all par défaut, puis autoriser les flux légitimes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tout autoriser par simplicité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le CNI",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une NetworkPolicy n'a d'effet que si le CNI du cluster la supporte (ex. Calico, Cilium).",
+      "justification": "Vrai : c'est le CNI qui applique les NetworkPolicies ; avec un CNI qui ne les gère pas, la politique est ignorée et ne bloque rien.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "layered-hexagonal",
+  "lesson": "isoler-le-domaine",
+  "title": "Définir un port secondaire propre",
+  "statement": "Dans SkillForge, le use case qui reprend l'apprentissage a besoin de charger et de sauvegarder la progression d'un apprenant, sans jamais connaître la base de données. Écris l'interface de **port secondaire** `ProgressStore` que le domaine définira pour exprimer ce besoin **en termes métier**. Contraintes : (1) c'est une `interface` Java pure, dans la couche domaine/application ; (2) aucune dépendance à un framework (pas d'import Spring, pas de R2DBC, pas de SQL) ; (3) deux opérations réactives : `find(LearnerId id)` qui retourne un `Mono<Progress>`, et `save(Progress progress)` qui retourne un `Mono<Void>`. Rappel : un port dit *ce dont on a besoin*, pas *comment* c'est réalisé.",
+  "skeleton": "// Couche domaine/application : port secondaire, aucune techno concrète.\npublic interface ProgressStore {\n    // à compléter : find(...) et save(...)\n}\n",
+  "solution": "import reactor.core.publisher.Mono;\n\n// Port secondaire (driven) : exprimé en termes métier, sans aucune techno.\n// Le use case dépend de CETTE interface, jamais de Postgres/R2DBC/Spring.\npublic interface ProgressStore {\n\n    // Charger la progression d'un apprenant (vide si aucune).\n    Mono<Progress> find(LearnerId id);\n\n    // Sauvegarder la progression ; Mono<Void> = \"terminé, rien à retourner\".\n    Mono<Void> save(Progress progress);\n}\n\n// C'est un ADAPTER out (ex. ProgressR2dbcAdapter dans adapter/out/persistence)\n// qui IMPLÉMENTERA ce port en parlant vraiment à PostgreSQL. Le domaine, lui,\n// ne voit que l'interface : on peut le tester avec un faux ProgressStore en mémoire.",
+  "keyPoints": ["interface ProgressStore", "Mono<Progress>", "Mono<Void>", "find", "save"],
+  "language": "java"
+}

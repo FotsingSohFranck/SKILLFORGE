@@ -1,0 +1,148 @@
+{
+  "node": "docker-basics",
+  "lessons": [
+    {
+      "slug": "premier-conteneur",
+      "title": "Votre premier conteneur",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "run : télécharger, créer, démarrer",
+          "body": "Avant toute chose, posons deux mots. Une **image** est un **modèle figé** qui contient tout ce qu'il faut pour faire tourner un logiciel : le programme, ses dépendances et sa configuration. Un **conteneur** est une **instance vivante** de cette image, c'est-à-dire le logiciel qui tourne réellement.\n\n👉 **Analogie** : l'image est le **moule à gâteau**, le conteneur est le **gâteau** qu'on en sort. Avec un seul moule (une image) tu peux cuire autant de gâteaux (conteneurs) que tu veux, tous identiques au départ.\n\nLa commande fondatrice est `docker run <image>`. En une seule ligne, elle enchaîne trois actions :\n- elle **télécharge** l'image si elle n'est pas déjà sur ta machine (cette étape s'appelle le *pull*), en la récupérant depuis un **registre**, c'est-à-dire une bibliothèque d'images en ligne (le plus connu s'appelle **Docker Hub**) ;\n- elle **crée** un conteneur à partir de l'image ;\n- elle le **démarre**.\n\nConcrètement, `docker run hello-world` télécharge une mini-image de test et affiche un message de bienvenue ; `docker run nginx` lance un vrai serveur web. Retiens la formule de base : une **image** + `run` = un **conteneur qui tourne**."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Les options de run qu'on utilise tout le temps",
+          "codeLanguage": "bash",
+          "body": "docker run nginx                      # au premier plan (bloque le terminal)\ndocker run -d nginx                   # -d : detache (en arriere-plan)\ndocker run -d -p 8080:80 nginx        # -p : publier le port 80 du conteneur sur 8080 de l'hote\ndocker run -d --name web nginx        # --name : nommer le conteneur (sinon nom aleatoire)\ndocker run -e TZ=Europe/Paris nginx   # -e : passer une variable d'environnement\ndocker run --rm alpine echo salut     # --rm : supprimer le conteneur a la fin"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Publier un port : conteneur n'est pas accessible par défaut",
+          "body": "Petit rappel de vocabulaire réseau. Un **port** est un **numéro de porte** sur une machine : un logiciel écoute derrière un numéro donné (un serveur web écoute souvent sur le port **80**). L'**hôte** (en anglais *host*), c'est **ta machine**, celle sur laquelle Docker est installé.\n\nUn conteneur possède son **propre réseau isolé**, séparé de celui de l'hôte. Résultat : le port 80 **à l'intérieur** du conteneur n'est **pas** automatiquement joignable depuis ta machine. Il faut construire un pont.\n\nC'est le rôle de l'option **`-p hôte:conteneur`** (le `p` de *publish*, publier). `-p 8080:80` veut dire : « **redirige le port 8080 de ma machine vers le port 80 du conteneur** ». Ainsi, quand tu ouvres `http://localhost:8080`, ta requête traverse le pont et atteint le serveur qui écoute sur le port 80 à l'intérieur.\n\n👉 **Analogie** : le conteneur est un **appartement sans sonnette sur la rue**. Le service vit bien à l'intérieur, mais personne dehors ne peut l'appeler. `-p 8080:80` installe une **sonnette au numéro 8080 sur la rue**, reliée à la porte 80 de l'appartement.\n\n⚠️ Sans `-p`, le service tourne mais reste **injoignable depuis l'extérieur** : c'est l'erreur de débutant la plus fréquente. On reverra toute la logique réseau dans le nœud dédié."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Vous lancez `docker run -d nginx` et le conteneur tourne, mais `http://localhost:8080` ne répond pas. Qu'avez-vous oublié ?",
+          "solution": "Il manque la publication de port. Le conteneur nginx écoute bien sur son port 80, mais ce port est isolé dans le réseau du conteneur : rien n'est exposé sur l'hôte. Il faut mapper un port de l'hôte vers celui du conteneur : `docker run -d -p 8080:80 nginx`. Alors http://localhost:8080 atteint le port 80 du conteneur. Sans l'option -p, le service tourne mais reste injoignable depuis la machine hôte."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Votre premier conteneur",
+          "quizRef": "docker-basics-premier-check"
+        }
+      ]
+    },
+    {
+      "slug": "cycle-de-vie",
+      "title": "Le cycle de vie d'un conteneur",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Created, Running, Stopped, Removed",
+          "body": "Un conteneur n'est pas seulement « allumé » ou « éteint » : il traverse plusieurs **états** au cours de sa vie.\n- **created** (créé) : le conteneur existe mais n'a jamais démarré ;\n- **running** (en cours) : il s'exécute, l'application tourne ;\n- **paused** (en pause) : gelé temporairement ;\n- **exited** / **stopped** (arrêté) : il s'est arrêté mais **existe encore**, on peut le relancer ;\n- **removed** (supprimé) : effacé, il n'existe plus.\n\nLa distinction cruciale pour un débutant : **arrêter** (`stop`) n'est **pas supprimer** (`rm`). Un conteneur arrêté conserve son état, c'est-à-dire sa **couche d'écriture** (l'espace où le conteneur note tous les fichiers qu'il a créés ou modifiés pendant qu'il tournait). On peut donc le redémarrer et retrouver ses données. Un conteneur supprimé, lui, est perdu pour de bon.\n\n👉 **Analogie** : `stop`, c'est **éteindre ton ordinateur** (tu le rallumeras avec ton bureau intact) ; `rm`, c'est le **jeter à la déchèterie** (il n'y a plus rien à rallumer).\n\nÀ force de lancer des conteneurs sans les nettoyer, on accumule des conteneurs arrêtés qui encombrent la machine. D'où deux réflexes : l'option `--rm` (qui supprime le conteneur automatiquement à la fin) ou un `docker rm` de temps en temps."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Le cycle de vie en un schéma",
+          "diagramFormat": "MERMAID",
+          "body": "stateDiagram-v2\n    [*] --> created: docker create\n    created --> running: docker start / run\n    running --> paused: docker pause\n    paused --> running: docker unpause\n    running --> stopped: docker stop\n    stopped --> running: docker start\n    stopped --> removed: docker rm\n    created --> removed: docker rm\n    removed --> [*]"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Piloter le cycle de vie",
+          "codeLanguage": "bash",
+          "body": "docker ps                 # conteneurs EN COURS\ndocker ps -a              # TOUS, y compris arretes\ndocker stop web           # arret gracieux (SIGTERM puis SIGKILL apres delai)\ndocker start web          # relancer un conteneur arrete\ndocker restart web        # stop + start\ndocker rm web             # supprimer (doit etre arrete, ou -f pour forcer)\ndocker rm $(docker ps -aq)  # supprimer TOUS les conteneurs arretes"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Observer et entrer dans un conteneur",
+          "body": "Quatre commandes de diagnostic à connaître par cœur.\n\n**`docker logs <c>`** affiche la **sortie** du conteneur, c'est-à-dire tout ce que l'application écrit à l'écran (messages de démarrage, erreurs). C'est le premier endroit où regarder. Avec `-f` (*follow*, suivre), tu vois les nouveaux messages défiler en direct.\n\n**`docker exec -it <c> sh`** ouvre un **shell** à l'intérieur du conteneur. Un *shell* est une invite en ligne de commande, comme ton terminal, mais **dedans** : tu peux lister les fichiers, tester le réseau, inspecter la configuration pendant que le conteneur tourne. Les options `-i` et `-t` te branchent le clavier et un affichage interactif.\n\n**`docker inspect <c>`** déverse **toute la configuration** du conteneur (réseau, dossiers montés, variables) au format **JSON**, un format texte structuré très courant, fait de paires `clé: valeur`.\n\n**`docker stats`** montre la **consommation en temps réel** (processeur, mémoire).\n\n👉 **Analogie** : ces outils transforment le conteneur d'une **boîte noire** fermée en un **aquarium** où tu vois tout ce qui se passe à l'intérieur."
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déboguer un conteneur",
+          "codeLanguage": "bash",
+          "body": "docker logs -f web                 # suivre les logs en direct\ndocker exec -it web sh             # ouvrir un shell dans le conteneur\n#   / # cat /etc/nginx/nginx.conf   (on inspecte de l'interieur)\ndocker inspect web | grep -i ipaddress   # trouver l'IP du conteneur\ndocker stats web                   # CPU / memoire en temps reel"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "exec n'est pas une modification durable (niveau expert)",
+          "body": "Piège classique une fois qu'on est à l'aise : `docker exec` sert à **observer et déboguer**, pas à **modifier pour de bon**.\n\nPourquoi ? Quand tu installes un paquet ou édites un fichier via `exec`, tu modifies la **couche d'écriture éphémère** du conteneur (*éphémère* = qui ne dure pas). Cette couche appartient à **ce conteneur précis**. Le jour où tu refais `docker run` (qui crée un **nouveau** conteneur à partir de l'image d'origine), tout ce que tu avais bricolé a **disparu**.\n\nC'est le contraire de l'**immuabilité**, le principe selon lequel une image ne change jamais : on la reconstruit proprement plutôt que de la retoucher à la main. Toute modification censée **persister** doit donc aller :\n- soit dans le **Dockerfile** (le fichier recette qui décrit comment construire l'image ; on le voit au nœud suivant), puis on reconstruit l'image ;\n- soit dans un **volume** (un espace de stockage rattaché au conteneur) pour les **données**.\n\n👉 **Analogie** : `exec` est une **lampe torche** pour regarder à l'intérieur, pas un **tournevis** pour réparer en production. Ce que tu visses à la main sera balayé au prochain redémarrage."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un conteneur applicatif plante immédiatement au démarrage (`docker ps` ne le montre pas, `docker ps -a` le montre en état Exited). Quelle est la toute première commande à lancer pour comprendre pourquoi ?",
+          "solution": "`docker logs <conteneur>` : elle affiche la sortie standard et d'erreur du conteneur, où figure presque toujours le message d'erreur ayant causé l'arrêt (variable d'environnement manquante, port déjà pris, fichier introuvable, exception au démarrage...). C'est le premier réflexe de diagnostic. On peut retrouver le conteneur arrêté avec `docker ps -a`, récupérer son nom/id, puis `docker logs`. Si le conteneur sort trop vite pour investiguer autrement, les logs restent disponibles tant qu'on ne l'a pas supprimé."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Les bases de Docker",
+          "quizRef": "docker-basics-check"
+        }
+      ]
+    },
+    {
+      "slug": "codes-sortie-et-commandes",
+      "title": "Codes de sortie & commandes de diagnostic",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Lire un code de sortie",
+          "body": "Quand un conteneur s'arrête, il laisse derrière lui un **code de sortie** (en anglais *exit code*) : un **nombre** qui résume **comment** il est mort. Tu le lis dans la colonne *Exited* de `docker ps -a`, ou via `docker inspect`.\n\n👉 **Analogie** : c'est le **certificat de décès** du conteneur. Le chiffre te dit s'il est parti tranquillement ou s'il a été terrassé, et par quoi.\n\nAvant de lire les codes, un mot sur les **signaux**. Un *signal* est un **message que le système envoie à un programme** pour lui demander (ou lui imposer) quelque chose, par exemple « arrête-toi ». Les principaux :\n- **SIGTERM** (numéro 15) : « arrête-toi proprement, s'il te plaît » ;\n- **SIGKILL** (numéro 9) : « tu t'arrêtes maintenant », brutal et impossible à ignorer ;\n- **SIGSEGV** (numéro 11) : crash parce que le programme a touché une zone mémoire interdite.\n\nLes codes incontournables :\n- **0** : succès, arrêt normal ;\n- **1** ou **2** : erreur applicative générique ;\n- **125** : erreur de Docker lui-même (par ex. une option invalide) ;\n- **126** : la commande n'est pas exécutable (souvent un droit d'exécution manquant) ;\n- **127** : commande introuvable ;\n- **137** : tué par **SIGKILL**, typiquement un dépassement de mémoire (voir **OOM** ci-dessous) ou un `docker kill` ;\n- **143** : arrêté par **SIGTERM**, donc un `docker stop` propre ;\n- **139** : **SIGSEGV**, crash mémoire.\n\nLa règle **128 + N** : quand un conteneur est tué par le signal numéro N, son code vaut 128 + N. Ainsi 137 = 128 + 9 (SIGKILL) et 143 = 128 + 15 (SIGTERM). Le sigle **OOM** (de l'anglais *Out Of Memory*, « plus de mémoire ») désigne le cas où le conteneur dépasse la mémoire qu'on lui a allouée : le système le tue alors d'office par SIGKILL, d'où le fameux 137. Lire ce code oriente immédiatement le diagnostic."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Diagnostiquer par le code de sortie",
+          "codeLanguage": "bash",
+          "body": "docker ps -a --format '{{.Names}}\\t{{.Status}}'\n#   api   Exited (137) 2 minutes ago      <- tue par SIGKILL (OOM ?)\n\ndocker inspect api --format '{{.State.ExitCode}} OOMKilled={{.State.OOMKilled}}'\n#   137 OOMKilled=true                    <- confirme : depassement memoire\n\n# 137 = 128 + 9 (SIGKILL) ; 143 = 128 + 15 (SIGTERM) ; 139 = 128 + 11 (SIGSEGV)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les commandes qu'on découvre plus tard",
+          "body": "Au-delà de `run`, `ps`, `logs` et `exec`, quelques commandes utiles à connaître.\n\n- **`docker cp`** copie des fichiers entre l'hôte et un conteneur (récupérer un rapport, injecter un fichier ponctuel).\n- **`docker diff`** montre ce qui a **changé** dans la couche d'écriture d'un conteneur : fichiers ajoutés, modifiés ou supprimés depuis son démarrage.\n- **`docker top`** liste les **processus** qui tournent dans le conteneur (un *processus* = un programme en cours d'exécution).\n- **`docker port`** rappelle les **ports publiés** du conteneur.\n- **`docker events`** affiche en **flux temps réel** les événements du **daemon**. Le *daemon* (prononce « démon ») est le **programme Docker qui tourne en fond** sur ta machine et exécute réellement tes commandes : quand tu tapes `docker ...`, tu ne fais qu'envoyer un ordre à ce daemon.\n\nEnfin, **`docker commit`** fabrique une image à partir d'un conteneur existant. 👉 **Analogie** : c'est prendre en **photo** un conteneur bricolé à la main pour en faire un modèle. À **éviter** en pratique : l'image obtenue n'est pas **reproductible**, car aucun **Dockerfile** ne décrit comment elle a été faite (personne, toi compris, ne saura la refaire à l'identique). `commit` dépanne pour explorer, jamais pour produire une image sérieuse."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "attach vs exec (niveau expert)",
+          "body": "Deux façons de « se connecter » à un conteneur, souvent confondues.\n\nD'abord un mot : le **PID 1** est le **processus principal** du conteneur, celui qui a été lancé au démarrage et autour duquel tout le conteneur vit. (*PID* = *Process IDentifier*, le numéro d'un processus ; le tout premier porte le numéro 1.) Quand ce processus s'arrête, le conteneur s'arrête.\n\n**`docker attach`** te **rattache au processus principal (PID 1)** : tu vois sa sortie et tu peux lui envoyer des entrées. Danger : **Ctrl-C tue le conteneur**, car le signal part droit vers le PID 1. Pour te détacher **sans** le tuer, tape la séquence **Ctrl-P puis Ctrl-Q**.\n\n**`docker exec`** lance au contraire un **nouveau** processus **à côté** du principal (le plus souvent un shell avec `-it`). Le quitter n'affecte **pas** le conteneur, puisque tu n'as pas touché au PID 1.\n\n👉 **Règle simple** : pour **déboguer ou inspecter**, utilise `exec` (un nouveau shell, sans risque). Réserve `attach` aux rares cas où tu veux vraiment interagir avec le processus principal. Confondre les deux, c'est risquer de tuer un conteneur de production par un Ctrl-C malheureux."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un conteneur s'arrête tout seul et `docker ps -a` affiche « Exited (137) ». Que signifie ce code, quelle est la cause la plus probable, et comment le confirmer ?",
+          "solution": "137 = 128 + 9 : le conteneur a été tué par le signal 9 (SIGKILL), un arrêt brutal non interceptable. La cause la plus probable est un dépassement de la limite mémoire (OOM kill) : quand le conteneur excède sa limite mémoire (cgroups), le noyau le tue par SIGKILL. (137 peut aussi venir d'un `docker kill` manuel ou d'un orchestrateur, mais l'OOM est le cas classique.) Confirmation : `docker inspect <conteneur> --format '{{.State.OOMKilled}}'` renvoie true en cas d'OOM ; on regarde aussi la limite mémoire vs la consommation (docker stats avant le crash), et les logs applicatifs. Remède : augmenter la limite --memory si elle est trop basse, ou corriger une fuite/consommation excessive côté application (pour une JVM, aligner le heap sur la limite du conteneur). Le code 137 est donc un signal fort qui oriente directement vers un problème mémoire."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Codes de sortie & commandes (expert)",
+          "quizRef": "exit-codes-commands-expert"
+        }
+      ]
+    }
+  ]
+}

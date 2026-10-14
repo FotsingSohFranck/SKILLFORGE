@@ -1,0 +1,41 @@
+{
+  "ref": "virtual-threads-le-probleme-des-threads-couteux",
+  "node": "virtual-threads",
+  "lesson": "le-probleme-des-threads-couteux",
+  "title": "Quiz : le problème des threads coûteux",
+  "description": "Coût d'un thread plateforme et limite du modèle un thread du système par tâche.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un thread plateforme (platform thread) correspond à quoi ?",
+      "justification": "Un thread plateforme est une fine enveloppe autour d'un thread du système d'exploitation, géré directement par le système.",
+      "position": 0,
+      "options": [
+        { "label": "Un thread du système d'exploitation", "correct": true, "position": 0 },
+        { "label": "Un thread léger géré uniquement par la JVM", "correct": false, "position": 1 },
+        { "label": "Un simple objet de données sans exécution", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une machine classique est elle limitée à quelques milliers de threads plateforme ?",
+      "justification": "Chaque thread plateforme réserve une pile d'environ 1 Mo, et le système perd du temps en changements de contexte ; la mémoire sature vite.",
+      "position": 1,
+      "options": [
+        { "label": "Chaque thread réserve une pile d'environ 1 Mo et coûte en changements de contexte", "correct": true, "position": 0 },
+        { "label": "Java interdit volontairement de dépasser mille threads", "correct": false, "position": 1 },
+        { "label": "Le processeur ne peut exécuter qu'un seul thread au total", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un thread bloqué en attente d'une réponse réseau continue d'occuper sa pile de 1 Mo et son emplacement, même s'il ne calcule rien.",
+      "justification": "C'est tout le gâchis du modèle plateforme : un thread qui attend reste une ressource réservée mais inutilisée.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

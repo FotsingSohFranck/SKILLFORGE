@@ -1,0 +1,52 @@
+{
+  "ref": "web-security-injections-check",
+  "node": "web-security",
+  "lesson": "injections-et-validation",
+  "title": "Quiz : Injections & validation",
+  "description": "Injection SQL, requêtes paramétrées, validation en liste blanche.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi construire une requête SQL en concaténant une entrée utilisateur est-il dangereux ?",
+      "justification": "L'entrée peut être interprétée comme du code et changer le sens de la requête : ' OR 1=1 -- rend la condition toujours vraie et sélectionne tout.",
+      "position": 0,
+      "options": [
+        { "label": "L'entrée peut être interprétée comme du code et détourner la requête", "correct": true, "position": 0 },
+        { "label": "La concaténation est simplement plus lente", "correct": false, "position": 1 },
+        { "label": "Cela consomme trop de mémoire côté serveur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la parade robuste contre l'injection SQL ?",
+      "justification": "Les requêtes paramétrées (bind) séparent le code de la requête des données : la valeur n'est jamais interprétée comme du code, la faille disparaît par construction.",
+      "position": 1,
+      "options": [
+        { "label": "Les requêtes paramétrées (paramètre lié avec bind)", "correct": true, "position": 0 },
+        { "label": "Échapper à la main les caractères dangereux", "correct": false, "position": 1 },
+        { "label": "Faire confiance aux utilisateurs authentifiés", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer une liste blanche (allowlist) à une liste noire (denylist) pour valider une entrée ?",
+      "justification": "La liste blanche n'accepte que des valeurs explicitement autorisées ; la liste noire est toujours contournable (on oublie des cas, une nouvelle syntaxe passe).",
+      "position": 2,
+      "options": [
+        { "label": "La liste blanche n'accepte que le connu ; la liste noire est toujours contournable", "correct": true, "position": 0 },
+        { "label": "La liste noire est plus sûre car elle bloque plus de choses", "correct": false, "position": 1 },
+        { "label": "Les deux sont strictement équivalentes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La validation des entrées doit se faire au bord (dans l'adaptateur web), pas au cœur du domaine.",
+      "justification": "Vrai : on valide tôt, à l'entrée du système, pour rejeter les données invalides avant qu'elles n'atteignent le métier.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "distributed-consistency-expert-check",
+  "node": "distributed-styles",
+  "lesson": "coherence-pacelc-consensus",
+  "title": "Quiz, Cohérence, PACELC & consensus (expert)",
+  "description": "PACELC, modèles de cohérence, consensus, 8 fallacies.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'ajoute PACELC par rapport à CAP ?",
+      "justification": "Else (sans partition), un compromis permanent entre Latency et Consistency : la forte cohérence coûte de la latence même en fonctionnement normal.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le compromis latence vs cohérence même sans partition",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La suppression du théorème CAP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une garantie de latence nulle",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans la cohérence à terme (eventual), que peut voir une lecture ?",
+      "justification": "Une valeur potentiellement ancienne le temps que les répliques convergent, très disponible et rapide, au prix d'anomalies temporaires.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Parfois une valeur ancienne, jusqu'à convergence des répliques",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours la toute dernière écriture",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais aucune donnée",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un algorithme de consensus comme Raft ou Paxos ?",
+      "justification": "Faire s'accorder une majorité (quorum) de nœuds sur une valeur/un ordre malgré les pannes, socle d'une cohérence forte tolérante aux pannes.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Faire s'accorder une majorité de nœuds malgré les pannes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Compresser les données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le besoin de répliques",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "« Le réseau est fiable » et « la latence est nulle » font partie des fallacies of distributed computing (des hypothèses fausses).",
+      "justification": "Vrai : ce sont deux des 8 fallacies ; les oublier produit des bugs en production, et les patterns de résilience/cohérence y répondent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

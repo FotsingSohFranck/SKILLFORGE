@@ -1,0 +1,10 @@
+{
+  "node": "variables",
+  "lesson": "types-complexes-et-optional",
+  "title": "Un object aux attributs facultatifs",
+  "statement": "Déclare une variable `app` de type `object` où `name` (string) et `port` (number) sont OBLIGATOIRES, et où `instance_type` (string, défaut `t3.micro`), `disk_size` (number, défaut `20`) et `public` (bool, défaut `false`) sont FACULTATIFS grâce à la fonction `optional(type, défaut)`. But recherché : l'appelant ne fournit au minimum que `name` et `port`, le reste étant complété par les défauts.",
+  "skeleton": "variable \"app\" {\n  type = object({\n    # name et port obligatoires, les autres avec optional(...)\n  })\n}",
+  "solution": "variable \"app\" {\n  type = object({\n    name          = string\n    port          = number\n    instance_type = optional(string, \"t3.micro\")\n    disk_size     = optional(number, 20)\n    public        = optional(bool, false)\n  })\n}\n# Appel minimal : app = { name = \"web\", port = 8080 }",
+  "keyPoints": ["variable \"app\"", "object(", "name", "string", "port", "number", "optional(string, \"t3.micro\")", "optional(number, 20)", "optional(bool, false)"],
+  "language": "hcl"
+}

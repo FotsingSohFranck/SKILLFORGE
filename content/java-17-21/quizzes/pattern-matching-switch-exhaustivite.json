@@ -1,0 +1,41 @@
+{
+  "ref": "pattern-matching-switch-exhaustivite",
+  "node": "pattern-matching-switch",
+  "lesson": "exhaustivite",
+  "title": "Quiz : exhaustivite",
+  "description": "Couvrir tous les cas d'un type scelle, verifie a la compilation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un switch sur un type scelle peut il souvent se passer de default ?",
+      "justification": "La clause permits fixe la liste exacte des sous types ; si chacun a sa branche, le switch couvre tout, donc il est exhaustif sans default.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que la liste des sous types est connue et fermee a la compilation", "correct": true, "position": 0 },
+        { "label": "Parce que le default est interdit sur un type scelle", "correct": false, "position": 1 },
+        { "label": "Parce que les types scelles n'ont jamais de sous types", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "On ajoute un nouveau sous type a un type scelle et a sa clause permits. Que devient un switch sans default qui ne le traite pas ?",
+      "justification": "Le switch n'est plus exhaustif : le compilateur refuse de compiler, ce qui force a traiter le nouveau cas tout de suite.",
+      "position": 1,
+      "options": [
+        { "label": "Il ne compile plus, car il n'est plus exhaustif", "correct": true, "position": 0 },
+        { "label": "Il compile et ignore silencieusement le nouveau cas", "correct": false, "position": 1 },
+        { "label": "Il compile mais supprime automatiquement le nouveau sous type", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter un default a un switch sur un type scelle fait perdre l'avertissement du compilateur quand on oublie un nouveau sous type.",
+      "justification": "Vrai : le default attrape tout cas futur, donc le compilateur ne signale plus l'oubli ; sans default, on garde ce controle.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

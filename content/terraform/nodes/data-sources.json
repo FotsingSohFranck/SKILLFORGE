@@ -1,0 +1,90 @@
+{
+  "node": "data-sources",
+  "lessons": [
+    {
+      "slug": "interroger-lexistant",
+      "title": "Interroger l'existant",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Lire sans gérer",
+          "body": "Avant tout, un rappel rapide. **Terraform** est l'outil avec lequel tu décris ton infrastructure (tes serveurs, tes réseaux, tes bases de données) sous forme de **code**, dans des fichiers texte, au lieu de tout créer à la main dans une console web. Dans ce code, tu écris des **blocs**. Deux d'entre eux se ressemblent beaucoup mais font l'inverse l'un de l'autre : `resource` et `data`.\n\nUn bloc **`resource`** **crée et possède** un objet : tu écris le bloc, Terraform fabrique la chose (par exemple un serveur) et la **gère** pour toi (il la modifie quand tu changes le code, la supprime si tu retires le bloc). Tu en es le **propriétaire**.\n\nUn bloc **`data`**, qu'on appelle une **data source** (littéralement *source de données*, une source d'information), fait tout l'inverse : il ne crée rien, il **lit** simplement des informations sur une ressource qui **existe déjà** ailleurs. Il regarde, il ne touche à rien.\n\n👉 **Analogie** : `resource`, c'est **construire une maison** dont tu détiens les clés et que tu entretiens. `data`, c'est **consulter le cadastre** pour connaître l'adresse ou la surface d'une maison qui existe déjà : tu récupères une information, mais tu ne possèdes pas la maison et tu n'y touches pas.\n\nÀ quoi ça sert concrètement ? À **brancher ton code sur ce qui existe déjà**, sans le recopier. Quelques exemples réels :\n- récupérer la **dernière AMI Ubuntu**. Une **AMI** (*Amazon Machine Image*, image machine Amazon) est un modèle d'image disque prêt à démarrer, comme un « CD d'installation » du système. Plutôt que d'écrire à la main un numéro d'image qui vieillit, tu demandes « donne-moi la plus récente » ;\n- lire l'identifiant d'un **VPC** créé par une autre équipe. Un **VPC** (*Virtual Private Cloud*, cloud privé virtuel) est ton réseau privé isolé dans le cloud ;\n- lister les **zones de disponibilité** d'une région (les centres de données physiques distincts où répartir tes serveurs) ;\n- aller chercher un mot de passe dans un **gestionnaire de secrets**.\n\nUne fois la data source déclarée, tu utilises ce qu'elle a lu en la **référençant**, avec la forme `data.<type>.<nom>.<attribut>`. Par exemple `data.aws_ami.ubuntu.id` se lit « l'identifiant (`id`) de l'AMI qu'a trouvée ma data source nommée `ubuntu` ». À retenir en une phrase : **data source = lecture, resource = gestion**."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "diagramFormat": "MERMAID",
+          "title": "Le rôle d'une data source dans le flux",
+          "body": "flowchart LR\n    A[\"Infra qui existe deja<br/>AMI, VPC, secret...\"] -->|lit| B[\"bloc data<br/>(data source)\"]\n    B -->|fournit ses attributs<br/>ex: data.aws_ami.ubuntu.id| C[\"bloc resource\"]\n    C -->|cree et gere| D[\"Nouvel objet<br/>ex: aws_instance.web\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Data sources en pratique",
+          "codeLanguage": "hcl",
+          "body": "# Récupérer dynamiquement la dernière AMI Ubuntu (au lieu d'un id figé)\ndata \"aws_ami\" \"ubuntu\" {\n  most_recent = true\n  owners      = [\"099720109477\"]\n  filter { name = \"name\" values = [\"ubuntu/*-22.04-*\"] }\n}\n\n# Lire les zones de disponibilité de la région\ndata \"aws_availability_zones\" \"available\" {}\n\nresource \"aws_instance\" \"web\" {\n  ami = data.aws_ami.ubuntu.id     # id résolu au moment du plan\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Templates & génération de fichiers",
+          "body": "Terraform ne fait pas que lire l'existant : il sait aussi **fabriquer du texte à la volée** à partir d'un **modèle**. Un **modèle** (en anglais *template*) est un fichier « à trous » : un texte normal dans lequel tu as laissé des emplacements vides, que Terraform remplira avec des valeurs.\n\nLa fonction qui fait ça s'appelle **`templatefile()`**. Une **fonction**, ici, est juste une commande intégrée à laquelle tu donnes des informations et qui te renvoie un résultat. Tu lui donnes deux choses : le chemin du fichier modèle, et les **variables** à injecter dans les trous. Elle te rend le fichier une fois **rempli**.\n\n👉 **Analogie** : c'est un **courrier type** (un publipostage). La lettre est écrite une seule fois avec des blancs, « Cher **[prénom]** », et on la réutilise en remplaçant `[prénom]` par un vrai nom à chaque envoi. Le modèle ne bouge pas, seules les valeurs changent.\n\nPar convention, ces fichiers modèles portent l'extension **`.tftpl`** (pour *Terraform template*). L'intérêt : on **sépare** le **gabarit** (un fichier `.tftpl` lisible, rangé à part) des **valeurs** (fournies par Terraform au moment de l'exécution).\n\nDeux usages très courants :\n- un **`user_data`** : le petit **script de démarrage** qu'une machine exécute la toute première fois qu'elle s'allume (par exemple pour installer un logiciel automatiquement). On le génère avec les bons paramètres selon l'environnement ;\n- un **fichier de configuration**, par exemple la config du serveur web **Nginx** dont le nom de domaine vient d'une variable.\n\nEt c'est là que tout se combine : une data source **lit** une valeur réelle (par exemple l'adresse IP d'une base de données), et `templatefile()` l'**injecte** dans un fichier de config généré. Tu **composes** ainsi des configurations concrètes à partir de valeurs dynamiques, sans rien coder en dur."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un développeur code en dur l'id d'une AMI (`ami = \"ami-0abc123\"`) pour lancer ses serveurs. Quelques mois plus tard, cette AMI est obsolète (plus de correctifs de sécurité) et personne ne l'a mise à jour. Comment une data source aurait-elle évité ce problème ?",
+          "solution": "Coder en dur un id d'AMI fige l'image à une version précise : l'id ne change jamais tout seul, donc les serveurs continuent d'être lancés sur cette AMI de plus en plus ancienne, qui finit par ne plus recevoir de correctifs de sécurité, un risque réel, et une dette que personne ne pense à mettre à jour (il faudrait retrouver et remplacer manuellement l'id périodiquement dans le code). Une data source résout cela en RÉSOLVANT dynamiquement la bonne AMI au moment de l'exécution, au lieu de la figer. On déclare une data source qui interroge le catalogue d'images avec des critères (propriétaire officiel, motif de nom correspondant à la distribution/version voulue, most_recent = true pour prendre la plus récente correspondant aux critères), par exemple data \"aws_ami\" \"ubuntu\" { most_recent = true owners = [...] filter { name = \"name\" values = [\"ubuntu/*-22.04-*\"] } }. On référence ensuite data.aws_ami.ubuntu.id comme AMI de l'instance. Ainsi, à chaque plan/apply, Terraform récupère l'id de la DERNIÈRE AMI Ubuntu 22.04 publiée par l'éditeur officiel, celle qui inclut les correctifs de sécurité récents, sans qu'on ait à mettre à jour un id à la main. Le code reste correct dans le temps, et les nouvelles instances sont créées à partir d'images à jour. Nuances d'expert : (1) comme la data source peut renvoyer une AMI différente au fil du temps, un changement d'AMI peut déclencher un remplacement des instances au prochain apply (ce qu'on gère avec une stratégie de déploiement/lifecycle appropriée, et en pilotant quand on applique) ; (2) pour une reproductibilité stricte à un instant donné, certaines équipes préfèrent épingler une version précise validée plutôt que « la plus récente », mais dans tous les cas, on évite l'id figé jamais mis à jour, soit via une data source (dernière image), soit via une variable/donnée pilotée volontairement. La data source est le moyen idiomatique de ne pas coder en dur des valeurs qui évoluent (AMI, zones de disponibilité, ids d'infrastructure gérée ailleurs), en les lisant dynamiquement depuis la plateforme."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Data sources",
+          "quizRef": "data-sources-check"
+        }
+      ]
+    },
+    {
+      "slug": "timing-check-blocks",
+      "title": "Timing de lecture & check blocks",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Quand une data source est-elle lue ?",
+          "body": "Voici un point subtil qui provoque beaucoup de bugs chez les débutants : **à quel moment** Terraform lit une data source. Pour le comprendre, deux mots de vocabulaire du **workflow** (le déroulé des étapes) de Terraform.\n\nTerraform travaille en deux temps. D'abord le **plan** (commande `terraform plan`) : Terraform **calcule et affiche** ce qu'il compte faire, sans encore rien changer. C'est un **aperçu**. Ensuite l'**apply** (commande `terraform apply`) : il **exécute** réellement les changements (créer, modifier, supprimer).\n\n👉 **Analogie** : le **plan**, c'est le **devis** que te présente l'artisan (voici ce que je vais faire et ce que ça donnera). L'**apply**, c'est le **chantier**, où le travail est vraiment réalisé.\n\nMaintenant, le moment de lecture de la data source :\n- si **tous ses arguments** sont **connus dès le plan** (des valeurs fixes que tu as écrites, ou des données déjà enregistrées), Terraform lit la data **pendant le plan**. Tu vois tout de suite le résultat ;\n- mais si un argument **dépend d'une ressource pas encore créée**, Terraform ne peut évidemment pas lire une information qui n'existe pas encore. Il **reporte** la lecture à l'apply. Dans l'aperçu du plan, tu vois alors la mention **`(known after apply)`**, littéralement « connu seulement après l'exécution » : Terraform t'avertit honnêtement qu'il ne connaîtra la valeur qu'une fois le chantier fait.\n\n**Le piège classique** : une data source qui interroge une ressource que le **même** run est justement en train de créer. Elle ne peut pas être lue avant que la ressource existe, et tu obtiens des valeurs vides ou une erreur.\n\nDeux façons de régler ça :\n- ajouter **`depends_on`** sur la data source. `depends_on` est une instruction qui dit « **attends que ceci soit créé** avant de me lire ». Tu forces ainsi la lecture **après** la ressource ;\n- ou **restructurer** ton code pour référencer **directement** l'attribut de la ressource (par exemple `aws_instance.web.id`) au lieu de le **relire** via une data source. Souvent, la data source était en réalité inutile."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "check blocks : validation continue (niveau expert)",
+          "body": "Le bloc **`check`** (apparu avec Terraform 1.5) sert à **vérifier** que ton infrastructure est en bonne santé, à chaque exécution, **sans jamais bloquer** l'opération.\n\nUn peu de vocabulaire d'abord. Une **assertion** est simplement une **affirmation qu'on veut vérifier vraie**, par exemple « le site répond bien ». En code, ça s'écrit avec un bloc `assert` : une **condition** (ce qui doit être vrai) et un **message d'erreur** affiché si ce n'est pas le cas.\n\nIl faut distinguer deux familles de vérifications dans Terraform :\n- les **preconditions** et **postconditions** sont des garde-fous **bloquants** : si leur condition est fausse, l'apply **échoue** et s'arrête. On les utilise pour interdire une création invalide ;\n- le bloc **`check`**, lui, est **non bloquant** : si son assertion échoue, Terraform émet seulement un **avertissement** (en anglais *warning*, un message d'alerte non fatal), mais l'opération **continue et réussit** quand même.\n\n👉 **Analogie** : une postcondition, c'est le **portique de sécurité** qui **refuse** de te laisser passer si quelque chose ne va pas. Un `check`, c'est le **voyant orange** sur le tableau de bord de ta voiture : il s'allume pour t'alerter, mais il ne coupe pas le moteur, tu peux continuer à rouler.\n\nUn `check` peut contenir sa **propre data source** (on parle de *scoped data source*, une data source « rattachée » au check et utilisée seulement par lui) et une ou plusieurs assertions. Exemples typiques d'invariants qu'on veut **surveiller** sans casser les déploiements :\n- « l'application répond bien un **code HTTP 200** après le déploiement ». Le **code 200** est la réponse « tout va bien » d'un serveur web (à l'opposé du fameux **404**, « page introuvable ») ;\n- « le **certificat** TLS ne va pas expirer dans moins de 30 jours ».\n\nÀ chaque `plan` ou `apply`, Terraform évalue le check et t'avertit si l'assertion échoue, sans faire échouer l'opération. C'est un outil de **surveillance continue** intégré au workflow. Un expert s'en sert pour les invariants qu'il veut **observer et être alerté** dessus (un service tombé, un certificat qui approche de l'expiration) tout en gardant des déploiements qui ne cassent pas pour autant."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "depends_on sur data & check block",
+          "codeLanguage": "hcl",
+          "body": "# Forcer la lecture d'une data APRÈS une ressource\ndata \"aws_instances\" \"web\" {\n  depends_on = [aws_autoscaling_group.web]\n  # ...\n}\n\n# check : surveiller sans bloquer l'apply\ncheck \"health\" {\n  data \"http\" \"app\" { url = \"https://app.example.com/health\" }\n  assert {\n    condition     = data.http.app.status_code == 200\n    error_message = \"L'application ne répond pas 200.\"\n  }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Vous voulez qu'à chaque exécution de Terraform, une vérification confirme que l'endpoint de santé de votre application répond bien (code 200), et qu'un avertissement soit émis si ce n'est pas le cas, MAIS sans jamais faire échouer un apply à cause de cette vérification (car l'app peut être temporairement indisponible pour d'autres raisons). Quel mécanisme utiliser ?",
+          "solution": "On utilise un bloc check (Terraform 1.5+). Le besoin décrit est précisément ce que les check blocks apportent : une validation d'assertion sur l'infrastructure qui AVERTIT (warning) en cas d'échec mais NE BLOQUE PAS l'opération, contrairement aux preconditions/postconditions qui, elles, font ÉCHOUER l'apply si l'invariant n'est pas satisfait. Concrètement, on déclare un bloc check nommé (ex. check \"health\") qui contient : (1) éventuellement une data source « scoped » propre au check, par exemple une data source http qui interroge l'endpoint de santé : data \"http\" \"app\" { url = \"https://app.example.com/health\" } ; (2) un ou plusieurs bloc(s) assert avec une condition et un error_message : condition = data.http.app.status_code == 200, error_message = \"L'application ne répond pas 200.\". À chaque plan/apply, Terraform évalue le check : si l'endpoint répond 200, tout va bien ; s'il ne répond pas 200, Terraform émet un AVERTISSEMENT (warning) avec le message, mais l'opération CONTINUE et RÉUSSIT quand même, l'apply n'échoue pas à cause de ce check. C'est exactement le comportement voulu : surveiller la santé de l'app à chaque exécution, être alerté si elle ne répond pas, sans bloquer les déploiements (l'indisponibilité pouvant être temporaire ou due à autre chose). Pourquoi PAS une postcondition : une postcondition ferait ÉCHOUER l'apply si l'endpoint ne répond pas 200, ce qu'on ne veut justement pas ici (on veut un avertissement, pas un blocage). Les check blocks sont donc l'outil de SURVEILLANCE CONTINUE non bloquante, complémentaire des pre/postconditions (qui sont des garde-fous bloquants à la création). Un expert les utilise pour des invariants qu'on souhaite observer/alerter à chaque run (santé d'un service, expiration d'un certificat, cohérence d'une config) sans risquer de casser un déploiement. En résumé : bloc check + assert (avec une data source http/dédiée) = validation non bloquante qui avertit, exactement le besoin exprimé."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Timing & check blocks (expert)",
+          "quizRef": "data-timing-check-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+{
+  "node": "virtual-threads",
+  "lessons": [
+    {
+      "slug": "le-probleme-des-threads-couteux",
+      "title": "Le problème des threads coûteux",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un thread, c'est quoi déjà ?",
+          "position": 0,
+          "body": "Un **thread** (fil d'exécution) est une suite d'instructions que ton programme exécute. Avec plusieurs threads, ton programme fait plusieurs choses en même temps : par exemple répondre à Alice pendant qu'il répond aussi à Bob.\n\nJusqu'à Java 21, chaque thread Java était un **thread plateforme** (en anglais *platform thread*). Un thread plateforme est une fine enveloppe autour d'un **thread du système d'exploitation** (OS thread), c'est à dire un fil d'exécution géré directement par le système (Linux, Windows, macOS). Autrement dit : un thread Java égale un thread du système.\n\n👉 Imagine un restaurant où il faut embaucher un serveur à plein temps pour chaque client qui entre. Tant qu'il y a peu de clients, ça va. Mais si mille clients arrivent, il te faut mille serveurs, et ça coûte très cher."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi un thread du système coûte cher",
+          "position": 1,
+          "body": "Un thread du système est lourd pour deux raisons.\n\nD'abord la **pile** (en anglais *stack*) : chaque thread réserve une zone mémoire pour garder la trace des appels de méthodes en cours. Cette pile fait environ **1 Mo**. Mille threads, c'est donc environ 1 Go de mémoire réservée juste pour les piles.\n\nEnsuite le **changement de contexte** (en anglais *context switch*) : le système passe du temps à ranger un thread et à en sortir un autre quand il jongle entre eux. Plus il y a de threads, plus il passe de temps à jongler au lieu de travailler.\n\nRésultat : une machine classique est limitée à **quelques milliers** de threads plateforme avant de saturer. C'est peu quand on veut servir des dizaines de milliers de clients simultanés.\n\n👉 Chaque serveur du restaurant a besoin d'un grand bureau personnel (la pile de 1 Mo). Le local déborde vite, et le patron passe son temps à réorganiser les bureaux au lieu de servir."
+        },
+        {
+          "type": "CODE",
+          "title": "Le mur des threads plateforme",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// On essaie de lancer un million de threads PLATEFORME classiques.\npublic class TropDeThreads {\n    public static void main(String[] args) throws InterruptedException {\n        for (int i = 0; i < 1_000_000; i++) {\n            // Chaque thread plateforme réserve ~1 Mo de pile.\n            Thread t = new Thread(() -> {\n                try {\n                    Thread.sleep(1000); // simule une attente (I/O, réseau...)\n                } catch (InterruptedException e) { }\n            });\n            t.start();\n        }\n        // En pratique : la JVM s'épuise bien AVANT le million.\n        // Typiquement OutOfMemoryError: unable to create native thread.\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le pire : un thread qui attend ne fait rien",
+          "position": 3,
+          "body": "Le plus frustrant, c'est qu'une grande partie du temps, ces threads coûteux **ne calculent rien du tout** : ils attendent. Ils attendent une réponse de la base de données, un fichier, une réponse réseau. On appelle cette attente une opération **bloquante** : le thread est figé, il ne peut rien faire d'autre, mais il occupe quand même sa pile de 1 Mo et son emplacement.\n\n👉 Tes mille serveurs passent 95% de leur journée debout à attendre que la cuisine finisse un plat. Ils sont payés à ne rien faire, et pourtant tu ne peux pas en embaucher plus : le local est plein.\n\nC'est exactement ce problème que les **threads virtuels** de Java 21 viennent résoudre."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : le problème des threads coûteux",
+          "position": 4,
+          "quizRef": "virtual-threads-le-probleme-des-threads-couteux"
+        }
+      ]
+    },
+    {
+      "slug": "qu-est-ce-qu-un-thread-virtuel",
+      "title": "Qu'est-ce qu'un thread virtuel",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un thread léger géré par la JVM",
+          "position": 0,
+          "body": "Un **thread virtuel** (en anglais *virtual thread*) est un thread léger géré non pas par le système d'exploitation, mais par la **JVM** elle même (la machine virtuelle Java qui exécute ton programme). Il est stable et officiel depuis Java 21, décrit dans la **JEP 444** (une *JEP*, JDK Enhancement Proposal, est une fiche décrivant une évolution de Java).\n\nContrairement au thread plateforme, un thread virtuel ne réserve pas 1 Mo d'avance : il démarre minuscule et grandit seulement si besoin. Du coup tu peux en créer **des millions** sans saturer la mémoire.\n\n👉 Au lieu d'embaucher un serveur à plein temps par client, le restaurant note chaque commande sur un petit carnet. Mille clients, mille fiches de papier : ça ne coûte presque rien, et une poignée de serveurs suffit."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le thread porteur (carrier thread)",
+          "position": 1,
+          "body": "Un thread virtuel ne s'exécute pas tout seul dans le vide. Pour faire tourner son code, la JVM le pose sur un vrai thread plateforme appelé **thread porteur** (en anglais *carrier thread*). On dit que le thread virtuel se **monte** (*mount*) sur son porteur pendant qu'il travaille.\n\nLa JVM garde un petit groupe de threads porteurs (en général autant que de cœurs du processeur). Beaucoup de threads virtuels partagent ce petit groupe, à tour de rôle.\n\n👉 Le thread porteur, c'est le serveur en chair et en os. Le thread virtuel, c'est la fiche de commande. Un même serveur traite tour à tour des centaines de fiches ; il n'y a pas besoin d'un serveur par fiche."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La magie : le démontage pendant le blocage",
+          "position": 2,
+          "body": "Voici l'idée centrale. Quand un thread virtuel rencontre une opération **bloquante** (attendre la base de données, le réseau, un fichier), la JVM le **démonte** (*unmount*) de son thread porteur et le met de côté. Le thread porteur, lui, est aussitôt **libéré** et peut faire tourner un autre thread virtuel.\n\nQuand la réponse attendue arrive enfin, le thread virtuel se **remonte** sur un porteur disponible et reprend exactement où il s'était arrêté.\n\n👉 Quand une fiche de commande part en cuisine (l'attente), le serveur ne reste pas planté à côté du passe-plat : il repose la fiche et va servir d'autres tables. Dès que le plat est prêt, un serveur disponible reprend la fiche. Personne n'est payé à attendre.\n\nC'est pour ça qu'un thread virtuel bloqué ne coûte presque rien : pendant qu'il attend, il n'occupe aucun thread du système."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Beaucoup de threads virtuels, peu de porteurs",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    subgraph Virtuels[\"Des milliers de threads virtuels (JVM)\"]\n        V1[\"VT 1 : en attente reseau\"]\n        V2[\"VT 2 : en execution\"]\n        V3[\"VT 3 : en attente base de donnees\"]\n        V4[\"VT 4 : en execution\"]\n        V5[\"VT 5 : en attente\"]\n    end\n    subgraph Porteurs[\"Quelques threads porteurs (threads du systeme)\"]\n        P1[\"Porteur 1\"]\n        P2[\"Porteur 2\"]\n    end\n    V2 -->|monte sur| P1\n    V4 -->|monte sur| P2\n    V1 -.demonte, en attente.-> Porteurs\n    V3 -.demonte, en attente.-> Porteurs\n    V5 -.demonte, en attente.-> Porteurs"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Même code, même API",
+          "position": 4,
+          "body": "Bonne nouvelle : un thread virtuel reste un `Thread`. Tu écris exactement le même code qu'avant, du code **bloquant** simple et lisible (`var reponse = appelReseau();` sur une ligne). La JVM se charge en coulisses du montage et du démontage.\n\nTu n'as donc pas à apprendre une nouvelle façon tordue de programmer. Tu continues d'écrire \"fais ceci, puis attends la réponse, puis fais cela\", et les threads virtuels rendent ce style bon marché, même à très grande échelle.\n\n👉 Tu donnes les mêmes instructions qu'avant à tes serveurs. C'est juste l'organisation en cuisine qui est devenue beaucoup plus maligne."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : qu'est-ce qu'un thread virtuel",
+          "position": 5,
+          "quizRef": "virtual-threads-qu-est-ce-qu-un-thread-virtuel"
+        }
+      ]
+    },
+    {
+      "slug": "creer-des-virtual-threads",
+      "title": "Créer des virtual threads",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Trois façons de créer un thread virtuel",
+          "position": 0,
+          "body": "Java 21 propose trois chemins principaux pour obtenir un thread virtuel :\n\n1. `Thread.ofVirtual().start(tache)` : un **constructeur fluide** (*builder*), c'est à dire un objet qu'on configure par étapes avant de démarrer. Pratique si tu veux par exemple nommer le thread.\n2. `Thread.startVirtualThread(tache)` : un raccourci qui crée et démarre un thread virtuel en une seule ligne.\n3. `Executors.newVirtualThreadPerTaskExecutor()` : un **exécuteur** (*executor*, un objet qui reçoit des tâches et s'occupe de les faire tourner) qui crée **un thread virtuel par tâche** soumise. C'est la voie recommandée pour un serveur.\n\n👉 Trois tailles de boite à outils : la clé fine réglable (le builder), le tournevis à une main (le raccourci), et l'atelier automatisé (l'executor) qui ouvre une fiche par commande."
+        },
+        {
+          "type": "CODE",
+          "title": "Les deux façons directes",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "public class CreerVirtuels {\n    public static void main(String[] args) throws InterruptedException {\n        // Façon 1 : le builder, ici on en profite pour nommer le thread.\n        Thread t1 = Thread.ofVirtual()\n                          .name(\"salutation\")\n                          .start(() -> System.out.println(\"Bonjour depuis \" + Thread.currentThread()));\n\n        // Façon 2 : le raccourci en une ligne.\n        Thread t2 = Thread.startVirtualThread(() -> System.out.println(\"Salut !\"));\n\n        // join() attend la fin d'un thread (sinon main peut se terminer avant).\n        t1.join();\n        t2.join();\n\n        // Vérifier qu'un thread est virtuel :\n        System.out.println(t2.isVirtual()); // true\n    }\n}"
+        },
+        {
+          "type": "CODE",
+          "title": "La façon recommandée : un executor",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.concurrent.ExecutorService;\nimport java.util.concurrent.Executors;\n\npublic class ViaExecutor {\n    public static void main(String[] args) {\n        // Cet executor crée UN thread virtuel NEUF par tâche soumise.\n        // try-with-resources : close() attend la fin de toutes les tâches.\n        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            for (int i = 0; i < 10_000; i++) {\n                int numero = i;\n                executor.submit(() -> {\n                    // Code BLOQUANT tout simple : on \"dort\" 1 seconde.\n                    Thread.sleep(java.time.Duration.ofSeconds(1));\n                    return numero;\n                });\n            }\n        } // ici, close() attend que les 10 000 tâches soient finies\n        System.out.println(\"Les 10 000 tâches sont terminées.\");\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un thread virtuel neuf par tâche, pas un pool",
+          "position": 3,
+          "body": "Remarque bien le nom : `newVirtualThreadPerTaskExecutor`, soit \"un thread virtuel **par tâche**\". Chaque tâche reçoit son propre thread virtuel tout neuf, qui vit le temps de la tâche puis disparait.\n\nC'est l'inverse des anciens **pools de threads** (*thread pools*), où un petit stock de threads coûteux était réutilisé en boucle pour économiser. Comme un thread virtuel ne coûte presque rien à créer, on n'a plus besoin de les économiser ni de les recycler.\n\n👉 Avant, on lavait et réutilisait quelques assiettes rares. Maintenant, les assiettes sont des feuilles de papier quasi gratuites : une neuve par plat, jetée après. Plus simple, et pas de file d'attente pour une assiette."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Lance 100 tâches en parallèle",
+          "position": 4,
+          "body": "Écris un programme qui, avec un executor de threads virtuels, lance 100 tâches. Chaque tâche affiche son numéro, attend 500 millisecondes, puis affiche que c'est fini. Utilise try-with-resources pour attendre la fin de toutes les tâches.",
+          "solution": "import java.time.Duration;\nimport java.util.concurrent.Executors;\n\npublic class Cent {\n    public static void main(String[] args) {\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            for (int i = 0; i < 100; i++) {\n                int n = i;\n                executor.submit(() -> {\n                    System.out.println(\"Tache \" + n + \" demarre\");\n                    Thread.sleep(Duration.ofMillis(500));\n                    System.out.println(\"Tache \" + n + \" finie\");\n                    return null;\n                });\n            }\n        } // close() attend la fin des 100 taches\n        System.out.println(\"Tout est fini.\");\n    }\n}\n\nLes 100 threads virtuels attendent en même temps : l'ensemble prend environ 500 ms, pas 100 fois 500 ms."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : créer des virtual threads",
+          "position": 5,
+          "quizRef": "virtual-threads-creer-des-virtual-threads"
+        }
+      ]
+    },
+    {
+      "slug": "quand-les-utiliser",
+      "title": "Quand les utiliser",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Pour les tâches majoritairement bloquantes",
+          "position": 0,
+          "body": "Les threads virtuels brillent quand tes tâches passent le plus clair de leur temps à **attendre** plutôt qu'à calculer. On parle de tâches **bloquantes** ou liées à l'**I/O** (*Input/Output*, les entrées/sorties : lecture et écriture de données hors du processeur).\n\nExemples typiques : appeler une **base de données**, faire une requête **réseau** vers une autre API, lire ou écrire un **fichier**. Dans tous ces cas, ton code lance la demande puis attend la réponse, parfois des dizaines ou des centaines de millisecondes.\n\n👉 Pendant cette attente, le thread virtuel se démonte et libère son porteur pour un autre. Mille attentes simultanées tiennent sur une poignée de threads du système."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La règle d'or : un thread virtuel par tâche",
+          "position": 1,
+          "body": "La bonne habitude avec les threads virtuels tient en une phrase : **un thread virtuel par tâche**. Chaque requête d'un utilisateur, chaque appel à traiter, reçoit son propre thread virtuel, du début à la fin.\n\nPourquoi ? Parce que c'est à la fois simple et bon marché. Ton code reste linéaire et facile à lire (\"reçois la requête, interroge la base, renvoie la réponse\"), et comme un thread virtuel ne coûte presque rien, en ouvrir un par tâche ne pose aucun problème, même à des dizaines de milliers.\n\n👉 Une fiche de commande par client. Jamais \"faisons patienter ce client sur la fiche d'un autre\" : chacun sa fiche, du début à la fin."
+        },
+        {
+          "type": "CODE",
+          "title": "Un cas d'usage réaliste : appels I/O en parallèle",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.concurrent.Executors;\nimport java.util.List;\n\npublic class AppelsEnParallele {\n\n    // Simule un appel réseau lent (I/O) : on attend 300 ms puis on répond.\n    static String recupererProfil(int userId) throws InterruptedException {\n        Thread.sleep(300); // le thread virtuel se DÉMONTE ici, le porteur est libre\n        return \"profil-\" + userId;\n    }\n\n    public static void main(String[] args) throws Exception {\n        var ids = List.of(1, 2, 3, 4, 5);\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            // Les 5 appels partent en même temps, chacun sur son thread virtuel.\n            var futures = ids.stream()\n                             .map(id -> executor.submit(() -> recupererProfil(id)))\n                             .toList();\n            for (var f : futures) {\n                System.out.println(f.get()); // récupère le résultat de chaque appel\n            }\n        }\n        // Total : ~300 ms (en parallèle), pas 5 x 300 ms.\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le gros changement : simple ET scalable",
+          "position": 3,
+          "body": "Avant Java 21, pour tenir beaucoup de connexions simultanées sans exploser le nombre de threads, il fallait souvent écrire du code **asynchrone** compliqué (des enchainements de *callbacks* et de `CompletableFuture` difficiles à lire et à déboguer). C'était performant, mais tordu.\n\nAvec les threads virtuels, tu obtiens la même **scalabilité** (la capacité à monter en charge, ici à servir énormément de requêtes) tout en gardant du code **bloquant** simple et direct. Tu n'as plus à choisir entre lisible et performant.\n\n👉 Le style d'écriture redevient celui d'un débutant (étape après étape), mais avec les performances d'un expert. C'est ça, le vrai cadeau de la JEP 444."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : quand les utiliser",
+          "position": 4,
+          "quizRef": "virtual-threads-quand-les-utiliser"
+        }
+      ]
+    },
+    {
+      "slug": "pieges",
+      "title": "Pièges",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Piège 1 : aucun gain pour le calcul pur CPU",
+          "position": 0,
+          "body": "Les threads virtuels aident quand les tâches **attendent**. Pour une tâche de **calcul pur** (en anglais *CPU-bound*), qui occupe le processeur à 100% sans jamais attendre (par exemple multiplier d'énormes matrices, compresser une vidéo, calculer des hachages en boucle), ils n'apportent **aucun gain**.\n\nLa raison est simple : il n'y a pas de temps d'attente à récupérer. Un calcul qui ne se bloque jamais ne se démonte jamais, donc son porteur n'est jamais libéré. Au bout du compte, ton processeur ne peut faire tourner qu'autant de calculs vraiment simultanés qu'il a de cœurs.\n\n👉 Si le serveur doit lui même éplucher les patates (le calcul), lui donner mille fiches ne va pas plus vite : il n'a que deux mains. Les threads virtuels font gagner du temps sur l'attente, pas sur le travail de force."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Piège 2 : le pinning (épinglage du porteur)",
+          "position": 1,
+          "body": "Le **pinning** (épinglage) est le piège le plus important à connaitre. Normalement, un thread virtuel bloqué se démonte et libère son porteur. Mais dans certains cas, il reste **collé** (épinglé) à son porteur pendant qu'il attend : le porteur est alors immobilisé pour rien, et on perd tout l'intérêt des threads virtuels.\n\nLe cas classique de pinning : un blocage qui se produit à l'intérieur d'un bloc **`synchronized`**. Le mot clé `synchronized` sert à garantir qu'un seul thread à la fois entre dans une section de code. Problème : si un thread virtuel se bloque (attente I/O) à l'intérieur d'un `synchronized`, il ne peut pas se démonter et il épingle son porteur.\n\n👉 C'est comme un serveur qui, en entrant dans la réserve fermée à clé, garde la clé en poche et s'endort dedans : plus personne ne peut entrer, et lui même bloque l'endroit en attendant."
+        },
+        {
+          "type": "CODE",
+          "title": "Pinning : le problème et la solution",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.concurrent.locks.ReentrantLock;\n\npublic class EviterLePinning {\n\n    private final Object verrou = new Object();\n    private final ReentrantLock lock = new ReentrantLock();\n\n    // MAUVAIS : blocage (I/O) DANS un synchronized -> épingle le porteur.\n    void risqueDePinning() throws InterruptedException {\n        synchronized (verrou) {\n            Thread.sleep(1000); // attente bloquante tant qu'on tient le moniteur\n        }\n    }\n\n    // BON : un ReentrantLock n'épingle pas le porteur pendant l'attente.\n    void sansPinning() throws InterruptedException {\n        lock.lock();\n        try {\n            Thread.sleep(1000); // ici le thread virtuel peut se démonter\n        } finally {\n            lock.unlock();\n        }\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Piège 3 : ne pas les mettre en pool",
+          "position": 3,
+          "body": "Dernier piège : ne **mets jamais** les threads virtuels dans un **pool** (un stock limité de threads que l'on réutilise). Les pools existaient pour économiser les threads plateforme, qui coûtent cher. Les threads virtuels sont quasi gratuits : les mettre en pool, c'est les rationner sans raison, et tu retombes sur la limite que tu voulais justement faire sauter.\n\nLa bonne pratique reste **un thread virtuel neuf par tâche**, via `Executors.newVirtualThreadPerTaskExecutor()`. Chaque tâche a le sien, il vit le temps de la tâche, puis il disparait.\n\n👉 On ne range pas des feuilles de papier jetables dans un coffre fort fermé à clé en les comptant une par une. On en prend une neuve quand on en a besoin, point."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Repère le piège",
+          "position": 4,
+          "body": "Une développeuse remplace son ancien pool de 200 threads plateforme par un pool FIXE de 200 threads virtuels, puis se plaint de ne pas tenir plus de 200 requêtes à la fois. Quel est son erreur, et que devrait elle faire ? Et si une tâche fait uniquement du calcul lourd sans aucune attente, les threads virtuels l'aideront ils ?",
+          "solution": "Erreur : elle met les threads virtuels dans un pool FIXE de 200, ce qui plafonne artificiellement à 200 tâches simultanées. Les threads virtuels étant quasi gratuits, il ne faut pas les mettre en pool. Solution : utiliser Executors.newVirtualThreadPerTaskExecutor(), qui crée un thread virtuel neuf par tâche, sans limite artificielle.\n\nPour une tâche de calcul pur (CPU-bound) sans attente : non, les threads virtuels n'apportent aucun gain. Il n'y a pas de blocage à exploiter, donc pas de démontage utile ; la vitesse reste bornée par le nombre de cœurs."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : pièges",
+          "position": 5,
+          "quizRef": "virtual-threads-pieges"
+        }
+      ]
+    },
+    {
+      "slug": "en-pratique",
+      "title": "En pratique",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le cas idéal : un serveur à des milliers de connexions",
+          "position": 0,
+          "body": "Le terrain de jeu parfait des threads virtuels, c'est un **serveur** qui doit traiter des **milliers de connexions simultanées**. Chaque client ouvre une connexion, envoie une demande, puis le serveur interroge sa base de données ou une autre API et renvoie la réponse. L'essentiel du temps par connexion est de l'**attente** (I/O).\n\nLe modèle est limpide : **un thread virtuel par connexion**. Dix mille clients connectés, ce sont dix mille threads virtuels, mais seulement une poignée de threads porteurs occupés, car la plupart des threads virtuels sont démontés en train d'attendre.\n\n👉 Dix mille clients attablés, mais à tout instant seuls quelques plats sont réellement en préparation. Quelques serveurs suffisent à faire tourner la salle entière."
+        },
+        {
+          "type": "CODE",
+          "title": "Un serveur qui traite chaque connexion sur son thread virtuel",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.io.*;\nimport java.net.ServerSocket;\nimport java.net.Socket;\nimport java.util.concurrent.Executors;\n\npublic class ServeurEcho {\n    public static void main(String[] args) throws IOException {\n        // Un thread virtuel NEUF par connexion acceptée.\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor();\n             var serveur = new ServerSocket(8080)) {\n            System.out.println(\"En écoute sur le port 8080...\");\n            while (true) {\n                Socket client = serveur.accept(); // attend une connexion (bloquant)\n                // Chaque client est traité sur SON propre thread virtuel.\n                executor.submit(() -> traiter(client));\n            }\n        }\n    }\n\n    // Code BLOQUANT tout simple, lisible ligne par ligne.\n    static void traiter(Socket client) {\n        try (client;\n             var in = new BufferedReader(new InputStreamReader(client.getInputStream()));\n             var out = new PrintWriter(client.getOutputStream(), true)) {\n            String ligne;\n            while ((ligne = in.readLine()) != null) { // attente réseau = démontage\n                out.println(\"echo: \" + ligne);\n            }\n        } catch (IOException e) {\n            System.err.println(\"Erreur client : \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi ça tient la charge",
+          "position": 2,
+          "body": "Dans ce serveur, chaque connexion passe le plus clair de son temps bloquée sur `readLine()` à attendre que le client envoie des données. À cet instant précis, le thread virtuel est **démonté** : il ne consomme ni thread du système ni temps processeur.\n\nDu coup, même dix mille clients branchés en même temps n'occupent qu'une poignée de threads porteurs (ceux qui traitent réellement une ligne à cet instant). La même logique avec des threads plateforme aurait saturé la machine bien avant.\n\n👉 Le secret n'est pas de servir plus vite, c'est de ne jamais immobiliser une ressource rare (un thread du système) pendant qu'on ne fait qu'attendre."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Et dans la vraie vie (Spring, etc.)",
+          "position": 3,
+          "body": "Tu n'auras pas souvent à écrire ce `ServerSocket` à la main. Les frameworks web modernes savent déjà poser **chaque requête sur son propre thread virtuel**. Dans un projet Spring Boot récent sous Java 21, il suffit souvent d'activer une option (`spring.threads.virtual.enabled=true`) pour que chaque requête HTTP soit traitée par un thread virtuel.\n\nL'important à retenir : tu continues d'écrire ton code métier de façon **bloquante et simple** (interroger la base, appeler une API, renvoyer le résultat), et les threads virtuels rendent ce code capable de tenir une très forte charge.\n\n👉 Tu gardes la recette de cuisine toute simple. C'est l'organisation de la salle, gérée par la JVM et le framework, qui encaisse la foule."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Dimensionne ton serveur",
+          "position": 4,
+          "body": "Ton serveur gère 20 000 connexions simultanées. Chacune passe environ 99% de son temps à attendre une réponse réseau et 1% à calculer. Combien de threads PLATEFORME faudrait il environ avec l'ancien modèle un thread par connexion, et pourquoi est ce un problème ? Pourquoi les threads virtuels s'en sortent ils ici ?",
+          "solution": "Avec l'ancien modèle un thread plateforme par connexion, il faudrait environ 20 000 threads plateforme. Problème : à ~1 Mo de pile chacun, cela représente ~20 Go rien que pour les piles, bien au delà de ce qu'une machine classique supporte (limitée à quelques milliers de threads plateforme). La JVM échouerait (OutOfMemoryError: unable to create native thread).\n\nLes threads virtuels s'en sortent car chaque connexion passe 99% de son temps bloquée en attente réseau : pendant cette attente, le thread virtuel est démonté et ne consomme aucun thread du système. Les 20 000 connexions tiennent donc sur une poignée de threads porteurs, puisque très peu calculent réellement au même instant. C'est le cas d'usage idéal : beaucoup d'attente, peu de calcul."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : en pratique",
+          "position": 5,
+          "quizRef": "virtual-threads-en-pratique"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "records-records-et-immuabilite",
+  "node": "records",
+  "lesson": "records-et-immuabilite",
+  "title": "Quiz : records et immuabilité",
+  "description": "Immuabilité, copie modifiée, immuabilité superficielle.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment obtenir un Point avec un x différent, puisqu'un record est immuable ?",
+      "justification": "On ne modifie pas l'objet : on crée une nouvelle instance à partir des valeurs voulues, souvent via une méthode withX.",
+      "position": 0,
+      "options": [
+        { "label": "Créer une nouvelle instance (ex. return new Point(nouveauX, y))", "correct": true, "position": 0 },
+        { "label": "Appeler p.setX(nouveauX)", "correct": false, "position": 1 },
+        { "label": "Modifier directement p.x", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'immuabilité d'un record est superficielle : si un composant est une liste modifiable, son contenu peut encore changer.",
+      "justification": "Le record empêche de remplacer le composant, mais pas de modifier l'intérieur d'un objet mutable qu'il contient.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment protéger une liste passée à un record pour qu'elle ne soit pas modifiée ensuite ?",
+      "justification": "Dans le constructeur compact, on remplace la liste par une copie non modifiable : articles = List.copyOf(articles).",
+      "position": 2,
+      "options": [
+        { "label": "articles = List.copyOf(articles) dans le constructeur compact", "correct": true, "position": 0 },
+        { "label": "Ajouter un setter sur la liste", "correct": false, "position": 1 },
+        { "label": "Rien, une liste est toujours figée", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

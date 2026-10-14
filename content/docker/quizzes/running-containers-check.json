@@ -1,0 +1,119 @@
+{
+  "ref": "running-containers-check",
+  "node": "running-containers",
+  "lesson": "options-runtime-durcissement",
+  "title": "Exécuter des conteneurs",
+  "description": "Restart policies, Compose, depends_on/healthcheck, durcissement, config runtime.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle restart policy redémarre après un crash et un reboot de l'hôte, mais pas après un arrêt manuel ?",
+      "justification": "unless-stopped : résiliente aux pannes et redémarrages machine, mais respecte un docker stop volontaire.",
+      "position": 0,
+      "options": [
+        {
+          "label": "unless-stopped",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "no",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "always (relance même après un stop manuel)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert Docker Compose ?",
+      "justification": "Décrire un stack multi-services en YAML et le démarrer relié en une commande (up), reproductible.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Décrire et lancer un stack multi-services en une commande",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construire des images sans Dockerfile",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Remplacer le noyau Linux",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `depends_on` seul ne suffit-il pas à éviter un « connection refused » vers la base au démarrage ?",
+      "justification": "depends_on garantit l'ordre, pas la disponibilité : il faut un healthcheck + condition service_healthy pour attendre que la base soit prête.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Il garantit l'ordre de démarrage, pas que le service soit prêt",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ne fonctionne qu'avec MySQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il désactive le réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un healthcheck sur un conteneur ?",
+      "justification": "Vérifier périodiquement que l'application est réellement fonctionnelle (healthy/unhealthy), pas seulement que le processus tourne.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vérifier que l'application est réellement prête/fonctionnelle",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer le trafic",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Compresser l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La bonne pratique est de construire une seule image immuable et d'injecter la configuration (URLs, secrets) au runtime, pas une image différente par environnement.",
+      "justification": "Vrai : build once, deploy many + config par l'environnement (12-factor), la même image testée est celle qui tourne, sans secret figé dedans.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "enhanced-instanceof-combiner-avec-des-conditions",
+  "node": "enhanced-instanceof",
+  "lesson": "combiner-avec-des-conditions",
+  "title": "Quiz : combiner avec des conditions",
+  "description": "Enchainer le pattern avec && et pourquoi pas avec ||.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans if (o instanceof String s && !s.isBlank()), pourquoi peut on utiliser s à droite du && ?",
+      "justification": "Le && n'évalue sa droite que si la gauche est vraie ; à ce moment le flow scoping garantit que s existe et est déjà typée String.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que si on évalue la droite, le test de type à gauche est forcément vrai, donc s existe", "correct": true, "position": 0 },
+        { "label": "Parce que && déclare une nouvelle variable s à droite", "correct": false, "position": 1 },
+        { "label": "Parce que isBlank crée elle-même la variable s", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi Java n'autorise t il pas d'utiliser la variable de pattern après un || ?",
+      "justification": "La droite d'un || n'est évaluée que si la gauche est fausse, donc quand le test de type a échoué : la variable de pattern n'aurait aucune valeur sure.",
+      "position": 1,
+      "options": [
+        { "label": "Parce que la droite du || n'est évaluée que si le test de type a échoué, donc la variable n'est pas sure", "correct": true, "position": 0 },
+        { "label": "Parce que || est interdit dans un if en Java moderne", "correct": false, "position": 1 },
+        { "label": "Parce que || est plus lent que &&", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'opérateur && n'évalue sa partie droite que si sa partie gauche est vraie.",
+      "justification": "Vrai : c'est l'évaluation court circuit du ET, et c'est précisément ce qui rend la variable de pattern disponible à droite.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

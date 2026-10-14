@@ -1,0 +1,10 @@
+{
+  "node": "linux-fundamentals",
+  "lesson": "paquets-processus-scripts",
+  "title": "Écrire un entrypoint propre (variable, log, exec)",
+  "statement": "Écris un petit script shell d'entrée de conteneur (`entrypoint.sh`) qui : (1) affiche sur la sortie standard un message contenant la variable d'environnement `PORT` avec la valeur par défaut `8080` si elle n'est pas définie ; (2) lance ensuite l'application `java -jar /app/app.jar` en la faisant devenir le processus PID 1 (pour recevoir SIGTERM et permettre un arrêt gracieux).",
+  "skeleton": "#!/bin/sh\nset -e\n\n# 1) afficher le port utilise (defaut 8080)\n\n# 2) lancer l'application en devenant PID 1\n",
+  "solution": "#!/bin/sh\nset -e\n\necho \"Demarrage avec PORT=${PORT:-8080}\"\n\nexec java -jar /app/app.jar",
+  "keyPoints": ["${PORT:-8080}", "echo", "exec", "java -jar /app/app.jar"],
+  "language": "bash"
+}

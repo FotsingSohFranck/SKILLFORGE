@@ -1,0 +1,10 @@
+{
+  "node": "ci-cd",
+  "lesson": "integration-continue",
+  "title": "Écrire un workflow CI minimal",
+  "statement": "Écris un workflow **GitHub Actions** (fichier `.github/workflows/ci.yml`) qui met en place une intégration continue minimale. Il doit : se déclencher **à chaque push et à chaque pull request**, tourner sur un runner `ubuntu-latest`, **récupérer le code** du dépôt avec `actions/checkout@v4`, puis **compiler et lancer les tests** avec la commande `mvn -q clean verify`.",
+  "skeleton": "# .github/workflows/ci.yml\nname: ci\n\non:\n  # complete le declenchement\n\njobs:\n  build:\n    # complete le runner et les etapes\n",
+  "solution": "# .github/workflows/ci.yml\nname: ci\n\non: [push, pull_request]\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: mvn -q clean verify",
+  "keyPoints": ["on:", "push", "pull_request", "runs-on", "ubuntu-latest", "actions/checkout", "mvn", "verify"],
+  "language": "yaml"
+}

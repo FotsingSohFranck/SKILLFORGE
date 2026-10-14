@@ -1,0 +1,96 @@
+{
+  "ref": "state-operations-import-check",
+  "node": "state-operations",
+  "lesson": "importer-lexistant",
+  "title": "Quiz, Importer l'existant",
+  "description": "State, import, bloc import (to/id), génération de code.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Une ressource a été créée à la main. Tu écris juste son bloc `resource` et tu fais `apply`. Que se passe-t-il ?",
+      "justification": "L'objet n'est pas dans le state : Terraform ne le connaît pas, croit devoir le créer, et provoque une erreur « existe déjà » ou un doublon.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Terraform tente de la CRÉER (absente du state) : conflit « existe déjà » ou doublon",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Terraform reconnaît automatiquement l'objet existant et l'adopte",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Terraform supprime l'objet existant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'import dans Terraform ?",
+      "justification": "L'import relie une ressource réelle déjà existante à une ressource du code, en l'ajoutant au state, sans rien recréer.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Relier une ressource réelle existante au code en l'ajoutant au state, sans la recréer",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Télécharger un provider depuis le registry",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Détruire puis recréer une ressource proprement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un bloc `import { to = ..., id = ... }`, que désignent `to` et `id` ?",
+      "justification": "`to` est l'adresse de la ressource dans ton code (ex. aws_s3_bucket.existant) ; `id` est l'identifiant réel de l'objet dans le cloud (nom, ARN...).",
+      "position": 2,
+      "options": [
+        {
+          "label": "`to` = adresse dans le code ; `id` = identifiant réel de l'objet dans le cloud",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "`to` = identifiant cloud ; `id` = numéro de version",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "`to` = région AWS ; `id` = nom du provider",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec `terraform plan -generate-config-out=genere.tf`, Terraform peut générer automatiquement le code HCL des ressources visées par un bloc import.",
+      "justification": "Vrai : Terraform lit l'état réel des objets ciblés et écrit les blocs resource correspondants, qu'on ajuste ensuite jusqu'à un plan vide.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

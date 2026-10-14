@@ -1,0 +1,63 @@
+{
+  "ref": "container-registries-check",
+  "node": "container-registries",
+  "lesson": "tagging-et-supply-chain",
+  "title": "Registres d'images",
+  "description": "Registres, push/pull, tagging, digest immuable, signature, SBOM.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle d'un registre dans la chaîne build → déploiement ?",
+      "justification": "Il stocke et distribue les images entre machines : la CI push, le serveur pull la même image (build once, deploy many).",
+      "position": 0,
+      "options": [
+        { "label": "Stocker et distribuer les images entre les machines", "correct": true, "position": 0 },
+        { "label": "Compiler le code source", "correct": false, "position": 1 },
+        { "label": "Exécuter les conteneurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment garantir de façon absolue qu'on récupère exactement le même contenu d'image ?",
+      "justification": "En référençant le digest immuable (image@sha256:...) : deux pulls du même digest donnent forcément le même contenu.",
+      "position": 1,
+      "options": [
+        { "label": "Référencer le digest immuable (sha256:...)", "correct": true, "position": 0 },
+        { "label": "Utiliser le tag latest", "correct": false, "position": 1 },
+        { "label": "Renommer l'image", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle stratégie de tagging assure une traçabilité exacte entre code et image ?",
+      "justification": "Taguer avec le hash de commit Git (et/ou une version sémantique) relie l'image au code précis qui l'a produite.",
+      "position": 2,
+      "options": [
+        { "label": "Taguer avec le hash de commit et/ou la version sémantique", "correct": true, "position": 0 },
+        { "label": "N'utiliser que latest", "correct": false, "position": 1 },
+        { "label": "Ne jamais taguer", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle pratique sécurise la distribution d'images dans la chaîne d'approvisionnement ?",
+      "justification": "Signer les images (cosign/Sigstore) et vérifier la signature au déploiement, avec SBOM et scan continu.",
+      "position": 3,
+      "options": [
+        { "label": "Signer les images et vérifier la signature au déploiement", "correct": true, "position": 0 },
+        { "label": "Rendre tous les dépôts publics", "correct": false, "position": 1 },
+        { "label": "Partager les identifiants de push", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un tag d'image est immuable : une fois poussé, son contenu ne peut plus changer.",
+      "justification": "Faux : un tag est mutable (on peut repousser un contenu différent sous le même tag) ; seul le digest est immuable.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+{
+  "node": "observability",
+  "lessons": [
+    {
+      "slug": "les-trois-piliers",
+      "title": "Les trois piliers",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Métriques, logs, traces",
+          "body": "Avant tout, un mot sur le titre. L'**observabilité** (en anglais *observability*), c'est la capacité à **comprendre ce qui se passe à l'intérieur** d'une application **en regardant seulement les signaux qu'elle émet vers l'extérieur** (des chiffres, des messages), sans avoir à ouvrir le capot ni à ajouter du code en urgence.\n\n👉 **Analogie** : c'est le **tableau de bord d'une voiture**. Tu ne démontes pas le moteur pour savoir si tout va bien : tu lis la vitesse, la jauge d'essence, le voyant de température. Ces cadrans te disent l'état du véhicule pendant qu'il roule. L'observabilité, ce sont les cadrans de ton application.\n\nCette capacité repose sur **trois signaux** (on parle des *trois piliers*) :\n\n- **Les métriques** (*metrics*) : des **valeurs chiffrées mesurées régulièrement dans le temps**. Par exemple : la **latence** (le temps de réponse), le **débit** (nombre de requêtes par seconde), le **taux d'erreurs**, l'usage **CPU**. 👉 C'est la **jauge d'essence** : un nombre qu'on relève en continu et qu'on trace sous forme de courbe. Exemple concret : « à 14h03, l'API répondait en 120 ms et traitait 800 requêtes par seconde ».\n\n- **Les logs** (ou *journaux* en français) : des **messages texte datés**, écrits par l'application quand un événement se produit. 👉 C'est le **journal de bord** d'un capitaine : « 14h03, connexion de l'utilisateur 42 réussie », « 14h04, échec de paiement : carte refusée ». Exemple concret : une ligne comme `2026-07-27T14:04:01 ERROR paiement refuse user=42 raison=fonds_insuffisants`.\n\n- **Les traces** (*traces*) : le **parcours complet d'une seule requête** à travers tous les services qu'elle traverse, avec le **temps passé à chaque étape**. 👉 C'est le **suivi de colis** : tu vois par où ton colis est passé (entrepôt, camion, centre de tri) et combien de temps il a stationné à chaque endroit. Exemple concret : « la requête de connexion a pris 300 ms au total : 20 ms côté API, 250 ms dans la base de données, 30 ms pour l'appel au service e-mail ».\n\nEnsemble, ces trois signaux permettent de comprendre **ce qui se passe** *et* **pourquoi**, pas seulement **que ça marche ou non**. Sans eux, on découvre les incidents par les utilisateurs mécontents qui écrivent au support."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois piliers : metriques (combien), logs (quoi), traces (par ou) pour comprendre un systeme.",
+          "body": "/images/lessons/les-trois-piliers-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Les trois piliers en un coup d'oeil",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Ton application\"] -->|\"chiffres reguliers\"| M[\"Metriques\"]\n    A -->|\"messages dates\"| L[\"Logs\"]\n    A -->|\"parcours des requetes\"| T[\"Traces\"]\n    M --> Q1[\"Combien ? a quel rythme ?\"]\n    L --> Q2[\"Que s'est-il passe ?\"]\n    T --> Q3[\"Ou le temps est-il passe ?\"]\n    Q1 --> O[\"Observabilite : comprendre le pourquoi\"]\n    Q2 --> O\n    Q3 --> O"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Surveillance vs observabilité",
+          "body": "Deux mots qu'on confond souvent, mais qui ne veulent pas dire la même chose.\n\n**La surveillance** (en anglais *monitoring*) consiste à **vérifier en permanence des questions que tu as prévues à l'avance**. Tu définis un indicateur et un seuil, et le système te prévient s'il est franchi : « le CPU dépasse-t-il 80 % ? », « le taux d'erreurs monte-t-il au-dessus de 1 % ? ». Ce sont des questions **connues d'avance**.\n\n**L'observabilité** va plus loin : c'est la capacité à **poser des questions que tu n'avais pas prévues**, après coup, à partir des signaux collectés. Quand une panne bizarre arrive (« pourquoi seuls les utilisateurs de Belgique, entre 14h et 15h, ont-ils des erreurs ? »), tu n'avais pas de tableau de bord tout prêt pour ça. Si tu as instrumenté ton application assez finement, tu peux **explorer** les données et **remonter à la cause**.\n\n👉 **Analogie** : la **surveillance**, ce sont les **voyants du tableau de bord** de ta voiture (allumés ou éteints, prévus d'avance). L'**observabilité**, c'est pouvoir **brancher une valise de diagnostic** et fouiller n'importe quel capteur pour comprendre un problème inédit. Le voyant te dit *qu'il y a* un souci ; le diagnostic te dit *lequel* et *pourquoi*.\n\nLes deux sont **complémentaires** : on **surveille** les indicateurs clés (pour être alerté vite), et on **instrumente** assez richement pour pouvoir **enquêter** sur l'imprévu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Surveillance : repondre a des questions connues ; observabilite : explorer l'inconnu.",
+          "body": "/images/lessons/les-trois-piliers-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une requête est lente uniquement pour certains utilisateurs, de façon intermittente. Lequel des trois piliers est le plus utile pour comprendre où le temps est passé, et pourquoi ?",
+          "solution": "Les traces distribuées : elles suivent une requête donnée à travers les couches/services et attribuent le temps à chaque étape (DNS, base, appel externe…). On identifie ainsi précisément où la latence se concentre pour ces requêtes, là où des métriques agrégées masqueraient le cas intermittent et où les logs seuls ne donneraient pas la chronologie de bout en bout."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Les trois piliers",
+          "quizRef": "observability-piliers-check"
+        }
+      ]
+    },
+    {
+      "slug": "instrumenter-et-mesurer",
+      "title": "Instrumenter & mesurer",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Instrumentation & télémétrie",
+          "body": "Pour obtenir des signaux, il faut d'abord que l'application les **produise**. C'est le rôle de l'instrumentation.\n\n**Instrumenter**, c'est **ajouter dans le code des points de mesure** : un compteur qui s'incrémente à chaque commande, un chronomètre (*timer*) qui mesure la durée d'un appel, un *span* qui marque le début et la fin d'une opération pour les traces. 👉 **Analogie** : c'est comme **poser des capteurs** sur une machine à l'usine, un thermomètre ici, un compteur de pièces là. Sans capteur posé, aucune donnée ne remonte. Exemple concret : autour de l'appel à la base de données, on démarre un chrono avant et on l'arrête après pour connaître le temps passé.\n\n**La télémétrie** (*telemetry*, littéralement « mesure à distance ») désigne **l'ensemble des données que ces capteurs émettent puis envoient** vers un outil de collecte. 👉 **Analogie** : la télémétrie d'une voiture de Formule 1, ce sont toutes les mesures que la voiture transmet en direct au stand.\n\nPoser ces capteurs à la main pour chaque outil serait pénible. Le standard **OpenTelemetry** (souvent abrégé **OTel**) répond à ce besoin : c'est une **façon unique et normalisée d'instrumenter** métriques, logs et traces, **indépendante du fournisseur**. Tu instrumentes une seule fois avec OpenTelemetry, et tu peux ensuite envoyer les données vers n'importe quel outil (Prometheus, Grafana, Jaeger…) sans réécrire ton code.\n\nEn pratique, une application expose souvent sa santé et ses métriques sur une **URL dédiée** (un *endpoint*). Sur cette plateforme, par exemple : `/actuator/health` pour l'état de santé, `/metrics` pour les valeurs chiffrées qu'un outil vient lire régulièrement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Instrumenter, c'est poser des capteurs dans le code pour emettre de la telemetrie.",
+          "body": "/images/lessons/instrumenter-et-mesurer-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les bons indicateurs",
+          "body": "Une fois capable de tout mesurer, la question devient : **quoi** mesurer en priorité ? On commence par les signaux qui reflètent **l'expérience réelle des utilisateurs**. Quatre d'entre eux sont si importants qu'on les appelle les **quatre signaux dorés** (*golden signals*) :\n\n- **La latence** : le **temps de réponse** d'une requête. Point crucial : on la regarde en **percentiles**, pas en moyenne. Un **percentile** est un seuil sous lequel se trouve un pourcentage donné des valeurs. 👉 **Exemple** : une **p95** (95e percentile) de 400 ms signifie que **95 % des requêtes** répondent en moins de 400 ms, et que les **5 % les plus lentes** dépassent 400 ms. On suit p50 (la médiane), p95 et p99. La moyenne, elle, **cache les cas lents** (on le verra à l'exercice).\n\n- **Le débit** (*throughput*) : **combien de requêtes** l'application traite par unité de temps, par exemple 800 requêtes par seconde. 👉 C'est le nombre de clients qui passent en caisse par minute.\n\n- **Le taux d'erreurs** (*error rate*) : la **proportion de requêtes qui échouent** (réponses en erreur). Par exemple 0,3 % des requêtes renvoient une erreur.\n\n- **La saturation** : à quel point les **ressources sont proches de leur limite** (CPU, mémoire, connexions à la base presque toutes prises). 👉 **Analogie** : le **niveau de remplissage d'un parking** ; à 95 %, tu sais que ça va bientôt coincer.\n\nCes quatre signaux donnent une vue de santé **actionnable** : s'ils sont bons, les utilisateurs sont probablement contents. On les complète par des **métriques métier** (inscriptions, leçons terminées, paiements réussis) pour relier la **technique** à la **valeur** réellement produite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les bons indicateurs (latence, trafic, erreurs, saturation) racontent la sante du service.",
+          "body": "/images/lessons/instrumenter-et-mesurer-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un tableau de bord montre une latence MOYENNE de 45 ms, jugée bonne, mais des utilisateurs se plaignent de lenteurs. Quel indicateur regarder et pourquoi ?",
+          "solution": "Les percentiles élevés (p95/p99) : la moyenne masque les requêtes lentes. Une p99 à 2 s signifie que 1 % des requêtes sont très lentes, assez pour générer des plaintes, invisible dans une moyenne à 45 ms. On raisonne en percentiles, pas en moyenne, pour l'expérience perçue."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Instrumenter & mesurer",
+          "quizRef": "observability-mesurer-check"
+        }
+      ]
+    },
+    {
+      "slug": "alerting-et-slo",
+      "title": "Alerting & SLO",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Alerter sur les symptômes, pas le bruit",
+          "body": "Avoir des métriques, c'est bien ; être **prévenu automatiquement** quand quelque chose va mal, c'est mieux. C'est le rôle des **alertes**.\n\nUne **alerte** est une **règle qui déclenche une notification** (e-mail, message, appel téléphonique) quand un signal franchit un seuil. Mais toutes les alertes ne se valent pas, et le piège classique est d'en mettre **trop**.\n\nLe premier principe : **alerter sur les symptômes, pas sur chaque cause possible**. Un **symptôme**, c'est ce que **l'utilisateur ressent** : « l'API répond en erreur », « les pages sont lentes ». Une **cause**, c'est un détail interne : « ce serveur a 90 % de CPU ». 👉 **Analogie** : chez le médecin, le symptôme est « j'ai de la fièvre et mal à la gorge » ; il vaut mieux alerter là-dessus que de brancher un voyant sur chacun des mille organes. Souvent, un pic de CPU ne dérange **personne** (le service répond quand même) : alerter dessus crée du bruit inutile.\n\nLe second principe : **une bonne alerte est actionnable et rare**. **Actionnable** veut dire qu'elle signale **un vrai problème sur lequel on peut agir**, avec idéalement quoi faire. Si tu reçois cinquante alertes par jour dont la plupart ne demandent aucune action, tu tombes dans la **fatigue d'alerte** (*alert fatigue*) : à force de crier au loup, on finit par **toutes les ignorer**, y compris la seule qui comptait vraiment. 👉 **Analogie** : une alarme de voiture qui se déclenche au moindre coup de vent ; au bout d'une semaine, plus personne ne se retourne quand elle sonne.\n\nLa règle d'or : **peu d'alertes, mais chacune mérite qu'on se lève la nuit**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Alerter sur les symptomes percus par l'utilisateur, pas sur du bruit technique.",
+          "body": "/images/lessons/alerting-et-slo-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "SLO & error budget (niveau expert)",
+          "body": "Comment décider si un service est « assez fiable » sans se disputer sur du ressenti ? Avec un **SLO**.\n\nUn **SLO** (*Service Level Objective*, « objectif de niveau de service ») est une **cible chiffrée et mesurable** de fiabilité, fixée sur une fenêtre de temps. Exemple : « **99,9 %** des requêtes doivent répondre en **moins de 300 ms**, mesuré sur **30 jours** ». Ce n'est ni un vœu ni un slogan : c'est un nombre qu'on peut vérifier.\n\nPourquoi ne pas viser 100 % ? Parce que la fiabilité parfaite est **hors de prix** et de toute façon inutile (l'utilisateur ne verra pas la différence entre 99,9 % et 100 %). Cet écart au 100 % porte un nom : l'**error budget** (« budget d'erreur »). Avec un SLO à 99,9 %, tu **t'autorises** 0,1 % d'échecs sur la période. 👉 **Analogie** : c'est un **budget de dépenses**. Tant qu'il te reste de l'argent (du budget d'erreur), tu peux **te faire plaisir** : déployer souvent, tenter des choses, aller vite. Quand le budget est **épuisé**, tu **serres les dépenses** : on gèle les nouveautés et on se concentre sur la stabilité jusqu'à ce que le budget se reconstitue.\n\nL'intérêt : le SLO transforme la question floue « c'est assez fiable ? » en une **décision chiffrée et partagée** entre les développeurs (qui veulent livrer vite) et les ops (qui veulent de la stabilité). On approfondit tout ça dans la dernière leçon."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le SLO fixe un objectif ; l'error budget mesure la marge de pannes toleree.",
+          "body": "/images/lessons/alerting-et-slo-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une équipe reçoit des dizaines d'alertes par jour et les ignore désormais. Quel est le problème et comment y remédier ?",
+          "solution": "La fatigue d'alerte : trop d'alertes non actionnables noient les vraies, l'équipe les ignore (dont les critiques). Remède : alerter uniquement sur des symptômes actionnables qui affectent les utilisateurs (basés sur des SLO), supprimer/regrouper le bruit, et rendre chaque alerte claire sur l'action à mener. Moins d'alertes, mais pertinentes."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Observabilité",
+          "quizRef": "observability-check"
+        }
+      ]
+    },
+    {
+      "slug": "tracing-distribue-cardinalite",
+      "title": "Tracing distribué & cardinalité",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Comment une trace suit une requête entre services",
+          "body": "Reprenons les **traces**, mais en détail, car c'est le pilier le plus riche. Une **trace distribuée** raconte le voyage d'**une seule requête** à travers tous les services qu'elle traverse.\n\nElle est faite de **spans**. Un **span** (mot anglais pour « intervalle ») représente **une opération unique et mesurée dans le temps** : un appel HTTP, une requête SQL, un calcul. Chaque span sait **quand il a commencé et combien de temps il a duré**. Les spans s'emboîtent en **arbre** : le span « traiter la requête de connexion » contient un span « lire l'utilisateur en base » et un span « envoyer l'e-mail ». 👉 **Analogie** : un span est **une ligne d'un reçu détaillé** ; la trace est **le reçu complet**, où chaque poste a son montant (ici, sa durée).\n\nLe défi : quand la requête **saute d'un service à un autre**, comment savoir que ces spans, produits par des machines différentes, appartiennent à **la même requête** ? Réponse : on **propage un contexte**. Concrètement, on transporte deux informations :\n- un **trace id** : un **identifiant unique, identique pour toute la requête** du début à la fin (le numéro de suivi du colis) ;\n- un **span id parent** : l'identifiant du span qui a déclenché l'appel courant (pour savoir qui a appelé qui).\n\nCes informations voyagent dans un **en-tête HTTP standard** appelé **W3C `traceparent`** (une norme reconnue par tous les outils). Chaque service **hérite** du contexte qu'il reçoit à l'entrée, et le **réinjecte** dans ses propres appels sortants. 👉 **Analogie** : c'est le **numéro de suivi collé sur le colis** : à chaque centre de tri, on le lit et on le recolle avant de réexpédier, si bien qu'on reconstitue tout le trajet à la fin.\n\nRésultat : on rebâtit le **chemin complet** d'une requête et le **temps passé à chaque étape**. C'est la seule façon de déboguer une lenteur qui traverse dix services."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une trace suit une requete de service en service, grace a un identifiant propage.",
+          "body": "/images/lessons/tracing-distribue-cardinalite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Échantillonner : head vs tail sampling",
+          "body": "Garder **100 %** des traces d'un service à fort trafic coûte très cher : chaque trace se stocke, se transporte, s'indexe. Sur des millions de requêtes, la facture explose. La parade : **l'échantillonnage** (*sampling*), c'est-à-dire **ne conserver qu'une partie** des traces.\n\nIl y a deux stratégies, selon **le moment** où l'on décide de garder ou de jeter une trace.\n\n- **Le head sampling** (« échantillonnage à la tête ») décide **au tout début**, dès l'arrivée de la requête : par exemple « je garde 1 trace sur 100, tirée au hasard ». 👉 **Analogie** : à l'entrée d'un magasin, tu interroges 1 client sur 100 **avant même** de savoir s'il a eu un souci. C'est **simple et peu coûteux**, mais ça a un défaut : les requêtes **rares, lentes ou en erreur** (justement celles qui t'intéressent) passent le plus souvent à la trappe.\n\n- **Le tail sampling** (« échantillonnage à la queue ») décide **à la fin**, une fois la trace **complète** et son résultat connu : « je garde **toutes** les traces **lentes ou en erreur**, et seulement un échantillon des traces normales ». 👉 **Analogie** : tu interroges les clients **à la sortie**, et tu retiens en priorité **ceux qui ont eu un problème**. Bien plus utile pour diagnostiquer, mais plus lourd : il faut un **collecteur** (l'**OpenTelemetry Collector**) qui **met les traces en mémoire tampon** le temps de voir comment elles se terminent avant de trancher.\n\nChoisir sa stratégie d'échantillonnage est donc un **arbitrage entre le coût** (stockage, mémoire) **et la valeur pour le diagnostic**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Echantillonner : head sampling (au depart) ou tail sampling (apres coup, sur les cas interessants).",
+          "body": "/images/lessons/tracing-distribue-cardinalite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le piège réactif : pas de ThreadLocal",
+          "body": "Point crucial pour **cette plateforme**, qui tourne en **WebFlux/Reactor** (une pile **réactive**, non bloquante). Cette subtilité surprend beaucoup de développeurs venus du monde bloquant classique.\n\nD'abord, deux mots à définir :\n- Un **thread** (« fil d'exécution ») est **une ligne de travail** dans laquelle le programme exécute son code. Dans une appli **bloquante** classique, une requête est traitée **du début à la fin par le même thread**.\n- Le **MDC** (*Mapped Diagnostic Context*) est la technique classique pour **corréler logs et traces** : on **attache le trace id au thread courant** via un **ThreadLocal** (une variable « collée » à un thread précis). Ainsi, chaque ligne de log écrite par ce thread peut afficher automatiquement le trace id.\n\nLe problème : en **réactif**, un même traitement **saute de thread en thread** au gré des étapes (le pool de threads est partagé et non bloquant, c'est tout l'intérêt pour la performance). Or, une valeur posée dans un **ThreadLocal** reste **collée à SON thread** : quand le traitement reprend sur **un autre** thread, la valeur **n'est plus là**. 👉 **Analogie** : tu écris un mémo sur **ton** bureau, puis on te déplace dans **un autre** bureau : le mémo est resté sur l'ancien. Le trace id est perdu.\n\nConséquence concrète : des **logs sans trace id** (impossible de les relier à une trace) et des **traces cassées**. La solution : **ne pas s'appuyer sur le ThreadLocal/MDC**, mais propager le contexte via le **Reactor Context** (un porte-documents qui, lui, **suit le traitement** de thread en thread), grâce à l'intégration **context propagation** de Micrometer et d'OpenTelemetry. C'est **LA** subtilité d'observabilité d'une pile non bloquante : à connaître absolument ici."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Piege reactif : ne pas stocker le contexte de trace dans un ThreadLocal, qui change de thread.",
+          "body": "/images/lessons/tracing-distribue-cardinalite-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le piège des métriques : la cardinalité (niveau expert)",
+          "body": "Autre piège, du côté des **métriques** cette fois. Pour le comprendre, il faut le mot **cardinalité**.\n\nUne métrique porte souvent des **labels** (aussi appelés **dimensions** ou **étiquettes**) : des couples clé/valeur qui **découpent** la mesure. Exemple : un compteur de requêtes avec les labels `endpoint` (la route), `status` (le code HTTP), `region`. La **cardinalité**, c'est simplement **le nombre de combinaisons de valeurs possibles** de ces labels.\n\nPoint clé : **chaque combinaison distincte crée une série temporelle séparée** à stocker et à mettre à jour. Une **série temporelle** est une courbe indépendante (une valeur suivie dans le temps). Avec 10 routes et 5 statuts, tu as 50 séries : gérable.\n\nLe piège : mettre un label à **forte cardinalité**, c'est-à-dire qui peut prendre **énormément de valeurs différentes**, comme un `user_id`, un `request_id`, ou une URL contenant l'identifiant dans le chemin (`/users/12345/…`). Avec un million d'utilisateurs, tu crées **un million de séries** par métrique. 👉 **Analogie** : c'est comme ouvrir **un classeur séparé pour chaque client** au lieu d'un classeur par **type de dossier** : tu croules sous les classeurs et l'armoire s'effondre. Le système de métriques (par exemple **Prometheus**) sature et tombe.\n\nLa règle : les **métriques** ne portent que des dimensions **bornées** (un petit nombre de valeurs : statuts HTTP, routes **normalisées** comme `/users/{id}` au lieu de `/users/12345`). L'**identité fine** (quel utilisateur, quelle requête précise) va dans les **traces et les logs**, jamais dans les labels de métriques. Pour relier quand même une métrique à un exemple concret, on utilise les **exemplars** : une métrique pointe vers **une trace représentative** (métrique vers trace) sans faire exploser la cardinalité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Piege des metriques : une etiquette a haute cardinalite fait exploser le cout de stockage.",
+          "body": "/images/lessons/tracing-distribue-cardinalite-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe en WebFlux se plaint que ses logs ne contiennent pas le trace id (impossible de corréler logs et traces) alors qu'ils utilisent le MDC comme sur leur ancienne appli bloquante. Que se passe-t-il, et quelle est la solution ?",
+          "solution": "Le MDC repose sur un ThreadLocal, qui suppose qu'une requête reste sur le même thread du début à la fin. En réactif (WebFlux/Reactor), un même traitement change de thread au gré des opérateurs (le pool est partagé, non bloquant) : la valeur MDC posée sur un thread n'est plus là quand le traitement reprend sur un autre, le trace id est perdu dans les logs. Solution : ne pas s'appuyer sur le ThreadLocal/MDC mais propager le contexte via le Reactor Context, en utilisant l'intégration de propagation de contexte (Micrometer Context Propagation / OpenTelemetry pour Reactor) qui restaure le trace id au bon moment autour de chaque signal. On obtient alors des logs corrélés et des traces continues."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : Tracing distribué & cardinalité",
+          "quizRef": "observability-tracing-check"
+        }
+      ]
+    },
+    {
+      "slug": "slo-en-pratique",
+      "title": "SLO en pratique : SLI, burn rate, postmortems",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "SLI, SLO, SLA : ne pas confondre",
+          "body": "Trois sigles qui se ressemblent et qu'on mélange sans arrêt. Prenons-les un par un ; ils se lisent dans l'ordre.\n\n- Le **SLI** (*Service Level Indicator*, « indicateur de niveau de service ») est **la mesure brute**, le chiffre qu'on relève. Exemples : « la proportion de requêtes qui répondent en moins de 300 ms », « le taux de succès des requêtes ». 👉 C'est **le thermomètre** : il donne une valeur, sans jugement.\n\n- Le **SLO** (*Service Level Objective*, « objectif ») est **la cible interne** qu'on se fixe sur ce SLI. Exemple : « le SLI doit rester au-dessus de **99,9 %** sur **30 jours** ». 👉 C'est **la température que tu vises** chez toi : 20 °C. C'est ton objectif, décidé en interne.\n\n- Le **SLA** (*Service Level Agreement*, « accord de niveau de service ») est **l'engagement contractuel** pris envers un **client**, avec des **pénalités** (remboursement, avoir) si on ne le tient pas. 👉 C'est **le contrat signé avec le locataire** qui promet « au moins 18 °C, sinon je réduis le loyer ». Détail important : le SLA est **toujours plus laxiste** que le SLO interne (par exemple SLA à 99,5 % alors que le SLO visé est 99,9 %). Pourquoi ? Pour **se garder une marge de sécurité** : on veut déclencher l'alerte et réagir **bien avant** de casser la promesse contractuelle.\n\nEn résumé : on **pilote au quotidien sur les SLO** ; le **SLA** n'est que le **filet contractuel** en dessous. Et le vrai travail, c'est de **bien choisir le SLI** : celui qui reflète l'**expérience réelle**, mesuré **du point de vue de l'utilisateur** (pas « le serveur est allumé », mais « la page s'est affichée vite »)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SLI (mesure), SLO (objectif), SLA (contrat) : trois notions a ne pas confondre.",
+          "body": "/images/lessons/slo-en-pratique-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'error budget comme politique",
+          "body": "On l'a croisé à la leçon précédente ; creusons, car c'est l'idée la plus utile du SRE.\n\nL'**error budget** (« budget d'erreur ») est **le complément du SLO à 100 %**. Avec un SLO à 99,9 %, tu « as droit » à **0,1 % d'échecs** sur la période. Ce n'est pas un défaut à éviter à tout prix : c'est **une ressource que tu as le droit de dépenser**.\n\nSon intérêt est d'être un **outil de décision partagé** entre deux camps qui s'opposent d'habitude :\n- les **développeurs** veulent **livrer vite** (chaque déploiement est un risque, mais aussi de la valeur) ;\n- les **ops/SRE** veulent **de la stabilité** (chaque déploiement peut casser la production).\n\nL'error budget les réconcilie autour d'**un seul chiffre** :\n- **tant qu'il reste du budget**, on **déploie vite**, on prend des risques, on innove ;\n- **une fois le budget épuisé**, une **politique** (l'*error budget policy*, décidée à l'avance) impose de **geler les nouveautés** et de **se concentrer sur la fiabilité** jusqu'à ce que le budget se reconstitue.\n\n👉 **Analogie** : c'est **le forfait data de ton téléphone**. Tant qu'il te reste des gigas, tu regardes des vidéos sans réfléchir ; une fois le forfait épuisé, tu lèves le pied jusqu'au renouvellement. Résultat : fini les débats subjectifs (« c'est assez stable pour déployer ? ») ; on **regarde le budget**, et le budget tranche."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'error budget devient une politique : s'il est epuise, on priorise la fiabilite sur les features.",
+          "body": "/images/lessons/slo-en-pratique-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Alerter sur le burn rate, pas sur un seuil brut",
+          "body": "Comment transformer un SLO en **alerte** utile ? Deux mauvaises idées d'abord :\n- alerter **dès qu'une requête échoue** : bruit ingérable (des erreurs isolées, il y en a tout le temps) ;\n- attendre que le **SLO du mois soit déjà cramé** pour alerter : bien trop **tard**, le mal est fait.\n\nLa bonne technique s'appelle le **burn rate** (« vitesse de consommation »). Le principe : ne pas regarder le nombre brut d'erreurs, mais **à quelle vitesse on consomme l'error budget**. 👉 **Analogie** : sur ton forfait data, ce qui compte n'est pas « j'ai utilisé 1 Go » mais « je brûle 1 Go **toutes les cinq minutes** » : à ce rythme, le forfait ne passera pas la journée. Un burn rate élevé = le budget d'un mois va être épuisé en **quelques heures**.\n\nEn pratique, on utilise une **alerte multi-fenêtres** : on combine deux mesures du burn rate sur deux durées.\n- une **fenêtre courte** (quelques minutes) pour la **réactivité** : « ça brûle vite **en ce moment** » ;\n- une **fenêtre longue** (quelques heures) pour **éviter les faux positifs** : un simple pic de trente secondes ne doit pas réveiller quelqu'un la nuit.\n\nOn **alerte fort** (et on réveille l'astreinte) si le budget se consume à un rythme qui l'**épuiserait en heures** ; on alerte plus **doucement** (un simple ticket) pour une **dérive lente**. Autrement dit : on alerte sur la **menace réelle pour le SLO**, calibrée, et non sur chaque erreur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Alerter sur le burn rate (vitesse de consommation du budget), pas sur un seuil brut.",
+          "body": "/images/lessons/slo-en-pratique-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Apprendre des pannes : postmortems sans blâme (niveau expert)",
+          "body": "Un incident finit toujours par arriver. Ce qui distingue une bonne équipe, c'est ce qu'elle en **fait après**.\n\nLe réflexe est le **postmortem** (littéralement « après la mort », comme une autopsie) : un **document rédigé après l'incident** qui établit **factuellement** la **chronologie** (que s'est-il passé, minute par minute), l'**impact** (qui a été touché, combien de temps), la **cause racine** (le vrai déclencheur, pas juste le symptôme), et surtout les **actions correctives** (quoi changer pour que ça ne se reproduise pas).\n\nLe mot clé est **sans blâme** (*blameless*). Le principe : on **ne cherche pas un coupable**. On part du fait que **les gens agissent rationnellement avec l'information qu'ils avaient sur le moment**. Si quelqu'un a pu déclencher une panne d'un seul clic, le problème n'est pas la personne, c'est **le système** qui autorisait ce clic sans garde-fou. Un incident révèle donc une **faiblesse du système** (un process, un garde-fou manquant), pas la faute d'un individu.\n\n👉 **Pourquoi c'est vital** : si on **blâme**, les gens **cachent** leurs erreurs par peur des représailles, et l'organisation **n'apprend rien** (et répète les mêmes pannes). Si on **ne blâme pas**, les gens **exposent** honnêtement ce qui s'est passé, et on peut **vraiment corriger**.\n\nOn complète par deux pratiques :\n- les **runbooks** : des **procédures écrites, prêtes à suivre**, pour intervenir sur un problème connu (« si l'API renvoie des 503, voici les étapes »). 👉 Comme une **recette de cuisine** qu'on déroule sous stress.\n- une **hygiène d'astreinte** (*on-call*) soutenable : des rotations vivables, des **escalades claires** (qui prévenir si je suis bloqué), pour ne pas épuiser les équipes.\n\nC'est tout cela, ensemble, qui fait qu'une organisation **apprend** de ses pannes au lieu de les répéter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les postmortems sans blame apprennent des pannes sans chercher un coupable.",
+          "body": "/images/lessons/slo-en-pratique-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe veut être prévenue quand la fiabilité se dégrade vraiment, sans être noyée d'alertes à chaque erreur isolée ni prévenue trop tard. Quelle stratégie d'alerte adopter par rapport à son SLO, et pourquoi est-elle supérieure à un simple seuil « taux d'erreur > 1 % » ?",
+          "solution": "Adopter des alertes basées sur le burn rate de l'error budget, avec une approche multi-fenêtres : mesurer à quelle vitesse le budget d'erreur du SLO est consommé, sur une fenêtre courte (réactivité) ET une fenêtre longue (filtrer les pics transitoires). On déclenche une alerte forte quand le budget se consume assez vite pour être épuisé en quelques heures, et une alerte plus douce pour une érosion lente. C'est supérieur à un seuil brut « erreur > 1 % » car : un seuil fixe génère du bruit sur des pics anodins (fatigue d'alerte) et ne tient pas compte du budget restant ni de la durée, 1 % pendant 10 secondes n'a pas le même sens que 1 % pendant 6 heures. Le burn rate relie directement l'alerte à la menace réelle pour le SLO (donc pour les utilisateurs) et se calibre pour être à la fois réactif et peu bruyant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : *Site Reliability Engineering* et *The SRE Workbook* (Google, gratuits, SLI/SLO/error budget, burn-rate alerting multi-fenêtres, postmortems sans blâme) ; la spécification **OpenTelemetry** et **W3C Trace Context** ; la documentation **Prometheus** (types de métriques, PromQL, cardinalité) et les méthodes **RED** (Rate, Errors, Duration) / **USE** (Utilization, Saturation, Errors) ; côté réactif, la doc **Micrometer** *Context Propagation* et *Tracing*, et l'intégration OpenTelemetry pour Reactor."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir l'observabilite.",
+          "body": "/images/lessons/slo-en-pratique-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Observabilité (niveau expert)",
+          "quizRef": "observability-expert"
+        }
+      ]
+    }
+  ]
+}

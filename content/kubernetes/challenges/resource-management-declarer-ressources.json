@@ -1,0 +1,10 @@
+{
+  "node": "resource-management",
+  "lesson": "requests-et-limits",
+  "title": "Déclarer requests & limits d'un conteneur",
+  "statement": "Complète le bloc `resources` du conteneur `api` (image `monorg/api:1.4.0`). Il doit **demander** (requests) `250m` de CPU et `256Mi` de mémoire (le garanti, utilisé par le scheduler), et **plafonner** (limits) à `1` cœur de CPU et `512Mi` de mémoire. Rappel : au-delà de la limite CPU le conteneur est throttlé, au-delà de la limite mémoire il est OOMKilled (code 137).",
+  "skeleton": "spec:\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      resources:\n        requests:\n          # cpu ? memory ? (le garanti)\n        limits:\n          # cpu ? memory ? (le plafond)\n",
+  "solution": "spec:\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      resources:\n        requests:\n          cpu: \"250m\"\n          memory: \"256Mi\"\n        limits:\n          cpu: \"1\"\n          memory: \"512Mi\"",
+  "keyPoints": ["requests", "limits", "250m", "256Mi", "512Mi", "cpu", "memory"],
+  "language": "yaml"
+}

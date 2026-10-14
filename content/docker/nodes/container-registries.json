@@ -1,0 +1,127 @@
+{
+  "node": "container-registries",
+  "lessons": [
+    {
+      "slug": "quest-ce-quun-registre",
+      "title": "Qu'est-ce qu'un registre",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le GitHub des images",
+          "body": "Avant de parler de registre, un rappel rapide. Une **image de conteneur** est un **paquet figé** qui contient ton application et **tout** ce dont elle a besoin pour tourner (le code, les bibliothèques, la configuration). Un **conteneur**, c'est cette image une fois **lancée et en train de s'exécuter**. 👉 **Analogie** : l'image est la **recette de cuisine écrite** (toujours identique) ; le conteneur est le **plat** préparé à partir de la recette.\n\nMaintenant, où ranger ces images pour les partager entre plusieurs machines ? Dans un **registre** (en anglais *registry*). Un registre est un **entrepôt en ligne qui stocke et distribue les images**, exactement comme un dépôt Git stocke et distribue du code. 👉 **Analogie** : le registre est le **GitHub des images**, un serveur central où tu déposes tes paquets et où les autres viennent les chercher.\n\nLe registre public le plus connu s'appelle **Docker Hub**. C'est le registre **par défaut** : quand tu tapes `docker pull nginx`, Docker va chercher l'image `nginx` sur Docker Hub sans que tu aies à préciser d'adresse.\n\nLe cycle de vie complet d'une image tient en cinq verbes :\n- **build** : construire l'image à partir d'un `Dockerfile` (la recette).\n- **tag** : lui donner un nom et un numéro de version (par exemple `monorg/monapp:1.2.0`).\n- **push** : l'**envoyer** (la pousser) vers le registre.\n- **pull** : la **récupérer** (la tirer) depuis le registre, sur une autre machine.\n- **run** : la **lancer** pour obtenir un conteneur qui s'exécute.\n\n👉 **En une phrase** : tu construis une image chez toi, tu la pousses dans le registre, et n'importe quelle autre machine peut la tirer et la lancer, à l'identique."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Le trajet d'une image, d'une machine à l'autre",
+          "diagramFormat": "MERMAID",
+          "body": "graph LR\n    A[\"Dockerfile (la recette)\"] -->|\"docker build + tag\"| B[\"Image locale (monorg/monapp:1.2.0)\"]\n    B -->|\"docker push\"| R[\"Registre (Docker Hub / GHCR)\"]\n    R -->|\"docker pull\"| C[\"Autre machine (serveur, CI)\"]\n    C -->|\"docker run\"| D[\"Conteneur en exécution\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Pousser une image",
+          "codeLanguage": "bash",
+          "body": "# 1. Construire et nommer l'image (avec le registre + le dépôt)\ndocker build -t monorg/monapp:1.2.0 .\n\n# 2. S'authentifier au registre\ndocker login            # Docker Hub (ou : docker login ghcr.io)\n\n# 3. Pousser\ndocker push monorg/monapp:1.2.0\n\n# Ailleurs (serveur, CI), on récupère et on lance\ndocker pull monorg/monapp:1.2.0\ndocker run -d monorg/monapp:1.2.0"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Public, privé, et les autres registres",
+          "body": "Sur un registre, chaque **dépôt** (l'emplacement d'une image, par exemple `monorg/monapp`) peut être **public** ou **privé**.\n- **Public** : visible et téléchargeable par tout le monde, comme un dépôt GitHub public. Pratique pour partager un outil open source.\n- **Privé** : accessible seulement après **authentification**, c'est-à-dire en prouvant son identité avec un identifiant. C'est le choix par défaut pour le code d'entreprise.\n\n👉 **Analogie** : un dépôt public est une **étagère en libre-service** ; un dépôt privé est un **casier fermé à clé** dont seuls les gens autorisés ont la clé.\n\nDocker Hub n'est pas le seul registre. Chaque grande plateforme propose le sien, souvent pour garder les images **près de son infrastructure** (plus rapide, et parfois obligatoire pour la confidentialité). Les noms reviennent tout le temps, autant les décoder une fois :\n- **GHCR** (*GitHub Container Registry*) : le registre de GitHub, à l'adresse `ghcr.io`.\n- **ECR** (*Elastic Container Registry*) : celui d'AWS (Amazon).\n- **GCR / Artifact Registry** : celui de Google.\n- **ACR** (*Azure Container Registry*) : celui de Microsoft Azure.\n- **Harbor** : un registre que tu héberges **toi-même** (open source), qu'on verra dans la dernière leçon.\n\nBonne nouvelle : tous ces registres suivent la **même norme technique**, la **distribution-spec OCI** (*OCI* = *Open Container Initiative*, l'organisme qui standardise le format des conteneurs). 👉 **Conséquence concrète** : les commandes `docker push` et `docker pull` sont **identiques** partout ; seuls **l'adresse** (l'URL du registre) et **la façon de s'authentifier** changent. Par exemple `docker push ghcr.io/monorg/monapp:1.0` pousse vers GitHub, tandis que `docker push monorg/monapp:1.0` pousse vers Docker Hub."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Votre pipeline CI construit une image, la teste, puis un serveur de production doit la lancer, sur une autre machine. Quel est le rôle du registre dans cette chaîne ?",
+          "solution": "Le registre est le point d'échange qui transporte l'image entre les machines. La CI construit l'image (docker build), la tague, et la POUSSE dans le registre (docker push). Le serveur de production, sur une autre machine, la RÉCUPÈRE depuis ce même registre (docker pull) puis la lance (docker run). Le registre joue le rôle de dépôt central versionné : l'image exacte testée en CI est celle déployée en production (build once, deploy many), sans reconstruire. Sans registre, il n'y aurait pas de moyen standard de distribuer l'image d'une machine à l'autre."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Qu'est-ce qu'un registre",
+          "quizRef": "container-registries-registre-check"
+        }
+      ]
+    },
+    {
+      "slug": "tagging-et-supply-chain",
+      "title": "Tagging & chaîne d'approvisionnement",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Bonnes pratiques de tagging",
+          "body": "Un **tag** est l'**étiquette de version** qu'on colle sur une image. Dans `monapp:1.2.0`, la partie après les deux-points (`1.2.0`) est le tag. 👉 **Analogie** : c'est comme le **numéro d'édition** d'un livre : le titre reste `monapp`, mais chaque réimpression porte un numéro qui la distingue.\n\nQuelques habitudes de pro pour bien taguer :\n- **Utiliser une version sémantique** (*semantic versioning*, en abrégé *semver*) comme `1.2.0`. C'est une convention à trois nombres `MAJEUR.MINEUR.CORRECTIF` : on augmente le premier pour un changement incompatible, le deuxième pour un ajout compatible, le troisième pour une simple correction. 👉 D'un coup d'œil, passer de `1.2.0` à `1.2.1` dit « juste une correction, sans risque ».\n- **Taguer avec le hash de commit Git** (par exemple `monapp:sha-a1b2c3`). Le **hash** est l'identifiant unique d'un commit, sa « plaque d'immatriculation » vue dans le parcours Git. Le mettre dans le tag relie l'image **exactement** au code qui l'a produite : tu sais toujours quel code tourne.\n- **Ne pas se fier à `latest`.** `latest` est juste un tag comme un autre, sauf qu'il n'offre aucune garantie : il **bouge**, il pointe vers la dernière image poussée. Déployer `latest`, c'est déployer « on ne sait pas trop quoi », donc **non reproductible**.\n- **Publier plusieurs tags pour la même image** (`1.2.0`, `1.2`, `1`) pour laisser chacun choisir sa précision : certains veulent la version exacte, d'autres « la dernière 1.x ».\n\nLa règle d'or : un tag de déploiement doit permettre de savoir **exactement** quel code tourne, d'où le tag par commit ou par version précise."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le tag est mutable, le digest est immuable",
+          "body": "Voici un point crucial que beaucoup ignorent. Un tag est **mutable**, c'est-à-dire **modifiable** : rien n'empêche de repousser une **autre** image sous le même nom `monapp:1.2.0`. Le tag pointe alors vers un **nouveau contenu**, alors que le nom, lui, n'a pas changé. 👉 **Analogie** : le tag est une **étiquette autocollante** que tu peux décoller et recoller sur une autre boîte : le nom reste le même, le contenu dessous peut changer.\n\nPour avoir une garantie **absolue** que c'est bien le même contenu, on utilise le **digest**. Le digest est une **empreinte** calculée à partir du contenu exact de l'image, écrite sous la forme `sha256:...` (*SHA-256* est la fonction mathématique qui produit cette empreinte). On référence alors l'image ainsi : `monapp@sha256:9f2caa...`. 👉 **Analogie** : le digest est l'**empreinte digitale** de l'image. Change un seul octet du contenu, et l'empreinte change entièrement : impossible de la falsifier.\n\nPropriété clé : le digest est **immuable** (il ne peut pas changer). Deux `docker pull` du **même digest** donnent **forcément** exactement la même image, partout, pour toujours.\n\nC'est pourquoi, en production critique et en **GitOps** (une méthode de déploiement où l'état voulu de l'infrastructure est décrit dans un dépôt Git puis appliqué automatiquement), on **épingle** souvent les images par **digest** plutôt que par tag. On veut une reproductibilité inattaquable, insensible à un tag qu'on aurait réécrit."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Sécuriser la distribution (niveau expert)",
+          "body": "Le registre est un maillon de la **chaîne d'approvisionnement logicielle** (*software supply chain*) : l'ensemble des étapes et des ingrédients par lesquels passe ton logiciel avant d'arriver en production. 👉 **Analogie** : comme pour l'alimentation, si un maillon est contaminé (une image trafiquée), tout ce qui est en aval est empoisonné. Le registre est donc une **cible d'attaque** de choix.\n\nComment le durcir, c'est-à-dire le rendre plus résistant :\n- **Signer les images.** Signer, c'est apposer une **preuve cryptographique** que l'image vient bien de toi et n'a pas été altérée. L'outil de référence est **cosign** (du projet **Sigstore**). Au déploiement, on **vérifie** cette signature et on **refuse** toute image non signée ou d'origine inconnue. 👉 **Analogie** : c'est le **sceau de cire** sur une lettre : s'il est brisé ou absent, on n'ouvre pas.\n- **Joindre un SBOM.** Le **SBOM** (*Software Bill of Materials*, « nomenclature logicielle ») est la **liste détaillée de tous les composants** contenus dans l'image, comme la **liste des ingrédients** sur un emballage. Elle permet de savoir instantanément si une bibliothèque vulnérable est présente.\n- **Attacher une provenance.** La **provenance** répond à la question « **qui** a construit **quoi**, à partir de **quelle source** ? ». Le cadre **SLSA** (prononcé « salsa ») définit des niveaux de garantie sur cette traçabilité de bout en bout.\n- **Scanner en continu.** Un **scan** analyse l'image à la recherche de **CVE** (*Common Vulnerabilities and Exposures* : des failles de sécurité connues, répertoriées publiquement avec un numéro). Il faut scanner **en continu**, car de nouvelles CVE sont découvertes **après** la publication de l'image.\n- **Restreindre les accès.** Les identifiants qui permettent de **pousser** une image sont des **secrets sensibles** : quiconque les vole peut injecter une image malveillante.\n\n👉 **À retenir** : une image tirée d'un registre **sans** ces garanties (signature, SBOM, scan) est un **vecteur d'attaque potentiel**. On ne fait pas plus confiance à une image qu'à un colis d'origine inconnue."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe déploie toujours `monapp:prod`. Un jour, la production se met à exécuter un code inattendu alors que « personne n'a rien déployé ». Comment un tag a-t-il pu changer le comportement, et quelle pratique l'aurait empêché ?",
+          "solution": "Le tag `prod` est mutable : quelqu'un (ou un pipeline) a repoussé une nouvelle image sous ce même tag `monapp:prod`. Au redémarrage d'un conteneur (ou un nœud qui re-pull), la production a récupéré ce nouveau contenu pointé par le tag, d'où le changement de comportement sans « déploiement » explicite. Ce qui l'aurait empêché : référencer l'image par son DIGEST immuable (`monapp@sha256:...`) plutôt que par un tag mutable, deux pulls du même digest donnent forcément le même contenu. On peut aussi verrouiller les tags de production (immutable tags côté registre) et signer/vérifier les images (cosign) pour rejeter tout artefact non attendu."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Registres d'images",
+          "quizRef": "container-registries-check"
+        }
+      ]
+    },
+    {
+      "slug": "registres-en-profondeur",
+      "title": "Registres en profondeur : self-hosting & GC",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Héberger son propre registre",
+          "body": "Tu n'es pas obligé de dépendre d'un registre public comme Docker Hub. Tu peux **héberger le tien** (on dit *self-hosting*), c'est-à-dire faire tourner ton propre registre sur tes serveurs.\n\nLe plus simple est le **registre de référence**, une image open source nommée `registry:2`. Détail amusant : ce registre se lance… **dans un conteneur**, comme n'importe quelle autre application. En une commande, tu as un registre privé sur ton réseau. 👉 **Analogie** : c'est ton **entrepôt personnel** au lieu de louer une place dans l'entrepôt public de tout le monde.\n\n`registry:2` est minimaliste. Pour un usage d'entreprise, on lui préfère **Harbor** (open source aussi), qui ajoute tout ce qui lui manque :\n- une **interface web** pour voir et gérer les images ;\n- le **contrôle d'accès** par projet : décider **qui** peut lire ou écrire dans quel dépôt ;\n- le **scan de vulnérabilités** intégré (recherche de CVE, vues à la leçon précédente) ;\n- la **signature** des images ;\n- la **réplication** : recopier automatiquement les images vers un autre registre (par exemple sur un autre site géographique) ;\n- les **politiques de rétention** : des règles automatiques du genre « garder seulement les 10 derniers tags ».\n\nPourquoi héberger son registre ? Trois raisons concrètes : garder ses images **près de son infrastructure** (téléchargements plus rapides, et données qui ne sortent pas de chez soi) ; **maîtriser les accès** finement ; et **échapper aux rate limits** publics. Un **rate limit** est une **limite du nombre de téléchargements** autorisés sur une période donnée : Docker Hub en impose, ce qui peut bloquer une équipe qui tire beaucoup d'images. 👉 **Analogie** : le rate limit, c'est le distributeur de billets qui te dit « pas plus de 3 retraits par jour » ; ton propre registre, lui, n'a pas cette barrière."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le piège du stockage : garbage collection",
+          "body": "Un registre **accumule** des données sans arrêt. Pour comprendre pourquoi, il faut savoir comment une image est stockée. Une image est faite de **couches** (*layers*) empilées, et chaque couche est un **blob** : un gros bloc de données binaires stocké tel quel sur le disque. Un **manifeste** est le petit fichier qui dit « cette image = telle couche + telle couche + telle couche » : c'est la **liste d'assemblage**. 👉 **Analogie** : les blobs sont des **briques** ; le manifeste est le **plan** qui indique quelles briques forment le bâtiment. Un tag n'est qu'un **nom** collé sur un manifeste.\n\nLe piège : **supprimer un tag ne libère pas l'espace disque**. Effacer le tag retire juste le nom (le pointeur nom → manifeste) ; les **blobs**, eux, **restent** sur le disque. Pourquoi le registre ne les efface-t-il pas tout de suite ? Parce qu'un même blob peut être **partagé par plusieurs images** : deux applications basées sur la même image de départ réutilisent les mêmes briques. Le registre n'ose pas le supprimer tant qu'il n'est pas certain que **plus personne** ne l'utilise.\n\nSans nettoyage, le registre **grossit indéfiniment** jusqu'à **saturer le disque**. La solution s'appelle le **garbage collection** (« ramassage des ordures », souvent abrégé **GC**). C'est un processus qui **parcourt le stockage, repère les blobs qui ne sont référencés par aucun manifeste**, et les supprime réellement. 👉 **Analogie** : c'est le **passage du camion-poubelle** qui emporte ce dont plus personne ne se sert. On le lance manuellement ou périodiquement (`registry garbage-collect`), idéalement en mettant le registre en **lecture seule** le temps de l'opération, pour éviter qu'un push arrive au mauvais moment.\n\nCouplé à des **politiques de rétention** (« garder les 10 derniers tags, purger les images de plus de 30 jours »), le GC maintient un registre sain. C'est une vraie tâche d'exploitation, souvent oubliée jusqu'à la panne disque."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pull-through cache & scopes de tokens (niveau expert)",
+          "body": "Deux raffinements de professionnel.\n\n**Le pull-through cache (registre miroir).** On configure son propre registre comme **miroir** de Docker Hub. Un **miroir** est un intermédiaire : le **premier** `pull` d'une image la télécharge depuis Docker Hub **et en garde une copie locale** ; tous les pulls **suivants** de la même image sont servis depuis cette copie, **sans ressortir sur Internet**. 👉 **Analogie** : c'est la **photocopie qu'on garde au bureau** au lieu de retourner à la bibliothèque chaque fois. Bénéfices : on contourne les **rate limits** (vus plus haut) et les téléchargements sont bien plus rapides (voir aussi le nœud Installation).\n\n**L'authentification par tokens à scopes.** Un **token** (jeton) est un **laissez-passer temporaire** remis après authentification, à présenter à chaque requête. La distribution-spec OCI utilise des tokens qui portent des **scopes**, c'est-à-dire des **permissions précises et limitées** : par exemple « le droit de faire `pull` sur tel dépôt » et rien d'autre, avec une **durée de vie courte**. 👉 **Analogie** : c'est un **badge d'accès** qui n'ouvre que certaines portes et expire à la fin de la journée, au lieu d'un passe-partout permanent.\n\nExemple concret : un **runner de CI** (la machine qui exécute automatiquement les tâches d'intégration continue) reçoit un token **`pull`-seul** sur les images de base, et **`push`** uniquement sur le dépôt qu'il publie. Jamais un identifiant **admin global**. C'est le principe du **moindre privilège** : ne donner que le strict droit nécessaire, pour que la fuite d'un token fasse le moins de dégâts possible. Il s'applique pleinement aux accès au registre."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un registre auto-hébergé a saturé son disque alors que l'équipe supprime pourtant régulièrement les anciens tags via l'interface. Pourquoi la suppression des tags ne suffit-elle pas, et que faut-il mettre en place ?",
+          "solution": "Supprimer un tag ne fait que retirer la référence (le pointeur nom → manifeste) : les blobs (couches) sous-jacents restent stockés sur le disque du registre, car un blob peut être partagé par plusieurs images/tags et le registre ne le supprime pas tant qu'il n'est pas certain qu'il est totalement non référencé. Résultat : les données s'accumulent malgré la « suppression » des tags, jusqu'à saturer le disque. Il faut mettre en place la garbage collection du registre : un processus (registry garbage-collect, ou la fonctionnalité intégrée de Harbor) qui parcourt le stockage, identifie les blobs non référencés par aucun manifeste et les supprime réellement, libérant l'espace. On l'exécute périodiquement (idéalement le registre en lecture seule pendant l'opération pour éviter les races) et on la couple à des politiques de rétention (limiter le nombre de tags par dépôt, purger les images anciennes) pour empêcher la ré-accumulation. La suppression de tag + GC régulière = la vraie hygiène d'un registre."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Registres en profondeur (expert)",
+          "quizRef": "registries-deep-expert"
+        }
+      ]
+    }
+  ]
+}

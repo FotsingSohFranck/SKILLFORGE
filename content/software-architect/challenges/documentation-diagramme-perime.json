@@ -1,0 +1,10 @@
+{
+  "node": "documentation",
+  "lesson": "arc42-42010-et-outillage",
+  "title": "Le diagramme qui ment",
+  "statement": "Dans ton équipe, l'architecture est documentée par un beau diagramme dessiné à la main dans un outil de dessin externe. Problème : il est faux. Depuis six mois, deux nouveaux services ont été ajoutés au système, mais personne n'a pensé à mettre le diagramme à jour, si bien qu'un nouveau venu qui s'y fie se trompe. Explique la CAUSE de fond de ce problème récurrent, puis propose une solution concrète en nommant l'approche et au moins un outil, et dis pourquoi cette solution empêche le diagramme de redevenir faux.",
+  "skeleton": "Cause de fond : ...\nSolution (approche + outil) : ...\nPourquoi ca ne peut plus mentir : ...",
+  "solution": "Cause de fond : le diagramme est dessiné À LA MAIN dans un outil SÉPARÉ du code. Rien ne le relie au dépôt, donc il se désynchronise dès que le code évolue ; sa mise à jour repose sur la bonne volonté de quelqu'un qui doit y penser et le refaire manuellement (ce qui n'arrive jamais sous la pression). C'est de la documentation morte. Solution : adopter le diagrams-as-code, c'est-à-dire décrire le diagramme en TEXTE VERSIONNÉ, rangé dans le dépôt avec le code, et généré automatiquement en image. Outils possibles : Mermaid (léger), PlantUML (plus riche), ou surtout Structurizr, un DSL pour le modèle C4 qui décrit un seul modèle d'où l'on génère plusieurs vues cohérentes. Pourquoi ça ne peut plus mentir : parce que le diagramme vit désormais AVEC le code dans le même dépôt ; toute modification passe par une pull request où le texte du diagramme se relit et se corrige au même moment que le code, et l'image est régénérée automatiquement. Le diagramme n'est plus un artefact à part qu'on oublie, mais une partie du code qui évolue avec lui. Combiné à arc42 pour la structure et aux ADR pour le pourquoi, on obtient une documentation vivante et juste assez.",
+  "keyPoints": ["diagrams-as-code", "versionn", "pull request", "Structurizr", "vivant"],
+  "language": "text"
+}

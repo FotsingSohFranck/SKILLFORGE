@@ -1,0 +1,96 @@
+{
+  "ref": "msg-evenements-expert-check",
+  "node": "messaging",
+  "lesson": "evenements-et-saga-expert",
+  "title": "Quiz, Styles d'événements & Saga (expert)",
+  "description": "4 patterns de Fowler, Saga orchestrée/chorégraphiée, schema registry.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un événement qui transporte les données pour que le consommateur n'ait pas à rappeler la source est… ?",
+      "justification": "Event-Carried State Transfer : plus de découplage/disponibilité (copie locale), au prix de duplication et de cohérence à terme.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Event-Carried State Transfer",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Event Notification",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "CQRS",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un processus de commande complexe qui doit être visible et gouverné, quelle Saga ?",
+      "justification": "Orchestrée : un coordinateur pilote la séquence et les compensations, rendant le flux et l'état explicites ; la chorégraphie laisse le flux implicite.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une Saga orchestrée",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une chorégraphie pure sans suivi",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un two-phase commit",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment faire évoluer les schémas d'événements sans casser les consommateurs ?",
+      "justification": "Un schema registry qui versionne et vérifie la compatibilité (backward/forward) ; ajouter des champs optionnels, ne pas retirer/renommer.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un schema registry + règles de compatibilité",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Changer les schémas librement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ne jamais versionner",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "« Event notification », « event-carried state transfer », « event sourcing » et « CQRS » sont quatre patterns distincts à ne pas confondre.",
+      "justification": "Vrai (Fowler) : les mélanger sans les nommer mène à de mauvais designs ; un expert précise lequel il utilise et pourquoi.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

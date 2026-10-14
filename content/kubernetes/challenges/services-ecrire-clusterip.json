@@ -1,0 +1,10 @@
+{
+  "node": "services",
+  "lesson": "types-de-services",
+  "title": "Écrire un Service ClusterIP",
+  "statement": "Écris un manifeste Kubernetes (YAML) pour un **Service** de type **ClusterIP** nommé `api`. Il doit cibler les pods portant le label `app: api`, exposer le **port 80** du Service et rediriger vers le **port 8080** du conteneur (`targetPort`). Ce Service ne doit être joignable que depuis l'intérieur du cluster.",
+  "skeleton": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api\nspec:\n  type: # quel type pour un accès interne ?\n  selector:\n    # cible les pods app=api\n  ports:\n    - port: # port du Service\n      targetPort: # port du conteneur\n",
+  "solution": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api\nspec:\n  type: ClusterIP\n  selector:\n    app: api\n  ports:\n    - port: 80\n      targetPort: 8080",
+  "keyPoints": ["kind: Service", "type: ClusterIP", "app: api", "port: 80", "targetPort: 8080"],
+  "language": "yaml"
+}

@@ -1,0 +1,101 @@
+{
+  "ref": "ep-specification-expert-check",
+  "node": "enterprise-patterns",
+  "lesson": "specification-assembler-frontieres",
+  "title": "Quiz, Specification & assembler (expert)",
+  "description": "Specification côté repository, traduction en requête, DTO Assembler, Remote Facade.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème le pattern Specification résout-il côté repository ?",
+      "justification": "L'explosion combinatoire des méthodes findByXAndYAndZ : on encapsule des critères composables (and/or/not) et le repository prend une spécification au lieu d'une méthode figée par combinaison.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La prolifération de méthodes findBy... pour chaque combinaison de critères",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La lenteur du réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une spécification doit-elle se TRADUIRE en requête base (Criteria/Predicate) et pas seulement s'évaluer en mémoire ?",
+      "justification": "Une évaluation en mémoire (isSatisfiedBy sur des entités déjà chargées) impose de charger toute la table : ça ne passe pas à l'échelle. La traduction filtre en base.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Sinon il faut charger toute la table en mémoire pour filtrer (pas scalable)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que la mémoire est chiffrée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour éviter d'écrire du SQL",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que résout un DTO Assembler ?",
+      "justification": "Il centralise le mapping domaine↔DTO dans une couche dédiée, au lieu de laisser les contrôleurs mapper à la main (ce qui disperse le mapping et fait fuir le domaine dans la couche web).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Centraliser le mapping domaine↔DTO hors des contrôleurs, gardant le domaine pur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Accélérer les requêtes SQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Remplacer le repository",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que vise une Remote Facade (interface coarse-grained) ?",
+      "justification": "Réduire les allers-retours réseau en exposant une méthode à gros grain qui renvoie tout ce dont l'écran a besoin en un appel, au lieu de multiplier les appels fins (chatty).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Réduire les allers-retours réseau via une interface à gros grain",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Multiplier les appels fins pour plus de granularité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le transport",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

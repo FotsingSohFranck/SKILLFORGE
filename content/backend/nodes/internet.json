@@ -1,0 +1,605 @@
+{
+  "node": "internet",
+  "lessons": [
+    {
+      "slug": "comment-fonctionne-internet",
+      "title": "Comment fonctionne Internet",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un réseau de réseaux",
+          "body": "Avant tout, un mot simple : un **réseau**, c'est un ensemble d'ordinateurs reliés entre eux qui peuvent s'échanger des messages. Ta box à la maison relie ton téléphone, ta télé et ton PC : ça, c'est déjà un petit réseau.\n\n**Internet** n'est pas une seule grosse machine ni une entreprise : c'est un **réseau de réseaux**. Des millions de petits réseaux (celui de ta maison, celui de ton école, celui d'un hébergeur) sont interconnectés et se mettent d'accord pour parler la même langue. Personne ne le contrôle depuis un point central.\n\n👉 **Analogie** : imagine le réseau routier mondial. Il n'y a pas une autoroute unique qui appartient à quelqu'un, mais des milliers de routes locales, régionales et internationales qui se raccordent. Ta voiture (le message) passe de route en route jusqu'à destination.\n\nQuand deux machines à l'autre bout du monde communiquent, elles confient leurs messages à une chaîne de **routeurs** (des aiguilleurs qui transmettent les messages de proche en proche, comme les panneaux à chaque carrefour). **Exemple concret** : quand tu ouvres un site hébergé aux États-Unis depuis la France, ton message traverse une dizaine de routeurs avant d'arriver. Pour un développeur backend, comprendre ce trajet, c'est comprendre *où* les choses peuvent être lentes, échouer ou fuiter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Internet n'est pas UN reseau mais des milliers de reseaux interconnectes : chacun accepte de router le trafic des autres.",
+          "body": "/images/lessons/comment-fonctionne-internet-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Adresses IP : qui est qui",
+          "body": "Pour qu'un message arrive à la bonne machine, chaque machine sur un réseau possède une **adresse IP** (IP veut dire *Internet Protocol*). C'est un numéro unique qui l'identifie sur le réseau.\n\n👉 **Analogie** : c'est l'**adresse postale** de la machine. Sans adresse, impossible de livrer une lettre ; sans adresse IP, impossible de livrer un message.\n\nIl existe deux formats d'adresses :\n- L'**IPv4**, la plus ancienne, s'écrit en quatre nombres séparés par des points, par exemple `93.184.216.34`. Problème : il n'y en a que 4 milliards, et elles sont désormais **épuisées**.\n- L'**IPv6**, bien plus vaste, prend le relais : elle s'écrit en groupes hexadécimaux, par exemple `2606:2800:220:1:248:1893:25c8:1946`. Il y en a assez pour des milliards de milliards d'appareils.\n\nMais une adresse ne suffit pas. Un serveur (une machine qui rend un service) fait souvent tourner **plusieurs programmes** en même temps. Pour désigner lequel, on ajoute un **port** : un numéro qui identifie le programme qui écoute. On écrit l'ensemble `IP:port`, par exemple `93.184.216.34:443` (le port `443` est celui de HTTPS, le Web sécurisé).\n\n👉 **Analogie** : l'IP est l'adresse de l'**immeuble**, le port est le **numéro d'appartement**. L'immeuble te mène au bon bâtiment, l'appartement au bon habitant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chaque machine a une adresse IP unique, comme une adresse postale, pour que les paquets sachent ou aller.",
+          "body": "/images/lessons/comment-fonctionne-internet-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Paquets et la pile TCP/IP",
+          "body": "Un message (une photo, une page web) n'est pas envoyé d'un seul bloc. Il est découpé en petits morceaux appelés **paquets**. Chaque paquet voyage de façon indépendante, parfois par des routes différentes, puis tous sont réassemblés dans le bon ordre à l'arrivée.\n\n👉 **Analogie** : pour déménager une bibliothèque, tu ne portes pas tout d'un coup. Tu remplis plusieurs cartons numérotés, ils partent (peut-être dans des camions différents), et à l'arrivée tu les ranges dans l'ordre grâce aux numéros. Un paquet, c'est un carton numéroté.\n\nCe découpage et cet acheminement suivent des **couches** empilées (d'où le nom *pile*, ou *stack*), le modèle **TCP/IP**. Chaque couche a un rôle précis :\n- **IP** s'occupe de l'**adressage et de l'acheminement** : il fait avancer chaque paquet vers la bonne IP, mais **sans aucune garantie** (un paquet peut se perdre ou arriver en désordre).\n- **TCP** (*Transmission Control Protocol*) se place **au-dessus d'IP** et ajoute la **fiabilité** : il remet les paquets dans l'ordre, redemande ceux qui se sont perdus, et régule le débit (contrôle de flux). **Exemple** : charger une page web ou télécharger un fichier utilise TCP, car on ne veut aucun octet manquant.\n- **UDP** (*User Datagram Protocol*) est une alternative plus légère : il renonce à ces garanties pour aller **plus vite**. **Exemple** : les jeux en ligne, le streaming vidéo et le DNS utilisent UDP, où recevoir vite compte plus que recevoir parfaitement (une image de jeu en retard ne sert plus à rien)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un message est decoupe en petits paquets numerotes, achemines separement puis reassembles a l'arrivee.",
+          "body": "/images/lessons/comment-fonctionne-internet-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Le trajet d'une requête",
+          "diagramFormat": "MERMAID",
+          "body": "graph LR\n  C[Client] --> R1[Routeur FAI]\n  R1 --> R2[Dorsale Internet]\n  R2 --> R3[Routeur du datacenter]\n  R3 --> S[Serveur]\n  S -. réponse .-> C"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "La poignée de main TCP (niveau expert)",
+          "body": "Avant d'échanger la moindre donnée, TCP doit d'abord **établir une connexion**. Il le fait par une **poignée de main** (en anglais *three-way handshake*, littéralement « poignée de main à trois temps ») :\n1. le client envoie un message `SYN` (« bonjour, je veux me connecter ») ;\n2. le serveur répond `SYN-ACK` (« bonjour, d'accord, je t'entends ») ;\n3. le client confirme `ACK` (« reçu, on démarre »).\n\n👉 **Analogie** : c'est le début d'un appel téléphonique. « Allô ? », « Allô, oui ? », « Oui, bonjour ». Tant que ce petit rituel n'est pas fini, la vraie conversation ne commence pas.\n\nCe rituel coûte du temps. On appelle **latence** le délai avant qu'une donnée arrive, et **RTT** (*Round-Trip Time*) le temps d'un aller-retour complet entre client et serveur. La poignée de main coûte au moins **un RTT**. En HTTPS (le Web chiffré), s'ajoute encore la négociation **TLS** (le protocole qui chiffre la connexion, vu en détail plus loin), soit un ou deux allers-retours de plus.\n\n**Exemple concret** : si un aller-retour vers le serveur prend 100 ms, ouvrir une nouvelle connexion sécurisée peut coûter 200 à 300 ms **avant même** la première donnée utile. C'est pourquoi on **réutilise** les connexions déjà ouvertes (techniques dites *keep-alive* et *pools de connexions*) plutôt que d'en rouvrir une à chaque requête : chaque nouvelle connexion repaie ce coût initial."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Avant d'echanger, client et serveur se mettent d'accord en trois temps (SYN, SYN-ACK, ACK) : la poignee de main TCP.",
+          "body": "/images/lessons/comment-fonctionne-internet-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Une API répond en 40 ms de traitement, mais les clients lointains observent 250 ms. Sans changer le code, quelles deux causes réseau expliquent l'écart, et quel levier concret le réduit ?",
+          "solution": "La latence réseau (distance et RTT, propagation) et le coût d'établissement de connexion (poignée de main TCP plus négociation TLS) s'ajoutent au traitement. Leviers : réutiliser les connexions (keep-alive, HTTP/2), rapprocher le contenu des utilisateurs (CDN et edge, réplicas régionaux) et réduire le nombre d'allers-retours."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Comment fonctionne Internet",
+          "quizRef": "internet-reseau-check"
+        }
+      ]
+    },
+    {
+      "slug": "le-protocole-http",
+      "title": "Le protocole HTTP",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Requête / réponse",
+          "body": "Un **protocole**, c'est simplement un ensemble de règles qui disent comment deux machines doivent se parler pour se comprendre. **HTTP** (*HyperText Transfer Protocol*) est le protocole du Web : la langue commune que parlent ton navigateur et les serveurs.\n\nHTTP fonctionne par un dialogue **requête → réponse** :\n- le **client** (ton navigateur, une appli mobile, un programme) envoie une **requête** : une méthode (l'action voulue) + un chemin (ce qu'il veut) + des en-têtes (des infos) + éventuellement un corps (des données) ;\n- le **serveur** renvoie une **réponse** : un code de statut (l'issue) + des en-têtes + éventuellement un corps (le contenu demandé).\n\n👉 **Analogie** : c'est un échange au **guichet**. Tu remplis un formulaire et tu le glisses (la requête) ; l'employé te renvoie un document avec un tampon « accepté » ou « refusé » (la réponse). Une demande, une réponse, puis c'est fini.\n\n**Exemple concret** : quand tu tapes une adresse dans ton navigateur, il envoie une requête HTTP « donne-moi cette page », et le serveur répond avec le HTML de la page. Tout, dans un backend web, découle de ce cycle : concevoir une API, c'est concevoir de bonnes requêtes et de bonnes réponses."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HTTP marche en question-reponse : le client demande, le serveur repond, comme un client et un serveur au restaurant.",
+          "body": "/images/lessons/le-protocole-http-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une requête et sa réponse, en clair",
+          "codeLanguage": "bash",
+          "body": "# Requête HTTP brute (ce que le client envoie)\nGET /api/v1/roadmaps HTTP/1.1\nHost: skillforge.dev\nAccept: application/json\n\n# Réponse (ce que le serveur renvoie)\nHTTP/1.1 200 OK\nContent-Type: application/json\nContent-Length: 128\n\n{ \"data\": [ ... ] }"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Méthodes et sémantique",
+          "body": "Chaque requête commence par une **méthode** (aussi appelée *verbe*) : c'est l'action qu'on veut faire. La **sémantique**, c'est simplement le **sens** convenu de chaque méthode, celui que tout le monde s'engage à respecter :\n- `GET` : **lire** une ressource, sans rien modifier (afficher une page, lire une liste) ;\n- `POST` : **créer** quelque chose (envoyer un formulaire, ajouter un élément) ;\n- `PUT` : **remplacer** entièrement une ressource ;\n- `PATCH` : **modifier partiellement** une ressource ;\n- `DELETE` : **supprimer** une ressource.\n\nDeux propriétés reviennent souvent, définissons-les :\n- une méthode est **sûre** si elle **ne modifie rien** sur le serveur. `GET` est sûre : consulter une page ne la change pas.\n- une méthode est **idempotente** si la **rejouer plusieurs fois donne le même résultat final** que la jouer une fois. `GET`, `PUT` et `DELETE` le sont (supprimer deux fois le même élément laisse le même état : il est absent). `POST` **ne l'est pas** : deux `POST` identiques peuvent créer deux éléments.\n\n👉 **Analogie** : `GET`, c'est **regarder** un tableau au musée (tu ne changes rien, tu peux regarder dix fois). `DELETE`, c'est **jeter** un objet à la poubelle : le refaire ne change rien de plus, il est déjà parti (idempotent). `POST`, c'est **poster une lettre** : la poster deux fois envoie deux lettres.\n\n**Pourquoi ça compte** : respecter cette sémantique rend une API prévisible et permet aux **caches** et **proxys** (des intermédiaires qui accélèrent le Web) de faire leur travail en toute sécurité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "GET, POST, PUT, DELETE : chaque methode HTTP annonce l'intention de la requete, comme un panneau de direction.",
+          "body": "/images/lessons/le-protocole-http-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Codes de statut",
+          "body": "Chaque réponse commence par un **code de statut** : un nombre à trois chiffres qui résume l'issue de la requête. Le premier chiffre donne la grande famille.\n\n👉 **Analogie** : c'est le **tampon** que l'employé met sur ton dossier. « Accepté », « à transmettre ailleurs », « ton dossier est mal rempli », « c'est nous qui avons un souci ». Un coup d'œil suffit à savoir ce qui s'est passé.\n\n- **2xx = succès** : `200 OK` (voici le résultat), `201 Created` (créé avec succès), `204 No Content` (fait, rien à renvoyer).\n- **3xx = redirection** : `301` (l'adresse a changé, va là-bas), `304 Not Modified` (rien de neuf, garde ta version en cache).\n- **4xx = erreur du client** (le problème vient de la requête) : `400` invalide, `401` non authentifié (« qui es-tu ? »), `403` interdit (« je sais qui tu es, mais tu n'as pas le droit »), `404` introuvable, `409` conflit, `422` règle métier violée, `429` trop de requêtes.\n- **5xx = erreur du serveur** (le problème vient du serveur) : `500` erreur inattendue, `503` service indisponible.\n\n**Pourquoi ça compte** : choisir le bon code n'est pas cosmétique. La surveillance (*monitoring*), les alertes, les caches et les clients s'appuient dessus pour réagir automatiquement. **Exemple** : un client bien écrit réessaie tout seul sur un `503` mais surtout pas sur un `400` (inutile, la requête est mauvaise)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les codes de statut (200, 404, 500) disent en un chiffre si tout va bien, si c'est introuvable ou casse.",
+          "body": "/images/lessons/le-protocole-http-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "En-têtes et « sans état »",
+          "body": "Les **en-têtes** (*headers*) sont des lignes `Nom: valeur` qui accompagnent une requête ou une réponse pour porter des **métadonnées** (des informations sur le message, pas le message lui-même). **Exemples** : `Content-Type` (le format du corps, par ex. `application/json`), `Authorization` (l'identité de l'appelant), `Cache-Control` (les règles de cache), `ETag` (une empreinte de version).\n\n👉 **Analogie** : les en-têtes sont l'**étiquette collée sur le colis**. Le colis, c'est le corps ; l'étiquette dit qui l'envoie, ce qu'il contient et comment le manipuler, sans qu'on ait besoin de l'ouvrir.\n\nPoint essentiel : HTTP est **sans état** (*stateless*). Cela veut dire que le serveur **ne se souvient pas** d'une requête à l'autre : chaque requête est traitée comme si c'était la première, indépendamment des précédentes.\n\n👉 **Analogie** : c'est un guichet où l'employé a la **mémoire remise à zéro** après chaque client. À chaque passage, tu dois **re-montrer ta carte d'identité** ; il ne te reconnaît pas de la dernière fois.\n\n**Pourquoi c'est un avantage** : comme aucun serveur ne retient de contexte, on peut en mettre **plusieurs en parallèle** et n'importe lequel peut traiter n'importe quelle requête (facile à répliquer). **La contrepartie** : il faut **transporter l'identité à chaque appel**, via un cookie de session ou un jeton (*token*). C'est tout le sujet de l'authentification, abordé plus loin dans le parcours."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HTTP est sans etat : chaque requete repart de zero ; les en-tetes transportent le contexte (qui, quel format, quel cache).",
+          "body": "/images/lessons/le-protocole-http-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "HTTP/1.1, 2 et 3 (niveau expert)",
+          "body": "HTTP a évolué en plusieurs versions ; elles parlent le même langage (mêmes méthodes, mêmes codes) mais transportent les données différemment.\n\n- **HTTP/1.1** : envoie **une requête à la fois** par connexion. Si une réponse tarde, elle bloque les suivantes sur cette connexion (un embouteillage appelé *head-of-line blocking*, « blocage de tête de file »). Pour compenser, le navigateur ouvre **plusieurs connexions** en parallèle.\n- **HTTP/2** : **multiplexe**, c'est-à-dire fait passer **plusieurs échanges en même temps sur une seule connexion**, et compresse les en-têtes. Résultat : moins de latence, moins de connexions à ouvrir.\n- **HTTP/3** : repose sur **QUIC**, un transport bâti au-dessus d'**UDP** (au lieu de TCP). Il supprime l'embouteillage au niveau du transport et établit la connexion plus vite.\n\n👉 **Analogie** : HTTP/1.1, c'est une **caisse unique** au supermarché : les clients font la queue un par un. HTTP/2, ce sont **plusieurs tapis roulants sur une même caisse**. HTTP/3, c'est une caisse repensée qui ne bloque plus si un article coince.\n\n**Ce qu'il faut retenir** : côté conception d'API, on raisonne pareil quelle que soit la version. Côté **performance**, la version du protocole change beaucoup, et on l'active en général au niveau de l'infrastructure (reverse proxy, CDN), sans toucher au code applicatif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les versions successives d'HTTP elargissent l'autoroute : plus de voies, moins d'attente.",
+          "body": "/images/lessons/le-protocole-http-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "EXERCISE",
+          "position": 11,
+          "title": "À vous",
+          "body": "Un client rejoue automatiquement une requête qui a échoué sur timeout. Pour quelles méthodes est-ce sûr de le faire, et pourquoi POST pose-t-il problème ?",
+          "solution": "Sûr pour les méthodes idempotentes (GET, PUT, DELETE) : rejouer mène au même état. POST n'est pas idempotent : un rejeu peut créer deux ressources (double commande). On sécurise POST par une clé d'idempotence côté serveur si le rejeu est inévitable."
+        },
+        {
+          "type": "QUIZ",
+          "position": 12,
+          "title": "Quiz, Le protocole HTTP",
+          "quizRef": "internet-http-check"
+        }
+      ]
+    },
+    {
+      "slug": "dns-et-noms-de-domaine",
+      "title": "DNS & noms de domaine",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Du nom à l'adresse",
+          "body": "On retient facilement `skillforge.dev`, beaucoup moins `93.184.216.34`. Or les machines, elles, ne se joignent que par leur **adresse IP** (ce numéro vu à la leçon précédente). Il faut donc un traducteur entre les deux.\n\nCe traducteur, c'est le **DNS** (*Domain Name System*, « système de noms de domaine ») : l'**annuaire** du Web, qui convertit un **nom de domaine** en adresse IP.\n\n👉 **Analogie** : le DNS est le **répertoire de contacts** de ton téléphone. Tu tapes « Maman » (le nom), le téléphone compose le vrai numéro (l'IP) à ta place. Tu n'as jamais besoin de retenir le numéro.\n\nUn **nom de domaine** (par ex. `skillforge.dev`) se **loue**, on ne l'achète pas définitivement, auprès d'un **registrar** (un bureau d'enregistrement agréé). Il se lit **de droite à gauche**, du plus général au plus précis :\n- `.dev` est le **TLD** (*Top-Level Domain*, « domaine de premier niveau »), comme `.com` ou `.fr` ;\n- `skillforge` est le **domaine** que tu loues ;\n- `www` ou `api` est un **sous-domaine**, une subdivision que tu crées librement (par ex. `api.skillforge.dev` pour ton API)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le DNS traduit un nom lisible (exemple.com) en adresse IP : c'est l'annuaire telephonique d'Internet.",
+          "body": "/images/lessons/dns-et-noms-de-domaine-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La résolution, étape par étape",
+          "body": "Traduire un nom en IP s'appelle **résoudre** le nom. Ça ne se fait pas d'un seul coup : on interroge une **hiérarchie** de serveurs, du plus général au plus précis.\n\n1. Ton ordinateur demande à un **resolver** (« résolveur », souvent celui de ton fournisseur d'accès) : « quelle est l'IP de `skillforge.dev` ? ».\n2. Le resolver interroge un **serveur racine**, qui ne connaît pas la réponse mais sait qui gère les `.dev` : il renvoie vers le serveur du **TLD** `.dev`.\n3. Le serveur du TLD renvoie vers le **serveur faisant autorité** du domaine (celui qui détient la vraie réponse pour `skillforge.dev`).\n4. Ce dernier donne enfin l'**IP**.\n\n👉 **Analogie** : tu cherches le bureau de quelqu'un dans une immense administration. L'accueil (racine) t'envoie au bon bâtiment (TLD), le bâtiment t'indique le bon étage (serveur faisant autorité), et là on te donne le numéro de bureau exact (l'IP).\n\nPour ne pas refaire tout ce chemin à chaque fois, chaque niveau garde la réponse en **cache** (une mémoire temporaire) pendant une durée fixée par le **TTL** (*Time To Live*, « durée de vie »). **Exemple** : la première visite peut prendre 50 ms de résolution, les suivantes sont quasi instantanées car la réponse est déjà en cache."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La resolution DNS interroge plusieurs serveurs en cascade (racine, TLD, autoritaire) jusqu'a trouver l'adresse.",
+          "body": "/images/lessons/dns-et-noms-de-domaine-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "La résolution DNS de proche en proche",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  U[Ton ordinateur] -->|quelle IP pour skillforge.dev ?| R[Resolver du FAI]\n  R -->|qui gère .dev ?| Root[Serveur racine]\n  Root -->|va voir le TLD .dev| R\n  R -->|qui gère skillforge.dev ?| TLD[Serveur TLD .dev]\n  TLD -->|va voir le serveur du domaine| R\n  R -->|IP de skillforge.dev ?| Auth[Serveur faisant autorité]\n  Auth -->|93.184.216.34| R\n  R -->|voici l'IP + mise en cache TTL| U"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Interroger le DNS",
+          "codeLanguage": "bash",
+          "body": "dig skillforge.dev A          # l'adresse IPv4\ndig skillforge.dev MX         # les serveurs mail\ndig +trace skillforge.dev     # suivre toute la résolution\nnslookup api.skillforge.dev"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Les types d'enregistrements",
+          "body": "Un nom de domaine ne pointe pas seulement vers une IP : il porte plusieurs **enregistrements** (*records*), chacun d'un **type** précis qui dit à quoi sert l'information. C'est comme les différentes lignes d'une fiche de contact (téléphone, e-mail, adresse).\n\n- **A** : pointe vers une **IPv4** (le cas le plus courant, « ce nom correspond à cette machine »).\n- **AAAA** : pointe vers une **IPv6** (même idée, version IPv6).\n- **CNAME** : un **alias**, un nom qui redirige vers un autre nom (par ex. `www.skillforge.dev` pointe vers `skillforge.dev`).\n- **MX** (*Mail eXchange*) : indique les **serveurs de courrier** qui reçoivent les e-mails du domaine.\n- **TXT** : du **texte libre**, utilisé pour des vérifications de propriété et l'anti-spam des e-mails (mécanismes SPF/DKIM).\n- **NS** (*Name Server*) : désigne les **serveurs de noms** qui font autorité sur le domaine.\n\n👉 **Analogie** : le domaine est une **fiche de contact**, et chaque type d'enregistrement est une ligne différente de la fiche : le A/AAAA donne l'adresse, le MX dit où livrer le courrier, le CNAME est un surnom qui renvoie vers la vraie fiche.\n\n**Pourquoi ça compte** : savoir lire et configurer ces enregistrements est indispensable pour mettre un service en ligne, brancher un sous-domaine d'API, ou déléguer la distribution de ton site à un CDN (réseau de serveurs répartis dans le monde)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "A, AAAA, CNAME, MX : chaque type d'enregistrement DNS renseigne une chose precise (IP, alias, serveur mail).",
+          "body": "/images/lessons/dns-et-noms-de-domaine-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "TTL, propagation et pièges (niveau expert)",
+          "body": "Le **TTL** (*Time To Live*) est la durée pendant laquelle une réponse DNS a le droit de rester en **cache** avant d'être redemandée. C'est un compromis à bien comprendre.\n\n- Un **TTL élevé** (par ex. 24 h) **accélère** : les caches répondent longtemps sans redemander. Mais si tu changes l'IP, l'ancienne valeur **traîne** dans les caches pendant 24 h : le changement est **lent à se propager** (la *propagation*, c'est justement le temps que le nouveau réglage se répande partout).\n- Un **TTL bas** (par ex. 5 min) rend les changements **rapides à propager**, au prix de résolutions un peu plus fréquentes.\n\n👉 **Analogie** : le TTL, c'est la **date de péremption** écrite sur la réponse. Tant qu'elle n'est pas atteinte, tout le monde réutilise l'ancienne info sans se poser de question, même si tu as changé la vraie valeur entre-temps.\n\n**Astuce de pro** : avant une migration de serveur, on **abaisse le TTL à l'avance** (la veille) pour que l'ancienne valeur expire vite et que la bascule se propage en minutes, pas en heures. **Piège classique de débogage** : « ça marche chez moi » alors que ça ne marche pas ailleurs, tout simplement parce qu'un cache DNS local sert encore l'ancienne valeur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le TTL dit combien de temps garder une reponse en cache : d'ou les delais de propagation quand on change un enregistrement.",
+          "body": "/images/lessons/dns-et-noms-de-domaine-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "EXERCISE",
+          "position": 10,
+          "title": "À vous",
+          "body": "Vous devez déplacer `api.skillforge.dev` vers un nouveau serveur avec un minimum d'interruption. Quelle précaution DNS prendre la veille, et pourquoi ?",
+          "solution": "Abaisser le TTL de l'enregistrement (ex. de 24 h à 5 min) la veille, pour que l'ancienne IP expire vite des caches au moment du changement. On modifie ensuite l'enregistrement A ; la bascule se propage en minutes, pas en heures. On remonte le TTL une fois stabilisé."
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, DNS & noms de domaine",
+          "quizRef": "internet-dns-check"
+        }
+      ]
+    },
+    {
+      "slug": "hebergement-et-mise-en-ligne",
+      "title": "Hébergement & mise en ligne",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Où tourne votre backend",
+          "body": "Ton programme backend, sur ta machine, ne sert qu'à toi. Pour que le monde y accède, il doit **tourner en permanence** sur une machine **joignable depuis Internet**, allumée 24h/24 : c'est ça, l'**hébergement**.\n\nIl existe plusieurs façons d'héberger, du plus **géré** (on s'occupe de tout pour toi) au plus **contrôlé** (tu gères tout toi-même) :\n- **hébergement mutualisé** : simple et pas cher, mais limité (tu partages une machine avec beaucoup d'autres) ;\n- **VPS / serveur dédié** : une machine (virtuelle ou physique) rien qu'à toi, dont tu gères le système d'exploitation ;\n- **cloud IaaS** (*Infrastructure as a Service*) : des machines virtuelles à la demande, créées en quelques secondes (par ex. AWS EC2) ;\n- **PaaS** (*Platform as a Service*) : tu pousses ton code, la plateforme s'occupe du serveur, des mises à jour, de la mise à l'échelle ;\n- **conteneurs** (Docker, Kubernetes) : ton appli et tout ce dont elle a besoin, emballés dans une « boîte » standard qui tourne partout pareil ;\n- **serverless** : tu déposes des **fonctions** qui s'exécutent à la demande, tu ne gères aucun serveur.\n\n👉 **Analogie** : c'est le choix entre **habiter** quelque part. Le mutualisé, c'est une **colocation** (pas cher, mais tu partages tout). Le VPS, c'est **ton appartement** (tu fais ce que tu veux, mais tu l'entretiens). Le PaaS, c'est un **hôtel** (on fait le ménage, tu profites). Le serverless, c'est **louer une salle à l'heure** : tu ne paies que quand tu l'utilises.\n\n**Le choix arbitre** entre trois choses : le **contrôle** que tu veux, le **coût**, et la **charge d'exploitation** (le travail d'entretien que tu es prêt à assumer)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Votre backend tourne sur une machine (serveur, VM, conteneur) hebergee quelque part : voici ou vit votre code.",
+          "body": "/images/lessons/hebergement-et-mise-en-ligne-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "IP, ports et pare-feu",
+          "body": "Une fois hébergée, ton application **écoute** sur un **port** (par ex. `8080`) d'une machine qui a une **IP**. « Écouter », ça veut dire attendre les connexions entrantes sur ce port, comme un standard téléphonique qui attend les appels.\n\nMais être en écoute ne suffit pas à être joignable depuis Internet. Il faut que ce port soit **exposé** (accessible de l'extérieur) et **autorisé** par le **pare-feu** (*firewall*).\n\n👉 **Analogie** : le pare-feu est le **videur** à l'entrée. Il a une liste de ce qui a le droit d'entrer et bloque tout le reste par défaut. Même si la fête a lieu (l'appli écoute), personne n'entre si le videur ne l'autorise pas.\n\n**Règle de sécurité** : on n'ouvre **que le strict nécessaire**. En façade d'un site, on ouvre le port `443` (HTTPS) et c'est souvent tout. Et surtout, on **n'expose jamais la base de données** au monde entier : elle ne doit être joignable que par ton application, sur le réseau interne. **Exemple d'incident très fréquent** : une base de données laissée ouverte sur Internet sans mot de passe fort, découverte par des robots en quelques heures et pillée. Ferme ce qui n'a pas besoin d'être ouvert."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'IP designe la machine, le port la porte d'un service ; le pare-feu decide quelles portes sont ouvertes.",
+          "body": "/images/lessons/hebergement-et-mise-en-ligne-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Reverse proxy et terminaison TLS",
+          "body": "Plutôt que d'exposer directement ton application, on place souvent devant elle un **reverse proxy** : un serveur intermédiaire qui reçoit toutes les requêtes des visiteurs et les **transmet** à la bonne application derrière.\n\n👉 **Analogie** : c'est le **réceptionniste** d'un grand immeuble de bureaux. Les visiteurs ne vont pas frapper directement à chaque bureau : ils passent tous par l'accueil, qui les oriente, filtre, et protège les bureaux.\n\nLe reverse proxy (par ex. **Nginx**, **Caddy**, ou l'équilibreur de charge fourni par le cloud) rend plusieurs services d'un coup :\n- il **termine le TLS** : la *terminaison TLS* signifie qu'il gère le chiffrement HTTPS à cet endroit précis (il déchiffre les requêtes entrantes), pour que ton application derrière puisse parler en HTTP simple sur le réseau interne, plus léger ;\n- il **route** chaque requête vers la bonne application selon le domaine ou le chemin ;\n- il **équilibre la charge** (*load balancing*) entre plusieurs copies de ton appli pour répartir le trafic ;\n- il sert directement les **fichiers statiques** (images, CSS), déchargeant ton application.\n\n**Exemple concret** : c'est exactement le rôle de Nginx dans le déploiement Docker de cette plateforme : il reçoit le HTTPS, déchiffre, et transmet au backend en HTTP interne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le reverse proxy accueille les requetes en facade, termine le TLS et les distribue a vos services, comme un accueil.",
+          "body": "/images/lessons/hebergement-et-mise-en-ligne-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Sans état pour se répliquer (niveau expert)",
+          "body": "Quand le trafic augmente, une seule machine ne suffit plus. La solution : lancer **plusieurs instances** (plusieurs copies identiques de ton application) derrière l'équilibreur de charge, qui répartit les requêtes entre elles. C'est la **mise à l'échelle horizontale** (*horizontal scaling*) : on ajoute des machines plutôt que d'en grossir une seule.\n\nMais ça n'est possible qu'à une condition : l'application doit être **sans état** (*stateless*), c'est-à-dire ne **garder aucune donnée importante en mémoire locale**. Pourquoi ? Parce que deux requêtes successives d'un même utilisateur peuvent tomber sur **deux instances différentes**. Si l'instance A a gardé ta session en mémoire et que ta requête suivante arrive sur l'instance B, B ne sait rien de toi : tu es déconnecté au hasard.\n\n👉 **Analogie** : imagine plusieurs guichets interchangeables. Si l'employé A note ta demande sur un **papier gardé dans son tiroir à lui**, l'employé B ne pourra pas te servir. Il faut que les infos soient dans un **dossier central** partagé, consultable par tous les guichets.\n\n**La solution** : on **externalise l'état** hors de la mémoire des instances, vers un endroit partagé : la base de données, un cache distribué (par ex. Redis), ou des jetons **stateless** (comme les JWT, qui portent l'identité avec eux). C'est le socle du passage à l'échelle, repris plus loin dans « Building for scale »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un backend sans etat se duplique a l'identique : n'importe quelle copie peut repondre, ce qui permet de scaler.",
+          "body": "/images/lessons/hebergement-et-mise-en-ligne-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une application garde la session utilisateur en mémoire locale. On la déploie en 3 instances derrière un équilibreur et des utilisateurs sont déconnectés au hasard. Pourquoi, et quelle est la correction de fond ?",
+          "solution": "L'équilibreur répartit les requêtes ; une requête suivante peut atterrir sur une autre instance qui n'a pas la session en mémoire, d'où la déconnexion. Correction de fond : rendre l'app sans état, en externalisant la session (store partagé type Redis) ou en utilisant des jetons stateless (JWT). Le sticky session est un pansement, pas une solution."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Hébergement & mise en ligne",
+          "quizRef": "internet-hebergement-check"
+        }
+      ]
+    },
+    {
+      "slug": "cycle-complet-dune-requete",
+      "title": "Le cycle complet d'une requête",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "De l'URL à la réponse",
+          "body": "Rassemblons tout ce qu'on a vu. Une **URL** (*Uniform Resource Locator*), c'est l'adresse complète d'une ressource sur le Web, par ex. `https://api.skillforge.dev/v1/roadmaps`. Regardons, étape par étape, tout ce qui se passe quand un client l'appelle :\n\n1. **résolution DNS** : le nom `api.skillforge.dev` est traduit en adresse IP (l'annuaire, vu à la leçon DNS) ;\n2. **ouverture d'une connexion TCP** vers cette IP sur le port `443` (la poignée de main vue au début) ;\n3. **négociation TLS** : échange des certificats et des clés pour établir le canal chiffré (le HTTPS) ;\n4. **envoi de la requête HTTP** (méthode + chemin + en-têtes) ;\n5. le **reverse proxy** en façade reçoit la requête et la **route** vers une instance de l'application ;\n6. l'**application traite** : elle vérifie l'identité (authentification), exécute sa logique, interroge la base de données ;\n7. la **réponse HTTP** repart, remonte toute la chaîne en sens inverse, et le client la reçoit.\n\n👉 **Analogie** : c'est comme **envoyer un courrier recommandé** à l'étranger. Tu cherches l'adresse exacte (DNS), tu établis le contact avec le service postal (TCP), tu scelles l'enveloppe (TLS), tu écris ta demande (HTTP), le tri postal l'oriente (reverse proxy), le destinataire la traite (application + base), puis la réponse fait tout le trajet retour.\n\n**Ce qu'il faut retenir** : chaque étape a un **coût** (du temps) et un **point de défaillance** (un endroit où ça peut casser). Savoir les nommer, c'est savoir où chercher quand quelque chose est lent ou cassé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Taper une URL declenche une chaine : DNS, connexion, TLS, requete HTTP, reponse ; chaque maillon compte.",
+          "body": "/images/lessons/cycle-complet-dune-requete-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Le parcours de bout en bout",
+          "diagramFormat": "MERMAID",
+          "body": "sequenceDiagram\n  participant C as Client\n  participant D as DNS\n  participant P as Reverse proxy\n  participant A as App backend\n  participant DB as Base\n  C->>D: résoudre api.skillforge.dev\n  D-->>C: adresse IP\n  C->>P: HTTPS GET /v1/roadmaps\n  P->>A: HTTP (TLS terminé)\n  A->>DB: requête\n  DB-->>A: lignes\n  A-->>P: 200 JSON\n  P-->>C: 200 JSON"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Le rôle du navigateur",
+          "body": "Côté client web, c'est le **navigateur** (Chrome, Firefox, Safari) qui **orchestre** tout ce parcours pour afficher une page. « Orchestrer » signifie qu'il enchaîne et coordonne les étapes à ta place, sans que tu aies à y penser.\n\nConcrètement, pour une seule page, le navigateur :\n- **résout le DNS** de chaque domaine appelé ;\n- **ouvre les connexions** (TCP + TLS) nécessaires ;\n- applique les **règles de sécurité** du Web : la notion d'**origine** (le trio protocole + domaine + port), la politique **CORS** (*Cross-Origin Resource Sharing*, qui encadre les appels d'un site vers un autre domaine), et la gestion des **cookies** ;\n- met en **cache** les réponses selon les en-têtes, pour ne pas retélécharger ce qu'il a déjà ;\n- **parallélise** plusieurs requêtes pour aller plus vite.\n\n👉 **Analogie** : le navigateur est le **chef d'orchestre**. Toi tu demandes juste « joue ce morceau » (tu tapes une adresse), et lui fait entrer chaque instrument au bon moment : DNS, connexions, sécurité, cache, tout en rythme.\n\n**Pourquoi ça t'intéresse, même en backend** : comprendre ce que fait le navigateur explique bien des comportements côté serveur. Pourquoi une requête est bloquée par CORS, pourquoi une réponse est resservie depuis le cache au lieu d'appeler ton API, pourquoi un cookie n'est pas envoyé. Beaucoup de bugs « bizarres » viennent de ces règles du navigateur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le navigateur orchestre tout : il resout, telecharge, assemble et affiche la page.",
+          "body": "/images/lessons/cycle-complet-dune-requete-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Lire une chronologie pour déboguer (niveau expert)",
+          "body": "Quand quelque chose est lent, un débutant dit « c'est lent » ; un pro **décompose** la latence, c'est-à-dire qu'il découpe le temps total en phases et attribue chaque milliseconde à une étape précise :\n- le temps **DNS** (résolution du nom) ;\n- le temps de **connexion** (poignée de main TCP + négociation TLS) ;\n- le **TTFB** (*Time To First Byte*, « temps jusqu'au premier octet ») : le temps que met le serveur à **commencer** à répondre, une fois la requête reçue. C'est surtout le temps de **traitement serveur** ;\n- le temps de **transfert** : la durée pour recevoir tout le corps de la réponse.\n\n👉 **Analogie** : c'est comme **chronométrer chaque tronçon d'un trajet** au lieu de ne regarder que l'heure d'arrivée. Si tu sais que 90 % du retard vient du tronçon « autoroute », tu ne perds pas ton temps à optimiser le parking.\n\nDes outils font ce découpage pour toi : l'**onglet réseau** de ton navigateur, ou les **traces distribuées** en production. **Ce réflexe évite de deviner** : un TTFB élevé pointe le backend ou la base de données ; un temps de connexion élevé pointe le réseau ou TLS ; un DNS lent pointe la résolution. Tu regardes le chiffre, il te dit où creuser."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La chronologie reseau (waterfall) montre ou passe le temps : l'outil n1 pour deboguer la lenteur.",
+          "body": "/images/lessons/cycle-complet-dune-requete-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un utilisateur signale « le site est lent ». La chronologie montre un DNS à 5 ms, une connexion à 20 ms, un TTFB à 1,8 s et un transfert à 30 ms. Où est le problème et quelle piste explorer ?",
+          "solution": "Le problème est le TTFB (1,8 s) : c'est le temps que met le serveur à produire le premier octet, donc côté backend et base, pas réseau. Pistes : requête SQL lente (index manquant, N+1), traitement coûteux, dépendance externe lente. On profile le serveur, pas le réseau."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz, Internet & le Web",
+          "quizRef": "internet-fundamentals"
+        }
+      ]
+    },
+    {
+      "slug": "tls-et-https-en-profondeur",
+      "title": "TLS & HTTPS en profondeur",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ce que TLS garantit vraiment",
+          "body": "Petit rappel d'abord : **HTTP** transporte les données **en clair** (n'importe qui sur le chemin peut lire). **HTTPS**, c'est HTTP **plus une couche de sécurité** appelée **TLS** (*Transport Layer Security*). Le petit cadenas de ton navigateur, c'est TLS au travail.\n\nTLS apporte **trois garanties** au canal de communication :\n- la **confidentialité** : tout est **chiffré**, personne ne peut lire les données en chemin ;\n- l'**intégrité** : personne ne peut **modifier** les données sans que ce soit détecté ;\n- l'**authenticité du serveur** : tu as la preuve de parler au **bon serveur** (et pas à un imposteur), grâce à un **certificat**.\n\n👉 **Analogie** : envoyer une lettre en clair, c'est une **carte postale** que tout facteur peut lire. TLS, c'est une **enveloppe scellée et infalsifiable, avec la signature vérifiable de l'expéditeur** : personne ne lit dedans (confidentialité), personne ne peut la trafiquer sans casser le sceau (intégrité), et tu es sûr de qui l'envoie (authenticité).\n\n**Idée reçue à corriger** : par défaut, TLS n'authentifie **pas le client** (toi), seulement le serveur. Authentifier aussi le client, c'est le rôle du **mTLS**, vu plus loin. Comprendre finement TLS, c'est savoir diagnostiquer une erreur de certificat, choisir une configuration sûre et raisonner sur la performance de la connexion."
+        },
+        {
+          "type": "IMAGE",
+          "title": "TLS garantit trois choses : confidentialite (chiffre), integrite (non altere) et authenticite (le bon serveur).",
+          "body": "/images/lessons/tls-et-https-en-profondeur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le handshake TLS 1.3",
+          "body": "Le **handshake** (« poignée de main ») TLS est le rituel de mise en place du canal chiffré, juste après la connexion TCP. Comme pour TCP, c'est un échange initial avant les vraies données.\n\nEn **TLS 1.3** (la version moderne), ce handshake est réduit à **un seul aller-retour** (on dit **1-RTT**, un *Round-Trip Time*) :\n1. le client envoie `ClientHello` avec ses paramètres et une **part de clé** (*key share*, sa contribution au secret commun) ;\n2. le serveur répond `ServerHello` + son **certificat** + un message `Finished`, et le canal chiffré est prêt.\n\n👉 **Analogie** : c'est comme convenir d'un **code secret** en une seule phrase de chaque côté. « Voici ma moitié de la clé. » « Voici la mienne et ma carte d'identité, c'est parti. » Dès lors, vous parlez dans une langue que vous seuls comprenez.\n\nTLS 1.3 a **supprimé les algorithmes faibles** de l'ancienne version (TLS 1.2) et impose la **confidentialité persistante** (*forward secrecy*) : même si une clé est volée **plus tard**, elle ne permet pas de déchiffrer les conversations **passées** (chaque session a sa propre clé jetable). Il existe aussi un mode **0-RTT** qui accélère encore les **reprises** de connexion, mais il expose au **rejeu** (*replay*, un attaquant peut renvoyer une requête capturée) : on le réserve donc aux requêtes idempotentes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le handshake TLS echange des cles pour etablir un canal chiffre avant tout echange de donnees.",
+          "body": "/images/lessons/tls-et-https-en-profondeur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Certificats et chaîne de confiance",
+          "body": "Comment être sûr que le serveur est bien celui qu'il prétend être ? Grâce à un **certificat** : un document électronique qui prouve « ce domaine m'appartient », **signé** par une **autorité de certification** (*Certificate Authority*, abrégée **CA**), un tiers de confiance reconnu.\n\nLe navigateur vérifie ce certificat en remontant une **chaîne de confiance** :\ncertificat du serveur → **CA intermédiaire** qui l'a signé → **CA racine** de confiance, préinstallée dans ton système d'exploitation et ton navigateur.\n\n👉 **Analogie** : c'est comme une **pièce d'identité**. Ta carte (le certificat du serveur) est validée parce qu'elle a été émise par une préfecture (la CA intermédiaire), elle-même reconnue par l'État (la CA racine à qui tout le monde fait confiance d'avance). Si un maillon manque ou est invalide (certificat **expiré**, **mauvais nom** de domaine, **chaîne incomplète**), le navigateur refuse la connexion.\n\nDeux notions pratiques associées :\n- le **SNI** (*Server Name Indication*) : le client annonce au tout début **quel domaine** il veut, ce qui permet d'héberger **plusieurs sites HTTPS sur une seule IP** (le serveur sait alors quel certificat présenter) ;\n- **Let's Encrypt** : une autorité qui délivre des certificats **gratuits**, automatiquement, via le protocole **ACME**, ce qui automatise leur renouvellement et leur déploiement. **Exemple** : la plupart des petits sites HTTPS d'aujourd'hui utilisent Let's Encrypt sans que personne n'ait à payer ni à renouveler à la main."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un certificat prouve l'identite du serveur, validee par une chaine d'autorites de confiance.",
+          "body": "/images/lessons/tls-et-https-en-profondeur-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Inspecter un certificat & le handshake",
+          "codeLanguage": "bash",
+          "body": "# Voir le certificat, la chaîne et le protocole négocié\nopenssl s_client -connect skillforge.dev:443 -servername skillforge.dev </dev/null\n\n# Dates de validité et sujet\nopenssl s_client -connect skillforge.dev:443 -servername skillforge.dev </dev/null 2>/dev/null \\\n  | openssl x509 -noout -subject -issuer -dates\n\n# Forcer une version de TLS pour tester\nopenssl s_client -connect skillforge.dev:443 -tls1_3"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Durcissement : cipher suites, mTLS, HSTS, OCSP (niveau expert)",
+          "body": "**Durcir** une configuration, c'est la rendre plus résistante aux attaques en retirant tout ce qui est faible ou risqué. Voici les leviers d'une config TLS de production.\n\n- **Cipher suites** : une *cipher suite* est la combinaison d'algorithmes de chiffrement utilisée pour une connexion. On choisit des combinaisons **modernes** (dites AEAD, avec forward secrecy), on **désactive** les vieilles versions (TLS 1.0 et 1.1), et on privilégie TLS 1.3.\n- **mTLS** (*mutual TLS*, « TLS mutuel ») : en plus du serveur, le **client** présente aussi un certificat, donc **les deux** s'authentifient. Très courant entre microservices, dans une approche **zero-trust** (« on ne fait confiance à personne par défaut, même en interne »).\n- **HSTS** (*HTTP Strict Transport Security*) : un en-tête (`Strict-Transport-Security`) qui **ordonne au navigateur** de n'utiliser **que** HTTPS pour ton domaine, jamais HTTP. Une liste **preload** couvre même la toute première visite.\n- **OCSP stapling** : que faire si un certificat est **compromis avant sa date d'expiration** ? On le **révoque** (on le déclare invalide). Pour le vérifier sans ralentir le client, le serveur **agrafe** (*staple*) lui-même une preuve de validité fraîche à chaque connexion, évitant au navigateur une requête lente.\n\n👉 **Analogie** : durcir, c'est comme **sécuriser une maison** : on remplace les vieilles serrures (cipher suites), on demande une pièce d'identité aux **deux** parties (mTLS), on interdit la porte de derrière non sécurisée (HSTS), et on affiche un certificat de validité à jour bien en vue (OCSP stapling)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cipher suites, mTLS, HSTS, OCSP : autant de renforts pour durcir la securite au-dela du minimum.",
+          "body": "/images/lessons/tls-et-https-en-profondeur-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Un utilisateur voit « NET::ERR_CERT_AUTHORITY_INVALID » sur votre site, alors que le certificat est valide chez vous. Citez deux causes fréquentes et comment les diagnostiquer.",
+          "solution": "1) Chaîne incomplète : le serveur ne sert pas les certificats intermédiaires, donc certains clients ne peuvent pas remonter à la racine (diagnostic : openssl s_client montre la chaîne ; des outils comme SSL Labs le signalent). 2) Certificat auto-signé ou d'une CA non reconnue par le client. On vérifie avec openssl s_client -connect ... : sujet, émetteur, chaîne et 'Verify return code'. On corrige en installant la chaîne complète (fullchain) côté serveur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, TLS & HTTPS",
+          "quizRef": "internet-tls-check"
+        }
+      ]
+    },
+    {
+      "slug": "http2-et-http3",
+      "title": "HTTP/2 & HTTP/3 en pratique",
+      "position": 6,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le mur de HTTP/1.1",
+          "body": "Reprenons les versions de HTTP, mais en détail. En **HTTP/1.1**, une connexion ne traite **qu'une requête à la fois** : tant que la réponse d'une requête n'est pas revenue, les suivantes attendent sur cette connexion. Si une réponse est lente, elle **bloque toute la file** derrière elle.\n\nCe blocage porte un nom : le **head-of-line blocking** (« blocage de tête de file »), ici au niveau **applicatif**.\n\n👉 **Analogie** : une **caisse de supermarché** avec un seul tapis. Si le client de devant a un article sans code-barres, tout le monde derrière attend, même ceux qui n'ont qu'une baguette.\n\nPour contourner ça, les navigateurs ouvrent **plusieurs connexions en parallèle** (environ 6 par domaine) et répartissent les ressources sur plusieurs sous-domaines (technique dite de *sharding*). Mais ce sont des **rustines coûteuses** : chaque connexion supplémentaire repaie une poignée de main TCP + TLS, et multiplie la charge réseau (*congestion*). C'est ce plafond que HTTP/2 puis HTTP/3 viennent lever."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HTTP/1.1 traite les requetes a la file : au-dela d'un seuil, c'est l'embouteillage (head-of-line blocking).",
+          "body": "/images/lessons/http2-et-http3-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "HTTP/2 : multiplexage et compression",
+          "body": "**HTTP/2** résout le problème principal grâce au **multiplexage** : il fait passer **plusieurs échanges en parallèle sur une seule connexion**. Chaque échange est un **stream** (« flux ») indépendant, et ils s'entrelacent sur la même connexion.\n\n👉 **Analogie** : au lieu d'une file unique, imagine une **caisse avec plusieurs tapis roulants** qui avancent en même temps. Un article qui coince sur un tapis ne bloque plus les autres.\n\nHTTP/2 **compresse aussi les en-têtes** avec un mécanisme appelé **HPACK**. Comme beaucoup d'en-têtes se répètent d'une requête à l'autre (cookies, `User-Agent`), inutile de les renvoyer en entier à chaque fois : on n'envoie que ce qui change. **Résultat** : moins de latence, moins de connexions, plus besoin de sharder les domaines.\n\nDeux précisions utiles :\n- le **server push** (l'idée de pousser des ressources non encore demandées) a été **abandonné** en pratique car peu efficace ; on lui préfère les *hints* comme `preload` ;\n- le multiplexage HTTP/2 reste exposé au head-of-line blocking, mais cette fois **au niveau TCP** : si un seul paquet se perd, TCP fait attendre **tous** les streams le temps de le retransmettre. C'est précisément ce que HTTP/3 corrige."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HTTP/2 multiplexe plusieurs echanges sur une meme connexion : fini la file unique.",
+          "body": "/images/lessons/http2-et-http3-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "HTTP/3 & QUIC",
+          "body": "**HTTP/3** va plus loin : il **abandonne TCP** au profit de **QUIC**, un nouveau transport bâti au-dessus d'**UDP** (le protocole léger vu au début). QUIC intègre directement le chiffrement (TLS 1.3) et le multiplexage.\n\nDeux gains majeurs par rapport à HTTP/2 sur TCP :\n- **plus de head-of-line blocking au transport** : si un paquet se perd, seul le **stream concerné** attend, les autres continuent (là où TCP bloquait tout) ;\n- un **établissement de connexion plus rapide** : QUIC combine la poignée de main du transport et celle de TLS en une seule, et permet même la reprise en **0-RTT**.\n\nEt un bonus précieux sur mobile : la **migration de connexion**. QUIC identifie une connexion par un identifiant propre, pas par le couple IP/port. Donc **changer de réseau** (passer du Wi-Fi à la 4G) **ne casse pas la connexion**.\n\n👉 **Analogie** : avec TCP, ta conversation est liée à la **cabine téléphonique** exacte d'où tu appelles : si tu changes de cabine, l'appel tombe. Avec QUIC, la conversation te suit sur ton **portable** : tu passes d'une pièce à l'autre, l'appel continue.\n\n**En clair** : HTTP/3 est idéal pour les réseaux **mobiles et instables**, où les pertes de paquets et les changements de réseau sont fréquents."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HTTP/3 (sur QUIC/UDP) reduit la latence et resiste mieux aux pertes de paquets.",
+          "body": "/images/lessons/http2-et-http3-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Négocier la version avec curl",
+          "codeLanguage": "bash",
+          "body": "curl -I --http2 https://skillforge.dev/      # forcer HTTP/2\ncurl -I --http3 https://skillforge.dev/      # forcer HTTP/3 (si supporté)\n# La version est négociée via ALPN pendant le handshake TLS.\n# La 1re ligne de réponse indique la version : HTTP/2 200 ..."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Quand ça change vraiment quelque chose (niveau expert)",
+          "body": "Toutes ces versions ne se valent pas selon le contexte ; savoir **quand** chacune aide évite de s'agiter pour rien.\n\n- Le passage **HTTP/1.1 → HTTP/2** aide surtout les pages avec **beaucoup de petites ressources** (grâce au multiplexage) et sur les réseaux à forte **latence** : on économise les connexions et les allers-retours.\n- **HTTP/3** brille sur les réseaux **avec pertes** (mobile, Wi-Fi capricieux) grâce à l'absence de head-of-line blocking au transport et à la migration de connexion.\n\n👉 **Point important** : côté **conception d'API**, on raisonne **exactement pareil** quelle que soit la version (mêmes verbes, mêmes codes de statut, même sémantique). La version du protocole est un levier d'**infrastructure et de performance**, **transparent** pour le code de ton application.\n\n**Conséquence pratique** : on active HTTP/2 ou HTTP/3 au niveau du **reverse proxy ou du CDN**, et le backend n'a **rien à changer**. C'est un réglage d'exploitation, pas un chantier de développement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le gain est reel surtout sur mobile et reseaux instables : a mesurer selon votre contexte.",
+          "body": "/images/lessons/http2-et-http3-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Une application mobile souffre de coupures réseau (tunnels, changements Wi-Fi↔4G) qui interrompent les téléchargements. En quoi HTTP/3 (QUIC) aide-t-il, là où HTTP/2 (TCP) peine ?",
+          "solution": "QUIC (HTTP/3) supprime le head-of-line blocking au niveau transport (une perte de paquet n'affecte que le stream concerné, pas tous) et surtout gère la migration de connexion : un changement de réseau (Wi-Fi vers 4G, changement d'IP) ne casse pas la connexion QUIC, alors qu'une connexion TCP est liée au quadruplet IP/port et doit être rétablie (avec un nouveau handshake). Sur mobile instable, HTTP/3 réduit donc coupures et relances."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, HTTP/2 & HTTP/3",
+          "quizRef": "internet-http2-check"
+        }
+      ]
+    },
+    {
+      "slug": "diagnostic-et-outils-reseau",
+      "title": "Diagnostic & outils réseau",
+      "position": 7,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Décomposer la latence",
+          "body": "Reprenons le réflexe clé du diagnostic. Un expert ne dit jamais « c'est lent » ; il **attribue chaque milliseconde** à une phase précise du trajet. **Décomposer la latence**, c'est découper le temps total en morceaux, chacun avec sa cause possible :\n- la résolution **DNS** (traduire le nom en IP) ;\n- l'établissement **TCP** (la poignée de main) ;\n- la négociation **TLS** (mise en place du chiffrement) ;\n- le **TTFB** (*Time To First Byte*) : le temps de **traitement serveur** avant le premier octet de réponse ;\n- le **transfert** du corps de la réponse.\n\n👉 **Analogie** : c'est le travail d'un **médecin** qui ne se contente pas de « vous êtes fatigué », mais fait des analyses pour dire **quel organe** est en cause. Chaque phase est une analyse ciblée.\n\n**Ce que chaque phase révèle** : un TTFB élevé pointe le **backend ou la base** ; un temps de connexion élevé pointe le **réseau ou TLS** ; un DNS lent pointe la **résolution**. Ce réflexe évite de deviner et **dirige l'investigation au bon endroit** du premier coup, au lieu de perdre des heures à optimiser ce qui n'est pas le vrai coupable."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La latence totale se decompose (DNS, connexion, TLS, serveur, transfert) : mesurer chaque part pour cibler.",
+          "body": "/images/lessons/diagnostic-et-outils-reseau-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Chronométrer une requête avec curl",
+          "codeLanguage": "bash",
+          "body": "curl -s -o /dev/null -w \\\n  'dns=%{time_namelookup}s connect=%{time_connect}s tls=%{time_appconnect}s ttfb=%{time_starttransfer}s total=%{time_total}s\\n' \\\n  https://skillforge.dev/api/v1/roadmaps\n\n# Suivre la résolution DNS complète\ndig +trace skillforge.dev\n# Le chemin réseau jusqu'au serveur\ntraceroute skillforge.dev"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Cache HTTP & CORS : la mécanique",
+          "body": "Deux mécanismes qu'un backend doit absolument maîtriser, car ils sont sources de confusion.\n\n**Le cache HTTP** permet de **réutiliser une réponse** au lieu de la redemander, pour aller plus vite et soulager le serveur. Il repose sur des en-têtes :\n- `Cache-Control` fixe la **durée** de mise en cache et sa portée (`public` ou `private`) ;\n- `ETag` est une **empreinte de version** de la ressource ; le client la renvoie via `If-None-Match`, et si rien n'a changé le serveur répond **304 Not Modified** (« garde ta copie ») au lieu de tout renvoyer ;\n- `Vary` indique de **varier** le cache selon un en-tête (par ex. la langue).\n\n👉 **Analogie du cache** : plutôt que de redemander au bibliothécaire un livre que tu as déjà chez toi, tu vérifies juste « il y a une nouvelle édition ? ». S'il dit non (304), tu gardes la tienne.\n\n**CORS** (*Cross-Origin Resource Sharing*) encadre les appels d'un site web vers une **autre origine** (un autre domaine). Pour une requête « non simple », le navigateur envoie d'abord une requête **preflight** (« pré-vol ») `OPTIONS` pour **demander la permission** ; le serveur doit répondre avec les bons en-têtes `Access-Control-Allow-*`, sinon le navigateur **bloque** la vraie requête.\n\n👉 **Analogie de CORS** : c'est un **contrôle de passeport à la frontière** entre deux domaines. Avant de laisser passer, le garde (navigateur) demande une autorisation officielle (preflight) ; sans le bon visa (en-têtes du serveur), tu es refoulé.\n\n**Piège très fréquent** : « ça marche en curl mais pas dans le navigateur ». Normal : **curl n'applique ni CORS ni la politique du navigateur**, il n'est pas un navigateur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cache HTTP evite de re-telecharger ; CORS encadre les appels entre origines : deux mecaniques a maitriser.",
+          "body": "/images/lessons/diagnostic-et-outils-reseau-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Capturer et observer (niveau expert)",
+          "body": "Parfois, il faut voir **ce qui se passe vraiment sur le fil**, paquet par paquet. Deux familles d'outils.\n\n- **tcpdump** et **Wireshark** sont des **analyseurs de paquets** : ils **capturent** le trafic réseau brut pour l'inspecter. Utile pour élucider un handshake TLS douteux, une renégociation, ou des `reset` TCP (des connexions coupées brutalement).\n- Côté navigateur, l'**onglet réseau** affiche un **waterfall** (« cascade ») : chaque requête y est décomposée visuellement en DNS, connexion, TLS, attente (TTFB) et téléchargement. C'est l'outil numéro un pour diagnostiquer une page lente.\n\n👉 **Analogie** : tcpdump/Wireshark, c'est la **boîte noire d'un avion** : l'enregistrement détaillé de tout ce qui s'est passé, qu'on ressort pour comprendre un incident précis. Le waterfall, c'est le **tableau de bord** que tu regardes en vol.\n\n**Bonne pratique** : on se fixe un **budget de performance** (une cible chiffrée, par ex. « le 75e centile du temps de chargement doit rester sous 2 s ») et on **traque les écarts phase par phase**. Sans cible, on ne sait jamais si c'est « assez rapide »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Capturer le trafic (DevTools, curl, Wireshark) pour observer precisement ce qui circule.",
+          "body": "/images/lessons/diagnostic-et-outils-reseau-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un appel `fetch()` depuis votre front échoue avec une erreur CORS, alors que le même appel en `curl` fonctionne. Pourquoi cette différence, et que devez-vous configurer côté serveur ?",
+          "solution": "curl n'est pas un navigateur : il n'applique pas la politique CORS (ni les preflight OPTIONS). Le navigateur, lui, envoie une requête preflight OPTIONS pour une requête cross-origine non simple et bloque la vraie requête si le serveur ne renvoie pas les bons en-têtes. Côté serveur, il faut répondre au OPTIONS et aux requêtes avec Access-Control-Allow-Origin (l'origine exacte, jamais * avec credentials), -Methods, -Headers appropriés."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "Sources de référence pour approfondir : la **spec HTTP** (RFC 9110 sémantique, 9111 cache, 9112 HTTP/1.1, 9113 HTTP/2, 9114 HTTP/3), **TLS 1.3** (RFC 8446), **QUIC** (RFC 9000). Côté pédagogie : *High Performance Browser Networking* (Ilya Grigorik, disponible en ligne) pour tout le réseau web, et la documentation **MDN** (HTTP, CORS, cache) comme référence pratique du quotidien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le reseau et le web.",
+          "body": "/images/lessons/diagnostic-et-outils-reseau-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Internet (niveau expert)",
+          "quizRef": "internet-expert"
+        }
+      ]
+    }
+  ]
+}

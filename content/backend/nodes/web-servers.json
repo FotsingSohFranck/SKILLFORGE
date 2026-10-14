@@ -1,0 +1,292 @@
+{
+  "node": "web-servers",
+  "lessons": [
+    {
+      "slug": "role-du-serveur-web",
+      "title": "Le rôle du serveur web",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "En façade de votre application",
+          "body": "Quand tu tapes une adresse dans ton navigateur, ta machine envoie une **requête** (une demande) à un ordinateur distant, qui renvoie une **réponse** (la page, des données). Un **serveur web** est le logiciel qui **reçoit ces requêtes et renvoie des réponses**, en parlant **HTTP** (le langage du web).\n\nTrès souvent, on place devant l'application un serveur web particulier appelé **reverse proxy** (proxy inverse). Un **proxy**, c'est un **intermédiaire** qui se met entre deux parties et transmet les messages de l'une à l'autre. Le reverse proxy se tient donc **en façade**, à l'entrée : toutes les requêtes venues d'Internet passent d'abord par lui, et c'est lui qui les fait suivre à ton application. Les outils les plus connus sont **Nginx**, **Apache** et **Caddy**.\n\n👉 **Analogie** : le reverse proxy est le **portier / l'accueil** d'un immeuble d'entreprise. Personne n'entre voir un service directement : on passe d'abord par l'accueil, qui oriente vers le bon bureau et filtre les indésirables. Ton application travaille tranquillement à l'étage, protégée.\n\nCe portier rend plusieurs services d'un coup :\n- il **route** chaque requête, c'est-à-dire qu'il l'envoie vers le bon destinataire (par exemple `/api/...` vers ton application, le reste vers les fichiers du site) ;\n- il sert les **fichiers statiques** (les fichiers tout prêts qui ne changent pas à chaque visite : images, feuilles de style CSS, JavaScript, pages HTML) sans déranger l'application ;\n- il **termine le TLS**, c'est-à-dire qu'il gère le chiffrement **HTTPS** (le petit cadenas du navigateur : les données circulent codées, illisibles pour un espion) ;\n- il **équilibre la charge**, c'est-à-dire qu'il répartit les requêtes entre plusieurs copies de l'application (on appelle chaque copie une **instance**) quand une seule ne suffit plus.\n\n**Exemple concret** : sur cette plateforme, un Nginx reçoit tout le trafic en HTTPS, sert le site React, et transmet les appels commençant par `/api` au backend Java. Le backend, lui, ne parle qu'en HTTP simple sur un réseau interne, sans se soucier des certificats ni du monde extérieur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le serveur web est en facade de votre application : il recoit et oriente chaque requete.",
+          "body": "/images/lessons/role-du-serveur-web-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Forward proxy vs reverse proxy",
+          "body": "On vient de voir le **reverse proxy**. Il existe aussi le **forward proxy**, et on les confond facilement. La différence tient à **qui l'intermédiaire représente**.\n\nRappel : dans un échange web, le **client** est celui qui demande (ton navigateur, une appli mobile) ; le **serveur** est celui qui répond (l'application).\n\n- Un **forward proxy** (proxy « vers l'avant ») se place du côté du **client** et sort vers Internet **à sa place**. Les employés d'une entreprise, par exemple, passent tous par un forward proxy pour aller sur le web : il masque leur adresse, filtre les sites interdits, met en cache. Le site visité ne voit que le proxy, pas chaque employé.\n- Un **reverse proxy** (proxy « inverse ») se place du côté du **serveur** et reçoit les requêtes **à sa place**. Le client croit parler à un serveur unique, alors que le proxy distribue en coulisses vers plusieurs applications ou instances.\n\n👉 **Analogie** : le forward proxy est le **standard téléphonique sortant** d'une société (tous les appels du personnel partent par ce numéro unique). Le reverse proxy est le **standard entrant** : tu composes un seul numéro, une hôtesse décroche et te bascule vers le bon poste, sans que tu saches combien de personnes travaillent derrière.\n\nEn backend, on parle presque toujours de **reverse proxy**. **Exemple concret** : sur cette plateforme, Nginx est un reverse proxy : `/api` part vers le backend, tout le reste sert la **SPA** (*Single Page Application*, l'application web qui tient en une seule page et se réaffiche côté navigateur, ici le front React). De l'extérieur, on ne voit qu'une seule adresse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Forward proxy (sortant, cote client) vs reverse proxy (entrant, cote serveur) : deux roles opposes.",
+          "body": "/images/lessons/role-du-serveur-web-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Vue d'ensemble : le proxy en façade",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    C[\"Client (navigateur)\"] -->|\"HTTPS (TLS)\"| P[\"Reverse proxy (Nginx)\"]\n    P -->|\"/api/...\"| B[\"Backend (application)\"]\n    P -->|\"autres routes\"| S[\"SPA / fichiers statiques (HTML, CSS, JS)\"]\n    B --> D[(\"Base de donnees\")]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Pourquoi terminer le TLS au niveau du reverse proxy plutôt que dans chaque instance applicative ?",
+          "solution": "Centraliser la terminaison TLS au proxy simplifie la gestion des certificats (un seul endroit à renouveler), décharge les applications du coût du chiffrement, et permet à ces dernières de parler HTTP en interne (réseau privé). On sécurise au bord, une fois, au lieu de dupliquer la configuration TLS partout."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Le rôle du serveur web",
+          "quizRef": "web-servers-role-check"
+        }
+      ]
+    },
+    {
+      "slug": "equilibrage-de-charge",
+      "title": "Équilibrage de charge",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Répartir vers plusieurs instances",
+          "body": "Une seule copie de ton application a une limite : au-delà d'un certain nombre de visiteurs **simultanés**, elle sature (réponses lentes, voire plantage). La **charge**, c'est justement cette quantité de travail à traiter à un instant donné (le nombre de requêtes qui arrivent en même temps).\n\nLa parade : lancer **plusieurs instances** de l'application (plusieurs copies identiques qui tournent en parallèle) et mettre devant elles un **équilibreur de charge** (*load balancer*). Son rôle : recevoir chaque requête et l'**envoyer à l'une des instances**, en **répartissant** le travail pour qu'aucune ne soit débordée pendant que les autres se tournent les pouces. Ce rôle est souvent tenu par le reverse proxy lui-même, ou par un équilibreur dédié.\n\n👉 **Analogie** : c'est l'**hôte à l'entrée d'un restaurant** avec plusieurs serveurs. Plutôt que d'envoyer tous les clients au même serveur, il les répartit entre ceux qui sont libres. Le repas arrive plus vite, personne n'est submergé.\n\nComment choisit-il l'instance ? Selon une règle simple, par exemple le **round-robin** (chacun son tour : instance 1, puis 2, puis 3, puis on recommence), ou « vers la moins chargée ». L'équilibreur surveille aussi la santé des instances grâce à des **health checks** (contrôles de santé : il interroge régulièrement chaque instance pour vérifier qu'elle répond ; si l'une ne répond plus, il **arrête de lui envoyer du trafic**).\n\n**Exemple concret** : tu passes de 1 à 3 instances derrière Nginx. Le trafic est divisé par trois sur chaque copie, et si l'instance 2 tombe en panne, Nginx la détecte et route uniquement vers 1 et 3, sans que l'utilisateur voie quoi que ce soit. C'est le socle de la **haute disponibilité** (le service reste debout même si une machine tombe) et du **scale horizontal** (grandir en ajoutant des machines, plutôt qu'en grossissant une seule)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'equilibrage de charge repartit le trafic vers plusieurs instances de l'application.",
+          "body": "/images/lessons/equilibrage-de-charge-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Sans état, la condition du scale (niveau expert)",
+          "body": "L'équilibrage ne fonctionne que si l'application est **sans état** (*stateless*). « Sans état » veut dire que le serveur **ne garde en mémoire aucune information propre à un utilisateur entre deux requêtes** : chaque requête se suffit à elle-même. Du coup **n'importe quelle instance peut traiter n'importe quelle requête**, ce qui est exactement ce dont l'équilibreur a besoin pour répartir librement.\n\nLe contre-exemple classique est la **session en mémoire locale**. Une **session**, c'est l'ensemble des infos qu'un serveur retient sur un utilisateur connecté (par exemple « cet utilisateur est authentifié », le contenu de son panier). Si l'instance 1 garde cette session **dans sa propre mémoire**, l'utilisateur est **collé** à l'instance 1 : envoyé sur l'instance 2, celle-ci ne le connaît pas, et il se retrouve déconnecté au hasard.\n\n👉 **Analogie** : un guichet où **un seul employé** connaît ton dossier, parce qu'il l'a gardé dans son tiroir. S'il est absent, personne ne peut te servir. Un service sans état, c'est un dossier rangé dans une **archive commune** que tout employé peut consulter : peu importe qui te reçoit.\n\nDeux façons de régler ça :\n- le **sticky session** (session « collante ») : l'équilibreur renvoie toujours le même utilisateur vers la même instance. Ça marche, mais c'est un **pansement** : si l'instance tombe, la session est perdue, et la répartition devient inégale.\n- le vrai remède : **externaliser l'état** hors des instances, dans une base de données, un cache partagé (comme Redis), ou dans un **jeton stateless** (un jeton, type JWT, que le client renvoie à chaque requête et qui contient lui-même l'info d'identité : le serveur n'a rien à mémoriser).\n\n**Exemple concret** : sur cette plateforme, l'authentification repose sur des **JWT** (jetons stateless). Aucune instance ne stocke la session en mémoire, donc on peut en ajouter ou en retirer sans jamais déconnecter personne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le sans-etat est la condition du scale : n'importe quelle instance peut traiter n'importe quelle requete.",
+          "body": "/images/lessons/equilibrage-de-charge-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un équilibreur envoie du trafic à 3 instances, mais une instance en panne continue de recevoir des requêtes qui échouent. Que manque-t-il à la configuration ?",
+          "solution": "Des health checks : l'équilibreur doit sonder régulièrement chaque instance (endpoint de santé) et retirer du pool celles qui ne répondent pas, pour ne router que vers les instances saines. Sans health check, il continue d'envoyer du trafic à une instance morte."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Équilibrage de charge",
+          "quizRef": "web-servers-charge-check"
+        }
+      ]
+    },
+    {
+      "slug": "choisir-et-servir",
+      "title": "Nginx, Apache, Caddy",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Trois options",
+          "body": "Plusieurs serveurs web peuvent jouer ce rôle de façade. Les trois plus courants :\n\n- **Nginx** (prononcé « engine-X ») : très **performant** et **léger** (il consomme peu de ressources), c'est le **standard** aujourd'hui pour faire reverse proxy et servir des fichiers statiques. 👉 **Analogie** : le portier **sobre et ultra-rapide**, qui gère une foule sans transpirer.\n- **Apache** (Apache HTTP Server, souvent appelé *httpd*) : le vétéran, présent depuis les années 1990. Très **configurable** grâce à ses **modules** (des greffons qu'on active pour ajouter des fonctions), il reste très répandu.\n- **Caddy** : le plus **moderne**, dont l'atout est le **HTTPS automatique** : il obtient et renouvelle tout seul les certificats via **Let's Encrypt** (une autorité gratuite qui délivre les certificats HTTPS). 👉 **Analogie** : le portier « clé en main » qui installe le cadenas HTTPS à ta place, sans que tu aies à y penser.\n\nTous rendent le **même** service de façade (router, servir le statique, terminer le TLS, équilibrer). On choisit selon la **performance** voulue, l'**écosystème** (outils et modules disponibles) et la **simplicité** de mise en route.\n\n**Exemple concret** : pour un projet perso à monter vite avec HTTPS, Caddy en quelques lignes de config suffit. Pour une plateforme de production qui doit encaisser beaucoup de trafic, Nginx est le choix par défaut, comme ici."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois options courantes : Nginx, un reverse proxy cloud, ou servir depuis l'app selon le besoin.",
+          "body": "/images/lessons/choisir-et-servir-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Servir un SPA + une API",
+          "body": "Le cas le plus fréquent en backend web (et celui de cette plateforme) : un seul serveur web sert à la fois le **front** et le **back**.\n\nRappel : une **SPA** (*Single Page Application*, application en une seule page) est un site dont le navigateur charge une fois pour toutes le code (HTML, CSS, JavaScript), puis **réaffiche les pages lui-même** sans tout redemander au serveur ; c'est un **routeur côté client** (du code JavaScript) qui décide quoi montrer selon l'adresse. Une **API** (*Application Programming Interface*) est la porte d'entrée du backend : les URL en `/api/...` par lesquelles le front demande ou envoie des **données**.\n\nLe serveur web fait donc deux choses :\n- il **sert les fichiers statiques** de la SPA (le HTML, le CSS, le JS du front) ;\n- il **proxifie `/api`** vers le backend (il transmet ces requêtes à l'application).\n\nIl faut aussi un **fallback SPA** (repli) : **toute route inconnue renvoie le fichier `index.html`** (le point d'entrée de la SPA). Pourquoi ? Parce qu'une adresse comme `/profil` n'existe pas comme fichier sur le serveur : c'est une page « virtuelle » gérée par le routeur côté client. Sans repli, rafraîchir cette page donnerait une erreur **404** (page introuvable).\n\n👉 **Analogie** : le fallback, c'est le **standard qui, faute de savoir à quel bureau te brancher, te renvoie toujours à l'accueil** (`index.html`), lequel sait, lui, où tu veux aller.\n\nEnfin, le serveur ajoute uniformément des **en-têtes de sécurité** (des lignes d'information jointes à chaque réponse HTTP, qui durcissent le comportement du navigateur, par exemple pour forcer le HTTPS ou bloquer certains scripts).\n\n**Exemple concret** en Nginx : `location /api { proxy_pass http://backend; }` pour l'API, et `try_files $uri /index.html;` pour renvoyer `index.html` quand le fichier demandé n'existe pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Servir un SPA (fichiers statiques) ET une API : le proxy route selon l'URL.",
+          "body": "/images/lessons/choisir-et-servir-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un SPA React renvoie 404 quand on rafraîchit une page profonde comme /profile, alors que la navigation interne marche. Que faut-il configurer côté serveur web ?",
+          "solution": "Le fallback SPA : configurer le serveur web pour renvoyer index.html sur toute route non trouvée (try_files ... /index.html en Nginx). Le routeur côté client prend alors le relais. Sans ce fallback, /profile n'existe pas comme fichier sur le serveur → 404 au rafraîchissement direct."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Serveurs web",
+          "quizRef": "web-servers-check"
+        }
+      ]
+    },
+    {
+      "slug": "equilibrage-modele-concurrence",
+      "title": "Algorithmes d'équilibrage & modèle de concurrence",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L4 vs L7 : à quel niveau on répartit",
+          "body": "Un équilibreur peut travailler à **deux niveaux**, qui correspondent à des **couches** du réseau (le trafic Internet est organisé en couches empilées, chacune ajoutant de l'information par-dessus la précédente).\n\n- En **couche 4** (dite **transport**, le niveau de **TCP/UDP**, les protocoles qui acheminent les paquets) : l'équilibreur route selon l'**adresse IP** et le **port** (le numéro qui identifie un service sur une machine), **sans regarder le contenu** du message. C'est très **rapide**, mais « aveugle » : il ne sait pas si la requête réclame une image ou l'API.\n- En **couche 7** (dite **application**, le niveau de **HTTP**, le langage du web) : l'équilibreur **lit** la requête (l'**URL**, les **en-têtes**, les **cookies**, ces petits fichiers d'identification déposés par le navigateur) et peut donc router **finement** (`/api` vers le back, `/` vers le front), terminer le TLS, réécrire des adresses, mettre en cache.\n\n👉 **Analogie** : la couche 4, c'est un **centre de tri postal qui lit juste le code postal** sur l'enveloppe et l'expédie vite fait, sans l'ouvrir. La couche 7, c'est **ouvrir la lettre pour la router selon son contenu** : plus lent, mais bien plus malin.\n\nLa plupart des reverse proxies (dont Nginx) font du **L7**. **Exemple concret** : on prend du **L4** pour la pure vitesse ou pour des protocoles non-HTTP, et du **L7** pour l'intelligence de routage, souvent **les deux empilés** (un L4 devant plusieurs L7)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L4 (TCP) vs L7 (HTTP) : a quel niveau on repartit change ce qu'on peut decider.",
+          "body": "/images/lessons/equilibrage-modele-concurrence-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les algorithmes de répartition",
+          "body": "Répartir n'est pas qu'un simple « chacun son tour ». Un **algorithme d'équilibrage** est la **règle** qui décide vers quelle instance part chaque requête. Les principaux :\n\n- **Round-robin** (« tourniquet », chacun son tour) : instance 1, 2, 3, puis on recommence. Simple, mais il **ignore la charge réelle** (une instance peut hériter de requêtes lourdes et souffrir quand même).\n- **Least connections** (« vers la moins occupée ») : la requête part vers l'instance qui a le **moins de connexions en cours**. Meilleur quand les requêtes ont des **durées inégales**.\n- **IP hash / hash de clé** : on calcule un nombre (un **hash**) à partir de l'IP du client, ce qui envoie **toujours le même client vers la même instance**. Utile pour profiter d'un cache local, ou en dépannage de sticky session.\n- **Weighted** (« pondéré ») : on donne **plus de trafic aux instances plus puissantes** (poids 3 contre poids 1).\n- **Consistent hashing** (« hachage cohérent ») : répartir par clé en **minimisant les réaffectations** quand une instance entre ou sort du pool (sinon, ajouter une machine rebrasserait toutes les clés).\n\n👉 **Analogie** : le round-robin distribue les cartes **une par joueur dans l'ordre** ; le least connections **sert d'abord celui qui a fini son assiette** ; l'IP hash **assigne à chaque habitué son serveur attitré**.\n\n**Exemple concret** : pour une API où les requêtes durent à peu près pareil, round-robin suffit. Pour des traitements très inégaux (certaines requêtes longues), least connections évite qu'une instance se retrouve avec toutes les lourdes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Round-robin, least-connections, hash : les algorithmes de repartition selon la charge.",
+          "body": "/images/lessons/equilibrage-modele-concurrence-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Pourquoi Nginx tient des dizaines de milliers de connexions",
+          "body": "La performance d'un serveur tient à son **modèle de concurrence** : sa façon de traiter **plusieurs requêtes en même temps**.\n\n- **Un thread (ou process) par requête** (l'Apache *prefork* classique). Un **thread** est une « ligne d'exécution » du programme, une main qui fait une tâche ; il occupe de la mémoire (sa **pile**). Cette approche est **simple** mais **coûteuse** : chaque connexion mobilise un thread. Des **milliers** de connexions **lentes** (qui attendent le réseau sans rien faire) immobilisent des milliers de threads et **épuisent la mémoire**. C'est le fameux **problème C10k** (« tenir 10 000 connexions simultanées »).\n- **Événementiel non bloquant** (Nginx, et aussi **Netty/WebFlux** côté application ici). « Non bloquant » veut dire qu'une opération qui attend (le réseau, le disque) **ne fige pas** le thread : celui-ci part servir une autre connexion en attendant. Une **boucle d'événements** (*event loop*) surveille toutes les connexions et ne déclenche du travail que quand il y a **réellement** quelque chose à faire. Résultat : **peu** de threads gèrent **des milliers** de connexions.\n\n👉 **Analogie** : un thread par requête, c'est **un serveur de restaurant assigné à une seule table** qui reste planté pendant que les clients lisent le menu, il en faudrait des centaines. L'event loop, c'est **un seul serveur agile** qui fait le tour et n'intervient à une table que quand elle est prête à commander.\n\n**Exemple concret** : c'est la même philosophie **réactive**, du proxy jusqu'à l'app. Nginx encaisse des dizaines de milliers de connexions clientes avec une poignée de workers, et derrière, WebFlux traite ses requêtes sur un petit nombre de threads, sans en dédier un par utilisateur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Pourquoi Nginx tient des dizaines de milliers de connexions : un modele evenementiel, pas un thread par client.",
+          "body": "/images/lessons/equilibrage-modele-concurrence-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Keep-alive & pool vers l'upstream (niveau expert)",
+          "body": "Deux réglages invisibles en développement décident de la tenue en charge réelle.\n\nD'abord le **keep-alive** (« garder en vie »). Chaque échange web passe par une **connexion TCP** (le « tuyau » établi entre client et serveur avant d'échanger des données). Ouvrir ce tuyau coûte des allers-retours réseau (et, en HTTPS, un **handshake TLS**, la négociation du chiffrement, encore plus coûteuse). Le keep-alive **réutilise la même connexion** pour plusieurs requêtes au lieu d'en rouvrir une à chaque fois.\n\n👉 **Analogie** : au lieu de **raccrocher et rappeler** à chaque phrase, tu **gardes la ligne ouverte** le temps de toute la conversation.\n\nEnsuite, le proxy parle à ton application, qu'on appelle l'**upstream** (« en amont » : le serveur situé derrière le proxy, vers lequel il transmet). Le proxy doit maintenir un **pool** (une réserve) de connexions keep-alive **vers cet upstream**, sinon il rouvre une connexion TCP à chaque requête proxifiée, ce qui gaspille du temps.\n\nEnfin, régler les **timeouts** (délais d'expiration : le temps maximum qu'on accepte d'attendre) sur la connexion, la lecture, l'envoi. Un backend lent ne doit pas laisser les connexions **s'accumuler** au bord jusqu'à saturation.\n\n**Exemple concret** : sans pool keep-alive vers l'upstream, un proxy très sollicité passe son temps à ouvrir puis fermer des connexions TCP vers le backend, ce qui ajoute de la latence à chaque requête pour rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Keep-alive et pool vers l'upstream : reutiliser les connexions evite de tout rouvrir.",
+          "body": "/images/lessons/equilibrage-modele-concurrence-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un serveur avec un modèle « un thread par connexion » s'effondre sous 10 000 connexions clientes majoritairement lentes/inactives (long-polling), alors que le CPU est peu utilisé. Comment nomme-t-on ce problème, et quel modèle de concurrence le résout ?",
+          "solution": "C'est le problème C10k : avec un thread (ou process) par connexion, 10 000 connexions = 10 000 threads, chacun consommant de la mémoire de pile et du coût de contexte, alors même qu'ils passent leur temps à attendre (connexions lentes/inactives). On épuise la mémoire et l'ordonnanceur bien avant le CPU. Solution : un modèle événementiel non bloquant (event loop, comme Nginx ou Netty/WebFlux), où un petit nombre de threads gère des milliers de connexions ; une connexion en attente ne monopolise pas de thread. C'est exactement pourquoi une pile réactive tient beaucoup de connexions concurrentes avec peu de ressources."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Algorithmes & modèle de concurrence",
+          "quizRef": "web-servers-concurrence-check"
+        }
+      ]
+    },
+    {
+      "slug": "proxy-performance-securite",
+      "title": "Le proxy comme couche de performance & sécurité",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "TLS au bord : terminaison, passthrough, mTLS",
+          "body": "Le proxy, étant à l'entrée, est l'endroit idéal pour gérer le **TLS** (le protocole qui chiffre HTTPS, avec ses **certificats**, ces cartes d'identité numériques qui prouvent qu'un site est bien lui-même).\n\nDeux façons de le traiter :\n- **Terminaison TLS** : le proxy **déchiffre au bord** puis parle **HTTP en clair** en interne (sur un réseau privé). Simple, et ça **centralise les certificats** (un seul endroit à gérer). C'est le choix courant.\n- **Passthrough** (« laisser passer ») : le proxy relaie le TLS **encore chiffré** jusqu'au backend, quand le chiffrement de **bout en bout** est exigé.\n\n👉 **Analogie** : la terminaison, c'est **ouvrir le courrier à la réception** et faire circuler la note en clair dans les bureaux (réseau de confiance) ; le passthrough, c'est **transmettre l'enveloppe scellée** jusqu'au destinataire final.\n\nAu bord, on active aussi côté client des versions modernes du protocole : **HTTP/2** et **HTTP/3**, qui font du **multiplexage** (faire passer **plusieurs requêtes en parallèle dans une seule connexion**, au lieu de les mettre à la queue) et réduisent la latence, même si le backend reste en HTTP/1.1. Autres réglages TLS : l'**OCSP stapling** (le serveur joint lui-même la preuve que son certificat n'est pas révoqué, ce qui évite au navigateur d'aller la chercher) et l'**ALPN** (la négociation, dès la poignée de main, de la version de protocole à utiliser).\n\nEnfin, pour une sécurité interne dite **zero-trust** (« ne faire confiance à personne par défaut », même à l'intérieur du réseau), le **mTLS** (*mutual TLS*, TLS mutuel) fait que **les deux côtés présentent un certificat** : le service appelé vérifie l'appelant, et réciproquement.\n\n**Exemple concret** : Nginx termine le TLS en façade, propose HTTP/2 au navigateur, et transmet au backend Java en simple HTTP sur le réseau Docker interne, sans lui imposer la charge du chiffrement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "TLS au bord : terminaison (dechiffrer la), passthrough (laisser passer) ou mTLS (double authentification).",
+          "body": "/images/lessons/proxy-performance-securite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Décharger l'application : compression & cache",
+          "body": "Le proxy peut **soulager** l'application de tâches transversales (les mêmes pour tout le monde), qu'il vaut mieux faire **une fois au bord**.\n\n- La **compression** : réduire la taille des réponses avant de les envoyer, en les codant plus compactement (le navigateur les décompresse à l'arrivée). Les algorithmes courants sont **gzip** et **brotli**. Sur du texte (JSON, HTML, JavaScript), le gain est énorme : une réponse peut être **divisée par 5 ou plus**, donc arriver bien plus vite. 👉 **Analogie** : plutôt que d'expédier un pull étalé, tu le **compresses sous vide** pour un colis plus petit.\n- Le **cache de proxy** (`proxy_cache`) : **mémoriser** les réponses qui peuvent l'être et les **resservir directement**, sans redéranger le backend. Le proxy s'appuie sur les **en-têtes HTTP** dédiés : **`Cache-Control`** (qui indique combien de temps une réponse reste valable) et **`ETag`** (une étiquette qui identifie une version de la ressource, pour savoir si elle a changé), vus au nœud sur les APIs. 👉 **Analogie** : l'accueil garde une **pile de brochures déjà imprimées** ; tant qu'elles sont à jour, il les distribue sans rien redemander à l'imprimerie.\n\n**Exemple concret** : le backend ne voit alors plus que le trafic **non cachable et non compressible**, c'est-à-dire une **fraction** du total. Le reste est absorbé au bord, ce qui allège l'application et accélère l'utilisateur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Decharger l'application : compression et cache au niveau du proxy, pas dans le code.",
+          "body": "/images/lessons/proxy-performance-securite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Protéger le backend au bord",
+          "body": "Le bord est le bon endroit pour la **défense périmétrique** : arrêter les abus **avant** qu'ils n'atteignent ton code.\n\n- **Rate limiting** (limitation de débit) : **plafonner le nombre de requêtes** par IP ou par clé sur une période (par exemple 10 requêtes par seconde). Au-delà, le proxy refuse, ce qui contient les abus et certaines attaques. 👉 **Analogie** : le videur qui **laisse entrer un nombre limité de personnes par minute** pour ne pas engorger la salle.\n- **Limitation de la taille des corps** : refuser les requêtes dont le **corps** (le *body*, la charge de données envoyée, par exemple un fichier uploadé) dépasse une taille maximale, pour contrer les envois abusifs.\n- **Timeouts** et **buffering des clients lents** : le **buffering** consiste à **encaisser toute la requête d'un client lent** au niveau du proxy, **avant** de solliciter le backend d'un coup. Un backend réactif est ainsi protégé des connexions qui traînent.\n- **En-têtes de sécurité** ajoutés uniformément à toutes les réponses (voir la leçon dédiée côté front).\n- Souvent, un **WAF** (*Web Application Firewall*, pare-feu applicatif web) : un filtre qui **inspecte les requêtes** et bloque les schémas d'attaque connus (injections, etc.), placé devant l'application.\n\n👉 **Le principe** : une couche de protection **avant** le code réduit sa **surface d'exposition** (tout ce par quoi on pourrait l'attaquer).\n\n**Exemple concret** : un `limit_req` Nginx réglé à 20 requêtes par seconde et par IP absorbe une petite attaque par déni de service sans que le backend Java ne reçoive une seule des requêtes en excès."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Proteger le backend au bord : rate limiting, filtrage, limites de taille.",
+          "body": "/images/lessons/proxy-performance-securite-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Recharger sans couper & observer (niveau expert)",
+          "body": "Deux atouts du proxy en production.\n\nD'abord, **modifier la configuration sans interrompre le trafic**. Nginx tourne avec plusieurs **workers** (des processus ouvriers qui traitent les connexions). Un **reload gracieux** (`nginx -s reload`) démarre de **nouveaux** workers avec la nouvelle config, et laisse les **anciens finir** les requêtes déjà en cours avant de s'arrêter. Résultat : **zéro coupure**, même pendant un changement.\n\n👉 **Analogie** : en cuisine, on **fait entrer l'équipe du soir** pendant que celle du midi **termine ses dernières tables** ; le service ne s'arrête jamais.\n\nEnsuite, le proxy est un **point d'observation** de choix, car **tout** passe par lui. Ses **access logs** (journaux d'accès : une ligne par requête, avec le **statut** HTTP renvoyé, la **latence**, l'**upstream** contacté, le temps de réponse) alimentent les **métriques** et le **taux d'erreur** (la proportion de réponses en échec) **au plus près du client**. C'est souvent la **première** source pour repérer une dégradation, avant même les logs de l'application.\n\n**Exemple concret** : une hausse soudaine de réponses `502` dans les access logs du proxy signale un backend en difficulté **immédiatement**, avant que l'utilisateur ne se plaigne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Recharger la config sans couper le service, et observer le trafic en continu.",
+          "body": "/images/lessons/proxy-performance-securite-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Votre backend réactif (WebFlux) est parfois saturé par des clients très lents qui envoient leur requête octet par octet, monopolisant des ressources côté application. Comment un reverse proxy en façade peut-il protéger le backend ?",
+          "solution": "Le reverse proxy peut faire du buffering des requêtes : il encaisse entièrement la requête d'un client lent (avec ses propres timeouts et limites de taille) AVANT de la transmettre au backend en une fois, rapidement. Le backend n'est donc sollicité que par des requêtes complètes et rapides, jamais exposé au rythme d'un client traînant. On complète par des timeouts (read/send) et du rate limiting au bord pour écarter les connexions abusives. Le proxy absorbe la lenteur du réseau côté client, laissant l'application réactive traiter des requêtes propres : c'est une division du travail classique entre le bord et l'app."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : documentation **Nginx** (reverse proxy, upstream/keep-alive, proxy_cache, limit_req, gzip, http2/http3) et le livre *Nginx HTTP Server* ; l'article fondateur sur le **problème C10k** (Dan Kegel) ; *High Performance Browser Networking* (Ilya Grigorik, gratuit : TLS, HTTP/2, HTTP/3, latence) ; la doc **HAProxy** (référence du load balancing L4/L7) et **Envoy** (proxy moderne, base des service meshes) ; les guides OWASP sur les WAF et le durcissement du reverse proxy."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les serveurs web.",
+          "body": "/images/lessons/proxy-performance-securite-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Serveurs web (niveau expert)",
+          "quizRef": "web-servers-expert"
+        }
+      ]
+    }
+  ]
+}

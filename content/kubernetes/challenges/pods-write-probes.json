@@ -1,0 +1,10 @@
+{
+  "node": "pods",
+  "lesson": "cycle-de-vie-et-probes",
+  "title": "Déclarer une readiness et une liveness probe",
+  "statement": "Complète la spec d'un conteneur nommé `api` (image `monorg/api:1.4.0`, port `8080`) pour qu'il déclare deux sondes de santé HTTP :\n- une **readinessProbe** qui interroge l'URL `/health/ready` sur le port `8080`, toutes les 10 secondes ;\n- une **livenessProbe** qui interroge l'URL `/health/live` sur le port `8080`, toutes les 10 secondes.\n\nRappel : `readiness` = « puis-je recevoir du trafic ? » (sinon retiré du Service), `liveness` = « suis-je vivant ? » (sinon redémarré).",
+  "skeleton": "spec:\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      ports:\n        - containerPort: 8080\n      # ajoute ici la readinessProbe puis la livenessProbe\n",
+  "solution": "spec:\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      ports:\n        - containerPort: 8080\n      readinessProbe:\n        httpGet:\n          path: /health/ready\n          port: 8080\n        periodSeconds: 10\n      livenessProbe:\n        httpGet:\n          path: /health/live\n          port: 8080\n        periodSeconds: 10",
+  "keyPoints": ["readinessProbe", "livenessProbe", "httpGet", "/health/ready", "/health/live", "port: 8080", "periodSeconds: 10"],
+  "language": "yaml"
+}

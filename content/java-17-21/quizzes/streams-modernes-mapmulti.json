@@ -1,0 +1,41 @@
+{
+  "ref": "streams-modernes-mapmulti",
+  "node": "streams-modernes",
+  "lesson": "mapmulti",
+  "title": "Quiz : mapMulti",
+  "description": "Produire zéro, un ou plusieurs éléments et comparaison avec flatMap.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans mapMulti, comment pousse-t-on un élément dans le flux de sortie ?",
+      "justification": "mapMulti fournit un consommateur sur lequel on appelle accept(...) pour pousser chaque élément de sortie, au lieu de renvoyer un stream comme flatMap.",
+      "position": 0,
+      "options": [
+        { "label": "En appelant push.accept(element)", "correct": true, "position": 0 },
+        { "label": "En renvoyant un nouveau Stream", "correct": false, "position": 1 },
+        { "label": "En appelant return element", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec mapMulti, une entrée peut produire zéro, un ou plusieurs éléments de sortie.",
+      "justification": "Vrai : zéro appel à accept (comme un filter), un appel (comme un map) ou plusieurs appels (comme un flatMap). C'est toute sa souplesse.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi mapMulti peut-il être plus efficace que flatMap ?",
+      "justification": "flatMap crée un stream intermédiaire par entrée ; mapMulti pousse directement les éléments dans le consommateur, sans fabriquer ce stream intermédiaire à chaque entrée.",
+      "position": 2,
+      "options": [
+        { "label": "Il évite de créer un stream intermédiaire pour chaque entrée", "correct": true, "position": 0 },
+        { "label": "Il supprime l'opération terminale", "correct": false, "position": 1 },
+        { "label": "Il trie les éléments automatiquement", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

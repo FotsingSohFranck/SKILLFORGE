@@ -1,0 +1,96 @@
+{
+  "ref": "event-sourcing-ops-expert-check",
+  "node": "event-sourcing-cqrs",
+  "lesson": "projections-snapshots-versioning",
+  "title": "Quiz, Projections, snapshots & versioning (expert)",
+  "description": "Projections, snapshots, versioning/upcasting, cohérence à terme UI.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une projection en Event Sourcing ?",
+      "justification": "Un modèle de lecture dérivé, mis à jour en écoutant les événements ; reconstructible à tout moment en rejouant l'historique (le côté read de CQRS).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un modèle de lecture dérivé des événements, reconstructible par rejeu",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La source de vérité du système",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un snapshot de la base entière",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un snapshot ?",
+      "justification": "Sauvegarder l'état courant d'un agrégat comme point de reprise pour ne rejouer que les événements survenus depuis, une optimisation, pas la source de vérité.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Éviter de rejouer tout l'historique en repartant d'un état sauvegardé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Remplacer définitivement le journal d'événements",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les vieux événements",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment faire évoluer la structure d'un événement dont des millions d'exemplaires immuables existent ?",
+      "justification": "Versioning + upcasting : transformer à la lecture un ancien événement (V1) vers la forme attendue (V2) ; on ne réécrit jamais le passé, on le traduit.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Versionner et faire de l'upcasting à la lecture",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Réécrire tous les anciens événements en base",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les anciens événements",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après une écriture, une projection de lecture peut être légèrement en retard, d'où l'intérêt du read-your-writes et des mises à jour optimistes côté UI.",
+      "justification": "Vrai : la cohérence à terme entre write et read impose de concevoir l'UX pour ce délai, sous peine de bugs déroutants (« j'ai payé mais ça n'apparaît pas »).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

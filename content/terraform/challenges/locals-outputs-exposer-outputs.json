@@ -1,0 +1,10 @@
+{
+  "node": "locals-outputs",
+  "lesson": "outputs-et-sensitive",
+  "title": "Exposer une URL et masquer un mot de passe",
+  "statement": "Écris deux blocs `output`. (1) `load_balancer_url` : il doit avoir une `description` (l'URL publique de l'application) et un `value` valant `aws_lb.main.dns_name`. (2) `db_password` : son `value` vaut `aws_db_instance.main.password`, et il doit être marqué comme sensible avec `sensitive = true` pour que Terraform ne l'affiche pas en clair dans la CLI et les logs. Rappelle-toi : `sensitive` masque seulement l'affichage, la valeur reste en clair dans le state.",
+  "skeleton": "output \"load_balancer_url\" {\n\n}\n\noutput \"db_password\" {\n\n}",
+  "solution": "output \"load_balancer_url\" {\n  description = \"URL publique de l'application\"\n  value       = aws_lb.main.dns_name\n}\n\noutput \"db_password\" {\n  value     = aws_db_instance.main.password\n  sensitive = true\n}",
+  "keyPoints": ["output \"load_balancer_url\"", "description", "value       = aws_lb.main.dns_name", "output \"db_password\"", "aws_db_instance.main.password", "sensitive = true"],
+  "language": "hcl"
+}

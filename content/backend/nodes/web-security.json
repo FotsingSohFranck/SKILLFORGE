@@ -1,0 +1,367 @@
+{
+  "node": "web-security",
+  "lessons": [
+    {
+      "slug": "https-et-transport",
+      "title": "HTTPS & transport",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Chiffrer, toujours",
+          "body": "Quand ton navigateur parle à un serveur, les deux s'échangent des messages qui traversent des dizaines d'équipements réseau (box, routeurs, wifi du café). Avec **HTTP** simple (le protocole du web, sans sécurité), tout ce trafic circule **en clair** : identifiants, mots de passe, jetons de session, données personnelles. N'importe quel intermédiaire sur le chemin peut le **lire** ou le **modifier**.\n\n👉 **Analogie** : envoyer du HTTP simple, c'est écrire sur une **carte postale**. Tous ceux par qui elle transite (le facteur, le centre de tri) peuvent lire le message au passage. Le **HTTPS**, c'est la même carte glissée dans une **enveloppe scellée** et infalsifiable.\n\nLe « S » de HTTPS, c'est **TLS** (*Transport Layer Security*, l'ancien « SSL »). TLS est une couche de sécurité qui fait deux choses : elle **chiffre** le canal (personne ne peut lire ce qui passe) et elle **authentifie** le serveur, c'est-à-dire qu'elle prouve que tu parles bien au vrai `ma-banque.com` et pas à un imposteur. Cette preuve repose sur un **certificat** : une carte d'identité numérique du serveur, signée par une autorité de confiance que ton navigateur reconnaît.\n\nSans chiffrement, un attaquant placé entre toi et le serveur (attaque dite *man-in-the-middle*, « l'homme du milieu ») peut tout intercepter. **Exemple concret** : sur le wifi ouvert d'un aéroport, un voisin malveillant peut lire en clair le mot de passe que tu envoies à un site en HTTP simple. En HTTPS, il ne voit qu'un flux chiffré inexploitable.\n\nPour une API, HTTPS est un **prérequis**, jamais une option. On force la **redirection** de HTTP vers HTTPS (toute visite en `http://` est renvoyée vers `https://`) et on active **HSTS** (*HTTP Strict Transport Security*, un en-tête de réponse qui ordonne au navigateur : « pour ce site, n'utilise plus jamais que HTTPS »), ce qui interdit toute **rétrogradation** vers du HTTP non chiffré."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chiffrer toujours : HTTPS protege les donnees en transit contre l'ecoute et l'alteration.",
+          "body": "/images/lessons/https-et-transport-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ce que TLS protège (et ce qu'il ne protège pas)",
+          "body": "Il est essentiel de comprendre la **limite** de TLS, car beaucoup croient à tort que « le site est en HTTPS, donc il est sécurisé ». C'est faux.\n\nTLS protège les données **en transit** : c'est-à-dire pendant leur **voyage** sur le réseau, entre le navigateur et le serveur. Il empêche l'écoute (lecture) et l'altération (modification) en chemin.\n\nEn revanche, TLS ne protège **pas** les données **au repos** : c'est-à-dire une fois **stockées** quelque part (dans la base de données, dans des sauvegardes, dans des fichiers). Il ne protège pas non plus contre une application mal codée, ni contre un jeton déjà **volé** sur l'ordinateur de la victime.\n\n👉 **Analogie** : TLS, c'est le **fourgon blindé** qui transporte l'argent d'une banque à une autre. Il protège l'argent **sur la route**. Mais il ne fait rien pour le coffre-fort à l'arrivée : si le coffre est ouvert ou mal gardé, le fourgon blindé n'y change rien.\n\n**Exemple concret** : un site en HTTPS qui stocke les mots de passe **en clair** dans sa base est parfaitement chiffré sur le réseau, mais une fuite de la base révèle tous les mots de passe d'un coup, sans que TLS n'ait quoi que ce soit à voir là-dedans.\n\nRetiens la formule : TLS est **nécessaire mais pas suffisant**. La sécurité s'empile en couches (on parle de **défense en profondeur** : plusieurs protections indépendantes, pour que la défaillance d'une seule ne fasse pas tout tomber). Le transport n'est que la **première** de ces couches."
+        },
+        {
+          "type": "IMAGE",
+          "title": "TLS protege le transport, pas le serveur : une faille applicative reste exploitable en HTTPS.",
+          "body": "/images/lessons/https-et-transport-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un site est en HTTPS mais stocke les mots de passe en clair en base. Le transport est-il en cause si une fuite de base révèle les mots de passe ?",
+          "solution": "Non : TLS protège les échanges en transit, pas les données au repos. Une fuite de base expose ce qui y est stocké, indépendamment de HTTPS. Il faut hacher les mots de passe (avec BCrypt ou Argon2) et protéger la base. TLS ne couvre tout simplement pas ce risque : c'est une couche parmi d'autres (défense en profondeur), et le chiffrement du transport ne remplace jamais la protection des données stockées."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : HTTPS & transport",
+          "quizRef": "web-security-https-check"
+        }
+      ]
+    },
+    {
+      "slug": "injections-et-validation",
+      "title": "Injections & validation",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ne jamais concaténer une entrée",
+          "body": "Une **injection** survient quand une **entrée utilisateur** (ce que tape ou envoie une personne : un champ de formulaire, un paramètre d'URL, un en-tête) est interprétée par le serveur comme du **code** au lieu d'être traitée comme une simple **donnée**. Le cas le plus célèbre est l'**injection SQL** (souvent notée *SQLi*), où l'entrée vient trafiquer une requête à la base de données.\n\nLe piège classique, c'est de **concaténer** : coller bout à bout des morceaux de texte pour fabriquer une requête. Imagine ce code : `\"SELECT * FROM users WHERE email = '\" + email + \"'\"`. Si l'utilisateur saisit un email normal, tout va bien. Mais s'il saisit `' OR 1=1 --`, la requête devient `... WHERE email = '' OR 1=1 --'`. Or `1=1` est **toujours vrai**, donc la condition sélectionne **toutes** les lignes, et le `--` transforme le reste en commentaire ignoré.\n\n👉 **Analogie** : c'est comme dicter une adresse à un taxi et glisser au milieu « ...et au fait, ignore le compteur et donne-moi la caisse ». Si le chauffeur exécute bêtement **tout** ce qu'il entend sans distinguer l'adresse (la donnée) de l'ordre (le code), tu prends le contrôle de la course.\n\n**Exemple concret** : `' OR 1=1 --` dans un champ de connexion peut contourner l'authentification (se connecter sans mot de passe valide) ; une variante peut lire ou vider une table entière. Historiquement, l'injection SQL est l'une des failles les **plus dévastatrices** du web, précisément parce qu'elle donne un accès direct aux données."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ne jamais concatener une entree dans une requete : utiliser des requetes parametrees.",
+          "body": "/images/lessons/injections-et-validation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Requêtes paramétrées",
+          "codeLanguage": "java",
+          "body": "// DANGER : concaténation. L'entrée est collée dans la requête\n// et peut donc en changer le SENS (injection).\n// \"SELECT * FROM users WHERE email = '\" + email + \"'\"\n\n// SUR : requete parametree. Le  :email  est un PARAMETRE LIE.\n// La valeur reste une donnee, jamais interpretee comme du code,\n// meme si elle contient  ' OR 1=1 --\ndb.sql(\"SELECT * FROM users WHERE email = :email\")\n  .bind(\"email\", email);\n\n// L'idee cle : le code de la requete et les donnees fournies par\n// l'utilisateur voyagent SEPAREMENT. Le moteur SQL recoit d'un cote\n// le squelette de la requete, de l'autre la valeur, et ne melange\n// jamais les deux. La faille disparait par construction."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Valider au bord, en liste blanche",
+          "body": "Les requêtes paramétrées ferment la porte aux injections SQL, mais on ajoute une deuxième ligne de défense : la **validation des entrées**. Valider, c'est vérifier qu'une donnée reçue est **conforme** à ce qu'on attend (bon format, bonne longueur, bonne plage de valeurs) **avant** de s'en servir.\n\nOn valide **au bord** : c'est-à-dire tout à l'entrée du système, dans l'adaptateur web (le controller qui reçoit la requête HTTP), et non au cœur du métier. Rejeter une entrée invalide **tôt**, c'est fermer la porte avant que la donnée douteuse ne s'enfonce dans l'application.\n\nPour décider ce qu'on accepte, deux stratégies opposées :\n- La **liste blanche** (*allowlist*) : « seules **ces** valeurs précises sont acceptées, tout le reste est refusé ». Exemple : un champ `role` ne peut valoir que `CLIENT` ou `ADMIN`, point.\n- La **liste noire** (*denylist*) : « tout est accepté **sauf** ces valeurs interdites ». Exemple : refuser les entrées contenant `<script>`.\n\n👉 **Analogie** : la liste blanche, c'est un videur avec la **liste des invités** (si ton nom n'y est pas, tu n'entres pas). La liste noire, c'est un videur avec une **liste des interdits** : il suffit qu'un indésirable se déguise ou change de nom pour passer. On préfère **toujours** la liste blanche, car une liste noire est **contournable** (on oublie forcément un cas, une nouvelle syntaxe apparaît).\n\n**Exemple concret** : plutôt que d'interdire une liste de caractères « dangereux » dans un identifiant, on décrète qu'un identifiant ne peut contenir **que** des lettres, chiffres et tirets, sur 3 à 30 caractères. Tout ce qui sort de ce moule est refusé d'office. La règle absolue qui chapeaute tout : **ne jamais faire confiance au client**, car tout ce qui vient de l'extérieur peut être falsifié."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Valider au bord, en liste blanche : accepter ce qui est attendu, rejeter le reste.",
+          "body": "/images/lessons/injections-et-validation-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Comment se prémunir des injections SQL, et pourquoi « échapper les caractères dangereux » est-il une parade fragile ?",
+          "solution": "Parade robuste : les requêtes paramétrées (bind), où la valeur fournie n'est jamais interprétée comme du code : le squelette de la requête et les données voyagent séparément. Échapper manuellement les caractères dangereux est fragile : on oublie forcément des cas, les règles d'échappement varient selon le SGBD, et une syntaxe non prévue peut passer au travers. La séparation code/donnée par paramètre est structurelle (la faille disparaît par construction), là où l'échappement n'est que cosmétique et repose sur une liste noire toujours contournable."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Injections & validation",
+          "quizRef": "web-security-injections-check"
+        }
+      ]
+    },
+    {
+      "slug": "xss-csrf-cors-csp",
+      "title": "XSS, CSRF, CORS & CSP",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "XSS : du script injecté",
+          "body": "Le **XSS** (*Cross-Site Scripting*, « script inter-sites ») est une injection, mais côté **navigateur**. L'attaquant réussit à glisser du **JavaScript malveillant** dans une page web, et ce script s'exécute ensuite dans le navigateur d'une **victime** qui visite la page, avec tous les droits de cette victime sur le site.\n\nComment ? Si une application affiche telle quelle une donnée fournie par un utilisateur (un commentaire, un pseudo, un champ de profil) sans précaution, un attaquant peut y placer `<script>...</script>` au lieu d'un texte normal. Le navigateur de la victime, incapable de deviner que ce n'était pas prévu, **exécute** ce script.\n\n👉 **Analogie** : c'est comme afficher au tableau d'affichage d'un immeuble un mot laissé par un inconnu, sans le lire. Si le mot dit « tous les habitants doivent laisser leur clé sous le paillasson », les voisins l'exécutent, croyant à une consigne officielle. Le tableau (la page) a servi de relais de confiance à un ordre malveillant.\n\n**Exemple concret** : un script injecté peut **voler la session** (envoyer le cookie de la victime à l'attaquant, qui se fait alors passer pour elle) ou déclencher des **actions à son insu** (changer son mot de passe, poster en son nom).\n\nDeux parades se combinent : **échapper** systématiquement les données affichées (transformer `<` en `&lt;` etc., pour que le navigateur affiche le texte au lieu de l'exécuter) et poser une **CSP** (*Content-Security-Policy*, un en-tête de réponse) qui **restreint** les scripts autorisés à s'exécuter dans la page (par exemple : « n'exécute que les scripts venant de mon propre domaine »)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "XSS : un script injecte s'execute dans le navigateur de la victime ; echapper les sorties.",
+          "body": "/images/lessons/xss-csrf-cors-csp-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "CSRF & CORS : deux mécanismes du navigateur",
+          "body": "Deux notions voisines, souvent confondues, qui tournent autour de la question « quel site a le droit de faire quoi depuis ton navigateur ? ».\n\nLe **CSRF** (*Cross-Site Request Forgery*, « falsification de requête inter-sites ») : un site malveillant pousse **ton** navigateur, alors que tu es **déjà connecté** ailleurs, à envoyer une requête que tu n'as pas voulue vers ce site où tu es authentifié. Comme le navigateur joint automatiquement tes cookies de session, la requête paraît légitime.\n\n👉 **Analogie** : quelqu'un glisse dans ta pile de courrier à signer un ordre de virement déjà rempli. Tu signes machinalement (ton navigateur « signe » en joignant ton cookie), et le virement part, alors que tu n'as jamais voulu l'émettre. **Parades** : des **jetons anti-CSRF** (une valeur secrète, imprévisible, exigée à chaque action sensible et que le site pirate ne connaît pas), des cookies marqués **`SameSite`** (le navigateur refuse de les envoyer sur une requête venant d'un autre site) ; à noter qu'une API **stateless à jeton** (qui n'utilise pas de cookie de session mais un jeton envoyé explicitement) y est peu sensible.\n\nLe **CORS** (*Cross-Origin Resource Sharing*, « partage de ressources entre origines ») contrôle **quels sites** (on parle d'**origines** : un couple protocole + domaine + port) ont le droit d'appeler ton API **depuis un navigateur**. **Exemple concret** : ton API sur `api.mon-site.com` peut autoriser les appels venant de `mon-site.com` et refuser ceux venant de `site-inconnu.com`. La règle d'or : autoriser **explicitement** les origines de confiance, et **jamais** utiliser le joker `*` (« tout le monde ») en combinaison avec des identifiants (*credentials*)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "CSRF (requete forgee) et CORS (appels cross-origin) : deux mecanismes du navigateur a comprendre.",
+          "body": "/images/lessons/xss-csrf-cors-csp-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Des en-têtes qui protègent (niveau expert)",
+          "body": "Un **en-tête** de réponse HTTP est une ligne d'information que le serveur renvoie **avec** la page, en plus du contenu, pour donner des consignes au navigateur. Quelques en-têtes bien choisis durcissent la sécurité à très faible coût :\n- **`Content-Security-Policy`** (CSP) : limite les scripts et les sources autorisés (vu plus haut, la principale arme anti-XSS).\n- **`Strict-Transport-Security`** (HSTS) : force le navigateur à n'utiliser que HTTPS pour ce site.\n- **`X-Content-Type-Options: nosniff`** : empêche le navigateur de « deviner » le type d'un fichier (le *sniffing*), ce qui peut faire exécuter comme script un fichier qui n'en est pas un.\n- **`Referrer-Policy`** : contrôle quelles informations d'origine sont transmises quand on clique vers un autre site (évite de fuiter des URLs sensibles).\n\n👉 **Analogie** : ce sont les **consignes de sécurité** collées sur un colis (« ne pas ouvrir au couteau », « fragile », « ce côté vers le haut »). Elles ne changent pas le contenu, mais elles disent au manipulateur (le navigateur) comment se comporter prudemment.\n\nEt une règle non négociable qui recoupe le reste du parcours : **ne jamais** renvoyer de *stacktrace* (la trace d'erreur technique interne) ou de détail d'implémentation au client. On renvoie un **message d'erreur normalisé**, rien de plus, exactement comme le fait le handler global d'erreurs de cette plateforme. Une erreur bavarde renseigne l'attaquant sur ta base, tes versions, ta structure interne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des en-tetes qui protegent : CSP, X-Frame-Options, HSTS limitent les attaques cote client.",
+          "body": "/images/lessons/xss-csrf-cors-csp-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Une API configure `Access-Control-Allow-Origin: *` tout en acceptant des cookies d'authentification. Pourquoi est-ce dangereux ?",
+          "solution": "Autoriser toutes les origines (le joker *) tout en acceptant des credentials (cookies d'authentification) permettrait à n'importe quel site d'émettre des requêtes authentifiées vers l'API depuis le navigateur d'une victime déjà connectée. Un site malveillant pourrait ainsi lire des données ou déclencher des actions au nom de la victime (une logique proche du CSRF). Dès qu'il y a des credentials, on doit lister explicitement les origines de confiance (par exemple mon-site.com), jamais utiliser *. D'ailleurs, les navigateurs refusent la combinaison * + credentials, ce qui est un signal clair que cette configuration n'a pas de sens."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : XSS, CSRF, CORS & CSP",
+          "quizRef": "web-security-xss-check"
+        }
+      ]
+    },
+    {
+      "slug": "owasp-et-durcissement",
+      "title": "OWASP & durcissement",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'OWASP comme boussole",
+          "body": "L'**OWASP** (*Open Worldwide Application Security Project*) est une fondation à but non lucratif qui publie des ressources de référence, gratuites, sur la sécurité applicative. Son document le plus connu est l'**OWASP Top 10** : le classement des **dix risques web les plus critiques** (contrôle d'accès défaillant, injections, mauvaises configurations, etc.), mis à jour régulièrement à partir de données réelles.\n\n👉 **Analogie** : c'est la **check-list du pilote** avant décollage. Aucun professionnel sérieux ne prétend « tout connaître de tête » ; il déroule une liste éprouvée des points qui font tomber les avions. L'OWASP Top 10 joue ce rôle pour les applications web.\n\nIl existe une déclinaison spécialisée, l'**OWASP API Security Top 10**, qui cible les **APIs** (les interfaces que les applications s'exposent entre elles). Sa faille numéro 1 est le **BOLA** (*Broken Object Level Authorization*, « autorisation défaillante au niveau de l'objet »). L'idée : l'application vérifie bien que tu es **connecté** (authentification), mais oublie de vérifier que tu as le **droit d'accéder à cet objet précis** (autorisation).\n\n**Exemple concret** : l'URL `GET /orders/42` doit vérifier que la commande numéro 42 appartient **bien à l'appelant**. Si elle se contente de vérifier que l'appelant est connecté, n'importe quel utilisateur peut changer le `42` en `43` et lire la commande d'un autre. On appelle aussi cette faille **IDOR** (*Insecure Direct Object Reference*)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'OWASP Top 10 sert de boussole : les failles les plus frequentes a connaitre en priorite.",
+          "body": "/images/lessons/owasp-et-durcissement-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Secrets & moindre privilège",
+          "body": "Un **secret**, en sécurité, c'est toute information qui donne un accès et doit rester confidentielle : une clé d'API, le mot de passe de la base de données, la clé secrète qui signe les jetons JWT. Règle absolue : les secrets vivent **hors du code**. On les fournit par des **variables d'environnement** (des valeurs injectées au démarrage, hors du dépôt) ou un **coffre** (*vault*, un service dédié qui stocke et distribue les secrets), et on ne les **committe jamais** dans Git. Un secret poussé dans Git est **compromis à vie** : il reste dans l'historique même si tu l'effaces plus tard, et doit être considéré comme grillé et changé immédiatement.\n\nDeuxième principe, tout aussi central : le **moindre privilège** (*least privilege*). Chaque composant ne reçoit **que** les droits strictement nécessaires à son travail, rien de plus.\n\n👉 **Analogie** : dans un hôtel, la femme de chambre a un passe qui ouvre **les chambres de son étage**, pas le coffre de la réception ni le bureau du directeur. Si son passe est volé, les dégâts sont **limités** à son périmètre. À l'inverse, un passe-partout unique volé ouvre tout l'hôtel.\n\n**Exemples concrets** : le compte de base de données de l'application n'a que les droits de lecture/écriture sur ses tables (pas de droit d'administration) ; le conteneur tourne en utilisateur **non-root** ; l'API n'expose dans ses réponses **que** les champs utiles, pas toute l'entité. Réduire les droits, c'est réduire ce qu'un attaquant atteint le jour où il franchit une première barrière."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Secrets hors du code, moindre privilege : chaque composant n'a que les droits necessaires.",
+          "body": "/images/lessons/owasp-et-durcissement-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Limiter le débit (niveau expert)",
+          "body": "Le **rate limiting** (« limitation de débit ») consiste à **plafonner** le nombre de requêtes qu'un même client peut envoyer sur une période donnée. Sans lui, une API est exposée aux attaques **automatisées**, qui misent sur le volume.\n\nDeux menaces typiques : le **credential stuffing** (l'attaquant teste des **millions** de couples identifiant/mot de passe volés ailleurs, en espérant que certains marchent) et le **déni de service** (*DoS* : noyer le serveur sous les requêtes jusqu'à le rendre indisponible).\n\n👉 **Analogie** : c'est le **tourniquet** à l'entrée du métro. Une personne passe à la fois, à un rythme raisonnable. Impossible pour une foule de se ruer d'un coup et de tout faire céder.\n\n**Exemple concret** : on autorise, disons, 100 requêtes par minute et par IP ; au-delà, le serveur répond **429** (*Too Many Requests*, le code HTTP « trop de requêtes »). Combiné au **verrouillage** du compte après plusieurs échecs de connexion et à la **journalisation** des accès (garder une trace de qui fait quoi), c'est une protection simple, peu coûteuse, au fort effet contre les robots."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Limiter le debit protege contre le brute-force et les abus.",
+          "body": "/images/lessons/owasp-et-durcissement-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un endpoint `GET /api/v1/users/{id}/invoices` renvoie les factures sans vérifier que `{id}` est bien l'utilisateur connecté. Quel type de faille, et comment corriger ?",
+          "solution": "C'est un Broken Object Level Authorization (BOLA, aussi appelé IDOR), la faille numéro 1 des APIs : l'application vérifie l'authentification (l'appelant est connecté) mais pas la propriété de l'objet (a-t-il le droit d'accéder à CE {id} précis ?). N'importe qui pourrait changer le {id} dans l'URL pour lire les factures d'un autre. Correction : vérifier côté serveur, avant de renvoyer quoi que ce soit, que l'utilisateur authentifié est bien le propriétaire de {id} (ou qu'il détient un rôle habilité, par exemple ADMIN). L'autorisation se fait au niveau de l'objet, pas seulement à l'entrée."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Sécurité web",
+          "quizRef": "web-security-check"
+        }
+      ]
+    },
+    {
+      "slug": "failles-cote-serveur",
+      "title": "Failles côté serveur : SSRF, désérialisation, XXE",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "SSRF : faire appeler le serveur à votre place",
+          "body": "La **SSRF** (*Server-Side Request Forgery*, « falsification de requête côté serveur ») se produit quand une application prend une **URL fournie par l'utilisateur** et va la **requêter depuis le serveur** lui-même. On rencontre ça dans des fonctionnalités banales : importer une image à partir de son URL, appeler un *webhook* (une URL qu'on notifie), servir de proxy.\n\nLe danger : le serveur, contrairement à l'attaquant, a souvent accès à des ressources **internes** invisibles depuis l'extérieur. L'attaquant fournit donc une URL qui pointe vers ces cibles internes, et se sert du serveur comme d'un **intermédiaire complice**.\n\n👉 **Analogie** : tu ne peux pas entrer dans un immeuble sécurisé, alors tu demandes poliment à un employé qui, lui, a le badge : « peux-tu m'apporter le document du bureau 12 ? ». Il a l'accès, pas toi ; il devient ton relais à l'intérieur.\n\n**Exemple concret redoutable** dans le cloud : l'**endpoint de métadonnées** `http://169.254.169.254/`, une adresse spéciale accessible uniquement depuis l'intérieur d'une machine cloud, qui peut révéler des **identifiants IAM** (les clés d'accès du serveur au cloud). Un attaquant qui obtient ces clés via une SSRF peut prendre le contrôle de ressources cloud.\n\n**Parades** : une **liste blanche** stricte des domaines et IP autorisés ; le **blocage** des adresses privées et de *loopback* (les plages réservées au réseau interne, comme `10.0.0.0/8`, `127.0.0.1`, `169.254.0.0/16`) ; et **pas** de suivi aveugle des redirections (un serveur autorisé pourrait rediriger vers une cible interdite). Avec l'essor du cloud, la SSRF est montée dans le Top 10 OWASP."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SSRF : faire appeler par le serveur une URL interne a votre place ; valider les destinations.",
+          "body": "/images/lessons/failles-cote-serveur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Désérialisation non sûre & XXE",
+          "body": "**Sérialiser**, c'est transformer un objet en mémoire en une suite d'octets qu'on peut stocker ou transmettre ; **désérialiser**, c'est l'opération inverse (reconstruire l'objet à partir de ces octets). Le problème : **désérialiser des données non fiables** peut conduire à **exécuter du code**. Certains formats et bibliothèques, en reconstruisant l'objet, **instancient des classes arbitraires** ; un attaquant fabrique alors un *payload* (une charge malveillante) qui, au moment de la désérialisation, déclenche une exécution.\n\n👉 **Analogie** : c'est comme suivre à la lettre une **recette pliée dans un colis reçu d'un inconnu**. Si la « recette » contient en réalité l'instruction « ouvre la porte et laisse entrer le porteur », l'exécuter aveuglément te trahit. On ne reconstruit pas les yeux fermés un objet venu de l'extérieur.\n\n**Règle** : ne **jamais** désérialiser des données non fiables avec un mécanisme permissif (comme la sérialisation native de certains langages). On préfère des **formats de données** neutres (JSON) lus par des parseurs **stricts** qui ne font que remplir des champs, sans instancier n'importe quoi.\n\nLe cousin XML de cette famille est le **XXE** (*XML External Entity*, « entité externe XML »). Un document XML peut déclarer des **entités** (des sortes de variables). Une entité **externe** malveillante peut ordonner au parseur de lire un fichier du serveur (`/etc/passwd`) et de le renvoyer, ou de déclencher une SSRF. **Parade** : **désactiver les entités externes** dans la configuration du parseur XML, ce qui suffit à neutraliser le XXE."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deserialisation non sure et XXE : transformer une entree en execution ou en lecture de fichiers.",
+          "body": "/images/lessons/failles-cote-serveur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Mass assignment & path traversal",
+          "body": "Deux failles fréquentes qui viennent d'une confiance excessive envers ce que le client envoie.\n\nLe **mass assignment** (« affectation en masse ») : par commodité, on lie **automatiquement** le corps d'une requête (le JSON reçu) aux champs d'un objet. Le piège : cette liaison automatique attrape aussi des champs **non prévus**.\n\n👉 **Analogie** : tu remplis un formulaire d'inscription, mais on te laisse le **stylo et le tampon officiel**. Rien ne t'empêche d'ajouter toi-même la mention « statut : membre VIP » que seul l'administrateur aurait dû cocher.\n\n**Exemple concret** : un utilisateur ajoute `\"role\": \"ADMIN\"` au JSON d'inscription et, si l'entité est remplie automatiquement, **s'auto-promeut** administrateur. **Parade** : des **DTO d'entrée explicites** (*Data Transfer Objects*, des objets dédiés qui n'exposent **que** les champs autorisés, ici sans `role`). On ne lie **jamais** directement l'entité de persistance au corps de la requête, ce qui est d'ailleurs une règle d'architecture hexagonale de cette plateforme.\n\nLe **path traversal** (« traversée de répertoire ») : quand un nom de fichier fourni par l'utilisateur sert à lire un fichier, une valeur comme `../../etc/passwd` (les `..` remontent d'un dossier) permet de **sortir** du dossier prévu et d'atteindre des fichiers sensibles. **Parade** : **normaliser** et **valider** le chemin, **refuser** toute séquence `..`, et servir uniquement depuis un répertoire **cloisonné** dédié."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mass assignment et path traversal : ecrire des champs non prevus ou sortir du dossier autorise.",
+          "body": "/images/lessons/failles-cote-serveur-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Une même racine : ne jamais confondre donnée et instruction (niveau expert)",
+          "body": "Prends du recul sur tout ce chapitre. Injection SQL, XSS, SSRF, XXE, désérialisation non sûre, injection de commandes : ces failles ont des noms différents et des cibles différentes, mais elles partagent **exactement la même cause profonde**. À chaque fois, une **donnée** contrôlée par l'attaquant finit par être **interprétée comme une instruction** : une requête pour SQLi, un script pour XSS, une URL pour SSRF, un chemin pour le path traversal, un objet pour la désérialisation.\n\n👉 **Analogie** : c'est toujours la même erreur que **confondre le message et le messager**. Tant qu'un texte reste un texte à lire, tout va bien ; le drame arrive quand ce texte est **exécuté** comme un ordre.\n\nEt comme la cause est unique, la **défense** l'est aussi, dans sa famille : **séparer** structurellement la donnée et le code. Cela prend des formes adaptées au contexte (paramètres liés pour SQL, échappement contextuel pour l'affichage, parseurs stricts pour XML/JSON, listes blanches pour les URLs et les chemins), mais l'esprit est identique. Et par-dessus tout : **ne jamais faire confiance à l'entrée**.\n\nVoir ce **fil rouge** change tout : au lieu de mémoriser une liste interminable de failles à connaître par cœur, tu appliques **un seul principe** partout où une entrée externe rencontre un interpréteur. C'est ce qui distingue « je connais des attaques » de « je conçois des systèmes qui résistent »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une meme racine a toutes ces failles : ne jamais confondre une donnee avec une instruction.",
+          "body": "/images/lessons/failles-cote-serveur-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Le fil rouge des injections, en un schéma",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[Entree fournie par un attaquant] --> B{Est-elle interpretee comme du code ?}\n  B -->|Oui, la donnee est lue comme une instruction| C[Faille d injection]\n  B -->|Non, la donnee reste une donnee| S[Comportement sur]\n  C --> C1[SQL : injection SQL]\n  C --> C2[HTML ou JS : XSS]\n  C --> C3[URL : SSRF]\n  C --> C4[XML ou objet : XXE et deserialisation]\n  P[Parade : separer donnee et code, ne jamais faire confiance a l entree] --> S"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Un endpoint « importer une image depuis une URL » laisse l'utilisateur fournir n'importe quelle URL, que le serveur va chercher. Quelle attaque cloud redoutable cela permet-il, et comment s'en protéger ?",
+          "solution": "C'est une SSRF (Server-Side Request Forgery) : l'attaquant fournit une URL interne, typiquement l'endpoint de métadonnées cloud (http://169.254.169.254/...), et le serveur, qui a accès au réseau interne, va la requêter et peut renvoyer ou exposer des identifiants IAM ou des services internes. Protection : liste blanche stricte des domaines autorisés ; résolution puis blocage des IP privées, loopback et link-local (169.254.0.0/16, 10.0.0.0/8, 127.0.0.1...) ; interdiction de suivre les redirections vers ces plages ; et si possible un proxy sortant dédié, sans accès aux métadonnées cloud."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz : Failles côté serveur",
+          "quizRef": "web-security-serveur-check"
+        }
+      ]
+    },
+    {
+      "slug": "chaine-approvisionnement-crypto",
+      "title": "Chaîne d'approvisionnement & cryptographie appliquée",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Vos dépendances sont votre surface d'attaque",
+          "body": "Une **dépendance**, c'est une bibliothèque de code écrite par quelqu'un d'autre que tu intègres dans ton projet pour ne pas tout réécrire. Une application moderne en contient des centaines : on estime qu'elle est faite d'environ **80 % de code tiers**. La **chaîne d'approvisionnement** (*supply chain*) logicielle, c'est l'ensemble de ce code externe et de la façon dont il arrive chez toi.\n\nConséquence directe : une faille dans **une** de tes dépendances devient **ta** faille, même si tu n'as pas écrit une ligne du code fautif.\n\n👉 **Analogie** : un restaurant peut avoir la cuisine la plus propre du monde, si un **ingrédient livré** par un fournisseur est contaminé, ce sont **ses** clients qui tombent malades. Tu es responsable de tout ce que tu sers, y compris ce que tu n'as pas produit.\n\n**Exemple concret** : **Log4Shell** (fin 2021), une faille critique dans Log4j, une bibliothèque de journalisation Java omniprésente, a exposé d'un coup une part énorme des serveurs de la planète.\n\nLa **discipline** de sécurité de la supply chain :\n- **Scanner** ses dépendances (analyse dite **SCA**, *Software Composition Analysis* : des outils comme Dependabot, `npm audit`, OWASP Dependency-Check signalent les versions vulnérables).\n- **Épingler** les versions et vérifier leur intégrité via des *lockfiles* (fichiers qui figent la version exacte de chaque dépendance).\n- Produire un **SBOM** (*Software Bill of Materials*, l'inventaire précis de tous les composants embarqués, comme une liste d'ingrédients).\n- Se méfier du **typosquatting** (un paquet malveillant au nom très proche d'un vrai, pour piéger une faute de frappe).\n\nEt quand une **CVE** (*Common Vulnerabilities and Exposures*, une faille référencée publiquement) tombe, mettre à jour **vite** fait partie du travail."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Vos dependances sont votre surface d'attaque : une lib compromise compromet votre app.",
+          "body": "/images/lessons/chaine-approvisionnement-crypto-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ne réinventez jamais la cryptographie",
+          "body": "La **cryptographie**, c'est l'art de protéger l'information par des calculs mathématiques (chiffrer, signer, hacher). Règle d'or qui fait consensus chez les professionnels : **n'écris pas ta propre crypto**. On utilise des **primitives** (briques de base) éprouvées, via des bibliothèques maintenues et auditées.\n\n👉 **Analogie** : personne de sensé ne **fabrique lui-même le parachute** avec lequel il va sauter. On fait confiance à un équipement certifié, testé des milliers de fois. La crypto maison, c'est le parachute cousu à la maison : il a l'air de marcher, jusqu'au jour où.\n\nQuelques repères concrets :\n- Pour **chiffrer** des données au repos, un mode **authentifié** comme **AES-GCM** (il assure à la fois la **confidentialité** et l'**intégrité** : personne ne lit ni ne modifie sans être détecté), jamais un chiffrement « maison » ni le mode **ECB** (réputé faible car il laisse transparaître des motifs).\n- Pour l'**aléa** de sécurité (générer des jetons, des *sels*), un générateur **cryptographique** comme `SecureRandom`, **jamais** `Math.random()` (prévisible, donc cassable).\n- Pour comparer un secret, une **comparaison en temps constant** (qui met le même temps quel que soit le résultat, pour éviter les *timing attacks*, ces attaques qui déduisent un secret en **mesurant le temps de réponse**).\n- Les **clés** vivent dans un **KMS** ou un coffre (voir section suivante), pas dans le code."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ne jamais reinventer la cryptographie : utiliser des libs eprouvees, bien configurees.",
+          "body": "/images/lessons/chaine-approvisionnement-crypto-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Chiffrement au repos & gestion des clés",
+          "body": "On l'a vu, TLS couvre le **transit** ; mais les données sensibles au **repos** (dans la base, les sauvegardes, les fichiers) doivent aussi être **chiffrées**. La bonne nouvelle : l'algorithme de chiffrement n'est pas le point dur. Le vrai défi, c'est la **gestion des clés** : où stocker la clé, comment la faire **tourner** (la remplacer régulièrement), qui a le droit d'y accéder.\n\n👉 **Analogie** : mettre un cadenas ultra-solide sur ta porte ne sert à rien si tu laisses **la clé sous le paillasson**. La solidité du cadenas (l'algorithme) compte bien moins que l'endroit où tu ranges la clé.\n\nLa solution professionnelle : déléguer à un **KMS** (*Key Management Service*, service de gestion de clés, comme AWS KMS ou HashiCorp Vault). Le KMS garde la **clé maîtresse** dans un environnement durci, **journalise** chaque accès, et permet la rotation, plutôt que de laisser une clé **en dur** dans le code ou dans un fichier de configuration.\n\n**Exemple concret** : une base entièrement chiffrée mais dont la clé traîne dans le dépôt Git n'est **pas** protégée : celui qui obtient le code obtient la clé, donc les données. Retiens : **une donnée chiffrée avec une clé mal protégée n'est pas protégée.**"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chiffrement au repos et gestion des cles : proteger les donnees meme si le disque fuit.",
+          "body": "/images/lessons/chaine-approvisionnement-crypto-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Sécuriser dès la conception : SDLC & threat modeling (niveau expert)",
+          "body": "La sécurité n'est pas une **étape finale** qu'on ajoute juste avant la mise en production : c'est une **pratique continue** intégrée à tout le cycle de développement (le **SDLC**, *Software Development Life Cycle*).\n\nConcrètement, on **automatise** dans la **CI** (l'intégration continue : la chaîne qui construit et teste le code à chaque changement) une batterie de contrôles :\n- **SAST** (*Static Application Security Testing*) : analyse **statique** du code source, sans l'exécuter, à la recherche de motifs dangereux.\n- **DAST** (*Dynamic Application Security Testing*) : test de l'application **en fonctionnement**, en la sollicitant comme le ferait un attaquant.\n- **SCA** : l'analyse des dépendances (vue plus haut).\n- **Secret scanning** : détection d'un secret sur le point d'être committé, pour l'**empêcher** d'entrer dans Git.\n\n👉 **Analogie** : mieux vaut des **contrôles qualité à chaque étage de l'usine** qu'une unique inspection à la sortie, quand tout est déjà assemblé et qu'un défaut coûte dix fois plus cher à corriger.\n\nEn amont du code, le **threat modeling** (« modélisation des menaces ») consiste à se demander, **avant** de coder, comment un attaquant s'y prendrait. Une méthode répandue est **STRIDE**, un acronyme qui liste six familles de menaces à passer en revue : *Spoofing* (usurpation d'identité), *Tampering* (altération), *Repudiation* (déni d'une action), *Information disclosure* (fuite d'information), *Denial of service* (déni de service), *Elevation of privilege* (élévation de privilège). Concevoir en pensant à un adversaire, c'est le passage de « ça marche » à « ça résiste »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Securiser des la conception : SDLC securise et threat modeling, pas en rustine finale.",
+          "body": "/images/lessons/chaine-approvisionnement-crypto-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un développeur veut chiffrer des données sensibles et écrit sa propre fonction de chiffrement « pour ne dépendre de personne ». Pourquoi est-ce une mauvaise idée, et que faire à la place ?",
+          "solution": "La cryptographie maison est presque toujours faillible : elle contient des erreurs subtiles (mode ECB, IV réutilisé, absence d'authentification, mauvaise gestion des clés, timing attacks) qu'un non-spécialiste ne voit pas et qui restent invisibles jusqu'au jour de l'exploitation. À la place : utiliser une bibliothèque cryptographique éprouvée et maintenue, un algorithme authentifié standard (AES-GCM), un générateur d'aléa cryptographique (SecureRandom) pour les clés et les IV, et confier le stockage et la rotation des clés à un KMS ou un coffre. On n'invente pas la crypto : on assemble des briques validées, comme on n'improvise pas un parachute."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références pour creuser : côté **OWASP**, le Top 10 (2021), l'API Security Top 10, l'**ASVS** (*Application Security Verification Standard*, un référentiel de vérification), les *Cheat Sheets* (fiches pratiques sur SSRF, Deserialization, XXE, Mass Assignment) et l'outil **Dependency-Check** ; sur la SSRF, le *SSRF Bible* et les recherches d'Orange Tsai ; sur la supply chain, le cadre **SLSA** et le format de SBOM **CycloneDX** ; sur la crypto appliquée, *Cryptography Engineering* (Ferguson, Schneier, Kohno) et *Serious Cryptography* (Aumasson) ; sur le threat modeling, la méthode **STRIDE** de Microsoft."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir la securite web.",
+          "body": "/images/lessons/chaine-approvisionnement-crypto-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : Sécurité web (niveau expert)",
+          "quizRef": "web-security-expert"
+        }
+      ]
+    }
+  ]
+}

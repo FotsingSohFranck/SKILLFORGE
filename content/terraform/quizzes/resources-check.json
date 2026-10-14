@@ -1,0 +1,119 @@
+{
+  "ref": "resources-check",
+  "node": "resources",
+  "lesson": "comportement-et-cycle-de-vie",
+  "title": "Ressources",
+  "description": "resource, arguments vs attributs, actions create/update/replace/destroy, drift.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que représente un bloc `resource` en Terraform ?",
+      "justification": "Un objet réel d'infrastructure à créer et gérer (machine, bucket, réseau...), suivi dans l'état.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un objet réel d'infrastructure à gérer",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une variable d'entrée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un fichier de log",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie `(known after apply)` pour un attribut ?",
+      "justification": "L'attribut est calculé par la plateforme à la création (id, IP, arn) ; sa valeur n'existe qu'après l'apply, pas au plan.",
+      "position": 1,
+      "options": [
+        {
+          "label": "La valeur ne sera connue qu'après la création (attribut calculé)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une erreur de syntaxe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Que l'attribut est secret",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel symbole du plan indique une ressource DÉTRUITE puis RECRÉÉE (dangereux) ?",
+      "justification": "-/+ (replace) : l'attribut modifié est immuable, l'objet est détruit et recréé, interruption/perte de données possibles.",
+      "position": 2,
+      "options": [
+        {
+          "label": "-/+ (replace)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "~ (update in place)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "+ (create)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait Terraform si on modifie à la main une ressource qu'il gère ?",
+      "justification": "Il détecte la dérive au plan suivant et proposera de ramener le réel à ce que décrit le code (correction de drift).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Il détecte la dérive et veut la corriger vers le code",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ignore la ressource pour toujours",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il supprime le code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Retirer une ressource du code Terraform la détruit au prochain apply.",
+      "justification": "Vrai : le code est l'état désiré ; une ressource absente du code signifie « je ne la veux plus » → Terraform la détruit. D'où l'importance de relire le plan.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "workloads-advanced",
+  "lesson": "mises-a-jour-et-patterns",
+  "title": "Un CronJob de sauvegarde sans chevauchement",
+  "statement": "Complète ce manifeste de CronJob de sauvegarde. Il doit s'exécuter toutes les heures (`schedule`), et surtout NE JAMAIS laisser deux exécutions se chevaucher si l'une dépasse son créneau : ajoute le champ `concurrencyPolicy` avec la valeur adaptée à une sauvegarde (une tâche non réentrante). Complète aussi `schedule` pour « toutes les heures ».",
+  "skeleton": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: backup-db\nspec:\n  schedule: \"____\"          # toutes les heures\n  # ____ : empeche le chevauchement des executions\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: Never\n          containers:\n            - name: dump\n              image: postgres:18\n              command: ['sh','-c','pg_dump ... > /backup/db.sql']\n",
+  "solution": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: backup-db\nspec:\n  schedule: \"0 * * * *\"          # toutes les heures, a la minute 0\n  concurrencyPolicy: Forbid      # si l'execution precedente n'est pas finie, on saute la nouvelle\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: Never\n          containers:\n            - name: dump\n              image: postgres:18\n              command: ['sh','-c','pg_dump ... > /backup/db.sql']\n",
+  "keyPoints": ["kind: CronJob", "schedule: \"0 * * * *\"", "concurrencyPolicy: Forbid"],
+  "language": "yaml"
+}

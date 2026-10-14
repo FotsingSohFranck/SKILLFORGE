@@ -1,0 +1,120 @@
+{
+  "node": "observability",
+  "lessons": [
+    {
+      "slug": "logs-et-metriques",
+      "title": "Logs & métriques",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les logs : centraliser ou perdre",
+          "body": "Un **log** (ou *journal*), c'est simplement une **ligne de texte qu'un programme écrit pour raconter ce qu'il fait** : `Utilisateur connecté`, `Erreur base de données`, `Commande #4213 validée`. C'est le tout premier réflexe pour comprendre ce qui se passe dans une application.\n\n👉 **Analogie** : les logs sont le **journal de bord** d'un navire. À chaque événement, on note une ligne datée. Quand quelque chose tourne mal, on relit le journal pour reconstituer l'enchaînement.\n\nPetit rappel de vocabulaire : un programme écrit ses messages sur deux **sorties standard**, **stdout** (de l'anglais *standard output*, la sortie normale) et **stderr** (*standard error*, la sortie réservée aux erreurs). En Kubernetes, comme en Docker, un conteneur n'écrit pas ses logs dans un fichier : il les envoie sur stdout/stderr, et la commande `kubectl logs <pod>` te les affiche. (Un **pod**, pour rappel, c'est la plus petite unité déployable de Kubernetes : une enveloppe autour d'un ou plusieurs conteneurs.)\n\nLe piège : un pod est **éphémère** (de courte durée de vie, jetable). Quand il est supprimé (redéploiement, crash, replanification sur un autre nœud), **ses logs disparaissent avec lui**. `kubectl logs` ne montre alors plus que le pod actuel, et tout ce qu'avait écrit l'instance qui a échoué est perdu.\n\nLa parade s'appelle l'**agrégation centralisée** : rassembler tous les logs à un seul endroit durable. Concrètement, on installe un **DaemonSet** de collecte. Un **DaemonSet** est un objet Kubernetes qui garantit **un pod sur chaque nœud** du cluster (👉 comme un gardien posté à chaque étage d'un immeuble). Cet agent de collecte (**Fluent Bit**, **Fluentd** ou **Vector** sont les plus courants) lit en continu les logs de tous les pods de son nœud et les **expédie** vers une plateforme de stockage : **Loki**, **Elasticsearch**, ou un service cloud. Là, les logs sont conservés, indexés et interrogeables **bien après** la mort des pods : on peut chercher, filtrer, corréler par pod ou par date, et enquêter a posteriori.\n\n**À retenir** : en Kubernetes, les logs doivent quitter les pods en temps réel, car les pods sont jetables. Sans centralisation, on devient aveugle dès qu'un pod disparaît."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Les métriques : de metrics-server à Prometheus",
+          "body": "Une **métrique**, c'est une **valeur chiffrée mesurée à intervalles réguliers** : « le pod utilise 250 Mo de mémoire », « le nœud est à 40 % de CPU », « le service traite 120 requêtes par seconde ». Là où un log raconte *un événement*, une métrique **quantifie** l'état du système et suit son évolution dans le temps.\n\n👉 **Analogie** : les métriques sont les **cadrans du tableau de bord d'une voiture** (vitesse, température, niveau d'essence). Ils ne racontent pas l'histoire du trajet, ça c'est le rôle des logs, mais ils te disent en un coup d'œil si tout va bien *maintenant*.\n\nEn Kubernetes, il y a deux niveaux.\n\n**Niveau 1, le minimum vital : metrics-server.** C'est un petit composant à installer qui mesure le **CPU et la mémoire consommés** par chaque pod et chaque nœud. Il alimente deux choses : la commande `kubectl top` (par exemple `kubectl top pods` affiche la consommation en direct) **et** l'**HPA** (*Horizontal Pod Autoscaler*, l'autoscaler qui ajoute ou retire automatiquement des pods selon la charge). Sans metrics-server, ni `kubectl top` ni l'HPA ne fonctionnent : c'est la base à ne pas oublier.\n\n**Niveau 2, l'observabilité complète : Prometheus.** **Prometheus** est l'outil standard de l'écosystème pour collecter et stocker des métriques. Son principe est le **scraping** : périodiquement (toutes les 15 secondes par exemple), Prometheus va **interroger** (*to scrape* = aspirer) une adresse HTTP exposée par chaque application et par le cluster, appelée l'**endpoint `/metrics`** (un *endpoint* est simplement une URL sur laquelle on peut taper), où sont publiées les valeurs du moment. Il range ensuite ces mesures en **séries temporelles** : des suites de valeurs horodatées, « telle métrique, à telle heure, valait tant ».\n\nAutour de Prometheus, trois briques complètent la pile :\n- **PromQL** (*Prometheus Query Language*), le langage pour interroger ces séries (« la moyenne du CPU des pods de l'app X sur 5 minutes »).\n- **Alertmanager**, qui déclenche des **alertes** quand une requête franchit un seuil (« CPU > 90 % depuis 10 min, préviens l'équipe »).\n- **Grafana**, qui **affiche** le tout en tableaux de bord graphiques (courbes, jauges, compteurs).\n\n👉 **En résumé** : `metrics-server` pour le strict nécessaire (`kubectl top` + autoscaling), et **Prometheus + Grafana** pour voir, requêter et alerter. C'est la pile d'observabilité de facto de Kubernetes."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Après un incident, un pod a crashé et été recréé. L'équipe veut consulter les logs de l'instance qui a échoué pour comprendre la cause, mais `kubectl logs <pod>` ne montre que le nouveau pod. Quel principe manquait, et comment l'appliquer ?",
+          "solution": "Il manquait la centralisation des logs. Les logs d'un pod (sa sortie stdout/stderr) ne sont conservés par le nœud que tant que le pod existe : quand un pod crashe et est recréé, l'ancienne instance disparaît et ses logs avec elle, et kubectl logs n'affiche plus que le nouveau pod. (On peut parfois récupérer les logs du conteneur PRÉCÉDENT d'un même pod avec `kubectl logs <pod> --previous`, mais cela ne couvre pas un pod entièrement remplacé.) Pour ne plus perdre ces traces : mettre en place une agrégation centralisée des logs. Concrètement, un DaemonSet de collecte (Fluent Bit/Vector/Fluentd) tourne sur chaque nœud, lit en continu les logs de tous les pods du nœud, et les expédie vers une plateforme de stockage durable et interrogeable (Loki, Elasticsearch, un service cloud). Les logs y sont conservés, indexés et corrélables (par pod, par timestamp, par label) BIEN APRÈS la destruction du pod, on peut donc analyser l'incident a posteriori. La règle : en Kubernetes, les logs doivent être exportés hors des pods en temps réel, car les pods sont éphémères ; sans centralisation, on est aveugle dès qu'un pod disparaît."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Logs & métriques",
+          "quizRef": "observability-logs-check"
+        }
+      ]
+    },
+    {
+      "slug": "traces-et-piliers",
+      "title": "Traces, santé & piliers",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les traces : suivre une requête",
+          "body": "Dans une architecture en **microservices** (une application découpée en plusieurs petits services indépendants qui se parlent par le réseau, au lieu d'un seul gros programme), une simple requête d'un utilisateur peut **traverser plusieurs pods** avant de produire une réponse : le service « commande » appelle « stock », qui appelle « paiement », qui appelle « notifications ».\n\nProblème : si la réponse est lente, **où** exactement le temps est-il passé ? Les logs de chaque service sont isolés les uns des autres, et une métrique agrégée dit « c'est lent en moyenne » sans désigner *quel maillon*. C'est là qu'interviennent les **traces distribuées**.\n\nUne **trace** suit **une requête de bout en bout** à travers tous les services qu'elle traverse. Elle est composée de **spans** : un **span** (*segment*) représente le temps passé dans **une étape** précise (un appel à un service), avec sa durée. Pour relier tous ces spans entre eux, chaque requête reçoit à son entrée un identifiant unique, le **trace id**, rangé dans un petit **contexte** que chaque service **transmet** au service suivant : c'est la **propagation** du contexte.\n\n👉 **Analogie** : c'est le **suivi de colis**. Ton colis (la requête) reçoit un numéro de suivi (le trace id). À chaque étape (centre de tri, camion, livreur), on **scanne** ce même numéro avec l'heure. À la fin, tu vois la chronologie complète et tu repères **précisément** où le colis a traîné.\n\nConcrètement, on **instrumente** les applications avec **OpenTelemetry** (le standard, on y revient dans la leçon suivante), et on visualise les traces dans **Jaeger** ou **Tempo**. Une trace s'affiche en cascade de barres horizontales (une par span) : d'un coup d'œil, tu vois par exemple que « paiement » a pris 900 ms sur les 950 ms totales. Les traces sont **le seul pilier** qui donne cette vue chronologique de bout en bout quand dix services sont impliqués, là où les métriques agrégées et les logs isolés restent muets."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Santé des ressources & moteurs d'observabilité",
+          "body": "Faisons le point. L'observabilité repose sur **trois piliers**, trois types de signaux complémentaires :\n- les **logs** (les événements racontés : « quoi s'est passé »),\n- les **métriques** (les valeurs chiffrées dans le temps : « combien »),\n- les **traces** (le chemin d'une requête à travers les services : « où »).\n\n👉 **Analogie médicale** : les métriques sont les **constantes du patient** (température, tension) prises en continu, les logs sont le **compte rendu détaillé** de ce qui s'est produit, et les traces sont le **parcours du patient** de service en service dans l'hôpital. Il faut les trois pour poser un bon diagnostic.\n\nÀ ces trois piliers s'ajoute la surveillance de la **santé des ressources** Kubernetes : l'état des pods (`kubectl get pods`, les événements), des nœuds (subissent-ils une **pression** mémoire ou disque, c'est-à-dire un manque de ressources qui menace la stabilité ?), des Deployments (le nombre de **répliques prêtes** est-il égal au nombre **désiré** ?), et l'état des **probes** (les sondes de santé *readiness*/*liveness* qui disent si un conteneur est prêt à recevoir du trafic et toujours vivant).\n\nRassembler et corréler tout cela, c'est le rôle d'un **moteur d'observabilité** (un ensemble d'outils intégrés qui travaillent de concert). Le plus répandu en open source est la **stack Prometheus + Grafana + Loki + Tempo** (respectivement : métriques, tableaux de bord, logs, traces). Il existe aussi des plateformes commerciales tout-en-un comme **Datadog** ou **Grafana Cloud**.\n\n👉 **L'objectif** dépasse le simple « ça marche / ça ne marche pas ». L'observabilité vise à **comprendre** ce qui se passe **et pourquoi**, pour diagnostiquer un problème qu'on n'avait pas anticipé. Sans elle, on découvre les incidents par le pire canal possible : les utilisateurs mécontents."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Schéma : les trois piliers convergent",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  A[\"Pods applicatifs\"] -->|logs| L[\"Loki\"]\n  A -->|metriques| P[\"Prometheus\"]\n  A -->|traces| T[\"Tempo / Jaeger\"]\n  L --> G[\"Grafana : tableaux de bord\"]\n  P --> G\n  T --> G\n  P --> AL[\"Alertmanager : alertes\"]\n  G --> H[\"Ingenieur : comprendre le pourquoi\"]\n  AL --> H"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Percentiles & SLO (niveau expert)",
+          "body": "Deux raffinements de professionnel, à connaître même si tu ne les mettras en place que plus tard.\n\n**1. Raisonner en percentiles, pas en moyenne.** Un **percentile** indique la valeur en dessous de laquelle tombe un pourcentage donné de mesures. Le **P95** de latence, c'est « 95 % des requêtes sont plus rapides que cette valeur » (donc 5 % sont plus lentes) ; le **P99**, « 99 % sont plus rapides ». Le défaut de la **moyenne**, c'est qu'elle **écrase** les cas lents : une latence moyenne de 60 ms peut parfaitement cacher que 1 % des requêtes prennent 3 secondes. Ces requêtes lentes forment la **tail latency** (la *latence de queue*, la traîne au bout de la distribution), et ce sont justement elles qui font râler les utilisateurs.\n\n👉 **Analogie** : si un milliardaire entre dans un café, le **revenu moyen** des clients explose, mais **aucun** client réel n'est devenu riche. La moyenne ment ; le percentile, lui, décrit ce que vit vraiment la majorité.\n\nEn microservices, l'enjeu est **amplifié** : si une requête traverse 5 services et que chacun a ne serait-ce que 1 % de réponses lentes, la probabilité qu'**au moins un** des 5 appels tombe sur une lenteur grimpe fortement (la latence de bout en bout est dominée par le maillon le plus lent à chaque étape). On surveille donc les percentiles hauts (P95/P99) de **chaque** service et du parcours complet, en s'appuyant sur les traces pour localiser le maillon lent.\n\n**2. Piloter par des SLO.** Un **SLO** (*Service Level Objective*, objectif de niveau de service) est une **cible chiffrée et mesurable** de fiabilité : par exemple « 99,9 % des requêtes répondent en moins de 300 ms sur 30 jours ». Ce qu'on mesure réellement pour le vérifier s'appelle un **SLI** (*Service Level Indicator*, l'indicateur). La part d'échecs qu'on **s'autorise** (ici les 0,1 % restants) est l'**error budget** (budget d'erreur).\n\nPlutôt que d'alerter sur chaque pic isolé (bruyant et épuisant), les équipes mûres alertent sur le **burn rate** : la **vitesse à laquelle on consomme** ce budget d'erreur. Un burn rate élevé sur plusieurs fenêtres de temps signifie « à ce rythme, tout le budget du mois sera grillé avant la fin », ce qui constitue une alerte **actionnable** (qui appelle une action concrète) et non un simple soubresaut. On complète par des **runbooks** (procédures écrites du type « en cas d'alerte X, faire Y ») et des **postmortems sans blâme** (analyses d'incident centrées sur les causes et les correctifs, pas sur la recherche d'un coupable).\n\n👉 **L'idée d'expert** : une observabilité mûre ne se contente pas de **collecter** des données, elle **pilote la fiabilité** avec des objectifs chiffrés, au service de l'expérience réelle des utilisateurs."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un tableau de bord montre une latence MOYENNE de 60 ms, jugée bonne, mais des utilisateurs se plaignent de lenteurs, et une requête traverse 5 microservices. Quelle métrique regarder, et pourquoi est-ce d'autant plus important en microservices ?",
+          "solution": "Il faut regarder les percentiles élevés, notamment le P99 (voire P99.9), pas la moyenne. La moyenne de 60 ms peut masquer une queue de distribution où 1 % des requêtes prennent plusieurs secondes : ce sont ces requêtes lentes qui génèrent les plaintes, et elles sont invisibles dans une moyenne écrasée par la masse des requêtes rapides. C'est la tail latency. Cet enjeu est AMPLIFIÉ en microservices car une requête utilisateur traverse ici 5 services (5 pods) : si chaque service a ne serait-ce qu'un petit pourcentage de réponses lentes, la probabilité qu'au moins UN des 5 appels tombe sur une réponse lente augmente fortement, la latence de bout en bout est dominée par le maillon le plus lent à chaque étape (tail latency amplification). D'où deux réflexes d'expert : (1) surveiller et optimiser les percentiles hauts (P95/P99) de chaque service ET du parcours complet, en s'appuyant sur les traces distribuées pour localiser OÙ se concentre la latence dans la chaîne de 5 services ; (2) définir des SLO basés sur ces percentiles (ex. P99 < X ms) plutôt que sur la moyenne, pour refléter l'expérience réelle. La moyenne est trompeuse ; en microservices, seuls les percentiles et le tracing racontent la vérité de la latence perçue."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Logs, métriques & traces",
+          "quizRef": "observability-check"
+        }
+      ]
+    },
+    {
+      "slug": "kube-state-metrics-events-otel",
+      "title": "kube-state-metrics, events & OpenTelemetry",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "metrics-server ≠ kube-state-metrics",
+          "body": "Voici deux composants aux noms voisins mais aux rôles **opposés** ; les confondre fait chercher une métrique au mauvais endroit.\n\n**metrics-server** mesure la **consommation de ressources** : combien de **CPU et de mémoire** sont **utilisés** par chaque pod et chaque nœud, en direct. C'est la source de `kubectl top` et le carburant de l'**HPA** (l'autoscaler horizontal). Il répond à la question « **combien ça consomme ?** ».\n\n**kube-state-metrics** (souvent abrégé **KSM**) ne mesure **aucune** consommation. Il expose l'**état des objets** Kubernetes eux-mêmes, tel que l'API le connaît : combien de pods dans chaque phase, combien de répliques **désirées** contre **prêtes** pour un Deployment, combien de **PVC** (*PersistentVolumeClaim*, une demande de stockage) restés non liés, combien de Jobs échoués, combien de nœuds **NotReady** (non prêts), etc. Il répond à la question « **dans quel état sont mes objets ?** ».\n\n👉 **Analogie automobile** : **metrics-server**, c'est la **jauge de carburant et le compte-tours** (ce que le moteur consomme *à cet instant*). **kube-state-metrics**, c'est le **carnet de bord et les voyants** (portière ouverte, 3 sièges sur 5 occupés, révision en retard), c'est-à-dire l'*état* du véhicule, pas sa consommation.\n\n**Exemple qui tranche** : pour l'alerte « ce Deployment tourne avec moins de répliques que prévu » ou « ce pod est en **CrashLoop** (il redémarre en boucle) depuis 10 minutes », c'est **KSM** qu'on scrape avec Prometheus, pas metrics-server (qui n'a tout simplement pas cette information). La règle : **metrics-server pour la consommation** (et l'autoscaling), **kube-state-metrics pour l'état/santé** (et l'alerting)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Les Events : un signal fugace mais précieux",
+          "body": "Les **Events** (*événements*) Kubernetes sont de **courts messages horodatés émis par le cluster pour raconter ce qu'il fait** à un objet : un pod planifié sur un nœud, une image tirée (téléchargée), un **OOMKill** (le conteneur tué parce qu'il a dépassé sa limite mémoire, de l'anglais *Out Of Memory*), un échec de montage de volume, un échec de placement (**FailedScheduling** : aucun nœud ne peut accueillir le pod), une **éviction** (un pod expulsé d'un nœud sous pression).\n\nOn les consulte avec `kubectl get events`, `kubectl events`, ou dans la section **Events** en bas de `kubectl describe pod <nom>`. C'est très souvent la **première** chose à regarder pour répondre à « pourquoi ce pod ne démarre-t-il pas ? ».\n\n👉 **Analogie** : les Events sont les **notifications** de ton téléphone : de brefs messages, « ceci vient de se produire ». Pratiques sur le moment, mais elles s'effacent, et si tu ne les as pas lues à temps, l'information est perdue.\n\nC'est justement le **piège** : les Events ont une **rétention courte** (une heure par défaut) et sont stockés dans **etcd** (la base de données clé-valeur du cluster, sa mémoire centrale). Passé ce délai, ils **disparaissent**, souvent au pire moment, quand tu enquêtes après coup. La bonne pratique en production est donc de les **exporter** en continu : un **event-exporter** les envoie vers Loki ou Elasticsearch (comme les logs), ou les convertit en métriques et en alertes. Ainsi, ce signal fugace mais précieux reste disponible **quand tu en as besoin**, c'est-à-dire une fois l'incident passé."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "OpenTelemetry : unifier la télémétrie (niveau expert)",
+          "body": "Historiquement, on empilait un **agent** différent par type de signal : un pour les logs, un pour les traces, un pour les métriques, chacun souvent lié à un fournisseur précis. Résultat : fragile à maintenir et **verrouillant** (difficile de changer d'outil sans tout ré-instrumenter, ce qu'on appelle le *vendor lock-in*, l'enfermement propriétaire).\n\n**OpenTelemetry** (abrégé **OTel**) résout cela. C'est un **standard** porté par la **CNCF** (*Cloud Native Computing Foundation*, la fondation qui héberge Kubernetes et la plupart des projets de l'écosystème cloud native), qui **unifie l'instrumentation**. L'**instrumentation**, c'est le fait d'équiper une application pour qu'elle **émette** de la télémétrie, c'est-à-dire ses logs, métriques et traces.\n\nOTel apporte deux pièces :\n- une **API/SDK** commune (une bibliothèque unique) pour émettre les **trois** signaux depuis ton code, de façon standardisée ;\n- un **Collector**, un composant déployé dans le cluster (en DaemonSet ou en Deployment) qui **reçoit, traite et route** toute cette télémétrie vers les backends de ton choix (Prometheus, Tempo, Loki, un SaaS), sans que tes applications aient à connaître le destinataire.\n\n👉 **Analogie** : OTel est une **prise électrique universelle**. Tu branches ton appareil **une seule fois** sur une prise standard, et un adaptateur central (le Collector) l'alimente quel que soit le pays. Tu peux changer de fournisseur d'électricité sans rerouter tous tes appareils un par un.\n\nLe gain majeur, au-delà de « instrumenter une fois, router partout », est la **corrélation** : un même **trace id** relie une trace, ses logs et ses métriques. Concrètement, depuis une alerte métrique tu sautes à la **trace exacte** de la requête fautive, puis aux **logs** du pod concerné, sans changer d'outil ni recouper à la main. C'est la direction de fond de l'observabilité cloud native."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe veut une alerte quand un Deployment a durablement moins de répliques prêtes que désiré (ex. 2/5 depuis 10 minutes). Elle essaie de construire cette alerte à partir de metrics-server et n'y arrive pas. Quel composant fournit cette information, et pourquoi metrics-server ne convient pas ?",
+          "solution": "metrics-server ne convient pas parce qu'il expose la CONSOMMATION de ressources (CPU/mémoire utilisés par pod/nœud), pas l'ÉTAT des objets Kubernetes. Le nombre de répliques désirées vs prêtes d'un Deployment n'est pas une métrique de consommation ; c'est une métrique d'état d'objet. Le composant qui la fournit est kube-state-metrics (KSM) : il expose des métriques sur l'état des ressources du cluster, dont, pour chaque Deployment, kube_deployment_spec_replicas (désiré), kube_deployment_status_replicas_available (disponibles), etc. On scrape KSM avec Prometheus, puis on écrit une règle d'alerte PromQL qui compare disponibles et désiré sur une fenêtre, par exemple alerter si (kube_deployment_status_replicas_available < kube_deployment_spec_replicas) persiste depuis 10 minutes (clause `for: 10m`). C'est exactement le type de signal de santé du cluster (répliques manquantes, pods en CrashLoop, PVC non liés, nœuds NotReady, Jobs échoués) pour lequel KSM est fait, là où metrics-server ne sert qu'à `kubectl top` et à l'HPA. La distinction est essentielle : metrics-server pour la consommation (et l'autoscaling), kube-state-metrics pour l'état/santé (et l'alerting). On installe donc KSM + Prometheus + Alertmanager pour ce besoin."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, kube-state-metrics, events & OTel (expert)",
+          "quizRef": "ksm-events-otel-expert"
+        }
+      ]
+    }
+  ]
+}

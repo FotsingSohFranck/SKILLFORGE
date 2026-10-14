@@ -1,0 +1,119 @@
+{
+  "ref": "third-party-images-expert",
+  "node": "third-party-images",
+  "lesson": "exploiter-images-officielles",
+  "title": "Exploiter les images officielles, expert",
+  "description": "Scripts d'init, variantes de tags slim/alpine, initialisation au volume vide.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où déposer un script SQL pour qu'une image postgres l'exécute à l'initialisation ?",
+      "justification": "Dans /docker-entrypoint-initdb.d/ : l'entrypoint y exécute les .sql/.sh au premier démarrage (volume vide).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Dans /docker-entrypoint-initdb.d/",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans /etc/passwd",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans /tmp",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand les scripts de /docker-entrypoint-initdb.d/ s'exécutent-ils ?",
+      "justification": "Uniquement à l'initialisation, quand le répertoire de données (le volume) est vide ; ignorés si la base existe déjà.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Seulement au premier démarrage, sur un volume de données vide",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À chaque démarrage du conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais automatiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel tag privilégier pour une image de production légère (en validant la compatibilité) ?",
+      "justification": "Un tag slim ou alpine réduit la taille et la surface d'attaque ; Alpine (musl) demande de vérifier les dépendances natives.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une variante slim ou alpine",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours la base complète",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le tag latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi Alpine peut-il poser des soucis de compatibilité ?",
+      "justification": "Alpine utilise musl libc (au lieu de glibc) : certaines dépendances natives compilées pour glibc peuvent casser.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Il utilise musl libc au lieu de glibc",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ne supporte pas le réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est plus lourd que Debian",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un nouveau script de seed ajouté à /docker-entrypoint-initdb.d/ ne s'appliquera pas si le volume de données existe déjà.",
+      "justification": "Vrai : l'initialisation ne se joue que sur un volume vide ; il faut repartir d'un volume neuf pour rejouer les scripts.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

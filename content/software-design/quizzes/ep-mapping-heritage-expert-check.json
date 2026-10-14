@@ -1,0 +1,101 @@
+{
+  "ref": "ep-mapping-heritage-expert-check",
+  "node": "enterprise-patterns",
+  "lesson": "mapping-heritage-lazy-load-n1",
+  "title": "Quiz, Mapping d'héritage & N+1 (expert)",
+  "description": "Single/Class/Concrete Table Inheritance, lazy vs eager, problème N+1 et remèdes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principal inconvénient de la Single Table Inheritance quand les sous-types divergent beaucoup ?",
+      "justification": "Une seule table avec toutes les colonnes de tous les sous-types → beaucoup de colonnes nullables et des contraintes NOT NULL impossibles. Bonne surtout quand les sous-types partagent l'essentiel.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Beaucoup de colonnes nullables et des contraintes NOT NULL impossibles",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Trop de jointures pour lire un sous-type",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Impossible de faire des requêtes polymorphes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le problème N+1 selects ?",
+      "justification": "1 requête pour charger N objets, puis 1 requête par objet en accédant à une association lazy → 1 + N requêtes. Invisible avec peu de données, explosif en production.",
+      "position": 1,
+      "options": [
+        {
+          "label": "1 requête pour la liste + 1 par élément (association lazy) = 1+N requêtes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "N tables pour 1 entité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une requête qui renvoie N+1 lignes en trop",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel remède est souvent le meilleur pour un écran de LISTE en lecture seule ?",
+      "justification": "Une projection de lecture dédiée : une requête qui renvoie exactement les champs affichés (via jointure), sans charger le graphe d'entités, le plus performant pour un affichage.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une projection de lecture dédiée (exactement les champs de l'écran)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Charger toutes les entités en eager global",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Augmenter le pool de connexions",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une hiérarchie `Payment` aux sous-types très différents, en Single Table avec 30 colonnes nulles par ligne. Meilleure stratégie ?",
+      "justification": "Class Table Inheritance (joined) : table de base + une table par sous-type reliée par FK, schéma normalisé, plus de nulls superflus, contraintes NOT NULL possibles. Coût : une jointure par lecture de sous-type.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Class Table Inheritance (joined) : base + une table par sous-type",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rester en Single Table avec plus de nulls",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Tout mettre dans une colonne JSON",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

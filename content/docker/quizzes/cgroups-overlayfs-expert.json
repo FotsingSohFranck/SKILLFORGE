@@ -1,0 +1,119 @@
+{
+  "ref": "cgroups-overlayfs-expert",
+  "node": "namespaces-cgroups-union",
+  "lesson": "cgroups-v2-overlayfs",
+  "title": "cgroups v2 & OverlayFS, expert",
+  "description": "cgroups v1 vs v2, hiérarchie unifiée, copy-up, whiteout, namespaces oubliés.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la caractéristique principale de cgroups v2 par rapport à v1 ?",
+      "justification": "cgroups v2 utilise une hiérarchie unifiée unique (tous les contrôleurs sur le même arbre), plus cohérente et compatible rootless ; défaut aujourd'hui.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une hiérarchie unifiée unique (au lieu d'une par ressource)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'absence de limites mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le remplacement des namespaces",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans OverlayFS, où va une modification d'un fichier issu d'une couche de base (lowerdir) ?",
+      "justification": "Copy-up : le fichier est d'abord copié dans l'upperdir (couche d'écriture) avant modification, d'où le coût sur les gros fichiers.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il est copié dans l'upperdir (copy-up) avant modification",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est modifié directement dans la lowerdir",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est supprimé de l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où placer des données mutables et volumineuses pour éviter le coût du copy-up ?",
+      "justification": "Dans un volume, qui court-circuite OverlayFS et écrit directement, sans couches ni copy-up.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Dans un volume (qui court-circuite OverlayFS)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans la couche d'écriture du conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans l'image de base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment OverlayFS représente-t-il la suppression d'un fichier venant d'une couche de base ?",
+      "justification": "Par un fichier « whiteout » dans l'upperdir qui masque le fichier ; il n'est pas réellement effacé de la couche image.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Par un fichier whiteout dans l'upperdir qui le masque",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En effaçant physiquement la couche image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En compressant la couche",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il est utile de vérifier si l'hôte utilise cgroups v1 ou v2, car les comportements de limites et de métriques diffèrent.",
+      "justification": "Vrai : la version de cgroups change la gestion mémoire, les métriques et le support rootless ; un expert la vérifie.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "linux-fundamentals-shell-check",
+  "node": "linux-fundamentals",
+  "lesson": "shell-et-fichiers",
+  "title": "Shell, fichiers & permissions",
+  "description": "Arbre de fichiers, chemins absolus/relatifs, permissions rwx, root, chmod/chown.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À partir de quoi commence un chemin absolu sous Linux ?",
+      "justification": "Un chemin absolu part toujours de la racine `/`, le point de départ unique de l'arbre de fichiers (ex. /etc/hosts).",
+      "position": 0,
+      "options": [
+        { "label": "De la racine /", "correct": true, "position": 0 },
+        { "label": "Du lecteur C:", "correct": false, "position": 1 },
+        { "label": "Du dossier où l'on se trouve", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande rend un fichier exécutable ?",
+      "justification": "chmod +x ajoute le bit d'exécution (x) au fichier ; sans lui, Linux refuse de le lancer comme un programme.",
+      "position": 1,
+      "options": [
+        { "label": "chmod +x fichier", "correct": true, "position": 0 },
+        { "label": "chown +x fichier", "correct": false, "position": 1 },
+        { "label": "mkdir -x fichier", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Comme Windows, le système de fichiers Linux est organisé en lecteurs séparés (C:, D:).",
+      "justification": "Faux : Linux a un arbre unique partant de la racine / ; il n'y a pas de lecteurs C: ou D:, tout est rattaché à ce même arbre.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un fichier partagé entre ta machine et un conteneur est illisible depuis le conteneur (« permission denied »). Quelle notion Linux est le plus probablement en cause ?",
+      "justification": "Le propriétaire et/ou les permissions (rwx) du fichier ne correspondent pas à l'utilisateur du conteneur : c'est la cause classique de « permission denied » sur un fichier monté.",
+      "position": 3,
+      "options": [
+        { "label": "Le propriétaire et les permissions du fichier ne correspondent pas à l'utilisateur du conteneur", "correct": true, "position": 0 },
+        { "label": "Le fichier est trop volumineux pour être lu", "correct": false, "position": 1 },
+        { "label": "Le conteneur n'a pas d'adresse IP", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

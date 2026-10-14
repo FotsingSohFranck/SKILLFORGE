@@ -1,0 +1,96 @@
+{
+  "ref": "distributed-styles-check",
+  "node": "distributed-styles",
+  "lesson": "repartir-sur-plusieurs-machines",
+  "title": "Quiz, Styles distribués",
+  "description": "Client-serveur, pair-à-pair, coûts du distribué et CAP.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise le style pair-à-pair ?",
+      "justification": "Pas de serveur central : chaque nœud est à la fois client et serveur, pas de point unique de défaillance, mais coordination difficile.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Aucun serveur central, chaque nœud est client et serveur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un serveur unique qui fait tout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune communication entre nœuds",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit le théorème CAP en cas de partition réseau ?",
+      "justification": "En cas de partition (P), on doit choisir entre cohérence (C) et disponibilité (A), on ne peut pas garantir les deux.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il faut choisir entre cohérence et disponibilité",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "On obtient cohérence et disponibilité gratuitement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le réseau devient infiniment rapide",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi « passer en distribué » ne rend pas automatiquement plus rapide ?",
+      "justification": "Les appels passent par le réseau (latence, sérialisation, réessais) ; un monolithe bien découpé évite ces allers-retours. Distribuer sert l'échelle, pas la vitesse intrinsèque.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le réseau ajoute latence et coûts absents en local",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que les machines distantes sont toujours plus lentes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que le code doit être réécrit en un autre langage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La règle de sagesse est : ne distribuez que si vous devez, car chaque frontière réseau ajoute de la complexité.",
+      "justification": "Vrai : latence, pannes partielles, cohérence distribuée sont des coûts qu'un monolithe bien découpé n'a pas ; on distribue pour un besoin réel.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

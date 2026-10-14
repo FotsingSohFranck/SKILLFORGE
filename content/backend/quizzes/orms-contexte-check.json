@@ -1,0 +1,52 @@
+{
+  "ref": "orms-contexte-check",
+  "node": "orms",
+  "lesson": "contexte-persistance-verrou-optimiste",
+  "title": "Quiz : Contexte de persistance & verrou optimiste",
+  "description": "Dirty checking et flush en JPA, R2DBC prévisible, et @Version.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le « dirty checking » du contexte de persistance de Hibernate ?",
+      "justification": "À la fin de la transaction (au flush), Hibernate compare l'état des entités chargées et génère automatiquement les UPDATE pour ce qui a changé.",
+      "position": 0,
+      "options": [
+        { "label": "Hibernate compare les entités chargées à leur état initial et génère les UPDATE automatiquement au flush", "correct": true, "position": 0 },
+        { "label": "Hibernate vérifie que les données ne sont pas corrompues sur le disque", "correct": false, "position": 1 },
+        { "label": "Hibernate supprime les entités inutilisées de la base", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec R2DBC, modifier en mémoire un objet chargé n'écrit rien en base tant qu'on n'appelle pas save() explicitement.",
+      "justification": "Vrai. R2DBC n'a pas de contexte de persistance ni de dirty checking : l'objet est un snapshot, rien n'est écrit sans un save() explicite. Comportement prévisible.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "En JPA, un développeur charge une entité, change un champ, mais n'appelle jamais save(). La base est pourtant mise à jour. Qu'est-ce qui explique ce comportement ?",
+      "justification": "Le contexte de persistance fait du dirty checking : au flush (fin de transaction), il détecte le changement de l'entité gérée et émet l'UPDATE tout seul, sans save() explicite.",
+      "position": 2,
+      "options": [
+        { "label": "Le contexte de persistance détecte le changement et émet l'UPDATE au flush, sans save() explicite", "correct": true, "position": 0 },
+        { "label": "C'est un bug de Hibernate qu'il faut signaler", "correct": false, "position": 1 },
+        { "label": "R2DBC a intercepté l'appel et écrit à la place de JPA", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un champ `@Version` (verrou optimiste) sur une entité ?",
+      "justification": "À l'UPDATE, Spring Data ajoute AND version = :ancienneVersion et incrémente la version. Si 0 ligne n'est touchée, c'est qu'une écriture concurrente a eu lieu : OptimisticLockingFailureException.",
+      "position": 3,
+      "options": [
+        { "label": "Détecter qu'une écriture concurrente a eu lieu entre-temps, pour éviter d'écraser le travail d'un autre", "correct": true, "position": 0 },
+        { "label": "Numéroter les versions du code source de l'application", "correct": false, "position": 1 },
+        { "label": "Chiffrer la ligne à chaque mise à jour", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "solid-lsp-expert-check",
+  "node": "solid",
+  "lesson": "lsp-design-by-contract",
+  "title": "Quiz, LSP & Design by Contract (expert)",
+  "description": "Préconditions/postconditions/invariants, variance, règle d'historique, règle des exceptions.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Selon le Design by Contract, qu'un sous-type peut-il faire des préconditions et postconditions ?",
+      "justification": "Exiger moins ou autant (ne pas RENFORCER les préconditions), promettre autant ou plus (ne pas AFFAIBLIR les postconditions). Sinon un client valide pour le parent est trahi.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Ne pas renforcer les préconditions, ne pas affaiblir les postconditions",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Renforcer les préconditions pour plus de sécurité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Affaiblir les postconditions pour plus de liberté",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit la règle de variance sur les paramètres d'une méthode redéfinie ?",
+      "justification": "Contravariance des paramètres : un paramètre redéfini peut être plus général (jamais plus spécifique) ; accepter plus d'entrées ne casse aucun appelant. Le retour, lui, peut être covariant (plus spécifique).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les paramètres peuvent être plus généraux (contravariance), le retour plus spécifique (covariance)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les paramètres doivent être plus spécifiques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune variance n'est permise",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un `SavingsAccount` redéfinit `withdraw` pour refuser tout montant > 500, alors que `Account.withdraw` acceptait tout montant positif. Quel problème ?",
+      "justification": "Il RENFORCE la précondition : un client écrit pour Account (qui appelle withdraw(1000)) casse quand on lui substitue un SavingsAccount, violation de LSP, même si le code compile.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Il renforce une précondition : la substitution n'est plus sûre pour un client d'Account",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Aucun, c'est une bonne validation",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il affaiblit une postcondition seulement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "« Le code compile et les tests du sous-type passent » prouve que LSP est respecté.",
+      "justification": "Faux : LSP se juge du point de vue des CLIENTS du type de base. Une violation (postcondition affaiblie, nouvelle exception vérifiée, règle d'historique) peut compiler et passer les tests du sous-type tout en cassant les clients du parent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

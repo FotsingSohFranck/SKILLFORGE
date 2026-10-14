@@ -1,0 +1,119 @@
+{
+  "ref": "rest-apis-expert",
+  "node": "rest-apis",
+  "lesson": "robustesse-api",
+  "title": "APIs REST, niveau expert",
+  "description": "ETag/304, écritures conditionnelles, rate limiting, Problem Details, PATCH.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un client renvoie `If-None-Match` avec l'ETag d'une ressource inchangée. Que répond le serveur ?",
+      "justification": "304 Not Modified sans corps : le client réutilise sa copie, on économise bande passante et latence.",
+      "position": 0,
+      "options": [
+        {
+          "label": "304 Not Modified, sans corps",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "200 OK avec le corps complet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "409 Conflict",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment empêcher, au niveau HTTP, qu'un client écrase les changements d'un autre sur la même ressource ?",
+      "justification": "L'écriture conditionnelle If-Match : un ETag périmé provoque un 412 Precondition Failed au lieu d'écraser (verrou optimiste HTTP).",
+      "position": 1,
+      "options": [
+        {
+          "label": "PUT/PATCH avec If-Match ; ETag périmé → 412 Precondition Failed",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours utiliser GET",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ajouter Cache-Control: no-store",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand un client dépasse la limite de débit autorisée, quel statut et quel en-tête sont appropriés ?",
+      "justification": "429 Too Many Requests avec Retry-After : un signal standard qui invite le client à ralentir et réessayer.",
+      "position": 2,
+      "options": [
+        {
+          "label": "429 Too Many Requests + Retry-After",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "500 Internal Server Error",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "403 Forbidden sans en-tête",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que normalise la RFC 9457 (Problem Details) ?",
+      "justification": "Elle standardise le corps des réponses d'erreur (type, title, status, detail…) en application/problem+json, pour des clients interopérables.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Un format d'erreur HTTP standard et interopérable",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le format des ETags",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'algorithme de rate limiting",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "PATCH permet de modifier partiellement une ressource, contrairement à PUT qui la remplace entièrement.",
+      "justification": "Vrai : PATCH applique une modification partielle (JSON Merge Patch / JSON Patch), PUT remplace la représentation entière.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

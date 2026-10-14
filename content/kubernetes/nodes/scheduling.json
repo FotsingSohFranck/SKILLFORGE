@@ -1,0 +1,114 @@
+{
+  "node": "scheduling",
+  "lessons": [
+    {
+      "slug": "scheduler-et-placement",
+      "title": "Le scheduler & le placement",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Comment un pod trouve son nœud",
+          "body": "Quand tu demandes à Kubernetes de lancer une application, tu ne choisis pas toi-même la machine sur laquelle elle va tourner. Un composant s'en charge à ta place : le **scheduler** (mot anglais pour « ordonnanceur », celui qui **planifie** et **place** les choses).\n\nAvant tout, trois mots de vocabulaire indispensables :\n- Un **nœud** (*node* en anglais) est une **machine** du cluster (un serveur physique ou virtuel) qui exécute tes applications. Un cluster, c'est un ensemble de nœuds qui travaillent ensemble.\n- Un **pod** est la **plus petite unité que Kubernetes sait déployer** : une enveloppe autour d'un (ou de quelques) conteneur. En pratique, « lancer une app » revient à « lancer un ou plusieurs pods ».\n- Une **request** (« demande ») est la **quantité de ressources** (processeur, mémoire) qu'un pod **réclame pour fonctionner**. Exemple : « ce pod a besoin d'au moins 0,5 cœur de CPU et 256 Mo de RAM ».\n\nLe **kube-scheduler** (l'ordonnanceur de Kubernetes) a une seule mission : pour chaque pod qui vient de naître et n'a pas encore de machine, décider **sur quel nœud** le poser. Il procède en **deux temps** :\n1. **Filtrer** (*filter*) : écarter tous les nœuds qui **ne conviennent pas** (pas assez de ressources libres au vu des **requests** du pod, contraintes non respectées).\n2. **Scorer** (*score*) : parmi les nœuds qui restent, donner une **note** à chacun et retenir le **meilleur** (par exemple celui qui équilibre le mieux la charge).\n\n👉 **Analogie** : le scheduler est un **placeur de restaurant**. Un groupe arrive (le pod). Le placeur écarte d'abord les tables trop petites ou déjà réservées (filtrer), puis, parmi celles qui restent, choisit la mieux située, par exemple près de la fenêtre (scorer). Il n'installe jamais un groupe à une table qui ne peut pas l'accueillir.\n\nUne fois le nœud choisi, le pod y est **attaché**, et le **kubelet** (l'agent de Kubernetes présent sur **chaque** nœud, qui obéit aux ordres et fait tourner les conteneurs) démarre réellement les conteneurs du pod. Tu peux **influencer** ce placement avec plusieurs mécanismes qu'on va découvrir : taints/tolerations, affinités, contraintes de répartition, priorités."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Taints & tolerations : repousser sauf autorisation",
+          "body": "Parfois, tu veux **empêcher** que n'importe quel pod atterrisse sur certains nœuds. Le mécanisme pour cela s'appelle les **taints** et les **tolerations**.\n\nUn **taint** (mot anglais qui veut dire « souillure », « marque répulsive ») est une **étiquette de rejet** que tu poses sur un nœud. Un nœud « taché » devient **répulsif** : par défaut, **aucun pod n'y est planifié**. Seuls les pods qui portent une **toleration** (« tolérance ») **correspondante** ont le droit d'y aller. Autrement dit, la toleration est un **laissez-passer** que le pod présente pour être autorisé sur un nœud tainté.\n\n👉 **Analogie** : le taint, c'est un **panneau « Réservé au personnel »** sur une porte. Tout le monde est repoussé par défaut. La toleration, c'est le **badge** que quelques personnes possèdent et qui les autorise à franchir cette porte. Mais attention : avoir le badge ne t'**oblige** pas à entrer, ça te le **permet** simplement.\n\n**Exemple concret** : tu as acheté des nœuds coûteux équipés de **GPU** (des cartes graphiques puissantes, utiles pour l'intelligence artificielle). Tu ne veux **pas** que tes sites web ordinaires les occupent. Tu poses donc un taint sur ces nœuds (`kubectl taint nodes <nœud> gpu=true:NoSchedule`). Résultat : les pods web, qui n'ont pas de toleration, sont automatiquement écartés. Seuls tes pods de calcul GPU, à qui tu ajoutes la toleration correspondante, peuvent s'y installer.\n\nÀ retenir : le taint **repousse**, la toleration **autorise** (mais n'attire pas). Pour **attirer** ou **forcer** un pod vers un nœud précis, ce sont les **affinités** (leçon suivante) qu'on utilise, souvent en complément des tolerations."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Le parcours d'un pod jusqu'à son nœud",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[Nouveau pod a placer] --> B{Etape 1 : filtrer les noeuds}\n  B -->|Pas assez de ressources ou contrainte non respectee| X[Noeud ecarte]\n  B -->|Le noeud convient| C[Liste des noeuds candidats]\n  C --> D{Etape 2 : scorer chaque candidat}\n  D --> E[Noeud avec le meilleur score]\n  E --> F[Pod attache a ce noeud]\n  F --> G[Le kubelet demarre les conteneurs]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Vous avez ajouté à votre cluster des nœuds coûteux équipés de GPU, et vous voulez que SEULES les charges de machine learning y tournent, jamais les applications web ordinaires. Quel mécanisme utiliser, et comment ?",
+          "solution": "On utilise les taints et tolerations. On applique un taint sur les nœuds GPU (ex. `kubectl taint nodes <node> gpu=true:NoSchedule`), ce qui les rend répulsifs : par défaut, aucun pod n'y sera planifié, les applications web ordinaires en sont donc automatiquement exclues (elles ne portent pas de toleration). Ensuite, on ajoute aux pods des charges de machine learning une toleration correspondante (tolérer gpu=true:NoSchedule), ce qui les AUTORISE à être planifiés sur ces nœuds. Résultat : les nœuds GPU coûteux sont réservés aux seules charges qui tolèrent le taint (le ML), et les autres workloads restent sur les nœuds standard. Nuance importante : la toleration AUTORISE le placement mais n'y CONTRAINT pas, un pod ML tolérant pourrait aussi aller sur un nœud non-GPU. Pour FORCER les charges ML à aller sur les nœuds GPU (et pas ailleurs), on combine la toleration avec une nodeAffinity (ou un nodeSelector) qui cible les nœuds GPU. Taints/tolerations = repousser sauf autorisation ; affinité = attirer/contraindre. Les deux ensemble réservent précisément les nœuds GPU aux charges ML."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Le scheduler & le placement",
+          "quizRef": "scheduling-placement-check"
+        }
+      ]
+    },
+    {
+      "slug": "affinites-priorites-evictions",
+      "title": "Affinités, priorités & évictions",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Affinités & répartition topologique",
+          "body": "Les taints **repoussent**. Voyons maintenant comment **attirer** des pods vers certains nœuds, ou au contraire les **répartir** proprement. Trois leviers existent.\n\nD'abord un mot clé : une **réplique** est une **copie identique** d'un pod. On lance souvent une app en plusieurs répliques (par exemple 3) pour tenir la charge et **survivre à une panne** : si une copie tombe, les autres continuent de répondre.\n\nLes trois leviers :\n- La **nodeAffinity** (« affinité de nœud ») **attire** des pods vers certains nœuds selon leurs caractéristiques (une **zone** géographique, un type de machine, etc.). 👉 **Analogie** : c'est dire « je préfère une chambre d'hôtel côté mer ».\n- La **podAffinity / podAntiAffinity** place des pods **près de** (affinity) ou **loin de** (anti-affinity) **d'autres pods**. 👉 Exemple : mettre un pod de cache **à côté** de l'application qui l'utilise (podAffinity), ou au contraire **éloigner** les copies d'une même app les unes des autres (podAntiAffinity).\n- Les **topologySpreadConstraints** (« contraintes de répartition topologique ») **étalent** les répliques **uniformément** à travers des **domaines de panne**.\n\nUn **domaine de panne** (*failure domain*) est un ensemble de machines qui **risquent de tomber ensemble** : un même nœud, un même rack, une même **zone** de datacenter. La **haute disponibilité** (le fait qu'un service reste debout même en cas de panne) exige de **ne pas mettre tous ses œufs dans le même panier**.\n\n👉 **Analogie** : si tu imprimes 3 exemplaires d'un document important, tu ne les ranges pas dans le **même** tiroir (un dégât d'eau les détruirait tous) : tu les mets dans **trois endroits différents**. Les topologySpreadConstraints font exactement ça avec tes répliques.\n\n**Exemple concret du piège** : sans répartition, les 3 répliques d'une app pourraient toutes atterrir sur le **même** nœud (parce qu'il avait de la place au moment du placement). Une seule panne de ce nœud, et les 3 disparaissent d'un coup : ta réplication n'a servi à rien. Bien répartir, c'est **survivre** aux pannes."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Priorités, préemption & évictions",
+          "body": "Tous les pods ne se valent pas : une base de données de production est plus critique qu'un petit script de test. Kubernetes permet d'exprimer cette importance et d'en tenir compte quand les ressources manquent.\n\nUne **PriorityClass** (« classe de priorité ») est une **étiquette d'importance** que tu attribues à un pod, avec une valeur numérique : plus le nombre est grand, plus le pod est prioritaire. Quand le cluster est **sous pression** (plus assez de place pour tout le monde), un pod de **haute priorité** peut **évincer** un pod de **basse priorité** pour prendre sa place. Ce mécanisme s'appelle la **préemption** : le pod important « passe devant » et fait dégager un pod moins important.\n\n👉 **Analogie** : dans une salle d'attente pleine, une **urgence vitale** passe avant les consultations de routine. La préemption, c'est le tri à l'entrée des urgences.\n\nLes **évictions** (« expulsions ») n'arrivent pas qu'à cause de la priorité. Elles surviennent aussi quand un **nœud manque de ressources** : on parle de **pression** mémoire ou disque. Le **kubelet** (l'agent sur le nœud) **expulse** alors des pods pour se protéger et rester stable. Il commence par les pods les moins « garantis », appelés **BestEffort** (« au mieux ») : ceux qui n'ont demandé aucune ressource précise et sont donc sacrifiés en premier. Cet ordre vient de la **QoS** (*Quality of Service*, « qualité de service »), le classement que Kubernetes attribue aux pods selon les ressources qu'ils réclament.\n\nProblème : si des évictions se produisent n'importe comment, elles peuvent **casser la disponibilité** d'un service. D'où le **PodDisruptionBudget** (PDB, « budget de perturbation des pods »). Un PDB est une **règle de survie** que tu déclares : « au moins **N** répliques doivent **rester disponibles** en permanence ». Kubernetes en tient compte lors des **perturbations volontaires**, comme le **drain** d'un nœud (le fait de **vider** un nœud de ses pods, par exemple pour une mise à jour ou une maintenance).\n\n👉 **Analogie** : le PDB, c'est la règle d'un magasin qui dit « on ne ferme jamais toutes les caisses en même temps : il en reste toujours au moins deux ouvertes ». Même pendant les pauses du personnel (les perturbations volontaires), le service au client continue.\n\n**Exemple concret** : une app en 3 répliques avec un PDB « au moins 2 disponibles ». Quand un opérateur draine un nœud pour le mettre à jour, Kubernetes accepte de retirer **une** réplique à la fois, jamais deux d'un coup, pour respecter le budget. Le service ne descend jamais sous 2 copies actives."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Une application critique tourne en 3 répliques, mais lors de la panne d'un seul nœud, les 3 répliques deviennent indisponibles en même temps. Quel mécanisme d'ordonnancement aurait évité cela, et comment ?",
+          "solution": "Le problème : les 3 répliques ont été planifiées sur le MÊME nœud (ou la même zone de panne). Par défaut, le scheduler ne garantit pas de les répartir ; il peut très bien les regrouper si ce nœud avait de la place. Résultat, une seule panne emporte les 3, la réplication ne sert à rien si toutes les copies partagent le même point de défaillance. Le mécanisme qui l'évite : les topologySpreadConstraints (ou, plus ancien, la podAntiAffinity). On déclare une contrainte de répartition qui impose au scheduler d'étaler les répliques uniformément à travers un domaine topologique, par nœud (topologyKey: kubernetes.io/hostname) et/ou par zone (topology.kubernetes.io/zone), avec un maxSkew borné. Ainsi, les 3 répliques sont placées sur des nœuds (et idéalement des zones) DIFFÉRENTS : la panne d'un nœud n'en affecte qu'une, les 2 autres continuent de servir. C'est un pilier de la haute disponibilité : répartir les répliques sur des domaines de panne indépendants. On complète souvent par un PodDisruptionBudget (« au moins 2 des 3 disponibles ») pour que les opérations volontaires (drain de nœud, mise à jour) ne réduisent pas non plus la disponibilité en dessous du seuil."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Ordonnancement",
+          "quizRef": "scheduling-check"
+        }
+      ]
+    },
+    {
+      "slug": "ordonnancement-avance",
+      "title": "Ordonnancement avancé",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "nodeSelector, affinité : required vs preferred",
+          "body": "Pour attirer des pods vers certains nœuds, il existe plusieurs niveaux de finesse. Deux notions préalables :\n- Un **label** (« étiquette ») est une simple **paire clé/valeur** qu'on colle sur un objet Kubernetes pour le décrire, par exemple `disktype=ssd` sur un nœud à disque rapide. Les labels servent à **sélectionner** des objets.\n- Un pod à l'état **Pending** (« en attente ») est un pod **créé mais pas encore placé** : le scheduler n'a trouvé **aucun nœud** qui lui convienne, alors il attend.\n\nLe **nodeSelector** est le plus simple des sélecteurs : « planifie ce pod **seulement** sur des nœuds portant tel label ». C'est **binaire** (tout ou rien) : soit un nœud a le label, soit il ne l'a pas.\n\nLa **nodeAffinity** est plus riche et distingue **deux forces** :\n- **`requiredDuringScheduling...`** : une contrainte **dure** (**obligatoire**). Si **aucun** nœud ne la satisfait, le pod reste **Pending**, indéfiniment. C'est une **garantie**, mais aussi un risque de blocage.\n- **`preferredDuringScheduling...`** : une contrainte **souple** (**préférence**). Le scheduler **essaie** de respecter le souhait, mais s'il ne peut pas, il **place quand même** le pod ailleurs plutôt que de le laisser en attente.\n\n👉 **Analogie** : réserver un vol. **required** = « je ne pars **que** s'il y a un siège côté hublot, sinon je ne pars pas » (tu peux rester coincé au sol). **preferred** = « je **préfère** un hublot, mais s'il n'y en a pas, je prends ce qu'il reste et je pars quand même ».\n\n**Exemple concret** : `required` avec `disktype=ssd` garantit que ton app à forte écriture ne tournera **jamais** sur un disque lent, quitte à rester Pending si tous les nœuds SSD sont pleins. En `preferred`, elle ira **de préférence** sur du SSD, mais démarrera sur du disque classique si nécessaire. Un expert choisit **sciemment** entre **garantie** (required) et **optimisation au mieux** (preferred), selon ce qui est plus grave : un pod bloqué, ou un pod moins bien placé."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Les taints bien connus & tolerationSeconds",
+          "body": "Tu sais poser des taints toi-même. Mais Kubernetes en pose aussi **tout seul** sur les nœuds en difficulté : ce sont les **taints automatiques**.\n\nLes plus importants :\n- **`node.kubernetes.io/not-ready`** : le nœud a signalé qu'il **n'est pas prêt** (le kubelet a un souci).\n- **`node.kubernetes.io/unreachable`** : le nœud est **injoignable** (le plan de contrôle ne reçoit plus de nouvelles de lui, souvent une panne réseau).\n- D'autres encore : `memory-pressure` (pression mémoire), `disk-pressure` (pression disque)...\n\nCes taints déclenchent l'**éviction** (l'expulsion) des pods du nœud défaillant, pour qu'ils soient **replanifiés** sur des nœuds sains. Mais **pas instantanément**. Chaque pod possède une **`tolerationSeconds`** : un **délai de tolérance**, par défaut **300 secondes** (soit **5 minutes**), pendant lequel il **supporte** le taint avant d'être expulsé.\n\n👉 **Analogie** : quand un employé ne répond plus au téléphone, on ne le remplace pas à la **première** sonnerie. On patiente quelques minutes (il est peut-être dans le métro) avant de considérer qu'il est vraiment absent et de confier son travail à un collègue. La `tolerationSeconds`, c'est ce **délai de patience**.\n\n**Exemple concret** : un nœud tombe à cause d'une coupure réseau. Ses pods **ne** sont replanifiés ailleurs qu'environ **5 minutes** plus tard, ce qui surprend souvent. Ce n'est pas un bug : c'est le délai `tolerationSeconds` **volontaire**, conçu pour ne **pas** déclencher un déménagement massif de pods sur une **micro-coupure** réseau **transitoire** (qui se répare toute seule en quelques secondes). Tu peux **réduire** ce délai pour un basculement plus rapide, mais tu réagiras alors aussi aux fausses alertes."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Descheduler & scheduling gates (niveau expert)",
+          "body": "Le scheduler place un pod **une seule fois**, au moment de sa création. Mais un cluster **bouge sans arrêt** : on ajoute des nœuds, on en vide d'autres, des pods partent et arrivent. Un placement **optimal à l'instant T** ne l'est plus une heure après. Deux outils avancés répondent à ce problème.\n\nLe **Descheduler** (« dé-ordonnanceur », littéralement l'inverse du scheduler) tourne **périodiquement** et **corrige la dérive**. Il **évince** (retire) les pods **mal placés** pour que le scheduler les **replanifie** mieux ensuite. Cas typiques : des nœuds **déséquilibrés** (un surchargé, un presque vide), des contraintes de répartition **violées après coup**, ou des nœuds **sous-utilisés** qu'on veut **consolider** (regrouper les pods pour éteindre des nœuds inutiles et économiser).\n\n👉 **Analogie** : le scheduler est l'**hôte** qui installe les invités à leur arrivée ; le Descheduler est l'hôte attentif qui, **pendant** la soirée, **redéplace** quelques invités quand une table s'est vidée ou qu'un coin est devenu bondé, pour que tout reste équilibré.\n\nLes **scheduling gates** (« portails d'ordonnancement ») sont un mécanisme plus récent. Un pod peut être créé **volontairement bloqué** (non planifiable) tant qu'une **condition externe** n'est pas remplie, c'est-à-dire tant qu'une **gate** (un « verrou ») n'est pas **levée**. Le pod attend sagement, et ne sera placé qu'une fois le verrou retiré par un autre système.\n\n👉 **Analogie** : une **barrière de passage à niveau**. Le train (le pod) est prêt, mais il **attend** que la barrière se lève (que la gate soit retirée) avant d'avancer. Utile quand le placement doit **attendre** quelque chose : un quota disponible, une ressource externe prête, ou un **séquencement** précis entre plusieurs pods.\n\nCes deux outils **affinent** l'ordonnancement **au-delà** du simple placement initial : l'un le corrige dans le temps, l'autre le retarde jusqu'au bon moment."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un nœud tombe brutalement (panne réseau). Ses pods ne sont replanifiés sur d'autres nœuds qu'environ 5 minutes plus tard, ce qui surprend l'équipe qui attendait une bascule immédiate. Quel mécanisme explique ce délai, et quel est le compromis à considérer avant de le réduire ?",
+          "solution": "Le délai s'explique par les taints automatiques et la tolerationSeconds. Quand un nœud devient injoignable, le node controller lui appose le taint node.kubernetes.io/unreachable (ou not-ready). Les pods du nœud tolèrent ce taint pendant une durée par défaut (tolerationSeconds ≈ 300 s = 5 min) avant d'être évincés et donc replanifiés ailleurs. D'où le délai d'environ 5 minutes observé : ce n'est pas un bug, c'est une temporisation VOLONTAIRE. Sa raison d'être : éviter des replanifications massives et coûteuses sur un incident TRANSITOIRE (une micro-coupure réseau de quelques secondes, un nœud momentanément surchargé qui ne répond plus brièvement). Sans ce délai, la moindre perturbation réseau déclencherait un déplacement de tous les pods du nœud, un remède souvent pire que le mal (churn, cold starts, pression sur les autres nœuds). Compromis à considérer avant de réduire ce délai : baisser la tolerationSeconds (via les tolerations du pod pour ces taints, ou la config du contrôleur) accélère le basculement en cas de vraie panne, utile pour des services très sensibles à la disponibilité, MAIS augmente le risque de réagir à des faux positifs (coupures passagères), avec des évictions/replanifications inutiles. On règle donc ce délai selon la criticité du service et la fiabilité du réseau, en connaissance du compromis « bascule rapide » vs « stabilité face aux transitoires ». (La vraie résilience passe surtout par la redondance : plusieurs répliques bien réparties via topologySpreadConstraints, de sorte que la perte d'un nœud n'affecte qu'une réplique et que le service continue immédiatement, indépendamment du délai de replanification.)"
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Ordonnancement avancé (expert)",
+          "quizRef": "scheduling-advanced-expert"
+        }
+      ]
+    }
+  ]
+}

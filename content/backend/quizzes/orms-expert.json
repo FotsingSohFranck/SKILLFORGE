@@ -1,0 +1,119 @@
+{
+  "ref": "orms-expert",
+  "node": "orms",
+  "lesson": "r2dbc-en-pratique",
+  "title": "ORMs, niveau expert",
+  "description": "Contexte de persistance, dirty checking, verrou optimiste, R2DBC, isNew.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En JPA, comment un champ modifié sur une entité gérée peut-il être persisté sans appel explicite à save() ?",
+      "justification": "Le contexte de persistance fait du dirty checking : au flush, il détecte le changement et émet l'UPDATE automatiquement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le dirty checking du contexte de persistance émet l'UPDATE au flush",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "JPA écrit en base à chaque getter",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est impossible sans save()",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que Spring Data R2DBC ne fournit PAS, contrairement à Hibernate ?",
+      "justification": "R2DBC n'a ni contexte de persistance, ni lazy loading, ni dirty checking : les écritures sont explicites.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Contexte de persistance, lazy loading et dirty checking",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La possibilité d'exécuter du SQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le mapping ligne → objet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une colonne `@Version` sur une entité ?",
+      "justification": "Elle implémente le verrou optimiste : l'UPDATE échoue si la version a changé entre-temps, signalant un conflit à rejouer.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Détecter un conflit d'écriture concurrent (verrou optimiste)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Numéroter les migrations",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Activer le cache de second niveau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Avec R2DBC, un save() sur un nouvel objet portant déjà un id n'insère rien. Pourquoi ?",
+      "justification": "Un id non nul fait croire à une entité existante : Spring émet un UPDATE qui ne touche aucune ligne au lieu d'un INSERT.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Spring le croit existant (id non nul) et tente un UPDATE, pas un INSERT",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "R2DBC n'insère jamais via save()",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'id v7 est invalide",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il est recommandé de laisser l'ORM générer et mettre à jour le schéma (ddl-auto) en production plutôt que d'utiliser des migrations Flyway.",
+      "justification": "Faux : le schéma est piloté par des migrations Flyway versionnées, seule source de vérité ; l'entité reflète le schéma, ne le crée pas.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "deployment-strategies",
+  "lesson": "rolling-et-rollback",
+  "title": "Régler un rolling update sans coupure",
+  "statement": "Complète le manifeste d'un **Deployment** nommé `api` (3 répliques, image `api:2.0`, conteneur `api` sur le port 8080) pour qu'il utilise une stratégie **RollingUpdate** garantissant **zéro coupure** : aucun pod indisponible pendant la bascule (`maxUnavailable: 0`) et un seul pod supplémentaire autorisé à la fois (`maxSurge: 1`). Remplis uniquement le bloc `strategy`.",
+  "skeleton": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 3\n  strategy:\n    # type de strategie + reglages du rolling update ?\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: api:2.0\n          ports:\n            - containerPort: 8080\n",
+  "solution": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api\nspec:\n  replicas: 3\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: 0\n      maxSurge: 1\n  selector:\n    matchLabels:\n      app: api\n  template:\n    metadata:\n      labels:\n        app: api\n    spec:\n      containers:\n        - name: api\n          image: api:2.0\n          ports:\n            - containerPort: 8080",
+  "keyPoints": ["type: RollingUpdate", "maxUnavailable: 0", "maxSurge: 1", "rollingUpdate"],
+  "language": "yaml"
+}

@@ -1,0 +1,10 @@
+{
+  "node": "record-patterns",
+  "lesson": "deconstruire-un-record",
+  "title": "Déconstruis un Point dans un switch",
+  "statement": "On te donne record Point(int x, int y) { }. Écris une méthode static int somme(Object obj) qui, si obj est un Point, déconstruit le record pour extraire x et y et renvoie leur somme. Pour toute autre valeur, renvoie 0. Utilise un record pattern dans un switch (pas d'appel à p.x() ni p.y()).",
+  "skeleton": "record Point(int x, int y) { }\n\nstatic int somme(Object obj) {\n    // Utilise un switch avec un record pattern pour extraire x et y\n    return 0;\n}\n",
+  "solution": "record Point(int x, int y) { }\n\nstatic int somme(Object obj) {\n    return switch (obj) {\n        case Point(int x, int y) -> x + y;\n        default -> 0;\n    };\n}",
+  "keyPoints": ["switch", "case Point(int x, int y)", "x + y", "default -> 0"],
+  "language": "java"
+}

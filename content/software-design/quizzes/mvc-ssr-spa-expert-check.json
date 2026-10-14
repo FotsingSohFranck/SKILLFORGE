@@ -1,0 +1,101 @@
+{
+  "ref": "mvc-ssr-spa-expert-check",
+  "node": "mvc",
+  "lesson": "ssr-spa-hypermedia",
+  "title": "Quiz, SSR vs SPA vs hypermédia (expert)",
+  "description": "Où vivent rendu et état, hypermédia/HTMX/îlots, place des règles métier.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est un avantage clé du rendu côté serveur (SSR) pour du contenu public ?",
+      "justification": "SEO et premier rendu : le HTML complet est envoyé, immédiatement indexable et affiché vite, sans attendre l'exécution d'un gros bundle JS.",
+      "position": 0,
+      "options": [
+        {
+          "label": "SEO et premier rendu rapides (HTML complet immédiat)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les interactions drag-and-drop les plus fluides",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'absence totale de serveur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que propose l'approche hypermédia / HTMX ?",
+      "justification": "Le serveur renvoie des fragments de HTML en réponse aux interactions (sans JS applicatif), gardant la simplicité serveur et l'état côté serveur avec une interactivité correcte.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Renvoyer des fragments HTML depuis le serveur, sans JS applicatif, état côté serveur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tout rendre côté client en JSON",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le HTML au profit du binaire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans une SPA, où doivent faire autorité les règles métier (principe « le serveur fait foi ») ?",
+      "justification": "Côté serveur : le client ne porte qu'un modèle de présentation (état d'UI), avec au plus une validation ergonomique redondée pour le confort, jamais comme source de vérité/sécurité.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Côté serveur ; le client ne porte qu'un modèle de présentation",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Côté client uniquement, pour aller plus vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dupliquées à l'identique comme sources de vérité des deux côtés",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un blog public indexable + un éditeur de dashboards interne très interactif (auth). Quelle architecture par zone ?",
+      "justification": "SSR/SSG (+ hypermédia/îlots) pour le blog (SEO, rapide, peu interactif) ; SPA à flux unidirectionnel pour l'éditeur (riche, temps réel, SEO non pertinent). Règles métier côté serveur dans les deux cas.",
+      "position": 3,
+      "options": [
+        {
+          "label": "SSR/SSG pour le blog, SPA unidirectionnelle pour l'éditeur ; règles côté serveur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tout en SPA pour l'uniformité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Tout en SSR pour la simplicité",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

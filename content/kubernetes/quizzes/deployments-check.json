@@ -1,0 +1,63 @@
+{
+  "ref": "deployments-check",
+  "node": "deployments",
+  "lesson": "rolling-update-et-rollback",
+  "title": "ReplicaSets & Deployments",
+  "description": "ReplicaSet, Deployment, rolling update, rollback, readiness, compatibilité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit un ReplicaSet ?",
+      "justification": "Il maintient en permanence un nombre N de pods identiques (auto-réparation/réplication) via un sélecteur de labels.",
+      "position": 0,
+      "options": [
+        { "label": "Qu'un nombre N de pods identiques tourne en permanence", "correct": true, "position": 0 },
+        { "label": "Qu'une image est construite", "correct": false, "position": 1 },
+        { "label": "Que le cluster est sauvegardé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'ajoute un Deployment par rapport à un ReplicaSet ?",
+      "justification": "La gestion des versions : rolling update (bascule progressive vers un nouveau ReplicaSet) et historique pour rollback.",
+      "position": 1,
+      "options": [
+        { "label": "La gestion des mises à jour (rolling update) et le rollback", "correct": true, "position": 0 },
+        { "label": "Le stockage persistant", "correct": false, "position": 1 },
+        { "label": "Le chiffrement des pods", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment revenir à la version précédente après un déploiement problématique ?",
+      "justification": "kubectl rollout undo : le Deployment conserve l'historique des révisions et rebascule vers la précédente (ou une révision précise).",
+      "position": 2,
+      "options": [
+        { "label": "kubectl rollout undo deployment/...", "correct": true, "position": 0 },
+        { "label": "Supprimer le cluster", "correct": false, "position": 1 },
+        { "label": "kubectl delete pod", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un rolling update « réussit » mais les utilisateurs ont des erreurs intermittentes. Cause probable ?",
+      "justification": "Une readiness probe absente/mauvaise : le trafic est routé vers des pods pas réellement prêts pendant la bascule.",
+      "position": 3,
+      "options": [
+        { "label": "Une readiness probe absente ou mal configurée", "correct": true, "position": 0 },
+        { "label": "Trop de répliques", "correct": false, "position": 1 },
+        { "label": "Un mauvais nom de namespace", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pendant un rolling update, l'ancienne et la nouvelle version coexistent, donc les migrations de schéma doivent être rétrocompatibles (expand/contract).",
+      "justification": "Vrai : sinon l'ancien code casse sur le nouveau schéma le temps de la bascule ; un déploiement sans coupure exige de la compatibilité.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

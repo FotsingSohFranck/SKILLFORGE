@@ -1,0 +1,119 @@
+{
+  "ref": "registries-deep-expert",
+  "node": "container-registries",
+  "lesson": "registres-en-profondeur",
+  "title": "Registres en profondeur, expert",
+  "description": "Self-hosting (registry:2/Harbor), garbage collection, pull-through cache, tokens.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que faut-il pour libérer réellement l'espace après suppression de tags dans un registre ?",
+      "justification": "La garbage collection : supprimer un tag retire la référence mais pas les blobs ; la GC supprime les blobs non référencés.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Lancer la garbage collection du registre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Redémarrer le registre",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rien, l'espace se libère seul",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi supprimer un tag ne libère-t-il pas l'espace disque ?",
+      "justification": "Le tag n'est qu'une référence ; les blobs (couches) restent, potentiellement partagés par d'autres images.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les blobs (couches) restent, éventuellement partagés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les tags occupent tout l'espace",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Docker interdit la suppression de tags",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte Harbor par rapport au registre de base registry:2 ?",
+      "justification": "Interface web, contrôle d'accès par projet, scan de vulnérabilités, signature, réplication et politiques de rétention.",
+      "position": 2,
+      "options": [
+        {
+          "label": "UI, RBAC, scan, signature, réplication, rétention",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien, c'est identique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Uniquement un thème sombre",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un pull-through cache ?",
+      "justification": "Il met en cache localement les images d'un registre public au premier pull, servant les suivants sans sortie Internet (rate limits, vitesse).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Met en cache localement les images d'un registre public",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffre les images au repos",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime les images non utilisées",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un runner de CI devrait recevoir un token à permissions granulaires (pull-seul sur les bases, push sur son dépôt), pas un identifiant admin global.",
+      "justification": "Vrai : le moindre privilège s'applique aux accès au registre via des tokens à scopes limités et durée réduite.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

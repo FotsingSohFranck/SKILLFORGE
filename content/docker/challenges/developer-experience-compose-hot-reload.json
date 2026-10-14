@@ -1,0 +1,10 @@
+{
+  "node": "developer-experience",
+  "lesson": "developper-dans-des-conteneurs",
+  "title": "Un service Compose avec hot reload sûr",
+  "statement": "Complète ce service Docker Compose pour développer avec rechargement à chaud. Il faut : (1) monter le code source `./src` de l'hôte vers `/app/src` dans le conteneur (pour le hot reload), et (2) préserver le `node_modules` installé dans l'image en ajoutant un volume anonyme sur `/app/node_modules` (pour qu'il ne soit pas écrasé par l'hôte). Le service écoute sur le port 3000.",
+  "skeleton": "services:\n  web:\n    build: .\n    command: npm run dev\n    volumes:\n      # 1. monter le code source pour le hot reload\n      # 2. préserver le node_modules du conteneur\n    ports: [\"3000:3000\"]\n",
+  "solution": "services:\n  web:\n    build: .\n    command: npm run dev\n    volumes:\n      - ./src:/app/src\n      - /app/node_modules\n    ports: [\"3000:3000\"]\n",
+  "keyPoints": ["./src:/app/src", "/app/node_modules", "volumes", "3000:3000"],
+  "language": "yaml"
+}

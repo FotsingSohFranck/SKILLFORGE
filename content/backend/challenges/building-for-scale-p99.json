@@ -1,0 +1,10 @@
+{
+  "node": "building-for-scale",
+  "lesson": "ingenierie-capacite-latence",
+  "title": "Calculer le P99 des latences",
+  "statement": "On te donne une `List<Long>` de latences mesurées (en millisecondes). Écris une méthode `p99` qui renvoie le **99e percentile** : la valeur sous laquelle se trouvent 99 % des mesures. Marche à suivre : copie la liste, **trie-la par ordre croissant**, calcule l'indice `Math.ceil(0.99 × taille) - 1` (borné à 0 minimum), puis renvoie la valeur à cet indice. La moyenne mentirait ; ici on vise la traîne lente.",
+  "skeleton": "long p99(List<Long> latencesMs) {\n    // 1) copier puis trier par ordre croissant\n    // 2) indice = ceil(0.99 * taille) - 1, borné à 0\n    // 3) renvoyer la valeur à cet indice\n}",
+  "solution": "long p99(List<Long> latencesMs) {\n    List<Long> tri = new ArrayList<>(latencesMs);\n    Collections.sort(tri);\n    int index = (int) Math.ceil(0.99 * tri.size()) - 1;\n    if (index < 0) index = 0;\n    return tri.get(index);\n}",
+  "keyPoints": ["Collections.sort", "0.99", ".size()", ".get("],
+  "language": "java"
+}

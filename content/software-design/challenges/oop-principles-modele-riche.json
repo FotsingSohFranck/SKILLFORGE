@@ -1,0 +1,10 @@
+{
+  "node": "oop-principles",
+  "lesson": "modele-riche-vs-anemique",
+  "title": "Transformer un modèle anémique en modèle riche",
+  "statement": "On te donne une classe `Order` **anémique** : elle expose un `setStatus(...)` public, et la règle « une commande non payée ne peut pas être expédiée » vit dans un service extérieur qui peut être contourné. Transforme `Order` en **modèle riche** : supprime le setter public et ajoute une **méthode intentionnelle** `ship()` qui vérifie que le statut vaut `PAID`, refuse sinon (lève une exception), puis passe le statut à `SHIPPED`. Garde une simple lecture `status()`. Objectif : rendre l'état invalide **irreprésentable** depuis l'extérieur.",
+  "skeleton": "enum Status { PENDING, PAID, SHIPPED }\n\nclass Order {\n    private Status status = Status.PENDING;\n    public void setStatus(Status s) { this.status = s; } // à remplacer par une méthode intentionnelle\n}",
+  "solution": "enum Status { PENDING, PAID, SHIPPED }\n\nclass Order {\n    private Status status = Status.PENDING;\n\n    public void ship() {\n        if (status != Status.PAID)\n            throw new IllegalStateException(\"une commande non payée ne peut pas être expédiée\");\n        this.status = Status.SHIPPED;\n    }\n\n    public Status status() {\n        return status;\n    }\n}",
+  "keyPoints": ["void ship", "PAID", "throw", "SHIPPED", "status()"],
+  "language": "java"
+}

@@ -1,0 +1,31 @@
+{
+  "node": "services-networking",
+  "lessons": [
+    {
+      "slug": "reseau-du-cluster",
+      "title": "Réseau du cluster",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Services, DNS et Ingress",
+          "body": "Un **Service** donne une adresse stable ; le **DNS** interne (CoreDNS) résout `service.namespace.svc`. Un **Ingress** route le HTTP externe vers les services par hôte/chemin. L'administrateur sait exposer une application, vérifier les *endpoints* d'un Service, et diagnostiquer une résolution DNS défaillante."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Vérifier connectivité et DNS",
+          "codeLanguage": "bash",
+          "body": "kubectl get endpoints web        # les pods derrière le service\nkubectl run tmp --image=busybox --rm -it -- \\\n  nslookup web.default.svc.cluster.local"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "NetworkPolicy & CNI",
+          "body": "Le réseau des pods est fourni par un plugin **CNI** (Calico, Cilium…). Sans **NetworkPolicy**, tout pod joint tout pod ; on restreint les flux par des policies (refuser par défaut, autoriser par label/namespace). Savoir écrire une policy d'isolation est attendu, tout comme diagnostiquer un CNI mal installé (pods en `ContainerCreating`)."
+        }
+      ]
+    }
+  ]
+}

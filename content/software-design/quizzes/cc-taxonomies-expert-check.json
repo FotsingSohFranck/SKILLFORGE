@@ -1,0 +1,101 @@
+{
+  "ref": "cc-taxonomies-expert-check",
+  "node": "coupling-cohesion",
+  "lesson": "taxonomies-completes-cohesion-couplage",
+  "title": "Quiz, Taxonomies cohésion/couplage (expert)",
+  "description": "7 niveaux de cohésion, stamp coupling, règles de Weirich sur la connascence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Une classe `Utils` regroupe `formatDate`, `sendEmail`, `parseCsv`, `hashPassword`. Quel niveau de cohésion ?",
+      "justification": "Cohésion coïncidentelle (le pire niveau) : les éléments n'ont aucun lien, regroupés arbitrairement. La classe change pour des raisons indépendantes.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Coïncidentelle (le pire niveau)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Fonctionnelle (le meilleur niveau)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Séquentielle",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Passer un objet `User` de 50 champs à une fonction qui n'utilise que `user.email()` : quel couplage ?",
+      "justification": "Couplage de tampon (stamp coupling) : on passe une structure entière alors qu'on n'en utilise qu'une partie. Remède : passer le minimum nécessaire (rejoint l'ISP).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Couplage de tampon (stamp coupling)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Couplage de contenu",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun couplage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit la 2e règle de Weirich sur la connascence ?",
+      "justification": "Localiser la connascence : une connascence forte est tolérable si elle est locale (même unité), toxique si elle traverse une frontière de module. La frontière dégrade la connascence à distance.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Localiser : couplage fort toléré localement, à bannir entre modules",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer toute connascence, partout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Maximiser la connascence pour la cohésion",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Deux services communiquent en s'appuyant sur l'ordre des champs d'un tableau (`data[0]`=id, `data[1]`=montant). Diagnostic et correction ?",
+      "justification": "Connascence de position ET distante (entre modules) : forme forte et non locale. On la convertit en connascence de nom via un contrat nommé (DTO/schéma à clés nommées), plus robuste aux évolutions.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Connascence de position distante ; la convertir en connascence de nom (contrat à champs nommés)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Cohésion fonctionnelle, rien à corriger",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Couplage de données idéal",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

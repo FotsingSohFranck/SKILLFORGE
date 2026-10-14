@@ -1,0 +1,10 @@
+{
+  "node": "hcp",
+  "lesson": "hcp-terraform",
+  "title": "Pourquoi exécuter les runs à distance sur HCP",
+  "statement": "Dans une équipe, chacun lance aujourd'hui `terraform apply` depuis son propre portable, avec les clés d'accès au cloud stockées en local. Explique, avec tes mots, pourquoi faire tourner les `plan`/`apply` À DISTANCE sur HCP Terraform (sur ses runners) est plus sûr et plus fiable. Cite au moins trois avantages concrets.",
+  "skeleton": "Réponds en français, en 4 à 6 phrases.\n- Le problème du apply depuis le portable : ...\n- Ce que change l'exécution à distance sur HCP : ...\n- Trois avantages concrets : ...\n",
+  "solution": "Faire un apply depuis chaque portable pose plusieurs problèmes : les clés d'accès au cloud (secrets) traînent sur des postes personnels et peuvent fuiter ou différer d'un poste à l'autre, l'environnement n'est pas identique d'une personne à l'autre (versions de Terraform/providers différentes, d'où le classique « ça marche sur ma machine »), et il n'existe aucune trace centralisée de qui a appliqué quoi. Avec l'exécution à distance de HCP, les plan/apply ne tournent plus sur les portables mais sur des runners managés par HCP. Avantages concrets : (1) Sécurité des secrets : les variables et clés sont stockées chiffrées DANS HCP, par workspace, et ne sont plus copiées sur les postes ; le runner y accède le temps du run. (2) Reproductibilité : tous les runs partent du même environnement contrôlé (même version de Terraform, mêmes providers), fini le « ça marche chez moi ». (3) Traçabilité et contrôle : chaque run est enregistré (qui, quand, quel plan, quel résultat), le plan peut être revu et approuvé avant l'apply, le verrouillage empêche deux runs concurrents, et on peut brancher des policies Sentinel qui bloquent un apply non conforme. En clair, on centralise l'exécution dans un endroit sûr, identique pour tous et audité, au lieu de la disperser sur des postes.",
+  "keyPoints": ["secrets", "runner", "reproductibilité", "traçabilité", "verrouillage", "à distance"],
+  "language": "text"
+}

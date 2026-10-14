@@ -1,0 +1,10 @@
+{
+  "node": "design-principles",
+  "lesson": "design-patterns-gof",
+  "title": "Implémenter le pattern Strategy",
+  "statement": "Implémente le pattern Strategy pour calculer un total avec une remise interchangeable. Crée une interface `DiscountStrategy` avec une méthode `long apply(long amount)`, deux implémentations (`NoDiscount` qui renvoie le montant tel quel, et `PercentageDiscount` qui applique un pourcentage), et une classe `Checkout` qui reçoit une `DiscountStrategy` par injection et calcule le total. L'objectif : pouvoir changer de remise sans modifier `Checkout`.",
+  "skeleton": "// Complète le pattern Strategy\ninterface DiscountStrategy {\n    long apply(long amount);\n}\n\n// TODO: NoDiscount (renvoie le montant tel quel)\n// TODO: PercentageDiscount (applique un pourcentage passé au constructeur)\n\nclass Checkout {\n    // TODO: reçoit une DiscountStrategy par injection et calcule le total\n}\n",
+  "solution": "interface DiscountStrategy {\n    long apply(long amount);\n}\n\nclass NoDiscount implements DiscountStrategy {\n    public long apply(long amount) { return amount; }\n}\n\nclass PercentageDiscount implements DiscountStrategy {\n    private final int percent;\n    PercentageDiscount(int percent) { this.percent = percent; }\n    public long apply(long amount) { return amount - (amount * percent / 100); }\n}\n\nclass Checkout {\n    private final DiscountStrategy discount;\n    Checkout(DiscountStrategy discount) { this.discount = discount; }\n    long total(long amount) { return discount.apply(amount); }\n}",
+  "keyPoints": ["interface DiscountStrategy", "implements DiscountStrategy", "private final DiscountStrategy", "apply(long amount)"],
+  "language": "java"
+}

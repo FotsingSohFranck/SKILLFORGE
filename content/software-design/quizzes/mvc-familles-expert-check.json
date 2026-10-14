@@ -1,0 +1,101 @@
+{
+  "ref": "mvc-familles-expert-check",
+  "node": "mvc",
+  "lesson": "mvc-mvp-mvvm-mvi-compares",
+  "title": "Quiz, MVC/MVP/MVVM/MVI (expert)",
+  "description": "Détenteur d'état, sens du binding, testabilité, prédictibilité, choix par plateforme.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise MVP (Passive View) ?",
+      "justification": "La vue est passive (aucune logique) ; le Presenter reçoit les événements et pousse les données via une interface, d'où une excellente testabilité (presenter testé avec une fausse vue).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Vue passive sans logique ; presenter testable via une interface de vue",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Data binding bidirectionnel natif",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Flux strictement unidirectionnel avec reducer pur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle relation le ViewModel entretient-il avec la vue en MVVM ?",
+      "justification": "Le ViewModel IGNORE la vue (aucune référence) ; la vue s'y lie par data binding (souvent bidirectionnel). On teste le ViewModel sans UI.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le ViewModel ignore la vue ; la vue se lie à lui par data binding",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le ViewModel détient une référence directe à la vue",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La vue et le ViewModel sont la même classe",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel pattern offre la meilleure prédictibilité pour un état d'UI complexe (undo, time-travel) ?",
+      "justification": "MVI (flux unidirectionnel) : la vue émet des intents, un reducer pur produit un nouvel état immuable, état unique source de vérité, transitions rejouables. Idéal contre le spaghetti d'état.",
+      "position": 2,
+      "options": [
+        {
+          "label": "MVI (flux unidirectionnel, état immuable, reducer pur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "MVC bidirectionnel classique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "MVP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une app WPF/XAML avec data binding natif et formulaires riches : quel pattern de présentation ?",
+      "justification": "MVVM : le binding natif de WPF supprime le code de synchronisation vue↔état, et le ViewModel (observable, ignorant la vue) se teste sans UI.",
+      "position": 3,
+      "options": [
+        {
+          "label": "MVVM",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "MVI",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "MVC serveur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

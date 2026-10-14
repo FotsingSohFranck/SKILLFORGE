@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-patterns-exhaustivite-exhaustivite-sans-default",
+  "node": "sealed-patterns-exhaustivite",
+  "lesson": "exhaustivite-sans-default",
+  "title": "Quiz : exhaustivite sans default",
+  "description": "Pourquoi un switch sur type scelle compile sans default.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un switch expression qui traite Cercle, Rectangle et Triangle compile t il sans default ?",
+      "justification": "Forme etant scellee, le compilateur connait la liste fermee des sous types ; les trois etant tous traites, le switch est exhaustif et n'a pas besoin de default.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que les trois sous types permis sont tous couverts : le switch est exhaustif.", "correct": true, "position": 0 },
+        { "label": "Parce que Java ajoute un default invisible a chaque switch.", "correct": false, "position": 1 },
+        { "label": "Parce qu'un switch expression n'exige jamais de couvrir tous les cas.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le motif case Cercle(double r) par rapport a case Cercle c ?",
+      "justification": "Le record pattern deconstruit le record et extrait directement ses composants (ici r), evitant l'appel c.rayon().",
+      "position": 1,
+      "options": [
+        { "label": "Il deconstruit le record et donne directement le composant r.", "correct": true, "position": 0 },
+        { "label": "Il verifie seulement que f n'est pas nul.", "correct": false, "position": 1 },
+        { "label": "Il transforme le Cercle en Rectangle.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un switch expression (qui renvoie une valeur) exige de couvrir tous les cas possibles, sinon le code ne compile pas.",
+      "justification": "L'exhaustivite est obligatoire pour un switch expression ; combinee a un type scelle, elle est atteignable et verifiable par le compilateur.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

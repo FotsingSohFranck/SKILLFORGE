@@ -1,0 +1,10 @@
+{
+  "node": "real-time",
+  "lesson": "fiabilite-temps-reel",
+  "title": "Dédupliquer un flux par id (idempotence côté client)",
+  "statement": "Comme la livraison est **at-least-once**, un même message peut être rejoué (notamment à la reconnexion). Rends le client **idempotent** : complète la méthode `deduplique` pour qu'elle ne laisse passer un `Message` que **la première fois** que son id apparaît, et ignore tout message dont l'id a déjà été vu. Astuce : `Set.add(...)` renvoie `false` si l'élément était déjà présent. On suppose `record Message(long id, String contenu)`.",
+  "skeleton": "public Flux<Message> deduplique(Flux<Message> source) {\n    Set<Long> vus = ConcurrentHashMap.newKeySet();\n    // TODO : ne garder que les messages dont l'id n'a jamais été vu\n    return source;\n}",
+  "solution": "public Flux<Message> deduplique(Flux<Message> source) {\n    Set<Long> vus = ConcurrentHashMap.newKeySet();\n    return source.filter(m -> vus.add(m.id()));\n}",
+  "keyPoints": ["filter", "vus.add(", "m.id()", "Set"],
+  "language": "java"
+}

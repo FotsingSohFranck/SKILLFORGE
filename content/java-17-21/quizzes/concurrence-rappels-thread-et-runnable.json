@@ -1,0 +1,41 @@
+{
+  "ref": "concurrence-rappels-thread-et-runnable",
+  "node": "concurrence-rappels",
+  "lesson": "thread-et-runnable",
+  "title": "Quiz : thread et Runnable",
+  "description": "Thread, Runnable et la différence entre start() et run().",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait t.start() sur un objet Thread t ?",
+      "justification": "start() crée un nouveau thread qui exécutera run() de son côté, en parallèle du thread appelant. C'est la seule façon d'obtenir de la concurrence.",
+      "position": 0,
+      "options": [
+        { "label": "Il démarre un nouveau thread qui exécute run() en parallèle.", "correct": true, "position": 0 },
+        { "label": "Il exécute run() dans le thread actuel, sans en créer de nouveau.", "correct": false, "position": 1 },
+        { "label": "Il arrête définitivement le thread principal.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Appeler t.run() directement crée un nouveau thread, exactement comme t.start().",
+      "justification": "Faux : t.run() n'est qu'un appel de méthode ordinaire dans le thread courant. Aucun nouveau thread n'est créé et il n'y a donc aucune concurrence ; seul start() crée un thread.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un Runnable ?",
+      "justification": "Runnable est une interface à une seule méthode run() qui décrit le travail à exécuter. On le confie à un thread, qui se charge de l'exécuter.",
+      "position": 2,
+      "options": [
+        { "label": "À décrire le travail (le code de la tâche) que le thread va exécuter.", "correct": true, "position": 0 },
+        { "label": "À réserver de la mémoire pour le thread principal.", "correct": false, "position": 1 },
+        { "label": "À remplacer le processeur par un second coeur.", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

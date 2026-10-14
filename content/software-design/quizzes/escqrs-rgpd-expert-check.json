@@ -1,0 +1,96 @@
+{
+  "ref": "escqrs-rgpd-expert-check",
+  "node": "event-sourcing-cqrs",
+  "lesson": "event-sourcing-rgpd-crypto-shredding",
+  "title": "Quiz, Event Sourcing & RGPD (expert)",
+  "description": "Conflit immuabilité/droit à l'oubli, crypto-shredding, impact projections.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi supprimer les événements d'un client dans un système ES est-il problématique ?",
+      "justification": "Le journal est append-only immuable : supprimer un événement casse la chaîne de hash d'audit et fait diverger les projections rejouées, détruisant la source de vérité.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Ça casse l'immuabilité, la chaîne d'audit et fait diverger les projections rejouées",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ça n'a aucun inconvénient",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ça accélère trop les rejeux",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En quoi consiste le crypto-shredding ?",
+      "justification": "Chiffrer les données personnelles par sujet (une clé par personne, stockée à part) et, pour effacer, détruire la clé : l'événement reste intact mais son contenu personnel devient définitivement illisible.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Chiffrer les données perso par clé dédiée et détruire la clé pour rendre l'événement illisible",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Compresser les événements anciens",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Réécrire les événements en anonyme",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle granularité de clé permet un effacement RGPD ciblé ?",
+      "justification": "Une clé par sujet (par personne) : détruire la clé d'un client n'affecte que ses données. Une clé partagée rendrait l'effacement individuel impossible sans tout casser.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une clé par sujet (par personne)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une clé unique partagée par tous",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune clé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Détruire la clé suffit : les projections/snapshots/backups qui ont matérialisé la donnée en clair n'ont pas à être traités.",
+      "justification": "Faux : si la donnée en clair a été copiée dans des read models, snapshots, index ou backups, il faut aussi les purger/rebâtir (ou les chiffrer avec la même clé). L'effacement doit être propagé aux dérivations.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "node": "container-security",
+  "lessons": [
+    {
+      "slug": "securite-des-images",
+      "title": "Sécurité des images",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'image est une surface d'attaque",
+          "body": "Avant tout, deux mots à poser. Une **image** Docker, c'est le **paquet figé** qui contient ton application et tout ce dont elle a besoin pour tourner (ton code, les bibliothèques, souvent un mini système Linux). Quand tu lances un **conteneur**, il démarre à partir d'une image.\n\nLa **surface d'attaque**, c'est l'ensemble de tout ce qu'un attaquant pourrait viser pour entrer ou faire des dégâts.\n\n👉 **Analogie** : pense à une maison. Plus il y a de portes, de fenêtres et de tuyaux, plus il y a d'endroits par où un cambrioleur peut passer. Réduire la surface d'attaque, c'est murer les ouvertures inutiles. Dans une image, chaque programme, chaque bibliothèque, chaque outil en trop est une porte de plus.\n\n**Règle de base : tout ce qui est dans l'image peut être exploité.** La sécurité d'une image tient sur quatre piliers.\n\n- **Base minimale.** L'**image de base**, c'est le point de départ sur lequel tu ajoutes ton app (par exemple « une image contenant Ubuntu »). Moins elle embarque de paquets, moins il y a de failles possibles, et moins un attaquant trouve d'outils à détourner. Des bases très légères existent : **Alpine** (un mini Linux de quelques mégaoctets), **distroless** (une image qui ne contient QUE ton app et ses dépendances, sans terminal ni gestionnaire de paquets), et même **`scratch`** (une image totalement vide, pour un programme qui se suffit à lui-même). Exemple concret : passer d'une base `ubuntu` (des centaines de paquets) à une base `distroless` peut faire disparaître d'un coup la majorité des failles connues.\n- **Non-root.** Par défaut, un conteneur tourne en **root** : l'utilisateur tout-puissant du système, celui qui a le droit de tout faire. Si un attaquant prend le contrôle d'un processus root, il obtient tous les pouvoirs. L'instruction **`USER`** dans le Dockerfile fait tourner l'app sous un utilisateur ordinaire, sans privilèges. 👉 **Analogie** : tu ne confies pas le passe-partout de tout l'immeuble à un employé qui n'a besoin que d'ouvrir son bureau.\n- **Pas de secret.** Un **secret**, c'est une donnée sensible : mot de passe, clé d'API, certificat. Il ne doit **jamais** être glissé dans une couche de l'image. Les couches se lisent très facilement, et le secret y resterait pour toujours.\n- **Sources de confiance et versions épinglées.** On part d'**images officielles** (publiées par l'éditeur du logiciel), et on **épingle** la version, idéalement par son **digest** : une empreinte unique calculée à partir du contenu exact de l'image (par exemple `sha256:a3f8e1c...`). 👉 **Analogie** : le digest est l'**empreinte digitale** de l'image. Un tag comme `:latest` peut pointer demain vers une autre image ; le digest, lui, désigne toujours exactement le même contenu, impossible à remplacer en douce.\n\nEn résumé : réduire ce que contient l'image, c'est réduire ce qu'un attaquant peut atteindre."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Scanner, en continu",
+          "body": "Une image « sûre » aujourd'hui ne le reste pas forcément demain. Pourquoi ? Parce que de nouvelles failles sont **découvertes** en permanence dans les composants qu'elle embarque, même si l'image, elle, n'a pas changé d'un octet.\n\nCes failles connues publiquement portent un nom : les **CVE** (de l'anglais *Common Vulnerabilities and Exposures*, « vulnérabilités et expositions courantes »). Chaque CVE est une faille répertoriée, avec un identifiant unique (par exemple `CVE-2024-1234`) et un niveau de gravité (de *low* à *critical*).\n\n👉 **Analogie** : une CVE, c'est comme un **rappel constructeur** sur une voiture. Le jour de l'achat, personne ne connaissait le défaut. Six mois plus tard, le constructeur publie un rappel. Ta voiture n'a pas changé, mais on sait désormais qu'elle a un problème. Pareil pour une image : le monde extérieur (la connaissance des failles) évolue, pas l'image.\n\nPour repérer ces failles, on **scanne** l'image : un outil compare la liste de ses composants à une base de CVE connues et te sort la liste des vulnérabilités, triées par gravité. Les outils courants sont **Trivy**, **docker scout** et **Grype**. 👉 **Analogie** : le scan, c'est le **contrôle technique** de l'image.\n\nDeux moments pour scanner :\n- **en CI** : la **CI** (*intégration continue*) est la chaîne automatique qui compile et teste ton projet à chaque changement ; on y branche le scan pour **bloquer** un build qui contiendrait une faille critique ;\n- **en continu** sur les images déjà stockées dans le registre, car de nouvelles CVE tombent bien après la publication.\n\nLe corollaire indispensable : **mettre à jour**. Scanner sans jamais reconstruire ne sert à rien : on ne fait que constater le problème. Il faut **rebâtir** régulièrement l'image sur une base et des dépendances à jour pour récupérer les correctifs. Une image figée depuis un an accumule silencieusement des failles."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Scanner une image",
+          "codeLanguage": "bash",
+          "body": "# Avec Trivy : lister les vulnérabilités par sévérité\ntrivy image monorg/api:1.4.0\n\n# En CI : échouer si CVE HIGH ou CRITICAL\ntrivy image --severity HIGH,CRITICAL --exit-code 1 monorg/api:1.4.0\n\n# Avec docker scout\ndocker scout cves monorg/api:1.4.0"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe scanne ses images une fois, au moment de la première mise en production, et ne les touche plus « puisqu'elles étaient clean ». Pourquoi est-ce insuffisant ?",
+          "solution": "Parce que la sécurité d'une image n'est pas figée dans le temps : de nouvelles vulnérabilités (CVE) sont continuellement découvertes dans les composants qu'elle embarque (bibliothèques système, runtime, dépendances). Une image « clean » au jour J peut compter des dizaines de CVE critiques six mois plus tard, sans que rien n'ait changé dans l'image, c'est le monde extérieur (la connaissance des failles) qui a évolué. Il faut donc scanner EN CONTINU (pas une seule fois) et surtout METTRE À JOUR régulièrement : rebâtir l'image sur une base et des dépendances à jour pour intégrer les correctifs. Scanner sans jamais reconstruire ne protège pas ; c'est la combinaison scan continu + reconstruction régulière qui maintient une image sûre."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Sécurité des images",
+          "quizRef": "container-security-images-check"
+        }
+      ]
+    },
+    {
+      "slug": "securite-du-runtime",
+      "title": "Sécurité du runtime",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le principe du moindre privilège au runtime",
+          "body": "Même une image parfaitement saine peut être mal utilisée. Le **runtime**, c'est le moment où le conteneur **s'exécute** (par opposition au *build*, le moment où on fabrique l'image). La façon dont tu **lances** le conteneur compte autant que son contenu.\n\nLe principe directeur s'appelle le **moindre privilège** : ne donner à chaque conteneur **que** les droits strictement nécessaires à son travail, et rien de plus.\n\n👉 **Analogie** : dans un hôtel, la carte d'un client ouvre sa chambre, pas le coffre de la réception ni la buanderie. Si on la lui vole, les dégâts restent limités à une chambre. Un conteneur, c'est pareil : moins il a de droits, moins une intrusion peut faire de dégâts.\n\nConcrètement, à chaque `docker run`, on empile plusieurs réglages.\n- **Tourner en non-root** avec `--user` : exécuter l'app sous un utilisateur ordinaire plutôt que root (le super-utilisateur qui peut tout faire). Exemple : `--user 1000:1000`.\n- **Système de fichiers en lecture seule** avec `--read-only` : le conteneur ne peut plus rien écrire dans ses propres fichiers, sauf aux endroits que tu autorises explicitement (un **volume**, ou un espace mémoire temporaire appelé **tmpfs**). Exemple d'effet concret : un attaquant ne peut pas déposer un programme malveillant à l'intérieur.\n- **Retirer les capabilities inutiles.** Une **capability** Linux est une **parcelle du pouvoir de root** : au lieu du bloc « tout ou rien », les super-pouvoirs de root sont découpés en droits fins (changer l'horloge système, ouvrir un port réseau réservé, etc.). 👉 **Analogie** : plutôt qu'un passe-partout unique, imagine un trousseau où chaque clé n'ouvre qu'une porte. On fait `--cap-drop ALL` (on retire tout le trousseau), puis on rajoute seulement la ou les clés indispensables avec `--cap-add`.\n- **Interdire l'élévation de privilèges** avec `--security-opt no-new-privileges` : empêche un processus de gagner en cours de route plus de droits qu'il n'en avait au démarrage.\n- **Borner les ressources** (mémoire, processeur) avec `--memory`, `--cpus` : si le conteneur est compromis ou part en boucle, il ne peut pas asphyxier toute la machine (un *déni de service*).\n\nChacune de ces options réduit ce qu'un attaquant pourrait faire s'il compromettait le conteneur."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Ne jamais monter le socket Docker",
+          "body": "L'erreur la plus grave en sécurité conteneur : **monter le socket Docker** dans un conteneur. Décortiquons pourquoi.\n\nPetit rappel de vocabulaire. Le **daemon** Docker, c'est le **programme de fond** (le service) qui tourne en permanence sur ta machine et qui fabrique, lance et gère les conteneurs. Quand tu tapes `docker run`, ta commande ne fait qu'**envoyer un ordre** à ce daemon ; c'est lui qui exécute le travail.\n\nComment ta commande lui parle-t-elle ? Par le **socket Docker**, le fichier `/var/run/docker.sock`. Un *socket*, c'est un **point de communication** : ici, la porte d'entrée de l'API du daemon.\n\n👉 **Analogie** : le socket est l'**interphone** qui pilote le daemon. Or ce daemon tourne en **root sur l'hôte** (l'*hôte* = la machine physique qui héberge Docker). Autrement dit, qui parle à l'interphone commande toute la maison.\n\n**Monter** un fichier de l'hôte dans un conteneur (l'option `-v`, pour *volume*), c'est le rendre visible et utilisable à l'intérieur du conteneur. Donc `-v /var/run/docker.sock:/var/run/docker.sock` donne au conteneur un accès direct à cet interphone tout-puissant.\n\nConséquence : un conteneur qui possède le socket peut créer **d'autres** conteneurs, monter le système de fichiers de l'**hôte**, et devenir **root sur la machine entière**. C'est une **évasion** garantie (l'attaquant sort du conteneur et prend l'hôte). On rencontre parfois ce montage « pour que le conteneur pilote Docker » (outils de CI, par exemple) : c'est un trou béant. Des alternatives existent (un *proxy* du socket aux permissions restreintes, une API distante authentifiée, le mode *rootless*), mais monter le socket brut, c'est littéralement tendre les clés de l'hôte."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Défense en profondeur : seccomp, AppArmor, rootless (niveau expert)",
+          "body": "Au-delà des options de base, on **empile** les protections. C'est le principe de la **défense en profondeur** : ne jamais compter sur une seule barrière, mais en superposer plusieurs, pour que si l'une cède, les suivantes tiennent encore. 👉 **Analogie** : un château fort n'a pas qu'un mur ; il a des douves, un rempart, une herse et un donjon. L'attaquant qui franchit l'un tombe sur le suivant.\n\nLes couches supplémentaires :\n- **seccomp** filtre les **appels système** que le conteneur a le droit de faire. Un *appel système* (*syscall*) est une **requête d'un programme au noyau Linux** pour une opération de bas niveau (ouvrir un fichier, créer un processus, monter un disque). 👉 **Analogie** : c'est le **guichet** par lequel une application demande un service au système ; seccomp est l'agent qui refuse les demandes dangereuses. Docker applique un **profil seccomp par défaut** qui bloque les syscalls les plus risqués : ne le désactive pas (ce que fait `--privileged`).\n- **AppArmor** et **SELinux** sont des **LSM** (*Linux Security Modules*) : ils imposent des **politiques d'accès obligatoires**, c'est-à-dire des règles décidées par l'administrateur sur ce qu'un processus a le droit de toucher (quels fichiers, quels chemins), que le programme le veuille ou non.\n- Le **mode rootless** (le daemon et les conteneurs tournent sans root) et le **user namespace** (remapper le root du conteneur vers un utilisateur sans droits sur l'hôte) limitent l'impact d'une évasion.\n\nEt le drapeau **`--privileged`** est à **bannir** : il désactive quasiment toutes ces protections d'un coup (capabilities, seccomp) et donne au conteneur un accès quasi total à l'hôte. 👉 **Analogie** : c'est ouvrir en grand toutes les portes du château « pour aller plus vite ».\n\nLa sécurité conteneur, ce n'est jamais **une** mesure, c'est un **empilement** : image minimale + non-root + capabilities réduites + seccomp + read-only + pas de socket, et au besoin un runtime isolant comme **gVisor** ou **Kata** (qui met le conteneur dans une bulle encore plus étanche)."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un outil de CI a besoin de « construire des images Docker depuis un conteneur ». Un développeur propose de monter `/var/run/docker.sock` dans le conteneur de CI. Pourquoi est-ce dangereux, et quelles alternatives existent ?",
+          "solution": "Monter le socket Docker donne au conteneur un accès complet au daemon, qui tourne en root sur l'hôte. Concrètement, le conteneur de CI peut alors lancer n'importe quel autre conteneur, y compris un conteneur privilégié qui monte le système de fichiers racine de l'hôte, et donc lire/modifier tout l'hôte, exfiltrer des secrets, s'octroyer root sur la machine. C'est une évasion de conteneur triviale : si le code de CI (ou une dépendance compromise) est malveillant, tout l'hôte tombe. Alternatives : utiliser un builder sans daemon comme Buildah/Kaniko (qui construisent des images en espace utilisateur, sans accès au socket), un service de build distant/authentifié, un proxy du socket avec permissions restreintes (n'autorisant que certaines opérations), ou le mode rootless. On ne monte jamais le socket brut dans un conteneur exposé à du code non totalement fiable."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Sécurité des conteneurs",
+          "quizRef": "container-security-check"
+        }
+      ]
+    },
+    {
+      "slug": "capabilities-seccomp-lsm",
+      "title": "Capabilities, seccomp & LSM en pratique",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le jeu de capabilities par défaut",
+          "body": "Rappel du chapitre précédent : une **capability** Linux est une **parcelle du pouvoir de root**. Au lieu de traiter root comme un bloc « tout ou rien », le noyau découpe ses super-pouvoirs en droits fins et nommés : `CHOWN` (changer le propriétaire d'un fichier), `NET_BIND_SERVICE` (ouvrir un port réseau réservé, sous 1024), `SETUID` (changer d'identité d'utilisateur), `KILL` (envoyer des signaux à d'autres processus), etc. 👉 **Analogie** : un trousseau de clés où chaque clé n'ouvre qu'une porte, au lieu d'un unique passe-partout.\n\nBonne nouvelle : Docker ne donne **pas** tous les pouvoirs de root à un conteneur. Il démarre chaque conteneur avec un **jeu réduit** d'une quinzaine de capabilities seulement, et retire d'office les plus dangereuses, comme `SYS_ADMIN` (souvent surnommée « le nouveau root » tant elle est puissante), `SYS_MODULE` (charger des modules dans le noyau) ou `NET_ADMIN` (reconfigurer le réseau).\n\nLe durcissement d'expert va plus loin encore :\n- **`--cap-drop ALL`** retire **tout** le trousseau ;\n- puis **`--cap-add`** ne rajoute que le strict nécessaire (souvent aucune capability, ou juste `NET_BIND_SERVICE` si l'app doit écouter sur un port bas).\n\nLa démarche : partir de **zéro** et n'ouvrir que ce qui est **prouvé nécessaire**. Comment savoir ce qui manque ? En **observant ce qui échoue** : on lance sans capabilities, on regarde l'erreur, on ajoute la seule capability qui débloque. 👉 **Analogie** : tu n'ajoutes une clé au trousseau que le jour où tu tombes sur une porte fermée, jamais « au cas où ». Bon à savoir : la plupart des applications web n'ont besoin d'**aucune** capability privilégiée."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Durcir : capabilities, seccomp, LSM",
+          "codeLanguage": "bash",
+          "body": "# Retirer toutes les capabilities, n'ajouter que le nécessaire\ndocker run --cap-drop ALL --cap-add NET_BIND_SERVICE nginx\n\n# Profil seccomp par défaut = actif (bloque ~44 syscalls dangereux).\n# NE JAMAIS le désactiver ainsi (sauf besoin prouvé) :\n#   docker run --security-opt seccomp=unconfined ...   <- à éviter\n# Fournir un profil seccomp personnalisé (moindre privilège syscalls) :\ndocker run --security-opt seccomp=./mon-profil.json app\n\n# AppArmor / SELinux : politiques d'accès obligatoires (souvent actives par défaut)\ndocker run --security-opt apparmor=mon-profil app"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "seccomp & les LSM",
+          "body": "Voici deux couches de défense en profondeur qui agissent au niveau des **appels système**. Rappel : un **appel système** (*syscall*) est une **requête d'un programme au noyau Linux** pour une opération de bas niveau (ouvrir un fichier, créer un processus, monter un disque, redémarrer la machine). C'est le seul moyen pour une application de demander quoi que ce soit au système.\n\n**seccomp** (*secure computing mode*) filtre ces syscalls : il décide lesquels un conteneur a le droit d'invoquer. Docker applique par défaut un profil qui **bloque une quarantaine** de syscalls dangereux (comme `mount` pour monter un disque, `reboot` pour redémarrer, ou le chargement de modules noyau). 👉 **Analogie** : seccomp est le **portier** qui, au guichet du noyau, refuse net les demandes de la liste noire. Le désactiver (`seccomp=unconfined`, ce que fait `--privileged`) revient à renvoyer le portier chez lui : on ne le fait qu'avec une raison prouvée. L'idéal est même un **profil sur mesure** n'autorisant que les syscalls dont ton app a réellement besoin.\n\nLes **LSM** (*Linux Security Modules*) ajoutent une autre couche. Les deux plus répandus sont **AppArmor** (sur Debian/Ubuntu) et **SELinux** (sur RHEL/Fedora). Ils appliquent des **politiques d'accès obligatoires** : des règles, fixées par l'administrateur, qui décident quels fichiers et chemins un processus peut toucher, indépendamment de ce que le programme voudrait faire. 👉 **Analogie** : même si tu as la clé d'une pièce (une permission classique), le LSM est le **règlement intérieur affiché à la porte** qui peut t'interdire d'y entrer quand même. Ces politiques sont souvent actives par défaut.\n\nCapabilities + seccomp + LSM forment **trois filets superposés** : les capabilities limitent les pouvoirs de root, seccomp limite les syscalls, les LSM limitent les accès aux fichiers."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "userns-remap : neutraliser le root conteneur (niveau expert)",
+          "body": "Idée puissante : même en tournant en **root dans** le conteneur, on peut faire en sorte que ce root ne soit **rien du tout** sur l'hôte.\n\nPour comprendre, un mot sur l'**uid**. Sous Linux, chaque utilisateur est identifié par un numéro, l'**uid** (*user id*) ; l'uid `0`, c'est root, le tout-puissant. Le mécanisme du **user namespace remapping** (option `userns-remap` dans le fichier de configuration `daemon.json`) fait une **traduction** : l'uid 0 **à l'intérieur** du conteneur est mappé vers un uid **non privilégié et sans droits à l'extérieur**, sur l'hôte (par exemple l'uid 100000).\n\n👉 **Analogie** : dans le conteneur, le processus se croit « directeur » (uid 0) ; mais à la sortie, ce badge de directeur est en réalité celui d'un **stagiaire sans aucun droit**. S'il force la porte, il se retrouve dans un couloir vide.\n\nAinsi, une **évasion** de conteneur menée par ce « root » débouche sur un utilisateur **impuissant** côté hôte : une réduction drastique du **rayon d'explosion** (l'étendue des dégâts qu'une compromission peut causer). C'est d'ailleurs le mécanisme au cœur du **mode rootless**.\n\nÀ combiner avec le reste (non-root applicatif, `cap-drop`, seccomp, read-only) : la sécurité conteneur n'est jamais **une** mesure, c'est un **empilement** où chaque couche rattrape ce que la précédente n'a pas contenu."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un développeur ajoute `--privileged` à un conteneur « parce que ça réglait une erreur de permission ». En quoi cela va-t-il bien au-delà du problème initial, sur le plan des capabilities et de seccomp ?",
+          "solution": "`--privileged` est un interrupteur massif qui désactive presque toutes les protections d'isolation d'un coup, très au-delà d'une simple permission : (1) il ACCORDE toutes les capabilities Linux (y compris SYS_ADMIN, le « nouveau root », NET_ADMIN, etc.) au lieu du jeu réduit par défaut ; (2) il désactive le profil seccomp (les ~44 syscalls dangereux normalement bloqués deviennent autorisés) ; (3) il lève les restrictions des LSM et donne accès aux périphériques de l'hôte (/dev). Résultat : le conteneur peut monter des systèmes de fichiers, charger des modules noyau, accéder au matériel, il est quasi équivalent à un processus root sur l'hôte, et une évasion devient triviale. C'est donc une énorme surface d'attaque ouverte pour régler un problème ponctuel. La bonne démarche : identifier la capability ou le syscall PRÉCIS qui manquait (souvent une seule, ex. NET_ADMIN, ou un accès à un device donné via --device) et ne l'ajouter que lui, en gardant tout le reste durci (cap-drop ALL + cap-add ciblé, seccomp actif). On ne « répare » jamais une permission avec --privileged."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Capabilities, seccomp & LSM (expert)",
+          "quizRef": "caps-seccomp-expert"
+        }
+      ]
+    },
+    {
+      "slug": "chaine-appro-et-detection",
+      "title": "Chaîne d'approvisionnement & détection",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Signer, attester, vérifier",
+          "body": "Sécuriser le **contenu** de l'image ne suffit pas : il faut aussi prouver que **l'image déployée est bien celle qu'on a construite**, ni altérée ni remplacée en chemin. C'est le sujet de la **chaîne d'approvisionnement logicielle** (en anglais *software supply chain*) : tout le trajet qui va de ton code jusqu'à l'image qui tourne en production. 👉 **Analogie** : comme pour un aliment, il ne suffit pas qu'il soit bon à la sortie de l'usine ; il faut garantir que personne ne l'a trafiqué entre l'usine et ton assiette.\n\nLa chaîne de confiance repose sur trois gestes.\n- **Signer** l'image au moment du build. **Signer**, c'est y apposer une **signature cryptographique** infalsifiable qui prouve « c'est bien moi qui ai produit cette image, et elle n'a pas été modifiée depuis ». L'outil de référence est **cosign** (du projet **Sigstore**). 👉 **Analogie** : c'est le **sceau de cire** sur une lettre : s'il est intact, tu sais d'où elle vient et que personne ne l'a ouverte.\n- **Attester** ce qu'il y a dedans et d'où ça vient. On génère un **SBOM** (*Software Bill of Materials*, l'**inventaire des composants** de l'image, un peu comme la **liste des ingrédients** sur un emballage ; formats **CycloneDX** ou **SPDX**), et une **attestation de provenance** : un document signé qui dit **qui** a construit **quoi**, à partir de **quel commit** et de quelle chaîne de build. Le cadre qui normalise ces preuves de provenance s'appelle **SLSA** (*Supply-chain Levels for Software Artifacts*).\n- **Vérifier** au déploiement. Avant de lancer l'image, on **contrôle** sa signature et sa provenance, et on **refuse** tout ce qui ne correspond pas.\n\nC'est cette vérification qui **bloque une image malveillante** injectée entre le build et le run : le scénario typique des attaques de *supply chain*."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Le parcours d'une image de confiance",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    A[Code source et build de l'image] --> B[Signer avec cosign]\n    A --> C[Generer le SBOM]\n    A --> D[Attestation de provenance SLSA]\n    B --> E[Registre d'images]\n    C --> E\n    D --> E\n    E --> F{Admission control<br/>Kyverno / OPA}\n    F -->|Signature verifiee et conforme| G[Deploiement autorise]\n    F -->|Non signee ou non conforme| H[Rejet automatique]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Admission control : la barrière au déploiement",
+          "body": "Où appliquer concrètement ces vérifications ? À l'**admission** : le point de passage obligé où une image **demande à être exécutée** sur le cluster.\n\nDéfinissons le décor. Un **cluster** est un ensemble de machines qui font tourner tes conteneurs ensemble ; **Kubernetes** est l'outil le plus répandu pour orchestrer tout ça (le décider quoi lancer, où, et en combien d'exemplaires). Sur Kubernetes, un **contrôleur d'admission** est un **videur à l'entrée** : il examine chaque demande de déploiement **avant** que le conteneur ne démarre, et peut la **refuser**.\n\nDes contrôleurs d'admission de politique, comme **Kyverno** ou **OPA/Gatekeeper** (OPA = *Open Policy Agent*), imposent des règles automatiques. Exemples de règles très concrètes :\n- « refuser toute image non signée » ;\n- « interdire le tag `:latest` » ;\n- « interdire `--privileged` et l'exécution en root » ;\n- « exiger des limites de ressources » ;\n- « n'autoriser que ces registres approuvés ».\n\n👉 **Analogie** : c'est le **portique de sécurité de l'aéroport**. Peu importe ta bonne foi ou ta distraction, tu ne passes pas sans respecter les règles, et personne ne peut te faire passer en douce.\n\nL'intérêt majeur : la politique de sécurité devient **du code**, appliqué automatiquement et de façon **inviolable**, au lieu d'un document PDF que les équipes sont « censées » suivre. C'est le passage d'une sécurité « par bonne volonté » à une sécurité **imposée**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Secrets : jamais dans l'image, jamais en clair",
+          "body": "Récapitulons la question des **secrets** (mots de passe, clés d'API, certificats), qui traverse tout le sujet. La règle tient en deux temps.\n\n**Au moment du build.** Si ton image a besoin d'un secret pour se construire (par exemple un jeton pour télécharger une dépendance privée), utilise les **build secrets de BuildKit** : l'option `--mount=type=secret` rend le secret disponible **le temps d'une commande**, sans jamais l'inscrire dans une couche de l'image. **BuildKit** est le moteur de construction moderne de Docker. À l'inverse, ne mets **jamais** un secret dans une instruction `ENV` (variable d'environnement) ou `ARG` (argument de build) : ces valeurs **restent gravées** dans l'image, lisibles par quiconque la récupère.\n\n**Au moment du runtime.** Plusieurs options, de l'acceptable au meilleur :\n- variables d'environnement injectées au lancement (acceptable, mais visibles dans l'inspection du conteneur) ;\n- fichiers montés en lecture seule ;\n- mieux : un **gestionnaire de secrets** externe comme **Vault** (de HashiCorp), **AWS Secrets Manager** ou **GCP Secret Manager**, que l'application interroge au démarrage pour récupérer ses secrets à la volée. 👉 **Analogie** : plutôt que d'écrire ton code de carte bancaire sur un post-it collé à l'écran, tu le demandes au coffre-fort au moment précis où tu en as besoin. Docker et Swarm ont aussi des **secrets natifs**, montés en *tmpfs* (en mémoire, jamais écrits sur le disque).\n\n**Anti-patterns à bannir absolument** : un secret dans le Dockerfile, dans une couche de l'image, committé dans Git, ou affiché dans les logs. ⚠️ **Règle d'or** : un secret exposé une seule fois est **compromis pour toujours**. La seule vraie parade est de le **faire tourner** (le remplacer) immédiatement. La gestion des secrets est un pilier de la sécurité, pas un détail."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Détection runtime & benchmarks (niveau expert)",
+          "body": "La sécurité ne s'arrête pas au déploiement : même une image signée et durcie peut être attaquée **pendant** qu'elle tourne. Il faut donc aussi **détecter** les comportements suspects en direct.\n\n**Falco** (un projet de la **CNCF**, la fondation qui héberge les grands outils du monde conteneur) surveille les **syscalls** en temps réel et **alerte** dès qu'il repère un comportement anormal. Exemples d'alertes : un terminal (*shell*) lancé dans un conteneur de production, une écriture dans un binaire système, une connexion réseau vers une destination inattendue. 👉 **Analogie** : Falco est l'**alarme anti-intrusion** de la maison ; les serrures (le durcissement) empêchent d'entrer, l'alarme prévient si quelqu'un est quand même à l'intérieur. C'est de la détection d'intrusion adaptée aux conteneurs.\n\nCôté configuration, comment savoir si ton installation Docker respecte les bonnes pratiques ? Le **CIS Docker Benchmark** est la **référence** publique des recommandations de sécurité (le CIS, *Center for Internet Security*, publie ces guides pour de nombreux logiciels). L'outil **`docker-bench-security`** **audite** automatiquement ta configuration (daemon, images, runtime) et te signale chaque écart par rapport à cette référence. 👉 **Analogie** : c'est la **checklist d'inspection** que l'on déroule pièce par pièce.\n\nLa boucle complète d'un expert : **durcir** (image + runtime), **imposer** (admission control), **détecter** (Falco), **auditer** (CIS). La sécurité est un **processus continu**, pas une case cochée une fois pour toutes."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une organisation veut garantir qu'aucune image non signée, ni aucun conteneur privilégié ou tournant en root, ne puisse être déployé sur son cluster, sans compter sur la discipline manuelle des équipes. Quel mécanisme met en œuvre cette garantie, et comment ?",
+          "solution": "Un contrôleur d'admission de politique (Kyverno ou OPA/Gatekeeper sur Kubernetes), la « policy as code » appliquée à l'admission. Concrètement : on écrit des politiques déclaratives qui sont évaluées AVANT qu'un pod/conteneur ne soit admis dans le cluster, et qui REJETTENT automatiquement toute demande non conforme. Exemples de règles : refuser une image dont la signature cosign n'est pas vérifiée (vérification de provenance/signature), interdire `securityContext.privileged: true`, exiger `runAsNonRoot: true`, interdire le tag latest, n'autoriser que des registres approuvés, exiger des limites de ressources. Comme la vérification se fait au point d'admission et bloque le déploiement en cas de violation, la garantie ne repose plus sur la bonne volonté ou la vigilance des développeurs : elle est IMPOSÉE par l'infrastructure, de façon inviolable et auditable. On complète par la signature à la construction (cosign) pour que la vérification de signature ait du sens, et par de la détection runtime (Falco) pour ce qui échapperait aux règles statiques. C'est le passage d'une sécurité « recommandée » à une sécurité « appliquée »."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Chaîne d'appro & détection (expert)",
+          "quizRef": "supply-chain-detection-expert"
+        }
+      ]
+    }
+  ]
+}

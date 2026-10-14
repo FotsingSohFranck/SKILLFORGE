@@ -1,0 +1,96 @@
+{
+  "ref": "supply-chain-drift-expert",
+  "node": "security",
+  "lesson": "supply-chain-et-derive",
+  "title": "Chaîne d'appro & dérive, expert",
+  "description": "Confiance modules/providers, lock file, dérive comme enjeu de sécurité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les modules et providers tiers sont-ils une surface d'attaque ?",
+      "justification": "C'est du code/binaire tiers : un module malveillant peut exfiltrer des données ou créer des ressources cachées ; on épingle, relit et vérifie l'intégrité (lock file).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Ce sont du code/binaire tiers pouvant exfiltrer ou introduire des failles",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils ralentissent le plan",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ils sont toujours sûrs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi la dérive est-elle un enjeu de sécurité ?",
+      "justification": "Une modification manuelle contourne la revue de code, les scanners et les policies ; elle peut désactiver une protection sans contrôle.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Elle contourne revue, scanners et policies (protections désactivées)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle accélère les applies",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle chiffre le state",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment détecter qu'un groupe de sécurité a été ouvert à la main alors que le code le restreint ?",
+      "justification": "La détection de dérive (job planifié plan -refresh-only) révèle que le réel a divergé du code ; les scanners/policies ne voient que le code.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La détection de dérive (plan -refresh-only planifié)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un scanner sur le code",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "terraform fmt",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une infrastructure n'est réellement sûre que si son état réel correspond au code sécurisé et revu, d'où l'importance de surveiller la dérive.",
+      "justification": "Vrai : la chaîne de sécurité IaC (scan, policy, revue) ne protège que ce qui passe par le code ; la dérive la contourne, il faut donc la surveiller.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

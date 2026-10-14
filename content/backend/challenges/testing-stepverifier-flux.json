@@ -1,0 +1,10 @@
+{
+  "node": "testing",
+  "lesson": "tester-reactif-discipline-suite",
+  "title": "Tester un Flux avec StepVerifier",
+  "statement": "On te donne un flux réactif `Flux<Integer> flux = Flux.just(1, 2, 3).filter(n -> n > 1);`. Écris un test JUnit qui vérifie, avec `StepVerifier` (donc SANS `.block()`), qu'il émet `2` puis `3` dans cet ordre, puis se termine normalement.",
+  "skeleton": "import org.junit.jupiter.api.Test;\nimport reactor.core.publisher.Flux;\nimport reactor.test.StepVerifier;\n\nclass FluxTest {\n\n    @Test\n    void emet_les_valeurs_filtrees() {\n        Flux<Integer> flux = Flux.just(1, 2, 3).filter(n -> n > 1);\n        // Vérifie la séquence avec StepVerifier, sans .block()\n    }\n}",
+  "solution": "import org.junit.jupiter.api.Test;\nimport reactor.core.publisher.Flux;\nimport reactor.test.StepVerifier;\n\nclass FluxTest {\n\n    @Test\n    void emet_les_valeurs_filtrees() {\n        Flux<Integer> flux = Flux.just(1, 2, 3).filter(n -> n > 1);\n        StepVerifier.create(flux)\n            .expectNext(2, 3)\n            .verifyComplete();\n    }\n}",
+  "keyPoints": ["StepVerifier.create", "expectNext", "verifyComplete"],
+  "language": "java"
+}

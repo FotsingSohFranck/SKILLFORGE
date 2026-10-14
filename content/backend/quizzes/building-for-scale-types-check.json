@@ -1,0 +1,96 @@
+{
+  "ref": "building-for-scale-types-check",
+  "node": "building-for-scale",
+  "lesson": "types-de-scaling",
+  "title": "Quiz, Types de mise à l'échelle",
+  "description": "Vertical vs horizontal, load balancer, mesurer avant de scaler.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le scaling vertical (scale up) ?",
+      "justification": "Le vertical, c'est garder la même machine et la rendre plus puissante (plus de CPU/RAM). Simple, mais plafonné et reste un point de défaillance unique.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Rendre une seule machine plus puissante (plus de CPU/RAM)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter plusieurs machines derrière un équilibreur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les index de la base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un équilibreur de charge (load balancer) dans le scaling horizontal ?",
+      "justification": "Il répartit chaque requête entre plusieurs instances identiques, comme un agent d'accueil dirigeant les clients vers un guichet libre.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Répartir les requêtes entre plusieurs instances",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les mots de passe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Compiler le code plus vite",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton API rame. Avant de commander un serveur plus gros, quelle est la meilleure première action ?",
+      "justification": "On mesure d'abord pour trouver le goulot : souvent un N+1 ou un index manquant, qu'une correction logicielle règle sans matériel.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Mesurer pour trouver le goulot (profiling, requêtes lentes, N+1, index)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Doubler immédiatement la taille du serveur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ajouter dix instances au hasard",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le scaling horizontal exige que l'application soit sans état (stateless).",
+      "justification": "Vrai : n'importe quelle instance doit pouvoir traiter n'importe quelle requête, donc l'état ne peut pas être gardé en mémoire locale.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

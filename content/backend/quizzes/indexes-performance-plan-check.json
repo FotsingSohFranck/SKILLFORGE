@@ -1,0 +1,52 @@
+{
+  "ref": "indexes-performance-plan-check",
+  "node": "indexes-performance",
+  "lesson": "lire-un-plan",
+  "title": "Quiz : lire un plan d'exécution",
+  "description": "EXPLAIN, EXPLAIN ANALYZE, Seq Scan vs Index Scan, index ignoré.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre EXPLAIN et EXPLAIN ANALYZE ?",
+      "justification": "EXPLAIN affiche le plan sans exécuter la requête ; EXPLAIN ANALYZE l'exécute vraiment et donne les temps réels mesurés.",
+      "position": 0,
+      "options": [
+        { "label": "EXPLAIN montre le plan sans exécuter ; EXPLAIN ANALYZE exécute et mesure les temps réels", "correct": true, "position": 0 },
+        { "label": "EXPLAIN ANALYZE est réservé aux administrateurs", "correct": false, "position": 1 },
+        { "label": "Les deux exécutent la requête à l'identique", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un plan affiche « Seq Scan » sur une grande table filtrée. Qu'est-ce que cela indique ?",
+      "justification": "Seq Scan = parcours complet de la table : aucun index n'est utilisé sur la colonne filtrée, ce qui est à corriger sur un gros volume.",
+      "position": 1,
+      "options": [
+        { "label": "La base parcourt toute la table, sans index utilisable", "correct": true, "position": 0 },
+        { "label": "L'index est parfaitement exploité", "correct": false, "position": 1 },
+        { "label": "La requête a été mise en cache", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `WHERE lower(email) = 'ada@dev'` n'utilise-t-il pas un index posé sur `email` ?",
+      "justification": "L'index connaît les valeurs brutes de email, pas le résultat de lower(email). Il faut un index d'expression sur lower(email).",
+      "position": 2,
+      "options": [
+        { "label": "L'index porte sur email brut, pas sur le résultat de lower(email)", "correct": true, "position": 0 },
+        { "label": "La fonction lower() est interdite dans un WHERE", "correct": false, "position": 1 },
+        { "label": "Les index ne marchent jamais sur du texte", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un Seq Scan est toujours une erreur qu'il faut corriger.",
+      "justification": "Faux : si la requête ramène une grande partie de la table, tout lire d'un coup est plus rapide que passer par l'index. Le Seq Scan est alors le bon choix.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

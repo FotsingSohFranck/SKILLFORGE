@@ -1,0 +1,96 @@
+{
+  "ref": "clean-code-practices-expert-check",
+  "node": "clean-code-practices",
+  "lesson": "immutabilite-frontieres-organisation",
+  "title": "Quiz, Immutabilité, frontières & organisation (expert)",
+  "description": "Immutabilité, copie défensive, boundaries tierces, package by feature.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage un objet immuable offre-t-il gratuitement ?",
+      "justification": "Il est thread-safe sans synchronisation, impossible à corrompre après validation, et partageable sans risque d'aliasing.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La sûreté en concurrence (thread-safe) et l'absence d'aliasing surprise",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une exécution plus rapide de toute méthode",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La suppression du besoin de tests",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi envelopper une bibliothèque tierce derrière sa propre interface ?",
+      "justification": "Pour ne pas s'y coupler partout : le code parle à notre abstraction, un seul point traduit ; on absorbe les changements de version (anti-corruption).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Pour éviter de coupler tout le code à la lib et absorber ses changements",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour rendre la lib plus rapide",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que les libs tierces sont interdites",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le « package by feature » (organiser par fonctionnalité) ?",
+      "justification": "Regrouper tout ce qui concerne une capacité métier (contrôleur, use case, modèle, repo) ; l'arborescence « crie » le métier, Screaming Architecture.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Regrouper tout ce qui concerne une capacité métier dans un même package",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un package par type technique (controllers, services…)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un seul package pour tout le projet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Renvoyer directement sa collection interne mutable via un getter préserve l'encapsulation.",
+      "justification": "Faux : c'est une fuite par référence ; un appelant peut modifier l'état interne. On renvoie une vue non modifiable/copie, ou on expose des opérations métier.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

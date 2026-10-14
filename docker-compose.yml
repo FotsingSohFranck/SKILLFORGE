@@ -1,0 +1,69 @@
+# Stack local complet SkillForge : PostgreSQL 18 + backend WebFlux + frontend (Nginx).
+# Démarrage : `cp .env.example .env` puis `docker compose up --build`.
+#   Front  : http://localhost:${FRONTEND_PORT:-8081}
+#   API    : http://localhost:${BACKEND_PORT:-8080}/api/v1
+#   OpenAPI: http://localhost:${BACKEND_PORT:-8080}/swagger-ui.html
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-skillforge}
+      POSTGRES_USER: ${POSTGRES_USER:-skillforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skillforge}
+    volumes:
+      # postgres:18 attend le montage sur /var/lib/postgresql (données dans un sous-dossier).
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-skillforge} -d ${POSTGRES_DB:-skillforge}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [skillforge]
+
+  # Serveur SMTP de développement : capte les e-mails (ex. liens de réinitialisation)
+  # sans rien envoyer vers l'extérieur. Interface web de consultation sur le port 8025.
+  mailpit:
+    image: axllent/mailpit:v1.20.0
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    networks: [skillforge]
+
+  backend:
+    build:
+      context: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      # Le profil `docker` cible l'hôte `postgres` ; on ne passe que les identifiants + secret.
+      SF_DB_USER: ${POSTGRES_USER:-skillforge}
+      SF_DB_PASSWORD: ${POSTGRES_PASSWORD:-skillforge}
+      SF_JWT_SECRET: ${SF_JWT_SECRET:-dev-only-change-me-please-32bytes-minimum-secret-0123456789}
+      # Lien de réinitialisation construit vers le front exposé sur l'hôte.
+      SF_FRONTEND_BASE_URL: ${SF_FRONTEND_BASE_URL:-http://localhost:${FRONTEND_PORT:-8081}}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    networks: [skillforge]
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8081}:80"
+    networks: [skillforge]
+
+volumes:
+  pgdata:
+
+networks:
+  skillforge:
+    driver: bridge

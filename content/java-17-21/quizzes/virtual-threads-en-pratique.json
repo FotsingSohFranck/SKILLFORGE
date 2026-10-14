@@ -1,0 +1,41 @@
+{
+  "ref": "virtual-threads-en-pratique",
+  "node": "virtual-threads",
+  "lesson": "en-pratique",
+  "title": "Quiz : en pratique",
+  "description": "Un serveur à des milliers de connexions simultanées, un thread virtuel par connexion.",
+  "questions": [
+    {
+      "type": "SCENARIO",
+      "prompt": "Un serveur doit tenir 10 000 connexions simultanées, chacune passant surtout son temps à attendre le réseau. Quel modèle choisir ?",
+      "justification": "Un thread virtuel par connexion : la plupart sont démontés en attente, donc seuls quelques porteurs sont occupés à tout instant.",
+      "position": 0,
+      "options": [
+        { "label": "Un thread virtuel par connexion", "correct": true, "position": 0 },
+        { "label": "Un thread plateforme par connexion", "correct": false, "position": 1 },
+        { "label": "Un pool fixe de 10 threads virtuels partagés", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi 10 000 connexions tiennent elles sur seulement une poignée de threads porteurs ?",
+      "justification": "La plupart des connexions sont bloquées en attente réseau ; leur thread virtuel est alors démonté et n'occupe aucun thread du système.",
+      "position": 1,
+      "options": [
+        { "label": "Parce que la plupart sont bloquées en attente et donc démontées de leur porteur", "correct": true, "position": 0 },
+        { "label": "Parce que la JVM fusionne les connexions identiques", "correct": false, "position": 1 },
+        { "label": "Parce que chaque porteur réserve 1 Mo pour mille connexions", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un serveur à base de threads virtuels, on peut écrire chaque connexion avec du code bloquant simple, ligne par ligne.",
+      "justification": "C'est justement l'intérêt : le code reste linéaire et lisible, la JVM gère le montage et le démontage en coulisses.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

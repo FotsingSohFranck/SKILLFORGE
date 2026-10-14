@@ -1,0 +1,42 @@
+{
+  "ref": "text-blocks-text-blocks-en-pratique",
+  "node": "text-blocks",
+  "lesson": "text-blocks-en-pratique",
+  "title": "Quiz : text blocks en pratique",
+  "description": "Écrire du JSON, du SQL et du HTML lisibles, et insérer des valeurs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour quel genre de contenu les text blocks sont ils particulièrement pratiques ?",
+      "justification": "JSON, SQL et HTML sont des textes multilignes, souvent remplis de guillemets, que les text blocks laissent écrire presque tels quels.",
+      "position": 0,
+      "options": [
+        { "label": "Du JSON, du SQL ou du HTML écrits dans du code Java", "correct": true, "position": 0 },
+        { "label": "Un seul mot court sur une ligne", "correct": false, "position": 1 },
+        { "label": "Un nombre entier", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un modèle de texte, que fait l'appel modele.formatted(\"Ada\", 3) sur un text block contenant %s et %d ?",
+      "justification": "formatted remplace chaque repère dans l'ordre : %s reçoit le texte \"Ada\", %d reçoit l'entier 3.",
+      "position": 1,
+      "options": [
+        { "label": "Il remplit les repères %s et %d par \"Ada\" et 3 dans l'ordre", "correct": true, "position": 0 },
+        { "label": "Il supprime les repères %s et %d du texte", "correct": false, "position": 1 },
+        { "label": "Il compte le nombre de repères dans le texte", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tom écrit une requête SQL dans un text block et veut y insérer directement le nom tapé par l'utilisateur avec formatted. Quel réflexe doit il garder ?",
+      "justification": "Insérer directement une valeur d'utilisateur dans une requête SQL ouvre la porte à l'injection SQL ; on utilise des requêtes paramétrées, le text block servant seulement à écrire le texte lisiblement.",
+      "position": 2,
+      "options": [
+        { "label": "Ne pas insérer la valeur ainsi dans du vrai SQL : utiliser une requête paramétrée pour éviter l'injection", "correct": true, "position": 0 },
+        { "label": "Insérer la valeur directement, c'est toujours sûr avec un text block", "correct": false, "position": 1 },
+        { "label": "Un text block empêche à lui seul toute injection SQL", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

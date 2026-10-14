@@ -1,0 +1,78 @@
+{
+  "ref": "git-corriger-check",
+  "node": "git",
+  "lesson": "corriger-et-reecrire",
+  "title": "Quiz, Corriger & réécrire",
+  "description": "revert vs reset, niveaux de reset, stash, reflog.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour annuler un commit DÉJÀ poussé sur une branche partagée, on utilise…",
+      "justification": "git revert : il ajoute un nouveau commit qui inverse le fautif, sans réécrire l'historique, les collègues ne sont pas affectés.",
+      "position": 0,
+      "options": [
+        {
+          "label": "git revert (ajoute un commit inverse, ne réécrit pas l'historique)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "git reset --hard (réécrit l'historique)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "git push --force",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `git reset --hard HEAD~1` ?",
+      "justification": "Il défait le dernier commit ET jette les changements, commande dangereuse (perte possible de travail). À réserver au local, en connaissance de cause.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Défait le dernier commit et jette les changements (dangereux)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Défait le commit mais garde les changements préparés",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pousse le commit sur origin",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu as fait un `reset --hard` malheureux. Quel est ton filet de sécurité ?",
+      "justification": "git reflog enregistre tous les déplacements de HEAD ; on y retrouve le hash du commit « perdu » et on y revient. Rien n'est vraiment perdu tout de suite.",
+      "position": 2,
+      "options": [
+        {
+          "label": "git reflog (retrouver le commit perdu par son hash)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien, c'est définitivement perdu",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "git clone à nouveau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "scaling-check",
+  "node": "scaling",
+  "lesson": "passer-a-lechelle",
+  "title": "Passer à l'échelle",
+  "description": "Découpage d'état, parallélisme, Terragrunt (DRY), Infracost (coût).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principal levier pour Terraform à grande échelle ?",
+      "justification": "Découper l'état en périmètres (couche/env/équipe) : applies rapides, ciblés, isolés, avec un blast radius réduit.",
+      "position": 0,
+      "options": [
+        { "label": "Découper l'état en plusieurs périmètres", "correct": true, "position": 0 },
+        { "label": "Un état unique le plus gros possible", "correct": false, "position": 1 },
+        { "label": "Supprimer les modules", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment Terraform accélère-t-il un apply ?",
+      "justification": "Il crée les ressources indépendantes en parallèle (réglable via -parallelism), selon son graphe de dépendances.",
+      "position": 1,
+      "options": [
+        { "label": "En créant les ressources indépendantes en parallèle", "correct": true, "position": 0 },
+        { "label": "En ignorant les dépendances", "correct": false, "position": 1 },
+        { "label": "En désactivant le state", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que résout Terragrunt ?",
+      "justification": "Il garde DRY la gestion de nombreux états/environnements : backends et variables communes factorisés, dépendances orchestrées.",
+      "position": 2,
+      "options": [
+        { "label": "La gestion DRY de multiples états/environnements", "correct": true, "position": 0 },
+        { "label": "Le chiffrement des images", "correct": false, "position": 1 },
+        { "label": "Le remplacement de Terraform", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Infracost estime le coût mensuel d'un changement Terraform et l'annote dans la pull request (visibilité FinOps).",
+      "justification": "Vrai : « ce changement ajoutera X $/mois » dans la PR, pour décider en connaissance de cause et éviter les mauvaises surprises de facture.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

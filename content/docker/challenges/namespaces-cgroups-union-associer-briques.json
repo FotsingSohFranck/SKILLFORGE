@@ -1,0 +1,10 @@
+{
+  "node": "namespaces-cgroups-union",
+  "lesson": "la-magie-demystifiee",
+  "title": "Associer chaque symptôme à la bonne brique",
+  "statement": "Pour chacune de ces trois situations, indique laquelle des trois briques du noyau est en jeu (namespaces, cgroups, ou système de fichiers en union) et explique en une phrase : (1) dans un conteneur, `ps aux` ne montre qu'un seul processus ; (2) un conteneur est tué avec `OOMKilled` dès qu'il dépasse 512 Mo ; (3) dix conteneurs de la même image de 800 Mo n'occupent pas 8 Go de disque.",
+  "skeleton": "1) Brique = ... car ...\n2) Brique = ... car ...\n3) Brique = ... car ...",
+  "solution": "1) Namespaces (le PID namespace) : il isole la VUE des processus, le conteneur ne voit que les siens (son app est PID 1), même si l'hôte en fait tourner des centaines. 2) cgroups : ils plafonnent la CONSOMMATION de ressources ; dépasser la limite mémoire déclenche l'OOM kill (le noyau tue le processus pour protéger la machine). 3) Système de fichiers en union (copy-on-write) : les dix conteneurs PARTAGENT les couches image en lecture seule (les 800 Mo stockés une seule fois), chacun n'ajoutant que sa mince couche d'écriture.",
+  "keyPoints": ["namespace", "PID", "cgroup", "OOM", "union", "couches"],
+  "language": "text"
+}

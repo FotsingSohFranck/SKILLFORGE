@@ -1,0 +1,96 @@
+{
+  "ref": "moved-removed-expert",
+  "node": "resources",
+  "lesson": "refactoring-declaratif",
+  "title": "Refactoring déclaratif, expert",
+  "description": "moved blocks (vs state mv), removed blocks (vs state rm), refactoring sûr.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet un bloc `moved` ?",
+      "justification": "Renommer/déplacer une ressource (changer son adresse dans l'état) sans la détruire/recréer, de façon déclarative et versionnée.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Renommer/déplacer une ressource sans la détruire (déclaratif)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer une ressource du cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Créer plusieurs copies",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage du bloc `moved` sur `terraform state mv` ?",
+      "justification": "Déclaratif, versionné et appliqué automatiquement pour toute l'équipe/la CI, alors que state mv est une commande impérative manuelle.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Déclaratif/versionné, appliqué automatiquement par tous",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il détruit plus vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun, c'est identique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un bloc `removed` (avec lifecycle { destroy = false }) ?",
+      "justification": "Version déclarative de state rm : Terraform cesse de gérer la ressource sans la détruire dans le cloud.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Cesser de gérer une ressource sans la détruire",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Détruire la ressource immédiatement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La renommer",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Déplacer une ressource dans un module sans bloc moved fait que Terraform propose de la détruire puis recréer.",
+      "justification": "Vrai : l'adresse change, l'ancienne disparaît (détruire) et la nouvelle apparaît (créer) ; le bloc moved évite cette destruction/recréation.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "provisioners",
+  "lesson": "provisioners-dernier-recours",
+  "title": "Choisir l'alternative au provisioner",
+  "statement": "Une équipe lance 20 instances identiques et, sur chacune, un provisioner `remote-exec` installe et configure nginx après création. Les déploiements sont lents et échouent parfois (une instance sur laquelle SSH n'a pas répondu se retrouve « tainted »). En 4 à 6 phrases, explique pourquoi cette approche pose problème et propose l'alternative la plus robuste. Cite au moins deux limites concrètes des provisioners et nomme précisément la solution recommandée.",
+  "skeleton": "Problème avec remote-exec ici :\n- ...\n\nAlternative recommandée :\n- ...\n",
+  "solution": "Le remote-exec est un dernier recours qui casse le modèle déclaratif de Terraform. Limites concrètes : (1) le `terraform plan` est aveugle, il montre seulement qu'un provisioner sera exécuté, jamais ce que le script d'installation fera vraiment ; (2) ce que le script configure sur la machine n'est pas suivi dans l'état (state), donc Terraform ne peut ni détecter ni corriger une dérive de cette configuration ; (3) remote-exec dépend d'une connexion SSH fonctionnelle au bon moment : si SSH ne répond pas, la ressource est marquée « tainted » et sera détruite/recréée au prochain apply, et rejouer le script n'est pas garanti idempotent. L'alternative la plus robuste est l'immuabilité : construire une image (une AMI avec Packer) contenant déjà nginx installé et configuré, puis lancer les 20 instances à partir de cette image. Rien à faire après création, instances identiques et reproductibles, démarrage rapide, pas de SSH à orchestrer. En variante déclarative légère, on peut passer un script de démarrage via user_data / cloud-init, exécuté nativement au boot par le cloud (un simple argument de la ressource), sans provisioner ni connexion à ouvrir.",
+  "keyPoints": ["plan", "état", "dérive", "tainted", "idempot", "SSH", "immuab", "AMI", "Packer", "user_data", "cloud-init"],
+  "language": "text"
+}

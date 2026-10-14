@@ -1,0 +1,52 @@
+{
+  "ref": "real-time-check",
+  "node": "real-time",
+  "lesson": "websockets",
+  "title": "Temps réel",
+  "description": "Polling, SSE, WebSockets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le défaut du short polling ?",
+      "justification": "Beaucoup de requêtes inutiles (renvoyant 'rien de nouveau') et une latence égale à l'intervalle.",
+      "position": 0,
+      "options": [
+        { "label": "Gaspiller des requêtes et ajouter de la latence", "correct": true, "position": 0 },
+        { "label": "Être bidirectionnel", "correct": false, "position": 1 },
+        { "label": "Nécessiter WebSockets", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un flux de notifications poussées serveur → client (sans retour du client), quel choix simple ?",
+      "justification": "SSE (Server-Sent Events) est unidirectionnel, simple (HTTP, reconnexion auto) et suffit à ce cas.",
+      "position": 1,
+      "options": [
+        { "label": "SSE (Server-Sent Events)", "correct": true, "position": 0 },
+        { "label": "WebSockets", "correct": false, "position": 1 },
+        { "label": "Short polling toutes les 100 ms", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un chat interactif bidirectionnel à faible latence, quel protocole ?",
+      "justification": "Les WebSockets offrent un canal bidirectionnel persistant, adapté à l'interactif temps réel.",
+      "position": 2,
+      "options": [
+        { "label": "WebSockets", "correct": true, "position": 0 },
+        { "label": "SSE", "correct": false, "position": 1 },
+        { "label": "Un simple GET", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Scaler des WebSockets sur plusieurs serveurs nécessite souvent un backplane (ex. Redis pub/sub).",
+      "justification": "Oui : chaque serveur ne connaît que ses connexions ; un backplane diffuse les messages entre instances.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

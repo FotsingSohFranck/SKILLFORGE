@@ -1,0 +1,52 @@
+{
+  "ref": "api-styles-au-dela-check",
+  "node": "api-styles",
+  "lesson": "au-dela-de-rest",
+  "title": "Au-delà de REST",
+  "description": "API, styles, axes de comparaison, quand choisir REST.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi dit-on qu'aucun style d'API n'est « meilleur » dans l'absolu ?",
+      "justification": "Chaque style optimise un compromis différent (typage, performance, cache, consommateur) ; le bon choix dépend du contexte.",
+      "position": 0,
+      "options": [
+        { "label": "Chaque style optimise un compromis différent selon le contexte", "correct": true, "position": 0 },
+        { "label": "Parce qu'ils font tous exactement la même chose", "correct": false, "position": 1 },
+        { "label": "Parce que seul le plus récent est valable", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une API publique, lisible et cachable, consommée par des navigateurs, quel style est le plus naturel ?",
+      "justification": "REST s'appuie sur HTTP (verbes, statuts, cache natif), est lisible et largement outillé : le défaut pour du public hétérogène.",
+      "position": 1,
+      "options": [
+        { "label": "REST", "correct": true, "position": 0 },
+        { "label": "gRPC", "correct": false, "position": 1 },
+        { "label": "SOAP", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Deux services internes veulent échanger des messages très rapidement, avec un typage strict et un format compact. Vers quel style se tourner ?",
+      "justification": "gRPC (protobuf binaire, HTTP/2, typage fort) est taillé pour la communication interne performante entre services.",
+      "position": 2,
+      "options": [
+        { "label": "gRPC", "correct": true, "position": 0 },
+        { "label": "SOAP en XML verbeux", "correct": false, "position": 1 },
+        { "label": "REST/JSON lisible mais plus lourd", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le cache HTTP fonctionne nativement avec REST.",
+      "justification": "Vrai : REST s'appuie sur HTTP, dont les réponses en GET sont cachables par les proxys et CDN sans effort particulier.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

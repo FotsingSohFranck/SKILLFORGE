@@ -1,0 +1,96 @@
+{
+  "ref": "provisioners-check",
+  "node": "provisioners",
+  "lesson": "provisioners-dernier-recours",
+  "title": "Provisioners",
+  "description": "file/local-exec/remote-exec, pourquoi les éviter, alternatives immuables.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un provisioner remote-exec ?",
+      "justification": "Il exécute une commande SUR la ressource créée (via SSH/WinRM), ex. installer un logiciel après création.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Exécute une commande sur la ressource créée (SSH/WinRM)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construit une image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Verrouille l'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les provisioners sont-ils un « dernier recours » ?",
+      "justification": "Ils cassent le modèle déclaratif : non planifiables, non suivis dans l'état, pas de gestion de dérive, non idempotents, fragilité impérative.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Ils cassent le déclaratif (non planifiables, non suivis, fragiles)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont trop lents à écrire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ils sont payants",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle alternative privilégier pour configurer une machine plutôt qu'un provisioner ?",
+      "justification": "Une image pré-construite (Packer/conteneur, immuabilité) ou cloud-init/user_data, déclaratif, reproductible, sans SSH ni script post-création.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Image pré-construite (Packer/conteneur) ou user_data/cloud-init",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours plus de provisioners",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Modifier la machine à la main",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un `terraform plan` montre exactement ce qu'un provisioner remote-exec va faire sur la machine.",
+      "justification": "Faux : le plan ne peut pas prévoir l'effet d'un script impératif ; c'est justement une des raisons d'éviter les provisioners.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

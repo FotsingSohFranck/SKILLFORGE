@@ -1,0 +1,96 @@
+{
+  "ref": "volume-binding-expert",
+  "node": "storage-volumes",
+  "lesson": "volume-binding-mode-topologie",
+  "title": "volumeBindingMode & topologie, expert",
+  "description": "Immediate vs WaitForFirstConsumer, conflit de zone, reclaimPolicy.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un pod peut-il rester bloqué avec volumeBindingMode: Immediate en multi-zones ?",
+      "justification": "Le disque est provisionné avant le placement du pod ; s'il est en zone A et le pod en zone B, le montage est impossible (disque non déplaçable).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le disque est créé dans une zone avant le placement du pod (conflit de zone)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le disque est trop petit",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le PVC est chiffré",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait volumeBindingMode: WaitForFirstConsumer ?",
+      "justification": "Il attend que le pod soit planifié puis provisionne le volume dans la même zone que le nœud, plus de conflit de topologie.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Provisionne le volume après le placement, dans la bonne zone",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Crée le disque immédiatement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime le volume",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait une reclaimPolicy: Delete quand on supprime le PVC ?",
+      "justification": "Elle supprime aussi le disque et ses données, pratique pour du jetable, dangereux pour des données critiques (préférer Retain).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Elle supprime le disque et ses données",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle conserve toujours les données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle chiffre le volume",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour des données critiques, on privilégie reclaimPolicy: Retain pour qu'une suppression accidentelle de PVC ne détruise pas les données.",
+      "justification": "Vrai : Retain conserve le disque (PV Released) ; on complète par des sauvegardes/snapshots pour ne pas perdre les données.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

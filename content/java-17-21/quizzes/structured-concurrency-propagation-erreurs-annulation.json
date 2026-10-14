@@ -1,0 +1,41 @@
+{
+  "ref": "structured-concurrency-propagation-erreurs-annulation",
+  "node": "structured-concurrency",
+  "lesson": "propagation-erreurs-annulation",
+  "title": "Quiz : propagation des erreurs et annulation",
+  "description": "Comment erreurs et annulation circulent dans la portée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel sens circule l'annulation déclenchée par la portée ?",
+      "justification": "L'annulation descend vers le bas : de la portée vers toutes ses sous-tâches encore en cours, qui sont interrompues en même temps.",
+      "position": 0,
+      "options": [
+        { "label": "Vers le bas : de la portée vers ses sous-tâches", "correct": true, "position": 0 },
+        { "label": "Vers le haut : des sous-tâches vers la portée", "correct": false, "position": 1 },
+        { "label": "Elle ne circule pas, chaque tâche s'arrête seule", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'erreur d'une sous-tâche remonte à la portée puis est relancée dans la tâche principale, où tu peux la rattraper dans le try qui entoure la portée.",
+      "justification": "C'est la propagation vers le haut : l'échec est capturé par la portée et relancé au moment de throwIfFailed() ou result(), dans ton bloc try.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une portée ShutdownOnFailure lance trois sous-tâches. La deuxième échoue vite, les deux autres prendraient 5 secondes. Que deviennent les deux tâches lentes ?",
+      "justification": "Dès l'échec de la deuxième, la portée interrompt les deux tâches lentes : elles sont annulées avant la fin, grace à la propagation de l'annulation vers le bas.",
+      "position": 2,
+      "options": [
+        { "label": "Elles sont interrompues avant d'aller au bout", "correct": true, "position": 0 },
+        { "label": "Elles finissent leurs 5 secondes quand même", "correct": false, "position": 1 },
+        { "label": "Elles relancent chacune l'exception de la deuxième", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

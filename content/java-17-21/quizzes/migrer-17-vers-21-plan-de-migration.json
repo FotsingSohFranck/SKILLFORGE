@@ -1,0 +1,42 @@
+{
+  "ref": "migrer-17-vers-21-plan-de-migration",
+  "node": "migrer-17-vers-21",
+  "lesson": "plan-de-migration",
+  "title": "Quiz : plan de migration",
+  "description": "Étapes incrémentales, image Docker, CI et validation avant déploiement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préfère t on une migration incrémentale, étape par étape ?",
+      "justification": "En avançant par petites étapes vérifiables, si quelque chose casse on identifie tout de suite l'étape responsable, au lieu de tout changer d'un coup.",
+      "position": 0,
+      "options": [
+        { "label": "Chaque étape est vérifiable, donc on repère vite d'où vient une panne", "correct": true, "position": 0 },
+        { "label": "C'est obligatoire, le JDK 21 refuse les grosses migrations", "correct": false, "position": 1 },
+        { "label": "Cela évite d'avoir à relancer les tests", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la CI (intégration continue) pendant une migration ?",
+      "justification": "La CI recompile le projet et relance les tests automatiquement à chaque modification du code : c'est le filet de sécurité de la migration.",
+      "position": 1,
+      "options": [
+        { "label": "Elle recompile et reteste le projet automatiquement à chaque modification", "correct": true, "position": 0 },
+        { "label": "Elle déploie directement en production sans vérification", "correct": false, "position": 1 },
+        { "label": "Elle remplace l'image Docker par une image vide", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton équipe veut déployer la nouvelle version en production avant d'avoir recompilé et validé en environnement de test. Quel est le risque ?",
+      "justification": "Déployer avant d'avoir recompilé et validé revient à livrer aux utilisateurs un code non vérifié avec Java 21, donc à risquer une panne en direct. On valide d'abord, on déploie ensuite.",
+      "position": 2,
+      "options": [
+        { "label": "Livrer un code non vérifié et provoquer une panne en production", "correct": true, "position": 0 },
+        { "label": "Aucun risque, le déploiement teste tout seul le code", "correct": false, "position": 1 },
+        { "label": "Perdre l'image Docker du projet", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

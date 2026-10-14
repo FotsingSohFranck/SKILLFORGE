@@ -1,0 +1,119 @@
+{
+  "ref": "installation-setup-check",
+  "node": "installation-setup",
+  "lesson": "verifier-et-configurer",
+  "title": "Installation & configuration",
+  "description": "Desktop vs Engine, client/daemon, groupe docker, rootless, logs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour un serveur de production Linux sans interface graphique, quelle installation privilégier ?",
+      "justification": "Docker Engine : moteur seul en ligne de commande, gratuit, adapté à un serveur Linux headless (pas besoin de la VM de Desktop).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Docker Engine",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Docker Desktop",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun, Linux inclut Docker",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi Docker Desktop fait-il tourner une VM légère sur Windows et macOS ?",
+      "justification": "Ces OS n'ont pas de noyau Linux natif ; la VM fournit le noyau Linux dont les conteneurs ont besoin.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Pour fournir un noyau Linux absent de Windows/macOS",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour chiffrer les images",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour accélérer le processeur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permet concrètement l'appartenance au groupe `docker` sur un hôte Linux ?",
+      "justification": "Un accès quasi root : on peut monter le FS de l'hôte dans un conteneur root et tout lire/modifier, élévation de privilèges.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un accès quasi équivalent à root sur l'hôte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Seulement de lister ses propres conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un accès en lecture seule au daemon",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel réglage évite que les logs des conteneurs saturent le disque en production ?",
+      "justification": "Configurer la rotation des logs (json-file avec max-size/max-file) borne leur taille sur disque.",
+      "position": 3,
+      "options": [
+        {
+          "label": "La rotation des logs (max-size / max-file)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Désactiver complètement les logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Augmenter la RAM",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le mode rootless fait tourner le daemon et les conteneurs sous un utilisateur non privilégié, réduisant l'impact d'une évasion.",
+      "justification": "Vrai : grâce au user namespace, root dans le conteneur n'est pas root sur l'hôte, une évasion ne donne pas les privilèges de la machine.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

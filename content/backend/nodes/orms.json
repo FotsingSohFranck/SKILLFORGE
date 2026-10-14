@@ -1,0 +1,289 @@
+{
+  "node": "orms",
+  "lessons": [
+    {
+      "slug": "quest-ce-quun-orm",
+      "title": "Qu'est-ce qu'un ORM",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Combler le fossé objet / relationnel",
+          "body": "Quand tu écris du code Java, tu manipules des **objets** : des petits paquets de données avec des champs, par exemple un `User` qui possède un `email` et un `displayName`. Mais une base de données relationnelle, elle, ne connaît pas les objets : elle range l'information dans des **tables**, c'est-à-dire des grilles faites de **lignes** (une par utilisateur) et de **colonnes** (une par champ : `email`, `display_name`...).\n\nIl y a donc un **fossé** entre deux mondes : le monde **objet** de ton code, et le monde **relationnel** de la base (on l'appelle relationnel parce que les tables peuvent être reliées entre elles). Traduire à la main un objet en ligne, puis une ligne en objet, c'est répétitif et sans intérêt.\n\nUn **ORM** (de l'anglais *Object-Relational Mapper*, littéralement « traducteur objet-relationnel ») est l'outil qui fait cette traduction **automatiquement**. Il transforme une ligne lue en base en objet Java, un objet en instruction `INSERT` ou `UPDATE`, et il génère tout seul le **SQL** (le langage qu'on utilise pour parler à la base) des opérations les plus courantes. Cette mise en correspondance s'appelle le **mapping** (de *to map* = faire correspondre).\n\n👉 **Analogie** : l'ORM est un **interprète** entre deux personnes qui ne parlent pas la même langue. Ton code parle « objet », la base parle « tables et SQL » : l'interprète traduit dans les deux sens, sans que tu aies à jongler entre les deux à chaque phrase.\n\n**Exemple concret** : sans ORM, pour lire un utilisateur tu écrirais une requête `SELECT email, display_name FROM users WHERE id = ...`, puis tu recopierais à la main chaque colonne du résultat dans les champs d'un objet `User`. Avec un ORM, tu écris `userRepository.findById(id)` et tu récupères directement un objet `User` tout monté. Le but : écrire **moins de code répétitif** d'accès aux données et rester dans le monde objet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un ORM comble le fosse entre objets (code) et tables (base) : il traduit l'un vers l'autre.",
+          "body": "/images/lessons/quest-ce-quun-orm-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le paysage Java",
+          "body": "Il existe plusieurs ORMs dans le monde Java ; il faut savoir les situer.\n\n**JPA / Hibernate** est l'ORM historique et le plus riche. **JPA** (*Jakarta Persistence API*) est la **norme** (un ensemble d'interfaces standard) et **Hibernate** en est l'implémentation la plus répandue. Il offre un **mapping riche** et beaucoup d'automatismes : un **cache** (une mémoire tampon qui évite de redemander deux fois la même donnée à la base) et le **lazy loading** (« chargement paresseux » : il ne va chercher une donnée liée qu'au moment précis où ton code la réclame). Revers de la médaille : il est **bloquant**, c'est-à-dire que le thread qui exécute la requête **attend, immobile**, que la base réponde avant de continuer.\n\n👉 **Analogie du « bloquant »** : c'est un caissier qui, pendant que le client fouille son sac pour payer, **reste planté** sans servir personne d'autre. Le réactif (notre approche) va, lui, servir d'autres clients pendant l'attente.\n\nFace à Hibernate, il existe des approches **plus légères** : **Spring Data JDBC**, ou en version réactive **Spring Data R2DBC** (celle qu'on utilise sur cette plateforme). Elles font un mapping **plus explicite, sans magie cachée** : tu vois davantage ce qui se passe et tu maîtrises le SQL. Cela colle bien à une **architecture hexagonale** (l'organisation en couches de ce projet, où le cœur métier ne dépend d'aucune technologie).\n\n**À retenir** : un ORM lourd n'est pas toujours le bon choix. Ici, on préfère une couche d'accès **légère et explicite**, alignée avec le réactif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le paysage Java : JPA/Hibernate, jOOQ, R2DBC, JDBC ; des niveaux d'abstraction differents.",
+          "body": "/images/lessons/quest-ce-quun-orm-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Comment l'ORM fait le pont",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    A[\"Objet Java : User\"] -->|\"save : objet vers ligne\"| B[\"ORM : mapping\"]\n    B -->|\"INSERT / UPDATE genere\"| C[(\"Base : table users\")]\n    C -->|\"ligne lue\"| B\n    B -->|\"findById : ligne vers objet\"| A"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Un repository réactif",
+          "codeLanguage": "java",
+          "body": "public interface UserRepository extends ReactiveCrudRepository<UserEntity, UUID> {\n    Mono<UserEntity> findByEmail(String email);   // requête dérivée du nom\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Quel est le principal bénéfice d'un ORM (ou d'une abstraction de repository), et à quel prix l'obtient-on ?",
+          "solution": "Bénéfice : éliminer le code répétitif de mapping et des requêtes CRUD courantes, et rester en objets dans ton code. Prix : une couche d'abstraction qui peut masquer le SQL réellement exécuté (risque de requêtes inefficaces, comme le N+1) et une courbe d'apprentissage. On garde donc le contrôle du SQL sur les chemins critiques."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Qu'est-ce qu'un ORM",
+          "quizRef": "orms-intro-check"
+        }
+      ]
+    },
+    {
+      "slug": "mapping-et-frontieres",
+      "title": "Mapping & frontières hexagonales",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Entité de persistance ≠ modèle de domaine",
+          "body": "Voici un **piège fréquent** : prendre l'objet que l'ORM associe à la table (on l'appelle l'**entité de persistance**) et s'en servir **aussi** comme objet métier partout dans l'application.\n\nDeux notions à bien distinguer :\n- Le **modèle de domaine** : l'objet qui représente un concept **métier** pur (un `User`, une `Roadmap`), avec ses règles, et **sans aucune** dépendance technique (pas d'annotation de base, pas d'ORM).\n- L'**entité de persistance** : l'objet **technique** qui reflète une ligne de table, vit dans l'**adaptateur de persistance** (la couche du code qui parle à la base) et porte les détails de mapping.\n\nEn **architecture propre** (une façon d'organiser le code où le cœur métier ne dépend de rien de technique), on **sépare** ces deux objets, et un petit **mapping** traduit l'un vers l'autre.\n\n👉 **Analogie** : l'entité de persistance est le **formulaire administratif** rempli pour l'état civil (rigide, calqué sur la base), tandis que le modèle de domaine est la **personne réelle** avec sa logique propre. Tu ne confonds pas quelqu'un avec sa fiche administrative : de même, ton code métier ne doit pas manipuler la fiche « base de données ».\n\n**Exemple concret** : si demain tu renommes une colonne SQL ou que tu changes d'ORM, seule l'entité de persistance bouge ; ton modèle de domaine `User`, lui, ne change pas d'une ligne. Le métier est protégé des soubresauts techniques, exactement la règle de cette plateforme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'entite de persistance n'est pas le modele de domaine : ne pas les confondre garde le domaine pur.",
+          "body": "/images/lessons/mapping-et-frontieres-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Domaine pur, entité à part",
+          "codeLanguage": "java",
+          "body": "// Domaine (aucune dépendance technique)\npublic record User(UserId id, String email, String displayName) {}\n\n// Adaptateur out : entité + mapping vers le domaine\nrecord UserEntity(UUID id, String email, String displayName) {\n    User toDomain() { return new User(new UserId(id), email, displayName); }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Le port, pas l'ORM",
+          "body": "Comment le reste de l'application accède-t-il aux données sans dépendre de l'ORM ? Grâce à un **port**.\n\nUn **port** est une **interface** (un contrat en Java : une liste de méthodes, sans le code qui les réalise) définie **par le domaine**. Par exemple une interface `UserRepository` avec des méthodes métier comme `findByEmail`, qui renvoient des **types du domaine** (`User`), jamais des entités techniques. C'est le domaine qui dicte ce dont il a besoin.\n\nL'**adaptateur** (la couche technique) **implémente** ce port en utilisant concrètement l'ORM/R2DBC. Le reste de l'application, lui, ne connaît **que le port** ; il ignore totalement quel outil est branché derrière.\n\n👉 **Analogie** : le port est une **prise électrique murale** standard. Tes appareils s'y branchent sans savoir si le courant vient d'un barrage, du solaire ou du nucléaire. Tu peux changer la centrale (l'ORM) derrière le mur sans changer un seul appareil (le métier).\n\n**Exemple concret** : aujourd'hui l'adaptateur utilise R2DBC ; si tu voulais le remplacer par un accès à un fichier ou à une autre base, tu écrirais un nouvel adaptateur respectant le même port, et **aucune ligne du domaine ne changerait**. C'est ce **découplage** qui rend le domaine **testable sans base** : dans les tests, tu fournis une fausse implémentation du port."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le domaine depend d'un port (interface), pas de l'ORM : l'ORM reste un detail d'adaptateur.",
+          "body": "/images/lessons/mapping-et-frontieres-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Pourquoi ne pas exposer l'entité de persistance (annotée, mappée à la table) comme type de retour des use cases ?",
+          "solution": "Cela couplerait le domaine et la couche web au schéma de la base et à l'ORM : tout changement de table ou d'annotation se propagerait partout, et le domaine ne serait plus pur ni testable sans base. On mappe donc l'entité vers un type de domaine (ou un DTO) et on garde la frontière nette."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Mapping & frontières",
+          "quizRef": "orms-mapping-check"
+        }
+      ]
+    },
+    {
+      "slug": "pieges-des-orms",
+      "title": "Les pièges des ORMs",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le N+1 automatique",
+          "body": "Le **piège numéro un** des ORMs riches porte un nom : le **problème N+1**.\n\nRappel : le **lazy loading** (« chargement paresseux ») va chercher une donnée liée **seulement au moment où ton code y touche**. Le souci : si tu parcours une liste et que tu accèdes à une relation pour **chaque** élément, l'ORM déclenche **une requête à la base par élément**, sans que ça se voie dans ton code.\n\nD'où le nom **N+1** : **1** requête pour charger la liste principale, puis **N** requêtes (une par élément) pour les données liées. Avec 500 commandes, ce sont 501 allers-retours vers la base au lieu d'un ou deux.\n\n👉 **Analogie** : au lieu de faire **une** grande course avec toute ta liste, tu retournes au supermarché **une fois par article**. Même panier au final, mais un temps fou perdu en trajets.\n\n**Exemple concret** : ce code paraît innocent, `for (var order : orders) order.getItems();`, mais chaque `getItems()` part chercher les lignes en base, ce qui génère des **centaines** de requêtes. On s'en prémunit par un **chargement anticipé** explicite (un *fetch join*, c'est-à-dire une requête qui ramène d'un coup la liste **et** ses éléments liés, ou une requête dédiée), et surtout en **surveillant le SQL réellement émis**, pas seulement le code Java. Le code peut mentir ; le SQL, non."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le N+1 automatique : l'ORM declenche une requete par entite liee, souvent sans qu'on le voie.",
+          "body": "/images/lessons/pieges-des-orms-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'abstraction qui fuit",
+          "body": "Un ORM promet souvent « tu n'écriras plus jamais de SQL ». C'est en partie un mythe, à cause d'un phénomène connu : l'**abstraction qui fuit** (*leaky abstraction*).\n\nUne **abstraction**, c'est une couche qui te **cache la complexité** en dessous (ici, le SQL). On dit qu'elle **fuit** quand cette complexité **remonte quand même** et que tu es obligé de comprendre ce qui se passe dessous.\n\nAvec un ORM, ça arrive dès que tu sors du CRUD basique : pour les **requêtes complexes**, la **performance**, ou des fonctionnalités **spécifiques à la base**, tu dois comprendre, et souvent écrire, le SQL. Quelques exemples de ces fonctionnalités que les ORMs gèrent mal :\n- les **window functions** (fonctions de fenêtrage : des calculs qui regardent un groupe de lignes voisines, par exemple un classement ou une moyenne glissante) ;\n- le type **`jsonb`** de PostgreSQL (stocker et interroger du JSON directement en base) ;\n- l'**upsert** (contraction d'*update* et *insert* : « insère, ou si la ligne existe déjà, mets-la à jour »).\n\n👉 **Analogie** : une **voiture automatique** te cache la boîte de vitesses... jusqu'au jour où tu attaques une côte raide et où il faut comprendre ce que fait le moteur. L'abstraction ne t'épargne pas de savoir conduire.\n\n**À retenir** : un bon développeur backend connaît le **SQL** *et* l'**ORM**, et sait **quand descendre au SQL brut**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'abstraction qui fuit : croire qu'on ignore le SQL... jusqu'a ce qu'il faille le comprendre.",
+          "body": "/images/lessons/pieges-des-orms-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Descendre au SQL quand il faut (niveau expert)",
+          "body": "Parfois, tordre l'ORM pour lui faire faire une chose compliquée coûte plus cher que d'écrire directement le **SQL explicite**. Dans ces cas, on l'assume.\n\nQuand ? Typiquement pour un **rapport lourd**, une requête **analytique**, ou un **upsert idempotent**. Petit vocabulaire : une opération est **idempotente** si la **rejouer** plusieurs fois donne **le même résultat** qu'une seule fois (par exemple, réinsérer la même donnée ne crée pas de doublon). C'est essentiel pour une ingestion qu'on peut relancer sans risque.\n\nSur cette plateforme, on écrit alors du SQL ciblé via le **`DatabaseClient`** (un outil de Spring qui exécute une requête SQL que tu écris toi-même, sans passer par le mapping automatique) ou des **requêtes natives**. Exemple concret d'upsert idempotent en PostgreSQL : `INSERT ... ON CONFLICT (id) DO UPDATE SET ...`. Cette clause **`ON CONFLICT`** dit : « insère cette ligne ; mais si une ligne avec le même identifiant existe déjà, mets-la à jour au lieu de planter ». Résultat : tu peux relancer l'ingestion autant de fois que tu veux.\n\n👉 **Analogie** : pour planter un clou, un marteau (le SQL direct) est parfois plus simple que de programmer un robot polyvalent (l'ORM) pour le faire à ta place. On choisit l'outil selon la tâche.\n\n**Le partage des rôles retenu ici** : l'**ORM** sert le **CRUD courant** (les opérations simples et répétitives) ; le **SQL explicite** sert la **précision** et la **performance** sur les chemins critiques."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Descendre au SQL quand il faut : pour les requetes complexes ou critiques en performance.",
+          "body": "/images/lessons/pieges-des-orms-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un rapport agrège des millions de lignes avec des window functions. Faut-il le faire via l'ORM, objet par objet, ou autrement ? Justifie ta réponse.",
+          "solution": "Ni objet par objet (N+1 massif, mémoire saturée), ni via des abstractions qui masquent le SQL : on écrit une requête SQL agrégée (avec les window functions) exécutée en base, qui ramène directement le résultat calculé. La base agrège bien plus efficacement que du code applicatif qui chargerait tout en mémoire."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : ORMs",
+          "quizRef": "orms-check"
+        }
+      ]
+    },
+    {
+      "slug": "contexte-persistance-verrou-optimiste",
+      "title": "Contexte de persistance & verrou optimiste",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La magie (et le piège) du contexte de persistance JPA",
+          "body": "Un ORM riche comme Hibernate cache un mécanisme central qu'il faut comprendre : le **contexte de persistance** (en anglais *unit of work*, « unité de travail »).\n\nC'est une sorte de **carnet de suivi** que l'ORM tient pendant toute une **transaction** (un bloc d'opérations base qui réussissent ou échouent ensemble, tout ou rien). Dans ce carnet, il garde en mémoire chaque **entité** qu'il a chargée. Puis il fait du **dirty checking** (« vérification des éléments modifiés ») : à la fin de la transaction, il **compare** l'état actuel de tes objets à leur état de départ et génère **tout seul** les `UPDATE` pour ce qui a changé.\n\nLe moment où l'ORM envoie réellement ses ordres à la base s'appelle le **flush** (« vidange » : il vide le carnet vers la base). Il possède aussi un **cache de premier niveau** (une mémoire propre à la transaction : s'il a déjà chargé une entité, il la ressort de mémoire au lieu de relire la base).\n\n👉 **Analogie** : c'est un **assistant** qui note tout ce que tu modifies sur ton bureau et qui, en fin de journée (le flush), va **classer les changements** aux archives sans que tu le lui demandes explicitement. Pratique... mais surprenant quand un document part alors que tu croyais ne pas l'avoir « validé ».\n\n**Exemple concret du piège** : tu charges un objet, tu changes un champ, tu n'appelles **jamais** `save()`, et pourtant la base est mise à jour au flush. Puissant, mais **source de surprises** : des écritures « invisibles », un timing de synchronisation non trivial, un cache qui masque parfois une lecture. Comprendre **quand** le flush a lieu est indispensable pour ne pas **subir** l'ORM."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le contexte de persistance JPA suit les entites et ecrit automatiquement : pratique, mais piegeux.",
+          "body": "/images/lessons/contexte-persistance-verrou-optimiste-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi R2DBC est volontairement « bête »",
+          "body": "Spring Data **R2DBC** (utilisé ici) prend le parti **inverse** : il **n'a pas** de contexte de persistance, **pas** de lazy loading, **pas** de dirty checking. On dit qu'il est volontairement « bête », et c'est une **qualité**.\n\nConcrètement, un objet que tu charges avec R2DBC est un simple **snapshot** (un « instantané » : une photo figée des données à cet instant). Le modifier en mémoire **n'écrit rien** en base. Rien ne part tant que tu n'appelles pas **explicitement** `save()`. Aucune magie, aucune écriture surprise.\n\n👉 **Analogie** : R2DBC te donne une **photocopie** d'un document. Griffonner dessus ne change pas l'original ; il ne sera modifié que si tu **repasses au guichet** (l'appel à `save()`) pour déposer ta version.\n\nPourquoi ce choix ? Parce que « **moins de magie, plus de contrôle** » colle parfaitement au **réactif** (il n'y a pas d'état caché rattaché à un thread, ce qui serait dangereux quand le travail saute de thread en thread) et à l'**hexagonal** (le SQL reste explicite et visible).\n\n**La contrepartie, à assumer** : les **relations** entre tables et la **détection insert/update** deviennent **ta** responsabilité, pas celle de l'ORM. Tu gagnes en prévisibilité ce que tu perds en automatisme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "R2DBC est volontairement 'bete' : pas de contexte, pas de magie ; ce que vous ecrivez est ce qui s'execute.",
+          "body": "/images/lessons/contexte-persistance-verrou-optimiste-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Verrou optimiste avec @Version",
+          "codeLanguage": "java",
+          "body": "record RoadmapEntity(@Id UUID id, String title,\n                     @Version long version) {}\n\n// À l'UPDATE, Spring Data ajoute AND version = :ancienneVersion\n// et incrémente version. Si 0 ligne touchée -> OptimisticLockingFailureException\n// => quelqu'un a écrit entre-temps, on rejoue (voir nœud Transactions)."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "En JPA, un développeur modifie un champ d'une entité chargée mais n'appelle jamais save(). Le changement est quand même persisté en base. Comment est-ce possible, et pourquoi est-ce déroutant ?",
+          "solution": "Le contexte de persistance de Hibernate fait du dirty checking : à la fin de la transaction (au flush), il détecte que l'entité gérée a changé et émet un UPDATE automatiquement, même sans save() explicite. C'est déroutant car l'écriture est implicite et son timing (le flush) n'est pas visible dans le code, d'où des mises à jour inattendues. R2DBC, lui, n'écrit que sur un save() explicite : comportement prévisible."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Contexte de persistance & verrou optimiste",
+          "quizRef": "orms-contexte-check"
+        }
+      ]
+    },
+    {
+      "slug": "r2dbc-en-pratique",
+      "title": "R2DBC en pratique",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les relations, sans graphe d'objets",
+          "body": "Avec un ORM riche, une commande « connaît » ses lignes : tu écris `order.getItems()` et l'ORM va chercher les éléments tout seul. On parle de **graphe d'objets** (des objets reliés entre eux qu'on parcourt de proche en proche). R2DBC, lui, ne fait **pas** ça : il ne reconstitue pas ce graphe automatiquement.\n\nÀ la place, tu **composes explicitement** tes données. Deux façons :\n- une requête avec un **`JOIN`** (une jointure : une seule requête SQL qui **rassemble** plusieurs tables et renvoie le résultat déjà combiné, « à plat ») ;\n- ou plusieurs requêtes **assemblées** dans le **pipeline réactif** à l'aide d'opérateurs comme **`flatMap`** (enchaîner une requête sur le résultat d'une autre) ou **`zip`** (lancer deux requêtes et **combiner** leurs résultats).\n\nC'est plus de code, mais l'avantage est énorme : **aucun N+1 caché**. Chaque requête est **visible** dans ton code, tu sais exactement ce qui part vers la base.\n\n👉 **Analogie** : au lieu d'un **buffet à volonté** où tu te ressers sans compter (et où l'addition cachée explose), tu **commandes chaque plat** en le voyant arriver. Plus d'effort, mais aucune mauvaise surprise sur la note.\n\n**Exemple concret** : pour une vue de lecture complexe, on préfère une **projection** dédiée (un `record` Java qui ne contient **que** les colonnes affichées) alimentée par un `SELECT` ciblé, plutôt que de reconstituer des entités complètes dont on n'a pas besoin."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En R2DBC, on gere les relations a la main : pas de graphe d'objets charge tout seul.",
+          "body": "/images/lessons/r2dbc-en-pratique-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le piège insert vs update (détection isNew)",
+          "body": "Voici **le** piège à connaître avec R2DBC. Quand tu appelles `save()`, Spring Data doit deviner s'il faut faire un **`INSERT`** (nouvelle ligne) ou un **`UPDATE`** (ligne existante). Pour trancher, il regarde si l'entité est **« nouvelle »** (*isNew*).\n\nSa règle par défaut est simple : **id absent (`null`) → nouvelle → `INSERT`** ; **id présent → existante → `UPDATE`**.\n\nLe problème surgit avec notre choix d'**`@Id` généré côté base** : la colonne id a un `DEFAULT uuidv7()` (la base fabrique elle-même un **UUID v7**, un identifiant unique trié par date de création). Si ton code fournit **lui-même** un id **non nul** avant l'insert, Spring Data croit à une ligne existante et lance un `UPDATE ... WHERE id = ...` sur une ligne **qui n'existe pas encore** → le `save` **échoue silencieusement** (0 ligne touchée, aucune erreur bruyante).\n\n👉 **Analogie** : c'est comme vouloir **modifier une fiche client** dont le numéro n'a encore jamais été créé : l'employé cherche la fiche, ne la trouve pas, et ton changement **part dans le vide** sans prévenir.\n\n**Les solutions classiques** :\n- laisser l'id à `null` et laisser la **base** le générer (le plus simple ici) ;\n- implémenter **`Persistable#isNew`** (une interface où **tu** décides toi-même si l'entité est neuve) ;\n- ou générer l'id **côté Java en v7** (avec une librairie dédiée) avant l'insert et gérer explicitement le cas.\n\nRègle absolue de la plateforme : **jamais `UUID.randomUUID()`** (c'est de l'UUID v4, non trié)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le piege insert vs update : R2DBC doit deviner si l'entite est nouvelle (isNew) pour choisir.",
+          "body": "/images/lessons/r2dbc-en-pratique-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le schéma appartient à Flyway, pas à l'ORM",
+          "body": "Dernière règle, non négociable ici : **qui décide de la structure de la base** (les tables, les colonnes, les index) ? Cette structure s'appelle le **schéma**.\n\nOn **ne laisse jamais** l'ORM créer ou modifier le schéma tout seul en production. Beaucoup d'ORMs proposent une option `ddl-auto` (« crée/mets à jour les tables automatiquement d'après mes entités ») : **pratique en jouet, dangereuse en vrai**, car la base peut dériver sans que personne ne l'ait décidé ni relu.\n\nÀ la place, le schéma est piloté par des **migrations Flyway** : des fichiers SQL **versionnés** (`V1__...`, `V2__...`) appliqués dans l'ordre, qui constituent la **seule source de vérité** (la référence unique et officielle). Elles sont **reproductibles** (même base partout) et **relues** comme du code.\n\n👉 **Analogie** : le schéma, ce sont les **plans officiels du bâtiment**, tenus par l'architecte (Flyway) et archivés. L'ORM est un **occupant** qui doit se conformer aux plans, pas les **repeindre en douce** pendant la nuit.\n\n**En clair** : l'entité R2DBC **reflète** le schéma défini par Flyway, elle ne le **crée** pas. Cette séparation évite les dérives silencieuses entre le code et la base."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le schema appartient a Flyway, pas a l'ORM : les migrations restent la source de verite.",
+          "body": "/images/lessons/r2dbc-en-pratique-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Avec R2DBC et un id UUID v7 généré par la base, un `save()` d'un nouvel objet auquel on a déjà mis un id échoue sans rien insérer. Pourquoi, et quelles options as-tu ?",
+          "solution": "Spring Data voit un id non nul et suppose une entité existante : il émet un UPDATE ... WHERE id = ... qui ne touche aucune ligne (elle n'existe pas encore), donc rien n'est inséré. Options : (1) laisser l'id à null et le laisser générer par la base (DEFAULT uuidv7()), (2) implémenter Persistable#isNew pour forcer l'insert, ou (3) générer l'id côté Java avec une lib UUID v7 et marquer explicitement l'entité comme nouvelle. Jamais UUID.randomUUID() (v4)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Pour aller plus loin",
+          "body": "Références : la documentation *Spring Data R2DBC* (entités, `DatabaseClient`, projections, `Persistable`) ; la doc *Spring Data JDBC/R2DBC* de l'équipe Spring pour la philosophie « ORM sans magie » ; la documentation R2DBC SPI et le driver `r2dbc-postgresql` ; et, pour comprendre ce que R2DBC t'épargne, le chapitre sur le *persistence context* de *Java Persistence with Hibernate*. Comparer sciemment JPA (riche, bloquant) et R2DBC (explicite, réactif) est une compétence d'architecte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les ORM et la persistance.",
+          "body": "/images/lessons/r2dbc-en-pratique-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : ORMs (niveau expert)",
+          "quizRef": "orms-expert"
+        }
+      ]
+    }
+  ]
+}

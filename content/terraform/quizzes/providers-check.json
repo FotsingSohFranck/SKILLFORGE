@@ -1,0 +1,119 @@
+{
+  "ref": "providers-check",
+  "node": "providers",
+  "lesson": "gerer-les-versions",
+  "title": "Providers",
+  "description": "Providers/Registry, credentials hors code, contraintes de version, alias.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un provider Terraform ?",
+      "justification": "Un plugin qui gère les ressources d'une plateforme (AWS, GCP, Kubernetes...) en traduisant le HCL en appels API.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un plugin qui gère les ressources d'une plateforme",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un serveur cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un fichier d'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où fournir les credentials d'un provider ?",
+      "justification": "Hors du code : variables d'environnement, profil local, ou identité fédérée (rôle IAM/OIDC), jamais en dur dans les .tf.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Hors du code (env, profil, identité fédérée)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En dur dans le bloc provider",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans le fichier d'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait la contrainte de version `~> 5.0` ?",
+      "justification": "Elle autorise les versions 5.x (mineures/correctives) mais bloque le passage à 6.0 (changements majeurs cassants).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Autorise 5.x mais bloque la 6.0",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Force exactement la 5.0.0",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Prend toujours la dernière version",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment déployer avec un même provider dans deux régions différentes ?",
+      "justification": "Avec des alias de provider (alias = \"europe\"/\"usa\") référencés via le meta-argument provider sur les ressources.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Avec des alias de provider",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "C'est impossible",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En dupliquant tout le code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sans contrainte de version, un provider peut se mettre à jour vers une version majeure cassante et faire échouer un code inchangé.",
+      "justification": "Vrai : d'où l'usage de ~> pour borner la fourchette et du lock file pour figer la version exacte (reproductibilité).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

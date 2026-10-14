@@ -1,0 +1,52 @@
+{
+  "ref": "rest-apis-ressources-check",
+  "node": "rest-apis",
+  "lesson": "ressources-et-verbes",
+  "title": "Quiz : Ressources & verbes",
+  "description": "Ressources, verbes HTTP, sûr et idempotent.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la bonne façon REST de récupérer la liste des utilisateurs ?",
+      "justification": "L'URL désigne la ressource au pluriel et le verbe porte l'action : GET /users. Mettre l'action dans l'URL (/getUsers) est un anti-pattern.",
+      "position": 0,
+      "options": [
+        { "label": "GET /api/v1/users", "correct": true, "position": 0 },
+        { "label": "GET /api/v1/getUsers", "correct": false, "position": 1 },
+        { "label": "POST /api/v1/users/list", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans une API REST, où doit être portée l'action à réaliser ?",
+      "justification": "La règle d'or : l'URL dit quoi (la ressource), la méthode HTTP dit quelle action (GET, POST, DELETE...).",
+      "position": 1,
+      "options": [
+        { "label": "Par la méthode HTTP (le verbe)", "correct": true, "position": 0 },
+        { "label": "Par un mot d'action dans l'URL", "correct": false, "position": 1 },
+        { "label": "Par un paramètre ?action= dans l'URL", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un GET peut légitimement modifier ou supprimer des données côté serveur.",
+      "justification": "Faux : GET est sûr (safe), il ne doit avoir aucun effet de bord. Un cache, un préchargement ou un crawler pourraient sinon déclencher la modification.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un client envoie deux fois la même requête à cause d'un réseau instable. Avec quel verbe risque-t-il de créer un doublon ?",
+      "justification": "POST n'est pas idempotent : le rejouer crée une deuxième ressource. GET, PUT et DELETE sont idempotents (même état final quel que soit le nombre de rejeux).",
+      "position": 3,
+      "options": [
+        { "label": "POST", "correct": true, "position": 0 },
+        { "label": "GET", "correct": false, "position": 1 },
+        { "label": "DELETE", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

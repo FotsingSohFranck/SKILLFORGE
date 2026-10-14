@@ -1,0 +1,96 @@
+{
+  "ref": "event-sourcing-cqrs-check",
+  "node": "event-sourcing-cqrs",
+  "lesson": "evenements-et-separation-lecture-ecriture",
+  "title": "Quiz, Event Sourcing & CQRS",
+  "description": "Journal d'événements, séparation lecture/écriture, coûts.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que stocke l'Event Sourcing comme source de vérité ?",
+      "justification": "La suite des événements (append-only, immuable) ; l'état courant se recalcule en les rejouant, ce qui donne historique et auditabilité.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La suite des événements survenus, pas seulement l'état courant",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Uniquement le dernier état, en écrasant l'historique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Des captures d'écran de l'interface",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que sépare CQRS ?",
+      "justification": "Le modèle d'écriture (commandes, règles métier) du modèle de lecture (requêtes, vues optimisées), chacun évolue et scale séparément.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le modèle d'écriture (commandes) du modèle de lecture (requêtes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le front du back",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les tests des sources",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est un coût majeur d'Event Sourcing + CQRS ?",
+      "justification": "La cohérence à terme (les vues de lecture peuvent être en retard) et le versionnement des événements, avec plus de complexité de débogage.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La cohérence à terme et le versionnement des événements",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'impossibilité de faire des requêtes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La perte totale de l'historique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Event Sourcing et CQRS devraient être adoptés par défaut sur tout projet, même un CRUD simple.",
+      "justification": "Faux : c'est de la sur-ingénierie pour un CRUD ordinaire ; on les réserve aux domaines qui le justifient (audit fort, historique, asymétrie lecture/écriture).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

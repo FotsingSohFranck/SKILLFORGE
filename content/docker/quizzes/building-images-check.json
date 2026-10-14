@@ -1,0 +1,63 @@
+{
+  "ref": "building-images-check",
+  "node": "building-images",
+  "lesson": "taille-et-securite",
+  "title": "Construire des images",
+  "description": "Dockerfile, cache de couches, multi-stage, taille, non-root, secrets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre RUN et CMD dans un Dockerfile ?",
+      "justification": "RUN s'exécute à la construction de l'image (fige un résultat en couche) ; CMD définit la commande lancée au démarrage du conteneur.",
+      "position": 0,
+      "options": [
+        { "label": "RUN s'exécute au build, CMD au démarrage du conteneur", "correct": true, "position": 0 },
+        { "label": "RUN au runtime, CMD au build", "correct": false, "position": 1 },
+        { "label": "Ce sont des synonymes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un cache de couches efficace, comment ordonner un Dockerfile Node ?",
+      "justification": "Copier les manifestes et installer les dépendances AVANT de copier le code : une modif de code n'invalide alors pas l'install.",
+      "position": 1,
+      "options": [
+        { "label": "COPY package*.json → RUN npm ci → COPY . .", "correct": true, "position": 0 },
+        { "label": "COPY . . → RUN npm ci", "correct": false, "position": 1 },
+        { "label": "L'ordre n'a aucune importance", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permet un build multi-stage ?",
+      "justification": "Compiler avec l'outillage lourd dans une étape, puis ne copier que l'artefact dans une image minimale : plus petite et plus sûre.",
+      "position": 2,
+      "options": [
+        { "label": "Livrer une image minimale sans outils de build ni sources", "correct": true, "position": 0 },
+        { "label": "Construire plusieurs images en parallèle obligatoirement", "correct": false, "position": 1 },
+        { "label": "Chiffrer chaque couche", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle mesure de durcissement simple réduit fortement le risque en cas de compromission ?",
+      "justification": "Faire tourner le conteneur en utilisateur non privilégié (instruction USER) plutôt qu'en root par défaut.",
+      "position": 3,
+      "options": [
+        { "label": "Créer et utiliser un utilisateur non-root (USER)", "correct": true, "position": 0 },
+        { "label": "Toujours tourner en root pour simplifier", "correct": false, "position": 1 },
+        { "label": "Utiliser le tag latest", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Mettre un mot de passe via ENV dans un Dockerfile est sûr tant qu'on supprime la ligne dans une instruction ultérieure.",
+      "justification": "Faux : le secret reste dans une couche de l'image (visible via docker history) même s'il est écrasé ensuite ; il faut le fournir au runtime ou via build secrets.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

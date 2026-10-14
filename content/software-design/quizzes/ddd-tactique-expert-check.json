@@ -1,0 +1,96 @@
+{
+  "ref": "ddd-tactique-expert-check",
+  "node": "ddd",
+  "lesson": "patterns-tactiques-services-factories-specifications",
+  "title": "Quiz, Domain services, factories & specifications (expert)",
+  "description": "Domain service vs service applicatif, factory (création/reconstitution), specification composable.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand utiliser un Domain Service ?",
+      "justification": "Pour une règle métier qui n'appartient en propre à aucune entité/VO (souvent inter-agrégats). Il porte la règle (dans le domaine, sans état) ; le service applicatif, lui, orchestre sans contenir de règle.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Pour une règle sans propriétaire naturel (souvent inter-agrégats), dans le domaine, sans état",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour gérer les transactions et la persistance",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour remplacer toutes les entités",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'objectif d'une Factory dans le DDD tactique ?",
+      "justification": "Encapsuler la création complexe pour produire un agrégat valide et cohérent d'emblée (invariants respectés). On distingue création et reconstitution depuis la persistance.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Produire un agrégat cohérent dès sa naissance, en cachant la complexité d'assemblage",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Sérialiser les agrégats en JSON",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les constructeurs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quels trois usages une même Specification peut-elle servir ?",
+      "justification": "Validation (isSatisfiedBy), sélection en mémoire (filtrer une collection) et requête (traduire en critère SQL/predicate), une règle nommée, composable (and/or/not), définie une seule fois.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Validation, sélection en mémoire et traduction en requête",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Logging, cache et sécurité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Sérialisation, migration et déploiement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un domain service et un service applicatif jouent le même rôle.",
+      "justification": "Faux : le domain service contient une RÈGLE métier (dans le domaine, pur) ; le service applicatif ORCHESTRE (transaction, ports, sécurité) sans porter de règle métier.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

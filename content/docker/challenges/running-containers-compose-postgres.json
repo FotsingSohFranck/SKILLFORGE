@@ -1,0 +1,10 @@
+{
+  "node": "running-containers",
+  "lesson": "docker-compose",
+  "title": "Écrire un compose.yaml api + base Postgres",
+  "statement": "Écris un fichier `compose.yaml` qui décrit deux services. (1) Un service `api` construit depuis le Dockerfile local (`build: .`), qui publie le port `8080:8080`, et qui attend que la base soit prête avant de démarrer (`depends_on` avec `condition: service_healthy`). (2) Un service `db` basé sur l'image `postgres:18`, qui persiste ses données dans un volume nommé `pgdata` monté sur `/var/lib/postgresql/data`, et qui déclare un `healthcheck` avec `pg_isready`. N'oublie pas de déclarer le volume nommé `pgdata` en bas du fichier.",
+  "skeleton": "services:\n  api:\n    # à compléter\n  db:\n    # à compléter\n\nvolumes:\n  # à compléter\n",
+  "solution": "services:\n  api:\n    build: .\n    ports: [\"8080:8080\"]\n    depends_on:\n      db:\n        condition: service_healthy\n\n  db:\n    image: postgres:18\n    environment:\n      POSTGRES_PASSWORD: secret\n    volumes: [\"pgdata:/var/lib/postgresql/data\"]\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]\n      interval: 5s\n      retries: 5\n\nvolumes:\n  pgdata:",
+  "keyPoints": ["services:", "build: .", "8080:8080", "depends_on", "service_healthy", "image: postgres:18", "healthcheck", "pg_isready", "pgdata:/var/lib/postgresql/data", "volumes:"],
+  "language": "yaml"
+}

@@ -1,0 +1,10 @@
+{
+  "node": "pattern-matching-switch",
+  "lesson": "exhaustivite",
+  "title": "Calcule l'aire d'une forme scellee",
+  "statement": "On a sealed interface Forme permits Cercle, Carre, avec record Cercle(double rayon) et record Carre(double cote). Ecris static double aire(Forme f) avec un switch expression EXHAUSTIF, sans default, qui renvoie Math.PI * rayon * rayon pour un Cercle et cote * cote pour un Carre.",
+  "skeleton": "sealed interface Forme permits Cercle, Carre { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Carre(double cote) implements Forme { }\n\nstatic double aire(Forme f) {\n    // Complete le switch sans default : les deux cas couvrent tout l'ensemble scelle\n    return switch (f) {\n        // ...\n    };\n}\n",
+  "solution": "static double aire(Forme f) {\n    return switch (f) {\n        case Cercle c -> Math.PI * c.rayon() * c.rayon();\n        case Carre ca -> ca.cote() * ca.cote();\n    };\n}",
+  "keyPoints": ["switch (f)", "case Cercle c ->", "case Carre ca ->", "pas de default", "exhaustif"],
+  "language": "java"
+}

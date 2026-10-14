@@ -1,0 +1,101 @@
+{
+  "ref": "msg-broker-expert-check",
+  "node": "messaging-styles",
+  "lesson": "broker-brokerless-eip-schema",
+  "title": "Quiz, Broker, EIP & schéma (expert)",
+  "description": "Broker vs brokerless, EIP, compatibilité avant/arrière, schema registry.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'avantage principal d'une messagerie AVEC broker (Kafka/RabbitMQ) ?",
+      "justification": "Découplage fort (temporel/spatial), durabilité et rejeu : le consommateur peut être absent puis rattraper. Le coût est une infra centrale à opérer et une latence additionnelle.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Découplage fort, durabilité et rejeu (le consommateur peut rattraper)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La latence la plus basse possible",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'absence totale d'infrastructure",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Le pattern EIP « Competing Consumers » sert à quoi ?",
+      "justification": "Plusieurs consommateurs lisent la même file pour paralléliser le traitement, la base du scaling par consumer group.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Paralléliser le traitement en faisant lire la même file par plusieurs consommateurs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Router un message selon son contenu",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Corréler une réponse à sa requête",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que la compatibilité ARRIÈRE (backward) d'un schéma d'événement ?",
+      "justification": "Un nouveau consommateur peut lire les anciens messages (on n'ajoute que des champs optionnels avec défaut, on ne supprime pas de champ requis).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un nouveau consommateur peut lire les anciens messages",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un ancien producteur peut écrire dans le futur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On peut supprimer n'importe quel champ sans risque",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un événement `UserRegistered` est lu par 6 services. On veut renommer `mail` en `email`. Comment procéder sans casser ?",
+      "justification": "Changement cassant : ajouter d'abord `email` à côté de `mail` (le producteur remplit les deux), migrer les 6 consommateurs un par un, puis retirer `mail` une fois prouvé que plus personne ne le lit, gouverné par un schema registry.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Ajouter `email` à côté de `mail`, migrer les consommateurs, puis retirer `mail` ensuite",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Déployer le producteur renommé d'un coup lundi matin",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer `mail` immédiatement, les consommateurs s'adapteront",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

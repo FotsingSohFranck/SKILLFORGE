@@ -1,0 +1,41 @@
+{
+  "ref": "virtual-threads-qu-est-ce-qu-un-thread-virtuel",
+  "node": "virtual-threads",
+  "lesson": "qu-est-ce-qu-un-thread-virtuel",
+  "title": "Quiz : qu'est-ce qu'un thread virtuel",
+  "description": "Thread virtuel, thread porteur, montage et démontage pendant le blocage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'appelle t on le thread porteur (carrier thread) d'un thread virtuel ?",
+      "justification": "Le thread porteur est le vrai thread plateforme sur lequel un thread virtuel se monte pour exécuter son code.",
+      "position": 0,
+      "options": [
+        { "label": "Le thread plateforme sur lequel le thread virtuel se monte pour s'exécuter", "correct": true, "position": 0 },
+        { "label": "Un deuxième thread virtuel qui surveille le premier", "correct": false, "position": 1 },
+        { "label": "La pile mémoire de 1 Mo réservée au thread virtuel", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe t il quand un thread virtuel rencontre une opération bloquante (attente I/O) ?",
+      "justification": "La JVM le démonte de son porteur et libère ce porteur pour un autre thread virtuel ; le virtuel reprendra plus tard là où il s'était arrêté.",
+      "position": 1,
+      "options": [
+        { "label": "La JVM le démonte et libère son thread porteur pour un autre", "correct": true, "position": 0 },
+        { "label": "Il garde son thread porteur occupé jusqu'au bout de l'attente", "correct": false, "position": 1 },
+        { "label": "Il est définitivement détruit et perd sa progression", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les threads virtuels sont stables et officiels depuis Java 21 (JEP 444).",
+      "justification": "La JEP 444 rend les threads virtuels définitifs et stables dans Java 21.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

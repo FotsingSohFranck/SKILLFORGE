@@ -1,0 +1,52 @@
+{
+  "ref": "resource-management-requests-check",
+  "node": "resource-management",
+  "lesson": "requests-et-limits",
+  "title": "Requests & limits",
+  "description": "Différence request/limit, CPU compressible vs mémoire, OOMKill et code 137.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre une request et une limit ?",
+      "justification": "La request est ce qui est garanti et sert au scheduler pour placer le pod ; la limit est le plafond que le conteneur ne peut pas dépasser.",
+      "position": 0,
+      "options": [
+        { "label": "La request = ressources garanties (utilisées pour le placement) ; la limit = le plafond à ne pas dépasser", "correct": true, "position": 0 },
+        { "label": "La request = le plafond ; la limit = le minimum garanti", "correct": false, "position": 1 },
+        { "label": "Les deux désignent la même chose", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un conteneur atteint sa limite CPU. Que se passe-t-il ?",
+      "justification": "Le CPU est compressible : au-delà de la limite, le conteneur est throttlé (ralenti), pas tué. Seule la mémoire, non compressible, provoque un kill.",
+      "position": 1,
+      "options": [
+        { "label": "Il est throttlé (ralenti), mais pas tué", "correct": true, "position": 0 },
+        { "label": "Il est immédiatement tué (OOMKilled)", "correct": false, "position": 1 },
+        { "label": "Le nœud entier redémarre", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un conteneur qui s'arrête avec le code de sortie 137 a été tué pour dépassement de sa limite mémoire (OOMKill).",
+      "justification": "Vrai : la mémoire est non compressible ; dépasser la limite mémoire déclenche un OOMKill, signalé par le code 137.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un pod est déployé sans aucune request ni limit. Quel est le principal risque ?",
+      "justification": "Sans requests, le scheduler place à l'aveugle (il ignore le besoin réel) ; sans limits, un conteneur emballé peut consommer tout le nœud et affamer ses voisins. Le pod est aussi classé BestEffort, donc évincé en premier.",
+      "position": 3,
+      "options": [
+        { "label": "Le scheduler place à l'aveugle et le conteneur peut affamer ses voisins (pod BestEffort, évincé en premier)", "correct": true, "position": 0 },
+        { "label": "Aucun risque : Kubernetes calcule automatiquement les bonnes valeurs", "correct": false, "position": 1 },
+        { "label": "Le pod refuse de démarrer tant qu'on n'a pas mis de requests", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

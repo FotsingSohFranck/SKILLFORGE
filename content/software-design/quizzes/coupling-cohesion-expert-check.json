@@ -1,0 +1,96 @@
+{
+  "ref": "coupling-cohesion-expert-check",
+  "node": "coupling-cohesion",
+  "lesson": "connascence-et-couplage-mesure",
+  "title": "Quiz, Connascence & couplage mesuré (expert)",
+  "description": "Connascence statique/dynamique, degrés, couplage afférent/efférent, temporel.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Deux éléments sont « connascents » quand… ?",
+      "justification": "Modifier l'un impose de modifier l'autre pour préserver la correction ; la connascence nomme précisément ce lien.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Modifier l'un oblige à modifier l'autre pour rester correct",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont dans le même fichier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ils ont le même nom",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Des arguments positionnels dont l'ordre prête à confusion sont un exemple de connascence de… ?",
+      "justification": "Connascence de position (statique) ; on la réduit vers une connascence de nom (builder, paramètres nommés) ou de type (value objects).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Position",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Identité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Timing",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les connascences dynamiques (exécution, timing…) sont-elles plus dangereuses que les statiques ?",
+      "justification": "Elles sont invisibles à la lecture du code et ne se manifestent qu'à l'exécution ; on cherche à les ramener vers du statique vérifiable.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Elles sont invisibles dans le code et n'apparaissent qu'au runtime",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elles compilent plus lentement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elles concernent plus de fichiers",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un objet qu'il faut configure() puis start() dans cet ordre, sinon il plante, souffre de couplage temporel (connascence d'exécution).",
+      "justification": "Vrai : l'ordre d'appel est requis mais non exprimé ; on le rend impossible à violer (objet valide dès la construction, types-états).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

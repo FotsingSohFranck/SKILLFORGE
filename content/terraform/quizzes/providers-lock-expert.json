@@ -1,0 +1,96 @@
+{
+  "ref": "providers-lock-expert",
+  "node": "providers",
+  "lesson": "providers-modules-lock-file",
+  "title": "Providers, modules & lock file, expert",
+  "description": "configuration_aliases, providers = {}, checksums multi-plateforme, mirror.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un module réutilisable déclare-t-il qu'il attend un provider aliasé ?",
+      "justification": "Via configuration_aliases dans son required_providers ; l'appelant les lui passe avec l'argument providers = {} du bloc module.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Avec configuration_aliases (l'appelant fournit via providers = {})",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En définissant lui-même le provider",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Via une variable d'environnement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'enregistre le lock file en plus du numéro de version ?",
+      "justification": "Des checksums (h1:) par plateforme (linux_amd64, darwin_arm64...) pour garantir l'intégrité et la reproductibilité multi-OS.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des checksums par plateforme (intégrité)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les credentials cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'état des ressources",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un lock file généré sur Mac fait échouer le init de la CI Linux (checksum manquant). Comment corriger ?",
+      "justification": "Régénérer avec terraform providers lock -platform=linux_amd64 -platform=darwin_arm64 pour inclure toutes les plateformes de l'équipe.",
+      "position": 2,
+      "options": [
+        {
+          "label": "terraform providers lock -platform=... (toutes les plateformes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer le lock file",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver la vérification",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour un environnement air-gapped, on configure un mirror de providers (provider_installation/filesystem_mirror) pour installer sans Internet.",
+      "justification": "Vrai : le CLI config permet d'installer les providers depuis une source interne, indispensable sans accès au Registry public.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

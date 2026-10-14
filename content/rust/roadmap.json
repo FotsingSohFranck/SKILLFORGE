@@ -1,0 +1,96 @@
+{
+  "slug": "rust",
+  "title": "Rust",
+  "summary": "La sûreté mémoire sans ramasse-miettes : ownership, types algébriques, erreurs et concurrence.",
+  "kind": "TRACK",
+  "position": 5,
+  "phases": [
+    { "title": "Fondamentaux", "position": 0 },
+    { "title": "Ownership & types", "position": 1 },
+    { "title": "Erreurs & abstractions", "position": 2 },
+    { "title": "Concurrence & écosystème", "position": 3 }
+  ],
+  "nodes": [
+    {
+      "slug": "why-rust",
+      "title": "Pourquoi Rust",
+      "summary": "Performance et sûreté mémoire, sans GC.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 40,
+      "position": 0
+    },
+    {
+      "slug": "cargo",
+      "title": "Cargo & la toolchain",
+      "summary": "Compiler, gérer les dépendances, lancer les tests.",
+      "phase": "Fondamentaux",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 1
+    },
+    {
+      "slug": "ownership",
+      "title": "Ownership & emprunts",
+      "summary": "Le concept central qui remplace le ramasse-miettes.",
+      "phase": "Ownership & types",
+      "importance": "CORE",
+      "estimatedMinutes": 90,
+      "position": 0
+    },
+    {
+      "slug": "enums-pattern",
+      "title": "Enums & pattern matching",
+      "summary": "Types algébriques, Option et match exhaustif.",
+      "phase": "Ownership & types",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 1
+    },
+    {
+      "slug": "error-handling",
+      "title": "Gestion des erreurs",
+      "summary": "Result, l'opérateur ? et l'absence d'exceptions.",
+      "phase": "Erreurs & abstractions",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 0
+    },
+    {
+      "slug": "traits-generics",
+      "title": "Traits & génériques",
+      "summary": "Le polymorphisme sans héritage.",
+      "phase": "Erreurs & abstractions",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 75,
+      "position": 1
+    },
+    {
+      "slug": "concurrency",
+      "title": "Concurrence sans peur",
+      "summary": "Des threads sûrs garantis à la compilation.",
+      "phase": "Concurrence & écosystème",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 75,
+      "position": 0
+    },
+    {
+      "slug": "testing",
+      "title": "Tests intégrés",
+      "summary": "Tester avec l'outillage fourni par Cargo.",
+      "phase": "Concurrence & écosystème",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 1
+    }
+  ],
+  "edges": [
+    { "source": "why-rust", "target": "cargo", "kind": "PREREQ" },
+    { "source": "cargo", "target": "ownership", "kind": "PREREQ" },
+    { "source": "ownership", "target": "enums-pattern", "kind": "PREREQ" },
+    { "source": "enums-pattern", "target": "error-handling", "kind": "PREREQ" },
+    { "source": "ownership", "target": "traits-generics", "kind": "PREREQ" },
+    { "source": "error-handling", "target": "concurrency", "kind": "PREREQ" },
+    { "source": "cargo", "target": "testing", "kind": "PREREQ" }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "third-party-images-services-check",
+  "node": "third-party-images",
+  "lesson": "des-services-sans-installation",
+  "title": "Quiz, Des services sans rien installer",
+  "description": "Image vs conteneur, docker run, variables d'environnement, ports.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre une image et un conteneur ?",
+      "justification": "L'image est un modèle figé en lecture seule (le moule) ; le conteneur est une instance en cours d'exécution créée à partir d'elle (le gâteau).",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'image est un modèle figé, le conteneur est une instance qui tourne à partir d'elle",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le conteneur est un modèle, l'image est ce qui s'exécute",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ce sont deux mots pour la même chose",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment passe-t-on le mot de passe et le nom de base à un conteneur PostgreSQL officiel ?",
+      "justification": "Par des variables d'environnement documentées (POSTGRES_PASSWORD, POSTGRES_DB...), passées avec l'option -e. C'est le principe 12-factor.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Par des variables d'environnement, avec l'option -e",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En modifiant le code source de l'image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En tapant les réponses à la main après le démarrage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans `docker run -p 5432:5432 postgres:18`, à quoi sert le `-p 5432:5432` ?",
+      "justification": "-p publie un port : port_hôte:port_conteneur. Il rend le service du conteneur accessible depuis ta machine (localhost:5432).",
+      "position": 2,
+      "options": [
+        {
+          "label": "À publier un port pour joindre le service depuis l'hôte (hôte:conteneur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À définir le mot de passe de la base",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À choisir la version de l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour tester PostgreSQL 16 puis 18, il faut désinstaller le premier avant d'installer le second.",
+      "justification": "Faux : on lance deux conteneurs isolés (tags 16 et 18) sur des ports distincts, en parallèle, sans rien installer sur l'hôte. On les supprime ensuite, la machine reste propre.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

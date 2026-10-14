@@ -1,0 +1,52 @@
+{
+  "ref": "resources-brique-check",
+  "node": "resources",
+  "lesson": "la-ressource-brique-de-base",
+  "title": "La ressource, brique de base",
+  "description": "Syntaxe resource, rôle du type et du nom, arguments vs attributs, (known after apply).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans `resource \"aws_instance\" \"web\" { ... }`, à quoi sert le nom `web` ?",
+      "justification": "Le nom est une étiquette INTERNE à Terraform, choisie par toi, pour référencer la ressource ailleurs dans le code (ex. aws_instance.web.id). Il n'apparaît pas chez le fournisseur cloud.",
+      "position": 0,
+      "options": [
+        { "label": "Une étiquette interne pour référencer la ressource dans le code", "correct": true, "position": 0 },
+        { "label": "Le nom que la machine portera réellement chez AWS", "correct": false, "position": 1 },
+        { "label": "Le mot de passe de l'instance", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre un argument et un attribut ?",
+      "justification": "L'argument est une valeur d'entrée que TU définis (ton intention) ; l'attribut est une valeur CALCULÉE par le fournisseur après création (id, arn, IP), que tu lis.",
+      "position": 1,
+      "options": [
+        { "label": "Argument = valeur que tu définis en entrée ; attribut = valeur calculée après création", "correct": true, "position": 0 },
+        { "label": "Argument = calculé par le cloud ; attribut = écrit par toi", "correct": false, "position": 1 },
+        { "label": "Ce sont deux mots pour la même chose", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Voir `(known after apply)` dans un plan est une erreur qu'il faut corriger.",
+      "justification": "Faux : c'est parfaitement normal. La valeur (un id, une IP, un arn) est calculée par la plateforme à la création, elle n'existe donc pas encore au moment du plan.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un sous-réseau (`aws_subnet.app`) référence l'`id` de son réseau parent (`aws_vpc.main.id`). Dans quel ordre Terraform va-t-il créer ces deux ressources ?",
+      "justification": "Comme le sous-réseau a besoin de l'id du VPC (un attribut connu seulement après création), Terraform crée d'abord le VPC, puis le sous-réseau : la référence crée une dépendance implicite.",
+      "position": 3,
+      "options": [
+        { "label": "Le VPC d'abord, puis le sous-réseau", "correct": true, "position": 0 },
+        { "label": "Le sous-réseau d'abord, puis le VPC", "correct": false, "position": 1 },
+        { "label": "Les deux en même temps, l'ordre n'a aucune importance", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

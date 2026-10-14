@@ -1,0 +1,119 @@
+{
+  "ref": "buildkit-expert",
+  "node": "building-images",
+  "lesson": "buildkit-a-fond",
+  "title": "BuildKit à fond, expert",
+  "description": "Parallélisme, cache mounts, build secrets, multi-arch, cache CI.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un cache mount (`RUN --mount=type=cache`) ?",
+      "justification": "Un répertoire persistant partagé entre builds qui survit à la reconstruction de la couche, idéal pour ~/.npm, ~/.m2, etc.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un répertoire de cache persistant entre builds, hors image finale",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une couche d'image supplémentaire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un volume de production",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En quoi un cache mount diffère-t-il du cache de couches ?",
+      "justification": "Le cache de couches met en cache la couche entière (invalidée si l'instruction change) ; le cache mount persiste même quand la couche est reconstruite.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il persiste même quand la couche doit être reconstruite",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est identique au cache de couches",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est stocké dans l'image finale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment fournir un secret nécessaire au build sans le laisser dans une couche ?",
+      "justification": "Avec les build secrets : RUN --mount=type=secret monte le secret le temps du RUN, sans trace dans l'image.",
+      "position": 2,
+      "options": [
+        {
+          "label": "RUN --mount=type=secret (build secrets BuildKit)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "ENV SECRET=...",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "ARG SECRET=...",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi exporter le cache vers un registre (--cache-to/--cache-from) en CI ?",
+      "justification": "Les runners CI sont éphémères : sans cache distant, chaque job repart de zéro ; le cache registry le fait réutiliser entre jobs.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Les runners sont éphémères ; le cache distant est réutilisé entre jobs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour chiffrer les images",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour publier automatiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "BuildKit parallélise les étapes indépendantes du build et n'exécute que les stages nécessaires.",
+      "justification": "Vrai : il construit un graphe de dépendances, parallélise ce qui est indépendant et saute les stages inutiles.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "node": "caching-perf",
+  "lessons": [
+    {
+      "slug": "servir-le-chaud",
+      "title": "Servir le chaud",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le cache après l'optimisation",
+          "body": "Le cache est puissant mais vient **après** avoir supprimé le travail inutile (N+1, sur-fetch) et indexé. Cacher une requête déjà mal fichue masque le problème sans le résoudre. Une fois la base saine, le cache sert les données **chaudes et stables** sans la retaper : gros gain de latence et de charge."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Où cacher",
+          "body": "Plusieurs niveaux : **en mémoire** dans le service (le plus rapide, mais local à une instance), **distribué** (Redis, partagé entre instances, indispensable en scale horizontal), ou **HTTP** (en-têtes `Cache-Control`, CDN pour le contenu public). On choisit selon la fraîcheur tolérée et la topologie."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le vrai coût : l'invalidation",
+          "body": "Le cache déplace le problème vers la **fraîcheur** : servir une donnée périmée peut être pire que lent. On borne le risque par un **TTL** et/ou une **éviction sur écriture**. Mesurez le **taux de hit** : un cache à 5 % de hit ajoute de la complexité pour rien."
+        }
+      ]
+    }
+  ]
+}

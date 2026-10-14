@@ -1,0 +1,10 @@
+{
+  "node": "indexes-performance",
+  "lesson": "probleme-n-plus-un",
+  "title": "Remplacer un N+1 par une jointure",
+  "statement": "Une page charge une liste de commandes (`orders`) puis, pour chaque commande, refait une requête pour ses lignes (`order_items`) : c'est un N+1. Écris UNE seule requête SQL qui récupère, pour le client `:customerId`, chaque commande avec ses lignes, en joignant `orders` (alias `o`) et `order_items` (alias `oi`) sur `oi.order_id = o.id`. Filtre sur `o.customer_id = :customerId` et trie par `o.id`.",
+  "skeleton": "-- une seule requête, avec un JOIN, pour éliminer le N+1\nSELECT ...\n",
+  "solution": "SELECT o.id AS order_id, oi.id AS item_id, oi.label, oi.price\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.id\nWHERE o.customer_id = :customerId\nORDER BY o.id;",
+  "keyPoints": ["JOIN order_items", "oi.order_id = o.id", "WHERE o.customer_id = :customerId", "ORDER BY o.id"],
+  "language": "sql"
+}

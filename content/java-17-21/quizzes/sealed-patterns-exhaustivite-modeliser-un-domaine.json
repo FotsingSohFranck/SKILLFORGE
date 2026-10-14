@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-patterns-exhaustivite-modeliser-un-domaine",
+  "node": "sealed-patterns-exhaustivite",
+  "lesson": "modeliser-un-domaine",
+  "title": "Quiz : modeliser un domaine scelle",
+  "description": "Interface scellee, mot cle permits et records de variantes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "A quoi sert le mot cle permits dans sealed interface Forme permits Cercle, Rectangle, Triangle { } ?",
+      "justification": "permits enumere la liste fermee des seuls types autorises a implementer Forme ; tout autre type provoque une erreur de compilation.",
+      "position": 0,
+      "options": [
+        { "label": "A lister les seuls sous types autorises a implementer Forme.", "correct": true, "position": 0 },
+        { "label": "A autoriser n'importe quelle classe a etendre Forme.", "correct": false, "position": 1 },
+        { "label": "A generer automatiquement les methodes de calcul d'aire.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une classe Hexagone definie dans un autre fichier ecrit implements Forme, mais Hexagone n'est pas dans la liste permits de Forme. Que se passe t il ?",
+      "justification": "Comme Forme est scellee et que Hexagone ne figure pas dans permits, le compilateur refuse le code : la liste des sous types est fermee.",
+      "position": 1,
+      "options": [
+        { "label": "Erreur de compilation : Hexagone n'est pas permis par Forme.", "correct": true, "position": 0 },
+        { "label": "Le code compile et Hexagone devient une Forme valide.", "correct": false, "position": 1 },
+        { "label": "Hexagone est ajoute automatiquement a la liste permits.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Utiliser un record pour chaque variante (Cercle, Rectangle, Triangle) donne gratuitement le constructeur, les accesseurs, equals, hashCode et toString.",
+      "justification": "C'est exactement ce que le compilateur genere pour un record, ce qui le rend ideal pour les variantes d'un domaine scelle.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "indexes-performance",
+  "lesson": "les-index",
+  "title": "Indexer pour accélérer une requête",
+  "statement": "La requête `SELECT * FROM enrollments WHERE user_id = :id ORDER BY last_activity_at DESC` fait un Seq Scan. Écrivez un `CREATE INDEX` composite sur `enrollments` qui couvre à la fois le filtre sur `user_id` et le tri sur `last_activity_at` (décroissant).",
+  "skeleton": "CREATE INDEX idx_enr_user_activity ON enrollments(...);",
+  "solution": "CREATE INDEX idx_enr_user_activity ON enrollments(user_id, last_activity_at DESC);",
+  "keyPoints": ["CREATE INDEX", "ON enrollments", "user_id", "last_activity_at"],
+  "language": "sql"
+}

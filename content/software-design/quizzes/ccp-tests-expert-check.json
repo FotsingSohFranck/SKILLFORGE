@@ -1,0 +1,101 @@
+{
+  "ref": "ccp-tests-expert-check",
+  "node": "clean-code-practices",
+  "lesson": "tests-propres-tdd-doublures",
+  "title": "Quiz, Tests propres : TDD & doublures (expert)",
+  "description": "F.I.R.S.T., cycle TDD, taxonomie dummy/stub/spy/mock/fake, sur-mockage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit le « I » de F.I.R.S.T. (Independent) ?",
+      "justification": "Independent : aucun test ne dépend d'un autre ni d'un ordre d'exécution, chacun prépare son propre contexte et passe isolément, y compris en parallèle.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Chaque test est autosuffisant et passe dans n'importe quel ordre",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les tests s'exécutent sur un serveur d'intégration",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chaque test a exactement une assertion physique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'ordre du cycle TDD ?",
+      "justification": "Red (test qui échoue) → Green (minimum de code pour passer) → Refactor (nettoyer à filet vert), puis on recommence.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Red → Green → Refactor",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Écrire tout le code, puis tous les tests, puis refactorer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Refactor → Red → Green",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle doublure est une VRAIE implémentation allégée (ex. repository en mémoire) ?",
+      "justification": "Le Fake est une implémentation fonctionnelle mais simplifiée (in-memory) ; le stub renvoie des réponses figées, le mock porte des attentes d'interaction.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le Fake",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le Dummy",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le Mock",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Des tests contiennent chacun 15 `verify(...)` sur l'ordre exact des appels internes, et cassent à chaque refactoring alors que le comportement est inchangé. Diagnostic ?",
+      "justification": "C'est du sur-mockage : les tests sont couplés aux détails d'implémentation (le « comment »), pas au comportement observable. On préfère vérifier l'état/sortie et ne mocker que les frontières à effet de bord.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Sur-mockage : tests couplés aux détails d'implémentation ; vérifier plutôt l'état et ne mocker que les frontières",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pas assez de mocks : il en faut sur chaque collaborateur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les tests sont trop rapides, il faut ajouter des appels réels",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

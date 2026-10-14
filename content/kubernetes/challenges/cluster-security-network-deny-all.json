@@ -1,0 +1,10 @@
+{
+  "node": "cluster-security",
+  "lesson": "network-policies",
+  "title": "Écrire une NetworkPolicy deny-by-default",
+  "statement": "Applique le principe deny-by-default dans le namespace `prod`. Écris une NetworkPolicy qui bloque TOUT le trafic entrant (ingress) vers TOUS les pods du namespace. Indice : un `podSelector` vide `{}` sélectionne tous les pods, et une politique de type Ingress sans aucune règle `ingress` n'autorise rien.",
+  "skeleton": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-ingress\n  namespace: prod\nspec:\n  # sélectionne TOUS les pods, et bloque tout l'ingress\n",
+  "solution": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-ingress\n  namespace: prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress",
+  "keyPoints": ["kind: NetworkPolicy", "namespace: prod", "podSelector: {}", "policyTypes", "Ingress"],
+  "language": "yaml"
+}

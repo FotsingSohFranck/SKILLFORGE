@@ -1,0 +1,119 @@
+{
+  "ref": "docker-cli-expert",
+  "node": "docker-cli",
+  "lesson": "cli-de-pro",
+  "title": "La CLI de pro, expert",
+  "description": "Plugins CLI, docker context, --format/jq, docker events, automatisation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `docker compose` (espace) a-t-il remplacé `docker-compose` (tiret) ?",
+      "justification": "Compose est devenu un plugin CLI en Go intégré au binaire docker, plus rapide et cohérent, au lieu d'un outil Python séparé.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Compose est devenu un plugin CLI intégré (Go), pas un outil séparé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le tiret était interdit par Linux",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour le rendre payant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment piloter proprement un daemon distant sans exposer son port réseau ?",
+      "justification": "Avec docker context (ex. via SSH) : la CLI vise le daemon distant, sans ouvrir le port 2375/2376.",
+      "position": 1,
+      "options": [
+        {
+          "label": "docker context (ex. via SSH)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ouvrir le port 2375 à tous",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Copier les images à la main",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment réagir automatiquement à un conteneur qui meurt ou devient unhealthy ?",
+      "justification": "Écouter docker events (flux temps réel du daemon) et déclencher une action (alerte, redémarrage).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Écouter docker events et déclencher une action",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Relire les logs toutes les heures à la main",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker commit",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle approche extrait proprement une valeur d'un conteneur pour un script ?",
+      "justification": "--format (template Go) ou --format json + jq renvoient exactement le champ voulu, rendant la CLI programmable.",
+      "position": 3,
+      "options": [
+        {
+          "label": "--format (template Go) ou json + jq",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Copier-coller depuis l'écran",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker logs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La CLI Docker moderne est un socle extensible où des sous-commandes comme buildx et compose sont des plugins.",
+      "justification": "Vrai : buildx, compose, scout sont des plugins qui étendent le cœur ; comprendre cela clarifie la structure des commandes.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

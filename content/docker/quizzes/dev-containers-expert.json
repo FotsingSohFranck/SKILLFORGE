@@ -1,0 +1,119 @@
+{
+  "ref": "dev-containers-expert",
+  "node": "developer-experience",
+  "lesson": "dev-containers-outillage-moderne",
+  "title": "Dev Containers & outillage, expert",
+  "description": "devcontainer.json, compose watch, docker init/debug, Telepresence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet un fichier devcontainer.json ?",
+      "justification": "Versionner l'environnement de développement complet (image, extensions, outils, ports) pour un onboarding reproductible en minutes.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Versionner l'environnement de dev complet, reproductible",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Déployer en production",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Signer les images",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle action de `docker compose watch` reconstruit l'image quand un fichier structurant change ?",
+      "justification": "L'action rebuild (vs sync pour copier les fichiers, sync+restart) reconstruit quand par ex. package.json change.",
+      "position": 1,
+      "options": [
+        {
+          "label": "rebuild",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "prune",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment ouvrir un shell de débogage riche dans un conteneur distroless (sans shell) ?",
+      "justification": "docker debug (basé sur le principe nsenter) injecte des outils dans n'importe quel conteneur, même minimal.",
+      "position": 2,
+      "options": [
+        {
+          "label": "docker debug",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Reconstruire l'image avec bash",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est impossible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que génère `docker init` ?",
+      "justification": "Un Dockerfile, un compose.yaml et un .dockerignore adaptés au langage détecté, un point de départ correct en une commande.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Un Dockerfile + compose.yaml + .dockerignore de départ",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un cluster Kubernetes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un registre privé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec les Dev Containers, l'éditeur tourne sur l'hôte mais le langage, les dépendances et les outils vivent dans le conteneur.",
+      "justification": "Vrai : VS Code / Codespaces ouvre le projet à l'intérieur du conteneur ; l'environnement est isolé et reproductible.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

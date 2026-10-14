@@ -1,0 +1,15 @@
+{
+  "node": "message-brokers",
+  "lesson": "kafka-en-profondeur",
+  "title": "Choisir la clé de partition Kafka",
+  "statement": "Un producteur publie des événements de commande sur le topic `commandes`. Pour que tous les événements d'une **même commande** restent **ordonnés** (même partition) tout en parallélisant des commandes différentes, complète la création du `ProducerRecord` en utilisant l'identifiant de commande `orderId` comme **clé** du message (valeur = `payload`).",
+  "skeleton": "public ProducerRecord<String, String> buildRecord(String orderId, String payload) {\n    // topic \"commandes\", cle = orderId, valeur = payload\n}",
+  "solution": "public ProducerRecord<String, String> buildRecord(String orderId, String payload) {\n    // la cle (orderId) fixe la partition : hash(orderId) % partitions\n    // -> tous les evenements d'une meme commande vont dans la meme partition, donc ordonnes\n    return new ProducerRecord<>(\"commandes\", orderId, payload);\n}",
+  "keyPoints": [
+    "ProducerRecord",
+    "\"commandes\"",
+    "orderId",
+    "payload"
+  ],
+  "language": "java"
+}

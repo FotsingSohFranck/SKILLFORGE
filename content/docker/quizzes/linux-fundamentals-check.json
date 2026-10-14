@@ -1,0 +1,63 @@
+{
+  "ref": "linux-fundamentals-check",
+  "node": "linux-fundamentals",
+  "lesson": "paquets-processus-scripts",
+  "title": "Fondamentaux Linux",
+  "description": "Shell, permissions, paquets, processus, signaux, variables d'env.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un script copié dans une image renvoie « permission denied » à l'exécution. Que faut-il faire ?",
+      "justification": "Ajouter le bit exécutable avec chmod +x : Linux refuse d'exécuter un fichier sans permission d'exécution.",
+      "position": 0,
+      "options": [
+        { "label": "Lui ajouter le droit d'exécution (chmod +x)", "correct": true, "position": 0 },
+        { "label": "Le renommer en .exe", "correct": false, "position": 1 },
+        { "label": "Le déplacer dans /root", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme Linux configure un programme sans modifier son code, et sert de base à la configuration des conteneurs ?",
+      "justification": "Les variables d'environnement : lues par le programme au démarrage, elles externalisent la configuration (principe 12-factor).",
+      "position": 1,
+      "options": [
+        { "label": "Les variables d'environnement", "correct": true, "position": 0 },
+        { "label": "Les numéros de PID", "correct": false, "position": 1 },
+        { "label": "Les permissions rwx", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel gestionnaire de paquets est typique des images Alpine (très légères) ?",
+      "justification": "apk est le gestionnaire d'Alpine ; ses paquets minuscules en font la base favorite pour des images légères.",
+      "position": 2,
+      "options": [
+        { "label": "apk", "correct": true, "position": 0 },
+        { "label": "apt (Debian/Ubuntu)", "correct": false, "position": 1 },
+        { "label": "npm", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi terminer un entrypoint par `exec java -jar app.jar` ?",
+      "justification": "exec remplace le shell : java devient PID 1 et reçoit directement SIGTERM, permettant un arrêt gracieux.",
+      "position": 3,
+      "options": [
+        { "label": "Pour que le processus devienne PID 1 et reçoive les signaux (arrêt gracieux)", "correct": true, "position": 0 },
+        { "label": "Pour accélérer le téléchargement de l'image", "correct": false, "position": 1 },
+        { "label": "Pour chiffrer le conteneur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sur Windows et macOS, Docker exécute en réalité les conteneurs Linux dans un noyau Linux fourni par une VM légère.",
+      "justification": "Vrai : Docker Desktop fournit un noyau Linux (WSL2/hyperviseur) ; les conteneurs Linux partagent ce noyau, pas celui de l'hôte Windows/Mac.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

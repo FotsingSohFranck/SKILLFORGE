@@ -1,0 +1,96 @@
+{
+  "ref": "wd-coherence-expert-check",
+  "node": "working-with-data",
+  "lesson": "coherence-et-scalabilite-donnees",
+  "title": "Quiz, Cohérence & scalabilité des données (expert)",
+  "description": "CAP/PACELC, isolation/MVCC, réplication vs sharding.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Des rapports lisent des données à moitié écrites. Quel levier corrige cela ?",
+      "justification": "Le niveau d'isolation transactionnelle : au moins read committed (pas de dirty read), snapshot/repeatable read pour une lecture cohérente et stable.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Relever le niveau d'isolation (read committed/snapshot)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter des couleurs à l'UI",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les rapports",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "La base sature en écriture sous la charge. Quel levier ?",
+      "justification": "Le sharding (partitionnement) : répartir les écritures sur plusieurs nœuds selon une clé bien choisie ; la réplication (leader unique) n'aide pas en écriture.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le sharding (partitionnement)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter des répliques en lecture",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Réduire le nombre d'index seulement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Les lectures sont trop nombreuses pour un seul nœud. Quel levier ?",
+      "justification": "La réplication (répliques en lecture) : le leader écrit, les followers servent les lectures ; on assume le lag (cohérence à terme) ou on lit le leader pour la fraîcheur.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Des répliques en lecture (réplication)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le sharding par écriture",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer la base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le choix de la clé de partition (sharding) est critique : une mauvaise clé crée des hotspots ou des requêtes cross-shard coûteuses.",
+      "justification": "Vrai : la clé doit répartir uniformément et minimiser les requêtes multi-shards ; c'est une décision durable d'architecture des données.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

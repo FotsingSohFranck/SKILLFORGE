@@ -1,0 +1,119 @@
+{
+  "ref": "installation-setup-expert",
+  "node": "installation-setup",
+  "lesson": "contexts-miroirs-environnements",
+  "title": "Contexts, miroirs & environnements, expert",
+  "description": "docker context, daemon distant, rate limits/miroirs, WSL2, storage driver.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert `docker context` ?",
+      "justification": "À piloter plusieurs daemons (local, distant via SSH...) et basculer d'un environnement à l'autre sans réécrire d'adresses.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Basculer la CLI entre plusieurs daemons (local/distant)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construire des images multi-arch",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer les volumes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un CI échoue avec « toomanyrequests: pull rate limit ». Quelle cause ?",
+      "justification": "Les limites de pull de Docker Hub (basses pour l'anonyme par IP) sont atteintes par un runner partagé faisant beaucoup de pulls.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les limites de taux de pull de Docker Hub sont atteintes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le disque est plein",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'image n'existe pas",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle solution réduit les pulls externes et accélère les builds face aux rate limits ?",
+      "justification": "Un miroir de registre / pull-through cache met en cache les images Hub localement ; l'authentification relève aussi la limite.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un miroir de registre (registry-mirrors) + authentification",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer toutes les images",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Utiliser uniquement le tag latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur Windows avec WSL2, où placer son code pour de bonnes performances de fichiers ?",
+      "justification": "Dans le système de fichiers WSL (\\\\wsl$) plutôt que sur C: monté, dont la traversée de frontière est lente.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Dans le système de fichiers WSL, pas sur C: monté",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours sur le bureau Windows",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'emplacement n'a aucun impact",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Colima, Rancher Desktop et Podman Desktop sont des alternatives à Docker Desktop, utiles pour éviter la licence ou gagner en performance.",
+      "justification": "Vrai : ces alternatives fournissent un environnement de conteneurs sans la licence Docker Desktop en entreprise, avec parfois de meilleures perfs (virtiofs).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

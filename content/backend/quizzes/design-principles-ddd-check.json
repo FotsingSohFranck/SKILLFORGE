@@ -1,0 +1,52 @@
+{
+  "ref": "design-principles-ddd-check",
+  "node": "design-principles",
+  "lesson": "domain-driven-design",
+  "title": "Quiz : Domain-Driven Design",
+  "description": "Ubiquitous language, contexte borné, entité / value object / agrégat.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que l'ubiquitous language ?",
+      "justification": "C'est le même vocabulaire métier partagé par les développeurs et les experts, employé aussi bien dans les échanges que dans le code, pour éviter les erreurs de traduction.",
+      "position": 0,
+      "options": [
+        { "label": "Le vocabulaire métier commun, partagé entre développeurs et experts, dans les échanges et dans le code", "correct": true, "position": 0 },
+        { "label": "Un langage de programmation universel", "correct": false, "position": 1 },
+        { "label": "La documentation technique de l'API", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un contexte borné (bounded context) ?",
+      "justification": "C'est une frontière dans laquelle un modèle et son vocabulaire restent cohérents et non ambigus ; les contextes communiquent par ports ou événements, pas en tapant dans les tables voisines.",
+      "position": 1,
+      "options": [
+        { "label": "Une frontière où un modèle et son vocabulaire restent cohérents", "correct": true, "position": 0 },
+        { "label": "Une table de la base de données", "correct": false, "position": 1 },
+        { "label": "Un niveau de cache", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un montant `Money` (valeur + devise), immuable et sans identité propre : deux montants de même valeur sont interchangeables. Comment le modéliser en DDD ?",
+      "justification": "C'est un value object : défini entièrement par ses valeurs, immuable, sans identité. Une entité aurait un identifiant indépendant de ses attributs, ce qui n'a pas de sens ici.",
+      "position": 2,
+      "options": [
+        { "label": "Un value object", "correct": true, "position": 0 },
+        { "label": "Une entité", "correct": false, "position": 1 },
+        { "label": "Une racine d'agrégat", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut modifier directement un objet interne d'un agrégat sans passer par sa racine.",
+      "justification": "Faux : la racine de l'agrégat est la seule porte d'entrée. C'est elle qui garantit les invariants ; modifier un objet interne en douce risque de casser la cohérence.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

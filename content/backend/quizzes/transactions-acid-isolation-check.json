@@ -1,0 +1,52 @@
+{
+  "ref": "transactions-acid-isolation-check",
+  "node": "transactions-acid",
+  "lesson": "isolation-et-anomalies",
+  "title": "Isolation & anomalies",
+  "description": "Anomalies de concurrence, niveaux d'isolation, compromis sûreté/débit.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Tu lis une donnée qu'une autre transaction a modifiée mais pas encore validée, et elle finit par faire ROLLBACK. Quelle anomalie ?",
+      "justification": "C'est un dirty read : tu as lu une valeur non validée qui, après le ROLLBACK, n'a finalement jamais existé.",
+      "position": 0,
+      "options": [
+        { "label": "Dirty read", "correct": true, "position": 0 },
+        { "label": "Phantom read", "correct": false, "position": 1 },
+        { "label": "Lost update", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le niveau d'isolation par défaut de PostgreSQL ?",
+      "justification": "PostgreSQL utilise Read Committed par défaut : on ne voit que des données déjà validées, ce qui élimine les dirty reads.",
+      "position": 1,
+      "options": [
+        { "label": "Read Committed", "correct": true, "position": 0 },
+        { "label": "Read Uncommitted", "correct": false, "position": 1 },
+        { "label": "Serializable", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une équipe veut « le maximum de sûreté » et met tout en Serializable, puis se plaint de nombreux conflits et attentes. Quel principe ont-ils oublié ?",
+      "justification": "Plus le niveau est strict, plus il crée de conflits et d'attentes. On choisit le niveau selon le besoin réel de cohérence de chaque cas, pas « le plus strict par principe ».",
+      "position": 2,
+      "options": [
+        { "label": "Un niveau plus strict est plus sûr mais crée plus de conflits ; on choisit selon le besoin réel", "correct": true, "position": 0 },
+        { "label": "Serializable est toujours le meilleur choix, quel que soit le contexte", "correct": false, "position": 1 },
+        { "label": "Le niveau d'isolation n'a aucun effet sur les performances", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En Repeatable Read, une ligne déjà lue peut changer de valeur si on la relit plus loin dans la même transaction.",
+      "justification": "Faux : Repeatable Read garantit qu'une ligne déjà lue ne change pas si on la relit pendant la transaction (vue stable).",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

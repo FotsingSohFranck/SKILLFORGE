@@ -1,0 +1,41 @@
+{
+  "ref": "virtual-threads-quand-les-utiliser",
+  "node": "virtual-threads",
+  "lesson": "quand-les-utiliser",
+  "title": "Quiz : quand les utiliser",
+  "description": "Tâches bloquantes I/O et la règle un thread virtuel par tâche.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour quel genre de tâches les threads virtuels sont ils le plus avantageux ?",
+      "justification": "Ils brillent pour les tâches majoritairement bloquantes (I/O) : base de données, réseau, fichiers, où le temps passe surtout en attente.",
+      "position": 0,
+      "options": [
+        { "label": "Les tâches majoritairement bloquantes : I/O, réseau, base de données", "correct": true, "position": 0 },
+        { "label": "Les calculs purs qui occupent le processeur à 100%", "correct": false, "position": 1 },
+        { "label": "N'importe quelle tâche, le gain est toujours identique", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton serveur reçoit 8 000 requêtes simultanées, chacune faisant surtout un appel lent à la base de données. Quelle approche est la plus adaptée ?",
+      "justification": "La règle d'or est un thread virtuel par tâche, via newVirtualThreadPerTaskExecutor : simple à lire et bon marché, même à 8 000 requêtes bloquantes.",
+      "position": 1,
+      "options": [
+        { "label": "Un thread virtuel par requête, via Executors.newVirtualThreadPerTaskExecutor()", "correct": true, "position": 0 },
+        { "label": "Un pool fixe de 8 threads plateforme réutilisés en boucle", "correct": false, "position": 1 },
+        { "label": "Un seul thread qui traite les 8 000 requêtes l'une après l'autre", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec les threads virtuels, on peut garder un code bloquant simple tout en tenant une forte charge, sans basculer vers du code asynchrone compliqué.",
+      "justification": "C'est le cadeau de la JEP 444 : la scalabilité du modèle asynchrone avec la lisibilité du code bloquant.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

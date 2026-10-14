@@ -1,0 +1,96 @@
+{
+  "ref": "pp-base-pacelc-expert-check",
+  "node": "patterns-principles",
+  "lesson": "base-pacelc-coherence",
+  "title": "Quiz, BASE, PACELC & cohérence (expert)",
+  "description": "BASE vs ACID, PACELC, spectre de cohérence, isolation SQL.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie BASE ?",
+      "justification": "Basically Available, Soft state, Eventual consistency, le pendant d'ACID qui sacrifie la cohérence immédiate pour la disponibilité et la scalabilité.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Basically Available, Soft state, Eventual consistency",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Backup And Secure Environment",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Binary Application State Engine",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'ajoute PACELC par rapport à CAP ?",
+      "justification": "Else : même sans partition, un compromis permanent entre Latence et Cohérence ; la cohérence forte coûte de la latence même en fonctionnement normal.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le compromis latence vs cohérence même sans partition",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La suppression du théorème CAP",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une garantie de latence nulle",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Monter le niveau d'isolation SQL (vers serializable) a quel effet ?",
+      "justification": "Renforce la cohérence (moins d'anomalies) mais réduit la concurrence (plus de verrous/contention), un compromis à régler selon le cas.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Plus de cohérence, mais moins de concurrence",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Plus de concurrence et plus de cohérence à la fois",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun effet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La cohérence est un spectre (linéarisable, causale, read-your-writes, eventual), à régler par cas d'usage.",
+      "justification": "Vrai : ce n'est pas un interrupteur ; par ex. read-your-writes garantit qu'un utilisateur voit ses propres écritures même si les autres tardent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

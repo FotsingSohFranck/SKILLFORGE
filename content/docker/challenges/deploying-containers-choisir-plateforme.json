@@ -1,0 +1,16 @@
+{
+  "node": "deploying-containers",
+  "lesson": "ou-deployer",
+  "title": "Choisir où déployer sans sur-dimensionner",
+  "statement": "Une petite équipe lance un produit (un backend, une base, un front) avec un trafic modeste et incertain. Un développeur veut monter tout de suite un cluster Kubernetes « pour faire les choses bien ». En quelques phrases, explique ce que tu recommandes à ce stade, pourquoi, et à quel moment tu reconsidérerais le choix. Cite au moins une alternative concrète plus simple.",
+  "skeleton": "Ma recommandation :\n\nPourquoi :\n\nQuand reconsidérer :\n",
+  "solution": "À ce stade, je déconseille Kubernetes et je recommande le plus simple qui marche : un serveur unique avec Docker Compose, ou mieux une PaaS conteneur (Render, Railway, Fly.io, Cloud Run) qui gère l'exécution, le scaling, le TLS et les déploiements sans avoir à administrer de cluster. Pourquoi : Kubernetes apporte de la puissance (auto-scaling, haute disponibilité multi-nœuds, déploiements avancés) mais au prix d'une lourde complexité d'exploitation (cluster, réseau, mises à jour, observabilité, sécurité, manifestes)  -  un coût humain disproportionné pour un trafic modeste et un produit encore incertain. On garde ainsi l'énergie pour le produit. Quand reconsidérer : le jour où un besoin réel apparaît (montée en charge importante, exigence de haute disponibilité, plusieurs équipes autonomes), on migre alors vers un orchestrateur. Choisir simple d'abord et complexifier quand c'est justifié est une décision d'ingénierie mature, pas un manque d'ambition.",
+  "keyPoints": [
+    "PaaS",
+    "Docker Compose",
+    "complexité",
+    "Kubernetes",
+    "trafic"
+  ],
+  "language": "text"
+}

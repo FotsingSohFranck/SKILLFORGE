@@ -1,0 +1,30 @@
+{
+  "node": "transport",
+  "lessons": [
+    {
+      "slug": "chiffrer-le-transport",
+      "title": "Chiffrer le transport",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "HTTPS n'est pas optionnel",
+          "body": "En HTTP simple, tout circule en clair : jetons, mots de passe, données. N'importe quel intermédiaire peut lire ou modifier le trafic. **TLS** (le « S » de HTTPS) chiffre le canal et authentifie le serveur via un certificat. Pour une API, HTTPS est un prérequis, pas une amélioration."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Ce que TLS protège (et pas)",
+          "body": "TLS protège les données **en transit** contre l'écoute et l'altération. Il ne protège **pas** les données au repos (base), ni contre une application vulnérable. Un jeton volé côté client reste volé, HTTPS ou non. TLS est nécessaire, jamais suffisant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "HSTS et redirection",
+          "body": "On force HTTPS : rediriger tout HTTP vers HTTPS, et activer **HSTS** (un en-tête qui dit au navigateur « n'utilise plus jamais HTTP pour ce domaine »). Cela coupe court aux attaques qui rétrogradent la connexion vers du clair."
+        }
+      ]
+    }
+  ]
+}

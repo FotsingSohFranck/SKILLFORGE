@@ -1,0 +1,10 @@
+{
+  "node": "internet",
+  "lesson": "diagnostic-et-outils-reseau",
+  "title": "Chronométrer le TTFB avec curl",
+  "statement": "Écris une commande `curl` qui interroge `https://skillforge.dev/api/v1/roadmaps` sans afficher le corps de la réponse (redirige la sortie vers `/dev/null`) et qui affiche, grâce à l'option de formatage `-w`, au moins le temps de résolution DNS (`time_namelookup`) et le TTFB (`time_starttransfer`). Reste silencieux avec `-s`.",
+  "skeleton": "curl ... \\\n  -w '...' \\\n  https://skillforge.dev/api/v1/roadmaps\n",
+  "solution": "curl -s -o /dev/null \\\n  -w 'dns=%{time_namelookup}s ttfb=%{time_starttransfer}s total=%{time_total}s\\n' \\\n  https://skillforge.dev/api/v1/roadmaps",
+  "keyPoints": ["curl", "-s", "-o", "/dev/null", "-w", "time_namelookup", "time_starttransfer", "https://skillforge.dev/api/v1/roadmaps"],
+  "language": "bash"
+}

@@ -1,0 +1,376 @@
+{
+  "node": "transactions-acid",
+  "lessons": [
+    {
+      "slug": "quest-ce-quune-transaction",
+      "title": "Qu'est-ce qu'une transaction",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Tout ou rien",
+          "body": "Une **transaction** est un groupe d'opérations sur la base de données qu'on traite comme **une seule action indivisible** : soit **toutes** réussissent ensemble, soit **aucune** ne laisse de trace. Il n'y a pas de milieu.\n\nDeux mots reviennent sans cesse, définissons-les tout de suite :\n- **`COMMIT`** (de l'anglais *to commit* = valider) : l'ordre qui dit « c'est bon, enregistre définitivement tout ce que je viens de faire ».\n- **`ROLLBACK`** (littéralement « rembobiner ») : l'ordre inverse, qui dit « annule tout, reviens à l'état d'avant, comme si je n'avais rien touché ».\n\n👉 **Analogie** : pense à un **virement bancaire entre deux comptes**. Retirer 100 euros du compte A et les déposer sur le compte B, ce sont deux gestes, mais pour toi c'est **une seule opération** : « transférer ». Il serait catastrophique que l'argent quitte A sans jamais arriver sur B.\n\n**Exemple concret** : sans transaction, si le programme débite A (100 euros de moins) puis plante juste avant de créditer B, l'argent a tout bonnement **disparu**. La base est dans un état **incohérent** (les comptes ne reflètent plus la réalité). Avec une transaction, ce plantage déclenche un `ROLLBACK` automatique : le débit de A est annulé, et personne n'a rien perdu. La transaction garantit que la base reste **cohérente** (dans un état valide) même si une panne survient au pire moment."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une transaction, c'est tout ou rien : soit tout reussit, soit tout est annule.",
+          "body": "/images/lessons/quest-ce-quune-transaction-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Le cycle de vie d'une transaction",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[BEGIN : ouvrir la transaction] --> B[Operation 1 : debiter le compte A]\n    B --> C[Operation 2 : crediter le compte B]\n    C --> D{Tout est OK ?}\n    D -->|Oui| E[COMMIT : enregistrer definitivement]\n    D -->|Non ou panne| F[ROLLBACK : tout annuler]\n    E --> G[Base coherente : changements gardes]\n    F --> H[Base coherente : aucun changement applique]"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Une transaction explicite",
+          "codeLanguage": "sql",
+          "body": "BEGIN;\n  UPDATE accounts SET balance = balance - 100 WHERE id = 'A';\n  UPDATE accounts SET balance = balance + 100 WHERE id = 'B';\nCOMMIT;   -- ou ROLLBACK si quelque chose cloche"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Les quatre propriétés ACID",
+          "body": "Une transaction fiable respecte **quatre propriétés**, résumées par l'acronyme **ACID** (Atomicité, Cohérence, Isolation, Durabilité). C'est le contrat que te promet une base relationnelle sérieuse.\n\n- **A comme Atomicité** : « tout ou rien », ce qu'on vient de voir. Le mot vient d'*atome*, « ce qu'on ne peut pas couper ». 👉 Comme l'**envoi d'un SMS** : il part en entier ou pas du tout, jamais à moitié.\n- **C comme Cohérence** : la transaction fait passer la base d'un état valide à un autre état valide ; les **contraintes** (règles que la base fait respecter, par exemple une **clé** unique ou une règle **`CHECK`** du genre « un solde ne peut pas être négatif ») restent vraies après la transaction. **Exemple** : si un transfert rendrait un solde négatif, la contrainte `CHECK (balance >= 0)` fait échouer la transaction plutôt que d'accepter un état absurde.\n- **I comme Isolation** : quand plusieurs transactions tournent **en même temps** (on dit **concurrentes**), chacune se comporte comme si elle était **seule**, sans voir le travail à moitié fini des autres. 👉 Comme des **cabines d'essayage** : chacun essaie ses vêtements dans sa cabine, personne ne voit l'intérieur tant qu'il n'est pas sorti.\n- **D comme Durabilité** : une fois le `COMMIT` prononcé, les données sont **écrites pour de bon** (sur le disque, et notées dans un **journal** que la base peut rejouer après une panne). **Exemple** : la base confirme ton virement, la machine s'éteint brutalement une seconde plus tard, et au redémarrage le virement est toujours là.\n\nCes quatre garanties réunies sont exactement ce qui rend une base relationnelle **digne de confiance** pour l'argent, les stocks ou toute donnée critique."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les quatre proprietes ACID : atomicite, coherence, isolation, durabilite.",
+          "body": "/images/lessons/quest-ce-quune-transaction-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un transfert débite le compte A puis le serveur plante avant de créditer B, le tout hors transaction. Quel est l'état de la base, et quelle propriété ACID l'aurait évité ?",
+          "solution": "Le compte A est débité mais B non crédité : de l'argent a \"disparu\", la base est incohérente. L'atomicité (via une transaction) l'aurait évité : au plantage, aucun COMMIT n'a eu lieu → rollback automatique, le débit est annulé, l'état reste cohérent."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Qu'est-ce qu'une transaction",
+          "quizRef": "transactions-acid-intro-check"
+        }
+      ]
+    },
+    {
+      "slug": "isolation-et-anomalies",
+      "title": "Isolation & anomalies",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le prix de la concurrence",
+          "body": "Une base sert souvent **beaucoup d'utilisateurs à la fois**. Plusieurs transactions s'exécutent donc **en même temps** : c'est la **concurrence** (plusieurs traitements en parallèle sur les mêmes données). Sans précaution, ces transactions se gênent et produisent des **anomalies** : des résultats faux ou incohérents parce qu'elles se marchent dessus.\n\n👉 **Analogie** : imagine **deux personnes qui écrivent en même temps sur le même document partagé** sans se coordonner. L'une lit une phrase que l'autre est en train de raturer, les deux modifient la même ligne... on obtient un texte incohérent. Les anomalies ci-dessous sont les versions « base de données » de ce chaos.\n\nLes quatre grandes anomalies à connaître :\n- **Dirty read** (« lecture sale ») : tu lis une donnée qu'une autre transaction a modifiée mais **pas encore validée** (`COMMIT`). Si elle fait `ROLLBACK`, tu as lu une valeur qui **n'a jamais existé**. **Exemple** : tu vois un solde crédité, mais le crédit est finalement annulé.\n- **Non-repeatable read** (« lecture non répétable ») : tu lis une ligne, puis tu la relis **dans la même transaction**, et sa valeur a **changé** entre-temps (une autre transaction l'a modifiée et validée). Deux lectures identiques donnent deux réponses différentes.\n- **Phantom read** (« lecture fantôme ») : tu relances la **même requête** (par exemple « toutes les commandes du jour ») et de **nouvelles lignes** sont apparues, comme des fantômes, parce qu'une autre transaction en a inséré entre-temps.\n- **Lost update** (« mise à jour perdue ») : deux transactions modifient la même donnée en même temps, et la seconde **écrase** la première sans tenir compte de son travail. **Exemple** : deux ventes décrémentent le même stock et l'une des deux décrémentations est perdue.\n\nL'**isolation** est précisément le réglage qui décide **lesquelles de ces anomalies sont permises** et lesquelles sont interdites."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La concurrence a un prix : sans isolation, des anomalies apparaissent (lectures sales, fantomes).",
+          "body": "/images/lessons/isolation-et-anomalies-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les niveaux d'isolation",
+          "body": "Pour se protéger des anomalies, on choisit un **niveau d'isolation** : plus il est strict, moins on tolère d'anomalies. La norme SQL en définit quatre, du plus permissif au plus strict :\n\n- **Read Uncommitted** (« lire le non validé ») : le plus laxiste, il autorise même les *dirty reads*. On l'évite quasiment toujours (sous PostgreSQL, il se comporte comme le niveau suivant).\n- **Read Committed** (« lire le validé ») : tu ne vois que des données déjà **validées** (`COMMIT`) par les autres. C'est le **niveau par défaut de PostgreSQL** et le choix courant. Il élimine les dirty reads.\n- **Repeatable Read** (« lecture répétable ») : en plus, une ligne que tu as lue **ne changera pas** si tu la relis pendant ta transaction. Ta vue des données reste stable du début à la fin.\n- **Serializable** (« sérialisable ») : le plus strict. Tout se passe **comme si les transactions s'exécutaient l'une après l'autre**, en série, jamais en parallèle. Aucune anomalie possible.\n\n👉 **Analogie** : c'est comme les **réglages de confidentialité** d'un téléphone. Au plus permissif, tout le monde voit tout (rapide, mais risqué) ; au plus strict, chacun est parfaitement isolé (sûr, mais on attend plus souvent son tour).\n\n**Le compromis** : plus le niveau est strict, plus la base est sûre, mais plus elle crée de **conflits et d'attentes** entre transactions (donc moins de débit). On choisit donc le niveau selon le **besoin réel de cohérence** de chaque cas d'usage, pas « le plus strict par principe »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les niveaux d'isolation (read committed, repeatable read, serializable) dosent securite et performance.",
+          "body": "/images/lessons/isolation-et-anomalies-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Choisir l'isolation",
+          "codeLanguage": "sql",
+          "body": "BEGIN ISOLATION LEVEL SERIALIZABLE;\n  -- lectures et écritures garanties sans anomalie\n  SELECT balance FROM accounts WHERE id = 'A';\n  UPDATE accounts SET balance = balance - 100 WHERE id = 'A';\nCOMMIT;\n-- En SERIALIZABLE, une transaction peut échouer (serialization failure) : on la rejoue."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Deux transactions lisent le stock (10), chacune décide de vendre 8, puis chacune écrit 10 − 8 = 2. On a vendu 16 unités d'un stock de 10. Comment nomme-t-on cette anomalie et quel remède l'empêche ?",
+          "solution": "C'est un lost update : la seconde écriture écrase la première sans tenir compte de sa décision. Remèdes : un niveau d'isolation plus strict (Serializable, qui ferait échouer/rejouer l'une), un verrou explicite (SELECT ... FOR UPDATE) pour sérialiser l'accès, ou une mise à jour atomique (UPDATE ... SET stock = stock - 8 WHERE stock >= 8)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Isolation & anomalies",
+          "quizRef": "transactions-acid-isolation-check"
+        }
+      ]
+    },
+    {
+      "slug": "verrous-et-strategies",
+      "title": "Verrous & stratégies",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Verrouillage pessimiste",
+          "body": "Un **verrou** (*lock* en anglais) est un « droit d'accès exclusif » que la base pose sur une donnée : tant qu'une transaction le tient, les autres qui veulent la même donnée doivent **attendre**. C'est le mécanisme de base pour empêcher deux transactions de se marcher dessus.\n\nLe verrouillage **pessimiste** part du principe qu'un **conflit est probable**, alors on se protège **à l'avance** : on **verrouille la ligne dès qu'on la lit**, avec `SELECT ... FOR UPDATE`, ce qui force toute autre transaction voulant cette ligne à patienter jusqu'à ton `COMMIT`.\n\n👉 **Analogie** : c'est le **panneau « occupé » des toilettes d'un train**. Dès que tu entres, tu verrouilles ; les autres voient « occupé » et attendent que tu sortes. Personne ne peut entrer en même temps que toi.\n\nC'est **sûr**, mais ça a un coût : les autres **attendent**, donc on traite moins de choses en parallèle. Pire, ça peut créer un **interblocage** (en anglais **deadlock**) : deux transactions se bloquent mutuellement, chacune attendant un verrou que l'autre détient, et plus rien n'avance. **Exemple** : T1 tient la ligne A et veut B, pendant que T2 tient B et veut A. On réserve donc le verrouillage pessimiste aux points vraiment **critiques et courts**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Verrouillage pessimiste : verrouiller d'abord, pour empecher tout conflit.",
+          "body": "/images/lessons/verrous-et-strategies-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Verrouillage optimiste",
+          "body": "Le verrouillage **optimiste** fait le pari **inverse** : les conflits sont **rares**, alors on ne verrouille **rien** au départ. On travaille librement, et **au moment d'écrire** on vérifie que la donnée **n'a pas changé** entre-temps. Si elle a changé, on refuse l'écriture et l'appelant **recommence** (il **rejoue** son opération).\n\nComment détecter le changement ? Avec une colonne **`version`** (un simple compteur) ou un **timestamp** (horodatage) sur la ligne : à chaque écriture réussie, la version augmente d'un cran. Si la version que tu as lue ne correspond plus à celle en base, c'est que **quelqu'un est passé avant toi**.\n\n👉 **Analogie** : tu modifies un **document partagé en ligne** sans le verrouiller. Au moment d'enregistrer, l'outil te prévient : « attention, une nouvelle version existe, quelqu'un a modifié entre-temps ». Tu recharges et tu réappliques ta modification.\n\nC'est **idéal** quand il y a **beaucoup de lectures et peu de conflits réels** (faible contention) : on évite le coût des verrous la plupart du temps, et on ne « paie » que dans les rares cas de collision. C'est aussi l'esprit de l'**`upsert` idempotent** (« insère, ou mets à jour si ça existe déjà », rejouable sans dégât) utilisé dans cette plateforme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Verrouillage optimiste : ne pas verrouiller, mais verifier a l'ecriture qu'il n'y a pas eu de conflit (version).",
+          "body": "/images/lessons/verrous-et-strategies-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Optimiste avec une colonne version",
+          "codeLanguage": "sql",
+          "body": "UPDATE roadmaps\nSET title = 'Nouveau', version = version + 1\nWHERE id = :id AND version = :versionLue;\n-- 0 ligne modifiée => quelqu'un a écrit entre-temps => on rejoue"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Transactions courtes (niveau expert)",
+          "body": "Règle d'or du praticien : une transaction doit rester **courte**. Plus elle vit longtemps, plus elle garde ses verrous longtemps, et plus elle gêne tout le monde.\n\nLe piège classique : faire une **I/O externe** (une **entrée/sortie** vers le monde extérieur, par exemple un **appel réseau** à une autre API, l'envoi d'un e-mail, ou un long calcul) **pendant** que la transaction est ouverte. Le temps que cet appel réponde (parfois plusieurs secondes), la transaction **tient ses verrous pour rien** et bloque les autres.\n\n👉 **Analogie** : c'est comme **monopoliser l'unique caisse d'un magasin** pendant que tu passes un coup de téléphone. Peu importe la durée de ton appel, toute la file attend derrière toi. Il fallait sortir de la file pour téléphoner.\n\nConséquences concrètes d'une transaction trop longue : elle augmente le risque de **deadlock** (interblocage vu plus haut) et gonfle le **bloat** MVCC (l'accumulation d'anciennes versions de lignes, qu'on détaillera dans la leçon MVCC). La discipline : on **prépare tout à l'avance**, puis on **ouvre la transaction, on écrit, on committe, vite**. On ne fait **jamais** d'appel externe à l'intérieur d'une transaction de base."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Garder les transactions courtes : moins de verrous tenus, moins de contention.",
+          "body": "/images/lessons/verrous-et-strategies-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un développeur ouvre une transaction, écrit en base, puis appelle un service de paiement externe (2 s) avant de committer. Pourquoi est-ce dangereux ?",
+          "solution": "La transaction (et ses verrous) reste ouverte pendant les 2 s d'appel externe : elle bloque les autres transactions sur les mêmes lignes, augmente les deadlocks et le bloat MVCC, et si l'appel échoue/traîne, tout est bloqué. On doit sortir l'I/O externe de la transaction (préparer avant, ou utiliser un pattern outbox/événement)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz, Verrous & stratégies",
+          "quizRef": "transactions-acid-verrous-check"
+        }
+      ]
+    },
+    {
+      "slug": "transactions-en-pratique",
+      "title": "Transactions en pratique",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Où commence et finit une transaction",
+          "body": "Dans le code d'une application, tu délimites rarement la transaction « à la main » avec `BEGIN`/`COMMIT`. C'est le plus souvent le **framework** (la boîte à outils sur laquelle l'appli est construite) qui s'en charge. Avec **Spring**, il suffit d'annoter une méthode avec **`@Transactional`** : le framework ouvre la transaction avant la méthode et la valide (ou l'annule) à la sortie. En pile réactive, on utilise un opérateur transactionnel équivalent.\n\nLa vraie question est : **jusqu'où doit s'étendre** une transaction ? La bonne réponse : elle doit couvrir **une unité métier**, c'est-à-dire **un cas d'usage complet** (une action qui a du sens pour l'utilisateur, comme « passer une commande »), et pas un simple détail technique isolé.\n\n👉 **Analogie** : une transaction, c'est comme les **parenthèses** autour d'une phrase. Mal placées, elles regroupent les mauvais mots et changent le sens. Tu veux qu'elles entourent **exactement** l'idée à protéger.\n\n**Le compromis** : une transaction **trop large** garde des verrous longtemps et bloque les autres ; **trop étroite**, elle ne protège plus l'**invariant** (la règle métier qui doit toujours rester vraie, par exemple « le débit et le crédit vont ensemble »). **Exemple** : mettre chaque `UPDATE` du virement dans sa propre transaction casse la garantie « tout ou rien » ; il faut les deux dans **la même** transaction."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ou commence et finit une transaction : une frontiere a maitriser (@Transactional, portee).",
+          "body": "/images/lessons/transactions-en-pratique-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Transactions & réactif",
+          "body": "Cette plateforme est bâtie sur une **pile réactive** : une façon de traiter les requêtes **sans bloquer** de fil d'exécution en attendant la base ou le réseau. Au lieu d'immobiliser un **thread** (un « fil » de traitement) pendant l'attente, on lui rend la main et on le réutilise pour d'autres requêtes. Les briques sont **WebFlux** (le web réactif de Spring) et **R2DBC** (l'accès base de données réactif).\n\nUne subtilité en découle. Dans le monde classique (bloquant), le framework range la transaction courante dans un **ThreadLocal** (une variable attachée au thread en cours). Mais en réactif, un même traitement **saute de thread en thread** : le ThreadLocal ne suit plus. La transaction se propage donc via le **contexte réactif** (une information transportée le long du pipeline `Mono`/`Flux`, indépendamment du thread).\n\n👉 **Analogie** : en bloquant, tu confies tes affaires à **une seule personne du début à la fin** (le thread). En réactif, le travail passe **de main en main** comme un relais : il faut donc que le « dossier de la transaction » **voyage avec le colis**, pas qu'il reste collé à une personne.\n\nEn pratique, on compose tout le pipeline dans un **opérateur transactionnel**, en respectant les règles de la maison : **jamais de `.block()`** (l'appel qui fige un thread pour attendre un résultat, interdit ici), jamais d'I/O bloquante. **Bonne nouvelle** : le principe **ACID reste rigoureusement le même**, seule la mécanique de propagation change."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Transactions et reactif : la transaction suit le pipeline reactif, pas le thread.",
+          "body": "/images/lessons/transactions-en-pratique-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Cohérence au-delà d'une base (niveau expert)",
+          "body": "ACID protège **une seule** base de données. Dès qu'une opération touche **plusieurs services ou plusieurs bases** (une architecture en **microservices**, où l'application est découpée en petits services indépendants ayant chacun sa base), il n'existe plus de transaction unique et simple qui couvre le tout.\n\nOn renonce alors à l'atomicité immédiate au profit de la **cohérence à terme** (en anglais *eventual consistency*) : le système n'est pas cohérent à la microseconde près, mais il **converge** vers un état cohérent après un court délai. 👉 **Analogie** : un **virement entre deux banques différentes**. Il n'est pas instantané, mais tu sais qu'au bout du compte le montant arrivera : le système se remet d'accord « à terme ».\n\nDeux patterns pour y arriver proprement :\n- La **saga** : on découpe l'opération en une **suite d'étapes**, chacune dotée d'une action inverse de secours (une **compensation**). Si l'étape 3 échoue, on **annule** les étapes 1 et 2 par leurs compensations, plutôt que par un rollback global qui n'existe pas.\n- L'**outbox** (« boîte d'envoi ») : on écrit l'événement à publier **dans la même transaction** que la donnée (donc de façon atomique côté base), puis un processus séparé lit cette boîte et publie l'événement **de façon fiable**.\n\n**L'idée maîtresse** : comprendre qu'on **perd** l'atomicité distribuée « gratuite » est le premier pas pour concevoir des systèmes corrects à grande échelle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Coherence au-dela d'une base : saga, outbox, idempotence remplacent la transaction globale.",
+          "body": "/images/lessons/transactions-en-pratique-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Une commande doit enregistrer un achat en base ET publier un événement \"AchatCréé\" à un autre service. Pourquoi ne peut-on pas simplement mettre les deux dans une transaction, et quel pattern résout le problème ?",
+          "solution": "La base et le broker de messages sont deux systèmes distincts : une transaction SQL ne couvre pas la publication du message (pas d'atomicité entre les deux). Pattern outbox : dans la MÊME transaction, on écrit l'achat ET une ligne dans une table 'outbox' ; un processus séparé lit l'outbox et publie l'événement de façon fiable. On garantit ainsi qu'aucun événement n'est perdu ni émis sans achat."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Transactions & ACID",
+          "quizRef": "transactions-acid-check"
+        }
+      ]
+    },
+    {
+      "slug": "mvcc-snapshot-isolation",
+      "title": "MVCC & snapshot isolation",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Comment PostgreSQL isole sans (presque) verrouiller les lectures",
+          "body": "Comment PostgreSQL fait-il tenir plusieurs transactions en même temps sans les faire s'attendre en permanence ? Grâce au **MVCC** (*Multi-Version Concurrency Control*, « contrôle de concurrence par multi-versions »).\n\nL'idée clé : quand tu modifies une ligne, PostgreSQL **ne l'écrase pas sur place**. Il **crée une nouvelle version** de la ligne, et garde l'ancienne un moment. À tout instant, une même ligne peut donc exister en **plusieurs versions** côte à côte. Chaque version porte deux marqueurs cachés : **`xmin`** (le numéro de la transaction qui a **créé** cette version) et **`xmax`** (le numéro de la transaction qui l'a **supprimée ou remplacée**). En comparant ces marqueurs à ce qu'elle a le droit de voir, chaque transaction sait **quelle version** lui est destinée.\n\n👉 **Analogie** : c'est l'**historique de versions d'un document** (type wiki ou traitement de texte en ligne). Modifier ne détruit pas l'ancienne page : ça ajoute une nouvelle révision. Chacun peut consulter la révision correspondant au moment où il a ouvert le document, sans gêner celui qui écrit la suivante.\n\n**La conséquence fondamentale**, très concrète : **les lecteurs ne bloquent pas les écrivains, et les écrivains ne bloquent pas les lecteurs**. Une lecture obtient un **instantané cohérent** de la base (une photo figée à un instant donné) **sans attendre** que les écritures en cours se terminent. C'est ce qui rend PostgreSQL très fluide en lecture."
+        },
+        {
+          "type": "IMAGE",
+          "title": "MVCC : PostgreSQL isole sans (presque) verrouiller les lectures, grace aux versions.",
+          "body": "/images/lessons/mvcc-snapshot-isolation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le snapshot : ce que « voit » une transaction",
+          "body": "Un **snapshot** (« instantané ») est la **photo** que prend une transaction de l'état de la base à un moment précis : techniquement, la **liste des transactions déjà validées** à cet instant. C'est ce snapshot qui décide ce que la transaction **a le droit de voir**.\n\nLa règle : une transaction ne voit une version de ligne que si son `xmin` (créateur) est **committé dans son snapshot** et que son `xmax` (suppresseur) ne l'est **pas**. Autrement dit, elle voit « ce qui était validé au moment de la photo », ni les brouillons des autres, ni ce qui est arrivé après.\n\n**Ce qui distingue deux niveaux d'isolation, c'est le moment où on prend cette photo :**\n- En **Read Committed** (défaut PostgreSQL), un **nouveau snapshot est pris à chaque requête**. Résultat : au sein d'une même transaction, deux `SELECT` successifs peuvent voir des données différentes, car tu vois les commits récents des autres.\n- En **Repeatable Read**, **un seul snapshot est pris pour toute la transaction**. Ta vue est **figée** du premier au dernier ordre : tu revois exactement les mêmes données, stables de bout en bout.\n\n👉 **Analogie** : Read Committed, c'est **regarder par la fenêtre** à chaque fois (la rue a changé entre deux coups d'œil). Repeatable Read, c'est **prendre une photo en entrant** et ne travailler que sur cette photo jusqu'à la sortie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le snapshot fige ce que 'voit' une transaction : une photo coherente a un instant.",
+          "body": "/images/lessons/mvcc-snapshot-isolation-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le coût caché : bloat, VACUUM et wraparound",
+          "body": "Garder plusieurs versions a un **coût**. Les anciennes versions de lignes, devenues inutiles (on les dit **« mortes »**), **ne disparaissent pas toutes seules** : elles s'accumulent et font grossir tables et index. C'est le **bloat** (« gonflement ») : ta table occupe beaucoup plus de place que ses données réellement vivantes.\n\nPour nettoyer, PostgreSQL lance le **VACUUM** (« aspirateur ») : une opération qui **recycle** l'espace des versions mortes. En pratique, l'**autovacuum** (le vacuum automatique en tâche de fond) s'en charge, à condition qu'on le laisse suivre le rythme des mises à jour. 👉 **Analogie** : c'est le **ramassage des poubelles**. Tant qu'il passe assez souvent, tout va bien ; s'il prend du retard sur une rue qui produit beaucoup de déchets, ça s'entasse.\n\nAutre enjeu, plus sournois : chaque transaction reçoit un identifiant, le **`xid`**, codé sur **32 bits**. Ce compteur finit par **boucler** (revenir à zéro), c'est le **transaction ID wraparound**. Sans vacuum régulier pour « geler » les vieilles lignes, on peut s'en approcher dangereusement, ce qui force PostgreSQL à **bloquer les écritures** pour se protéger. Surveiller l'âge des transactions (`age(datfrozenxid)`) et **laisser l'autovacuum travailler** sont donc de vraies responsabilités d'exploitation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cout cache : bloat, VACUUM et wraparound a surveiller quand les versions s'accumulent.",
+          "body": "/images/lessons/mvcc-snapshot-isolation-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Serializable = SSI, pas des verrous partout (niveau expert)",
+          "body": "On pourrait croire que le niveau **Serializable** (le plus strict) repose sur de **gros verrous** qui bloquent tout. Sous PostgreSQL, ce n'est **pas** le cas. Il utilise le **SSI** (*Serializable Snapshot Isolation*), une méthode plus fine bâtie **par-dessus** le MVCC.\n\nLe principe du SSI : au lieu de bloquer, PostgreSQL **laisse les transactions avancer** mais **surveille les dépendances dangereuses** entre transactions concurrentes (à l'aide de **predicate locks**, des verrous **légers** qui suivent « quelles données une transaction a lues », sans empêcher les autres d'écrire). Si cette surveillance détecte qu'un **cycle** rendrait le résultat **non équivalent à une exécution en série**, PostgreSQL **annule** l'une des transactions fautives.\n\n👉 **Analogie** : plutôt qu'un **feu rouge** qui arrête tout le monde par précaution (verrous pessimistes), c'est un **arbitre** qui laisse jouer et ne siffle une faute qu'au moment où deux actions deviennent réellement incompatibles.\n\n**La règle pratique qui en découle** : en Serializable, **n'importe quelle transaction peut échouer** avec une erreur de **sérialisation** (`serialization failure`, code **`40001`**). Ce n'est pas un bug : ton code applicatif doit simplement **la rejouer** (relancer la transaction depuis le début). C'est le prix de la garantie « comme si en série », obtenue **sans blocage pessimiste généralisé**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Serializable = SSI (detection de conflits), pas des verrous partout : plus subtil qu'il n'y parait.",
+          "body": "/images/lessons/mvcc-snapshot-isolation-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une table très mise à jour (compteurs) devient lente et occupe 10× l'espace attendu, alors qu'elle contient peu de lignes vivantes. Qu'est-ce qui se passe et que faut-il vérifier ?",
+          "solution": "C'est du bloat MVCC : chaque UPDATE crée une nouvelle version et laisse une version morte. Si l'autovacuum ne suit pas le rythme des mises à jour, les versions mortes s'accumulent dans la table et ses index. À vérifier : les statistiques de vacuum (pg_stat_user_tables : n_dead_tup, last_autovacuum), régler l'autovacuum plus agressif sur cette table (scale_factor plus bas), voire envisager un modèle moins destructeur pour ce compteur. Un VACUUM (ou pg_repack pour récupérer l'espace) résout l'immédiat."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, MVCC & snapshot isolation",
+          "quizRef": "transactions-acid-mvcc-check"
+        }
+      ]
+    },
+    {
+      "slug": "verrouillage-avance-patterns",
+      "title": "Verrouillage avancé & patterns",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "SELECT … FOR UPDATE : les variantes qui comptent",
+          "body": "On a vu que `SELECT ... FOR UPDATE` **verrouille** les lignes lues, en vue de les modifier : les autres transactions qui veulent ces lignes **attendent**. Deux options changent radicalement ce comportement d'attente, et il faut les connaître.\n\n- **`NOWAIT`** (« ne pas attendre ») : si la ligne est **déjà verrouillée** par quelqu'un, la requête **échoue immédiatement** au lieu de patienter. 👉 **Analogie** : tu essaies une porte, elle est fermée, tu **passes ton chemin tout de suite** au lieu de faire le pied de grue devant. Utile pour ne pas empiler des requêtes en attente.\n- **`SKIP LOCKED`** (« sauter ce qui est verrouillé ») : la requête **ignore** les lignes déjà verrouillées et prend directement les **suivantes** disponibles. 👉 **Analogie** : au **buffet**, tu ne fais pas la queue derrière la personne qui se sert du plat, tu vas directement à un plat **libre**.\n\n`SKIP LOCKED` est la brique de base d'une **file de tâches** (*job queue*) performante : plusieurs **workers** (programmes qui traitent des tâches en parallèle) piochent **chacun un job différent** dans la même table, sans se bloquer ni traiter deux fois la même tâche. **Exemple** : dix workers vident une table `jobs`, chacun prenant le premier job libre grâce à `FOR UPDATE SKIP LOCKED`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SELECT ... FOR UPDATE a des variantes (SKIP LOCKED, NOWAIT) qui changent le comportement.",
+          "body": "/images/lessons/verrouillage-avance-patterns-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "File de jobs concurrente avec SKIP LOCKED",
+          "codeLanguage": "sql",
+          "body": "-- Chaque worker réclame UN job libre, sans collision avec les autres.\nUPDATE jobs\nSET status = 'RUNNING', locked_by = :workerId\nWHERE id = (\n    SELECT id FROM jobs\n    WHERE status = 'PENDING'\n    ORDER BY created_at\n    FOR UPDATE SKIP LOCKED   -- saute ce qu'un autre worker traite déjà\n    LIMIT 1\n)\nRETURNING *;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Advisory locks & savepoints",
+          "body": "Deux outils de verrouillage plus spécialisés, très pratiques une fois qu'on les connaît.\n\nLes **advisory locks** (« verrous consultatifs ») sont des verrous **applicatifs libres** : ils ne protègent **pas** une ligne précise, mais une **clé arbitraire** que **tu** choisis (un nombre ou un nom qui a du sens pour ton code). Avec `pg_advisory_lock(uneCle)`, tu poses un verrou « logique » sur cette clé. 👉 **Analogie** : c'est un **panneau « réunion en cours »** que tu accroches toi-même sur une porte : la base ne sait pas ce qu'il signifie, mais tout le monde respecte la convention. **Exemple** : garantir « **un seul** job de nettoyage à la fois », ou élire le **leader** d'une tâche planifiée (cron), même sur plusieurs instances.\n\nLes **savepoints** (« points de sauvegarde ») créent des points de restauration **à l'intérieur** d'une transaction. Avec `SAVEPOINT nom` puis, en cas de souci, `ROLLBACK TO nom`, tu annules **seulement une sous-étape** sans jeter toute la transaction. 👉 **Analogie** : c'est la **sauvegarde intermédiaire d'un jeu vidéo** au sein d'un même niveau : si tu rates un passage, tu reviens au dernier point de contrôle au lieu de recommencer le niveau entier. **Exemple** : tenter une opération risquée et, si elle échoue, revenir juste avant pour essayer autrement, tout en gardant le travail fait avant le savepoint."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Advisory locks (verrous applicatifs) et savepoints (points de reprise dans une transaction).",
+          "body": "/images/lessons/verrouillage-avance-patterns-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Éviter les deadlocks : ordonner les verrous (niveau expert)",
+          "body": "Rappel : un **deadlock** (interblocage) survient quand **T1 tient le verrou A et attend B**, pendant que **T2 tient B et attend A**. Chacune attend l'autre, et plus rien n'avance. 👉 **Analogie** : deux personnes dans un **couloir étroit** qui refusent chacune de reculer pour laisser passer l'autre : blocage total.\n\nPostgreSQL sait les **détecter** et sacrifie alors l'une des transactions (erreur `deadlock_detected`, code **`40P01`**), mais mieux vaut les **prévenir**. La règle éprouvée, étonnamment simple : **toujours acquérir les verrous dans le même ordre** partout dans le code (par exemple, verrouiller les lignes **par id croissant**). Si toutes les transactions verrouillent A **avant** B, le cycle « l'un attend l'autre » ne peut plus se former.\n\n**Exemple** : un transfert A→B et un transfert B→A qui verrouillent « source puis destination » s'interbloquent ; si les deux verrouillent d'abord le **plus petit id**, l'ordre est identique et le deadlock disparaît.\n\nLes autres bonnes habitudes : garder les transactions **courtes**, verrouiller le **moins de lignes possible**, et traiter `40P01` comme une erreur **rejouable** (on relance la transaction) plutôt que comme un plantage fatal."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Eviter les deadlocks : acquerir les verrous toujours dans le meme ordre.",
+          "body": "/images/lessons/verrouillage-avance-patterns-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un transfert entre deux comptes verrouille d'abord le compte source puis le compte destination. En production, des deadlocks apparaissent sous forte charge. Quelle correction simple les élimine en grande partie ?",
+          "solution": "Le deadlock vient de l'ordre de verrouillage qui dépend du sens du transfert : un transfert A→B verrouille A puis B, un transfert B→A verrouille B puis A ; deux transferts croisés s'interbloquent. Correction : imposer un ordre de verrouillage déterministe indépendant du sens, par exemple verrouiller toujours le compte au plus petit id d'abord (ORDER BY id / min-max avant les FOR UPDATE). Toutes les transactions acquièrent alors les verrous dans le même ordre, le cycle disparaît."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "Références : documentation PostgreSQL, chapitres *Concurrency Control* (MVCC, isolation), *Explicit Locking* et *Routine Vacuuming* ; *Designing Data-Intensive Applications* (Kleppmann, ch. 7 « Transactions ») pour le cadre théorique (isolation, sérialisabilité, systèmes distribués). Article de référence : « Serializable Snapshot Isolation » (Cahill et al.). Outil : `pg_stat_activity` et la vue `pg_locks` pour observer verrous et attentes en direct."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les transactions.",
+          "body": "/images/lessons/verrouillage-avance-patterns-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Transactions (niveau expert)",
+          "quizRef": "transactions-expert"
+        }
+      ]
+    }
+  ]
+}

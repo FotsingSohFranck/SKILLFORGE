@@ -1,0 +1,10 @@
+{
+  "node": "testing",
+  "lesson": "tester-son-infrastructure",
+  "title": "Écrire un test terraform test en mode plan",
+  "statement": "Tu veux tester un module réseau SANS créer de vraies ressources (donc rapidement et gratuitement). Dans un fichier `reseau.tftest.hcl`, écris : (1) un bloc `variables` qui fixe `cidr = \"10.0.0.0/16\"` ; (2) un bloc `run` nommé `verifie_cidr` en mode `plan` (donc `command = plan`, sans rien créer) ; (3) à l'intérieur, un bloc `assert` dont la `condition` vérifie que `aws_vpc.main.cidr_block == \"10.0.0.0/16\"`, avec un `error_message` clair si ce n'est pas le cas.",
+  "skeleton": "# variables du test\n\n# run en mode plan avec une assertion\n",
+  "solution": "variables {\n  cidr = \"10.0.0.0/16\"\n}\n\nrun \"verifie_cidr\" {\n  command = plan\n  assert {\n    condition     = aws_vpc.main.cidr_block == \"10.0.0.0/16\"\n    error_message = \"Le CIDR du VPC est incorrect\"\n  }\n}",
+  "keyPoints": ["variables", "cidr = \"10.0.0.0/16\"", "run \"verifie_cidr\"", "command = plan", "assert", "condition", "aws_vpc.main.cidr_block", "error_message"],
+  "language": "hcl"
+}

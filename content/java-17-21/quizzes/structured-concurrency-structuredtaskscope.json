@@ -1,0 +1,41 @@
+{
+  "ref": "structured-concurrency-structuredtaskscope",
+  "node": "structured-concurrency",
+  "lesson": "structuredtaskscope",
+  "title": "Quiz : StructuredTaskScope",
+  "description": "fork, join et le cycle de vie d'une portée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une portée, à quoi sert fork(...) ?",
+      "justification": "fork lance une sous-tâche dans la portée, qui part en parallèle. join, lui, attend la fin des sous-tâches.",
+      "position": 0,
+      "options": [
+        { "label": "Lancer une sous-tâche dans la portée", "correct": true, "position": 0 },
+        { "label": "Attendre la fin de toutes les sous-tâches", "correct": false, "position": 1 },
+        { "label": "Fermer la portée définitivement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le bon enchainement dans une portée ?",
+      "justification": "On lance toutes les sous-tâches avec fork, on attend une seule fois avec join, puis on lit les résultats avec get. Lire avant join serait prématuré.",
+      "position": 1,
+      "options": [
+        { "label": "fork les tâches, puis join(), puis lire les résultats", "correct": true, "position": 0 },
+        { "label": "join() d'abord, puis fork les tâches", "correct": false, "position": 1 },
+        { "label": "lire les résultats, puis join(), puis fork", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Grace au try-with-resources, la portée se ferme automatiquement et aucune sous-tâche ne survit à la sortie du bloc.",
+      "justification": "La fermeture automatique du bloc garantit qu'à la sortie, toute sous-tâche encore active est arrêtée : plus de fuite possible.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

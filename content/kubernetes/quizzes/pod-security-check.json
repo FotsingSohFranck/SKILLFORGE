@@ -1,0 +1,119 @@
+{
+  "ref": "pod-security-check",
+  "node": "cluster-security",
+  "lesson": "pod-security",
+  "title": "Sécurité des pods & admission",
+  "description": "securityContext, Pod Security Standards, admission, chaîne d'appro, Falco.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet le securityContext d'un pod ?",
+      "justification": "Durcir l'exécution : non-root, read-only rootfs, cap-drop, pas d'escalade, jamais privileged, moindre privilège au runtime.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Durcir l'exécution (non-root, cap-drop, read-only...)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Configurer le réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Définir le nombre de répliques",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que définit le niveau « restricted » des Pod Security Standards ?",
+      "justification": "Le niveau le plus durci : non-root, cap-drop, pas d'escalade... ; appliqué par namespace via Pod Security Admission.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un profil durci imposé aux pods (non-root, cap-drop...)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'autorisation de tout faire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un type de volume",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment imposer « aucune image non signée ni pod privilégié » sans compter sur la vigilance des équipes ?",
+      "justification": "Par l'admission : Pod Security Admission (restricted) + un contrôleur de politique (Kyverno/OPA) qui rejette les demandes non conformes.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Contrôle à l'admission (PSA + Kyverno/OPA)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un e-mail de consignes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "kubectl delete régulier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil détecte en temps réel un comportement anormal dans les pods (ex. shell en prod) ?",
+      "justification": "Falco surveille les syscalls des pods et alerte sur les comportements suspects, détection runtime pour Kubernetes.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Falco",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kubectl logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcd",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La sécurité Kubernetes est une défense en profondeur : durcir (securityContext) + segmenter (NetworkPolicies) + limiter (RBAC) + imposer (admission) + détecter (Falco).",
+      "justification": "Vrai : aucune couche seule ne suffit ; on empile durcissement, segmentation, moindre privilège, admission et détection.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "observability-expert",
+  "node": "observability",
+  "lesson": "slo-en-pratique",
+  "title": "Observabilité, niveau expert",
+  "description": "Propagation de trace, sampling, contexte réactif, cardinalité, SLI/SLO, burn rate.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment relie-t-on les spans d'une requête à travers plusieurs services ?",
+      "justification": "En propageant un contexte de trace (trace id + parent span) via l'en-tête standard W3C traceparent, hérité et réinjecté à chaque service.",
+      "position": 0,
+      "options": [
+        {
+          "label": "En propageant un contexte de trace (W3C traceparent)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En comparant les timestamps des logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par l'adresse IP du client",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi le MDC (ThreadLocal) perd-il le trace id dans une pile WebFlux/Reactor ?",
+      "justification": "Le traitement réactif saute de thread en thread ; la valeur ThreadLocal ne suit pas, il faut propager via le Reactor Context.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le traitement change de thread, le ThreadLocal ne suit pas",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le MDC est interdit en Java 21",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les logs sont désactivés en réactif",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne faut-il pas mettre un `user_id` comme label d'une métrique Prometheus ?",
+      "justification": "Un label à forte cardinalité crée une explosion de séries temporelles ; l'identité fine va dans les traces/logs, pas les labels de métriques.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Cela explose la cardinalité (trop de séries temporelles)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Prometheus interdit les nombres",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Cela ralentit le réseau uniquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre un SLO et un SLA ?",
+      "justification": "Le SLO est une cible interne sur un SLI ; le SLA est un engagement contractuel (avec pénalités), volontairement plus laxiste que le SLO.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le SLO est une cible interne ; le SLA un engagement contractuel",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont des synonymes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le SLA est toujours plus strict que le SLO",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Alerter sur le burn rate multi-fenêtres de l'error budget est préférable à un simple seuil « taux d'erreur > 1 % ».",
+      "justification": "Vrai : le burn rate relie l'alerte à la menace réelle pour le SLO, combinant réactivité (fenêtre courte) et faible bruit (fenêtre longue).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

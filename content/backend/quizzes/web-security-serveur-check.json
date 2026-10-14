@@ -1,0 +1,53 @@
+{
+  "ref": "web-security-serveur-check",
+  "node": "web-security",
+  "lesson": "failles-cote-serveur",
+  "title": "Quiz : Failles côté serveur",
+  "description": "SSRF, désérialisation, XXE, mass assignment, path traversal, fil rouge.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En quoi consiste une attaque SSRF (Server-Side Request Forgery) ?",
+      "justification": "L'attaquant fournit une URL que le serveur va requêter à sa place, pour atteindre des cibles internes inaccessibles de l'extérieur (ex. métadonnées cloud 169.254.169.254).",
+      "position": 0,
+      "options": [
+        { "label": "Faire requêter par le serveur une URL fournie, pour atteindre des cibles internes", "correct": true, "position": 0 },
+        { "label": "Injecter du JavaScript dans le navigateur de la victime", "correct": false, "position": 1 },
+        { "label": "Deviner un mot de passe par force brute", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un utilisateur ajoute `\"role\": \"ADMIN\"` au JSON d'inscription et devient administrateur. De quelle faille s'agit-il et quelle en est la parade ?",
+      "justification": "C'est du mass assignment : la liaison automatique du corps de requête attrape des champs non prévus. Parade : des DTO d'entrée explicites n'exposant que les champs autorisés.",
+      "position": 1,
+      "options": [
+        { "label": "Mass assignment ; parade : des DTO d'entrée explicites (jamais binder l'entité)", "correct": true, "position": 0 },
+        { "label": "Path traversal ; parade : chiffrer la base", "correct": false, "position": 1 },
+        { "label": "XSS ; parade : activer HSTS", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment neutraliser une faille XXE (XML External Entity) ?",
+      "justification": "Le XXE exploite les entités externes d'un document XML (lire /etc/passwd, déclencher une SSRF). La parade est de désactiver les entités externes dans le parseur XML.",
+      "position": 2,
+      "options": [
+        { "label": "Désactiver les entités externes dans la configuration du parseur XML", "correct": true, "position": 0 },
+        { "label": "Augmenter la mémoire allouée au parseur", "correct": false, "position": 1 },
+        { "label": "Compresser le document XML avant traitement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "SQLi, XSS, SSRF, XXE, désérialisation non sûre : quel principe unique explique cette famille de failles ?",
+      "justification": "Toutes partagent la même cause : une donnée contrôlée par l'attaquant finit interprétée comme une instruction. La défense : séparer donnée et code, ne jamais faire confiance à l'entrée.",
+      "position": 3,
+      "options": [
+        { "label": "Une donnée contrôlée par l'attaquant est interprétée comme une instruction", "correct": true, "position": 0 },
+        { "label": "Le serveur manque de mémoire vive", "correct": false, "position": 1 },
+        { "label": "Le certificat TLS n'est pas renouvelé", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

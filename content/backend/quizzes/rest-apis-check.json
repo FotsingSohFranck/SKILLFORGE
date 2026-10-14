@@ -1,0 +1,63 @@
+{
+  "ref": "rest-apis-check",
+  "node": "rest-apis",
+  "lesson": "openapi-et-hateoas",
+  "title": "APIs REST",
+  "description": "Ressources, statuts, conception, documentation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la bonne conception REST pour supprimer l'utilisateur 42 ?",
+      "justification": "L'action est portée par la méthode : DELETE /users/42. Mettre 'delete' dans l'URL sur un GET est un anti-pattern.",
+      "position": 0,
+      "options": [
+        { "label": "DELETE /api/v1/users/42", "correct": true, "position": 0 },
+        { "label": "GET /api/v1/users/42/delete", "correct": false, "position": 1 },
+        { "label": "POST /api/v1/deleteUser?id=42", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un client envoie une entrée invalide. Quel statut renvoyer ?",
+      "justification": "400 Bad Request signale une requête invalide côté client ; 500 indiquerait à tort un défaut serveur.",
+      "position": 1,
+      "options": [
+        { "label": "400 Bad Request", "correct": true, "position": 0 },
+        { "label": "500 Internal Server Error", "correct": false, "position": 1 },
+        { "label": "200 OK", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment faire évoluer une API sans casser les clients existants ?",
+      "justification": "On versionne (/api/v1) et on n'ajoute que des changements rétrocompatibles ; un changement cassant justifie une nouvelle version.",
+      "position": 2,
+      "options": [
+        { "label": "Versionner l'API et rester rétrocompatible", "correct": true, "position": 0 },
+        { "label": "Modifier les réponses en silence", "correct": false, "position": 1 },
+        { "label": "Supprimer les anciens champs sans prévenir", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment prévenir un doublon si un client rejoue un POST (timeout) ?",
+      "justification": "Une clé d'idempotence (et/ou une contrainte d'unicité en base) évite la double création.",
+      "position": 3,
+      "options": [
+        { "label": "Une clé d'idempotence (et une contrainte d'unicité)", "correct": true, "position": 0 },
+        { "label": "Ignorer le problème, c'est rare", "correct": false, "position": 1 },
+        { "label": "Transformer le POST en GET", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Générer la doc OpenAPI depuis le code aide à la garder synchronisée avec l'API réelle.",
+      "justification": "Une doc séparée diverge du code ; générée depuis le code, elle reste à jour et testable.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

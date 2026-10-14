@@ -1,0 +1,96 @@
+{
+  "ref": "volume-expansion-expert",
+  "node": "storage-volumes",
+  "lesson": "expansion-snapshots-cycle-de-vie",
+  "title": "Expansion, snapshots & cycle de vie, expert",
+  "description": "allowVolumeExpansion, VolumeSnapshot/clone, PVC orphelins/rétention.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment agrandir un volume saturé sans recréer l'application ?",
+      "justification": "Augmenter la taille demandée dans le PVC, si la StorageClass a allowVolumeExpansion: true (le CSI agrandit le disque en place).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Augmenter le PVC (StorageClass avec allowVolumeExpansion)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Recréer forcément la base",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Réduire un autre volume",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Peut-on réduire la taille d'un volume ?",
+      "justification": "Non : l'expansion ne va que vers le haut ; on ne réduit pas un volume.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Non, l'expansion ne va que vers le haut",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, librement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, mais seulement en RWX",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un VolumeSnapshot (via CSI) ?",
+      "justification": "Capturer l'état d'un PVC à un instant T (sauvegarde/restauration), et créer un nouveau PVC à partir du snapshot ou cloner un PVC.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Capturer/restaurer l'état d'un PVC (sauvegarde, clone)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Router le trafic",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Supprimer un StatefulSet ne supprime pas ses PVC par défaut, ce qui peut laisser des PVC orphelins coûteux (disques facturés).",
+      "justification": "Vrai : c'est voulu (protéger les données) ; on audite les PVC non attachés et on règle persistentVolumeClaimRetentionPolicy selon le besoin.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

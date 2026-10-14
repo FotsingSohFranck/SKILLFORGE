@@ -1,0 +1,38 @@
+{
+  "node": "structured-output",
+  "lessons": [
+    {
+      "slug": "du-json-exploitable",
+      "title": "Du JSON exploitable",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Quand le programme lit la sortie",
+          "body": "Dès qu'un programme consomme la réponse, on a besoin d'un **format structuré** (souvent JSON) stable. On décrit précisément le **schéma** attendu (les clés, les types) et on demande **uniquement** ce format, sans texte autour. Plus le contrat est explicite, moins la sortie dérive."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Spécifier le schéma",
+          "codeLanguage": "text",
+          "body": "Extrais du texte le titre et un résumé d'une phrase.\nRéponds STRICTEMENT en JSON, sans texte avant/après :\n{ \"title\": string, \"summary\": string }"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Sortie exploitable",
+          "codeLanguage": "json",
+          "body": "{\n  \"title\": \"Mise en cache\",\n  \"summary\": \"Un cache accélère les lectures fréquentes.\"\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Valider, ne pas faire confiance",
+          "body": "Même bien guidé, un modèle peut produire un JSON invalide ou incomplet. Côté programme, on **valide** systématiquement la sortie contre un schéma, et on prévoit un **repli** (nouvelle tentative, message d'erreur) en cas d'échec. Beaucoup d'API proposent aussi un mode « sortie structurée » qui garantit un JSON conforme."
+        }
+      ]
+    }
+  ]
+}

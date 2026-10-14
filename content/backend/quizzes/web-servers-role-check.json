@@ -1,0 +1,96 @@
+{
+  "ref": "web-servers-role-check",
+  "node": "web-servers",
+  "lesson": "role-du-serveur-web",
+  "title": "Quiz, Le rôle du serveur web",
+  "description": "Reverse proxy en façade, forward vs reverse, terminaison TLS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un reverse proxy placé en façade d'une application ?",
+      "justification": "Il est le point d'entrée : il route les requêtes vers le bon service, sert les fichiers statiques, termine le TLS (HTTPS) et peut équilibrer la charge.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il route les requêtes, sert le statique, termine le TLS et équilibre la charge",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il compile le code source de l'application",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il remplace la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un forward proxy représente le client ; que représente un reverse proxy ?",
+      "justification": "Le reverse proxy représente le serveur : il reçoit les requêtes à sa place, et le client croit parler à un serveur unique alors que le proxy distribue en coulisses.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le serveur : il reçoit les requêtes à sa place",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le client : il sort vers Internet à sa place",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une équipe hésite : faut-il gérer les certificats HTTPS dans chaque instance de l'application, ou terminer le TLS au niveau du reverse proxy ? Quel est l'intérêt de le terminer au proxy ?",
+      "justification": "Terminer le TLS au bord centralise les certificats (un seul endroit à renouveler), décharge les applications du coût du chiffrement, et leur permet de parler HTTP en interne sur un réseau privé.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Centraliser les certificats, décharger les apps du chiffrement, parler HTTP en interne",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Cela n'apporte rien, autant chiffrer dans chaque instance",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Cela oblige à dupliquer la configuration TLS partout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Derrière un reverse proxy, le client sait toujours combien d'instances de l'application traitent réellement sa requête.",
+      "justification": "Faux : le client croit parler à un serveur unique. Le proxy masque le nombre d'instances et distribue le trafic en coulisses.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

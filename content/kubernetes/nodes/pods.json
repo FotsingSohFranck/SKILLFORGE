@@ -1,0 +1,273 @@
+{
+  "node": "pods",
+  "lessons": [
+    {
+      "slug": "le-pod-unite-de-base",
+      "title": "Le Pod, unité de base",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Kubernetes ne lance pas des conteneurs, mais des pods",
+          "body": "Avant tout, deux briques de base.\n\nUn **conteneur** est une **boîte qui emballe ton application avec tout ce dont elle a besoin pour tourner** (le code, ses bibliothèques, sa configuration), isolée du reste de la machine. 👉 **Analogie** : c'est un **conteneur maritime**, une caisse standardisée : peu importe ce qu'il y a dedans, elle se transporte et s'empile de la même manière sur n'importe quel bateau (ici, n'importe quelle machine). Exemple concret : un conteneur qui embarque un serveur web `nginx` prêt à répondre.\n\n**Kubernetes** (souvent abrégé **k8s** : un « k », 8 lettres, un « s ») est l'outil qui **orchestre** ces conteneurs à grande échelle : il décide sur quelle machine les lancer, les surveille, et les remplace s'ils tombent.\n\nEt voici le point qui surprend tous les débutants : l'unité que Kubernetes manipule n'est **pas** le conteneur, c'est le **Pod**. Un **Pod** (le mot anglais pour la « cosse » de petits pois, cette gousse qui contient plusieurs pois) est une **enveloppe qui contient un ou plusieurs conteneurs** allant toujours ensemble. Les conteneurs d'un même pod partagent :\n- **le même réseau** : ils ont **une seule adresse IP commune** (l'**IP**, de l'anglais *Internet Protocol address*, est le numéro qui identifie une machine sur le réseau, comme un numéro de téléphone) et se parlent entre eux via **`localhost`** (le nom qui veut dire « moi-même, cette machine ») ;\n- éventuellement **du stockage** partagé, via des **volumes** (un **volume** est un espace disque rattaché au pod, comme une clé USB branchée sur la boîte).\n\n👉 **Analogie du pod** : pense à une **barquette de fruits** au supermarché. La barquette (le pod) est ce que tu prends et poses en rayon d'un seul geste ; les fruits dedans (les conteneurs) voyagent toujours ensemble et partagent la même barquette.\n\nDans l'immense majorité des cas, **un pod contient un seul conteneur** applicatif (les cas à plusieurs conteneurs sont vus plus loin).\n\nDernier point capital : le pod est **éphémère** (« qui ne dure pas », de courte vie). On ne le **répare** pas quand il a un problème : on le **jette et on le remplace** par un neuf. Conséquence directe : **son IP change à chaque recréation**. C'est pour ça qu'on ne s'adresse jamais directement à un pod par son IP ; on passe par un **Service** (une adresse stable qui redirige automatiquement vers les pods du moment, détaillé dans un autre nœud du parcours)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un conteneur maritime transporte des caisses solidaires : un Pod regroupe de la meme facon un ou plusieurs conteneurs qui vivent ensemble.",
+          "body": "/images/lessons/le-pod-unite-de-base-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un Pod simple",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\n  labels: { app: web }\nspec:\n  containers:\n    - name: web\n      image: nginx:1.27\n      ports:\n        - containerPort: 80\n# En pratique on ne crée PAS un Pod directement : on utilise un Deployment\n# (vu au nœud suivant), qui gère les pods pour nous (répliques, auto-réparation)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "On ne crée pas un Pod à la main",
+          "body": "Point crucial : dans la vraie vie, on écrit **rarement** un Pod tout seul. Un **Pod nu** (créé directement, sans rien au-dessus) n'est **géré par personne** : s'il meurt, ou si la machine qui l'héberge (le **nœud**, *node* en anglais : un serveur du cluster) tombe en panne, **rien** ne le recrée. Il disparaît, point.\n\nLa solution : un **contrôleur**. Un **contrôleur** est un objet Kubernetes qui **surveille en permanence** un type de ressource et agit pour que la réalité corresponde à ce que tu as demandé. Tu déclares un **état désiré** (« je veux 3 exemplaires de mon application en train de tourner »), et le contrôleur **compare sans cesse** cet état désiré à l'état réel, puis corrige l'écart. 👉 **Analogie** : le contrôleur est un **thermostat**. Tu règles 20 °C (l'état désiré) ; il mesure la température réelle et rallume le chauffage dès qu'elle baisse, sans que tu interviennes. Ici, s'il manque un pod, le contrôleur en recrée un tout seul (c'est ce qu'on appelle l'**auto-réparation**).\n\nUn exemplaire d'un pod s'appelle une **réplique** (*replica* en anglais). Selon le besoin, on choisit le bon contrôleur :\n- **Deployment** : pour une application **sans état** (*stateless* : qui ne garde rien en mémoire d'une requête à l'autre, par exemple un serveur web) ; c'est le cas le plus courant, de loin.\n- **StatefulSet** : pour une application **avec état** (*stateful* : qui garde des données, par exemple une base de données), où chaque pod a une identité stable.\n- **DaemonSet** : pour faire tourner **un pod sur chaque nœud** (par exemple un agent qui collecte les logs partout).\n- **Job** : pour une **tâche ponctuelle** qui s'exécute une fois puis se termine (par exemple un import de données).\n\n👉 **À retenir** : le Pod reste **le** concept fondamental à comprendre, mais on le manipule presque toujours **à travers** un contrôleur qui garantit sa survie et sa recréation.\n\nDeux mots d'outillage au passage, car on va les croiser tout le temps. **`kubectl`** (prononcé « cube-C-T-L » ou « cube-control ») est l'**outil en ligne de commande** avec lequel on pilote Kubernetes : toutes les commandes commencent par `kubectl ...`. Et un **manifeste** est le **fichier qui décrit ce que tu veux**, écrit en **YAML** (un format texte à base d'indentation, lisible par un humain, où l'on liste des `clé: valeur`). 👉 **Analogie** : le manifeste YAML est le **bon de commande** que tu remplis, et `kubectl apply -f deployment.yaml` est le fait de le **déposer au comptoir** ; Kubernetes se charge ensuite de réaliser la commande."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des conteneurs identiques empiles : Kubernetes DUPLIQUE les Pods pour tenir la charge, plutot que de les bricoler un par un.",
+          "body": "/images/lessons/le-pod-unite-de-base-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Un débutant crée un Pod directement avec `kubectl apply -f pod.yaml`. Le nœud sur lequel il tourne redémarre, et le pod ne revient jamais. Pourquoi, et qu'aurait-il fallu utiliser ?",
+          "solution": "Un Pod créé directement (« pod nu ») n'est géré par aucun contrôleur : il n'a personne pour veiller sur lui. Quand son nœud redémarre ou tombe, le pod est perdu et RIEN ne le recrée, car il n'existe pas d'objet qui maintienne un état désiré « ce pod doit exister ». Kubernetes ne le ressuscite pas de lui-même. Ce qu'il aurait fallu utiliser : un contrôleur qui gère les pods, typiquement un Deployment (pour une application sans état). Le Deployment déclare un nombre de répliques désiré et un contrôleur veille en permanence à le maintenir : si un pod (ou son nœud) disparaît, le contrôleur en recrée un ailleurs automatiquement (auto-réparation). Règle : on ne crée quasiment jamais un Pod directement en réel ; on le fait via un Deployment/StatefulSet/DaemonSet/Job qui garantit sa survie et sa recréation."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Le Pod, unité de base",
+          "quizRef": "pods-unite-check"
+        }
+      ]
+    },
+    {
+      "slug": "cycle-de-vie-et-probes",
+      "title": "Cycle de vie & probes",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les phases d'un pod",
+          "body": "Pendant sa vie, un pod passe par plusieurs **phases** : un mot qui désigne simplement **la grande étape où il en est**. Il y en a quelques-unes à connaître :\n- **Pending** (« en attente ») : le pod est accepté par Kubernetes mais **pas encore en train de tourner**. Souvent parce que son **image** (le modèle figé du conteneur, à partir duquel on le démarre) est **en cours de téléchargement**, ou parce qu'aucune machine libre ne l'a encore accueilli.\n- **Running** (« en cours d'exécution ») : au moins un conteneur du pod **tourne** effectivement.\n- **Succeeded** (« réussi ») : tous les conteneurs se sont **terminés avec succès** (cas des tâches ponctuelles, les Jobs).\n- **Failed** (« échoué ») : le pod s'est **terminé en erreur**.\n\nÀ côté de ces phases, Kubernetes affiche des **raisons** plus précises quand quelque chose cloche. Les plus fréquentes :\n- `ContainerCreating` : le conteneur est **en train d'être créé** (état normal et transitoire).\n- `ImagePullBackOff` : Kubernetes **n'arrive pas à télécharger l'image** (nom mal orthographié, image privée sans identifiants...). *BackOff* veut dire « il réessaie en espaçant de plus en plus ses tentatives ».\n- `CrashLoopBackOff` : le conteneur **démarre, plante, redémarre, replante en boucle** ; Kubernetes réessaie avec un délai qui augmente à chaque fois. C'est **l'erreur numéro un** du débutant.\n\n👉 **Analogie** : ces états sont le **tableau des départs** d'un aéroport pour ton pod : « à l'heure », « embarquement », « retardé », « annulé ». D'un coup d'œil, tu sais où ça coince.\n\nEn pratique, deux commandes te donnent ces informations : **`kubectl get pods`** (la **liste** des pods avec leur phase, comme un tableau de bord) et **`kubectl describe pod <nom>`** (la **fiche détaillée** d'un pod, avec l'historique de ses événements). Lire la phase et la raison **oriente immédiatement** le diagnostic : par exemple, un `ImagePullBackOff` te dit de vérifier le nom de l'image avant toute autre chose."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Comme un moniteur de sante, les probes verifient en continu que le Pod est vivant (liveness) et pret a repondre (readiness).",
+          "body": "/images/lessons/cycle-de-vie-et-probes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les probes : liveness, readiness, startup",
+          "body": "Une fois un conteneur démarré, comment Kubernetes sait-il s'il **va vraiment bien** ? Un processus peut « tourner » tout en étant **bloqué** (figé, incapable de répondre). Pour le vérifier, Kubernetes utilise des **probes** (mot anglais pour **sondes** : de petits tests de santé répétés à intervalles réguliers). 👉 **Analogie** : c'est l'**infirmière qui passe régulièrement prendre le pouls** du patient ; tant que le pouls répond, tout va bien ; s'il ne répond plus, elle agit.\n\nIl existe **trois** probes à bien distinguer (les confondre cause de vrais incidents, on le verra) :\n\n1. **La liveness probe** (« sonde de vie ») répond à la question **« le conteneur est-il encore vivant, ou bloqué ? »**. Si elle échoue, Kubernetes **redémarre** le conteneur (il le tue et le relance, pour tenter de le débloquer). Exemple : une appli figée dans une boucle infinie ne répond plus, on la redémarre.\n\n2. **La readiness probe** (« sonde de disponibilité », *ready* = prêt) répond à **« le conteneur peut-il recevoir du trafic maintenant ? »**. Le **trafic**, ce sont les **requêtes des utilisateurs** qui arrivent. Si cette sonde échoue, le pod est **retiré du Service** (un **Service** est l'aiguillage qui distribue le trafic entre les pods) : il **ne reçoit plus de requêtes**, mais il **n'est PAS tué** ; dès qu'il redevient prêt, il est remis dans la rotation. Exemple : au démarrage, l'appli charge un gros fichier de configuration ; tant que ce n'est pas fini, elle n'est « pas prête », on ne lui envoie personne.\n\n3. **La startup probe** (« sonde de démarrage ») sert aux applications **longues à démarrer**. Elle **laisse le temps** au conteneur de se lancer avant que la liveness ne commence à le surveiller. Sans elle, une appli lente serait **tuée avant même d'avoir fini de démarrer** (la liveness croirait qu'elle est bloquée). Exemple : une grosse application Java qui met 60 secondes à s'initialiser.\n\n👉 **À retenir** : ces trois sondes sont la clé de la **disponibilité réelle** de ton application. `liveness` = « suis-je vivant ? » (sinon on me redémarre) ; `readiness` = « puis-je servir ? » (sinon on me met en pause du trafic) ; `startup` = « laisse-moi le temps de démarrer »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un tableau de bord de supervision : les probes renseignent Kubernetes sur l'etat reel du Pod a chaque instant.",
+          "body": "/images/lessons/cycle-de-vie-et-probes-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déclarer des probes",
+          "codeLanguage": "yaml",
+          "body": "spec:\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      startupProbe:            # laisse le temps de démarrer (app lente)\n        httpGet: { path: /health, port: 8080 }\n        failureThreshold: 30\n        periodSeconds: 5\n      readinessProbe:          # prêt à recevoir du trafic ?\n        httpGet: { path: /health/ready, port: 8080 }\n        periodSeconds: 10\n      livenessProbe:           # vivant ou bloqué ?\n        httpGet: { path: /health/live, port: 8080 }\n        periodSeconds: 10"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une équipe configure une liveness probe qui vérifie la connexion à la base de données. Un jour la base ralentit brièvement ; tous les pods de l'application redémarrent en même temps, aggravant l'incident. Quelle est l'erreur et quelle probe aurait dû faire ce test ?",
+          "solution": "L'erreur est d'avoir mis la vérification d'une dépendance EXTERNE (la base) dans la LIVENESS probe. Quand la base ralentit, la liveness échoue, et Kubernetes REDÉMARRE les conteneurs, alors que l'application elle-même est saine. Tous les pods redémarrent simultanément, coupent leurs requêtes en cours, et repartent en martelant la base au démarrage : l'incident s'aggrave au lieu de se résorber. La liveness ne doit tester que la santé INTERNE du processus (est-il vivant/non bloqué ?), avec un test léger. La vérification des dépendances relève de la READINESS probe : si la base est indisponible, le pod est simplement RETIRÉ du Service (il ne reçoit plus de trafic) mais n'est PAS tué ; dès que la base revient, il redevient prêt, sans redémarrage ni effet de meute. Règle : liveness = « suis-je vivant ? » (interne, léger) ; readiness = « puis-je servir ? » (peut inclure les dépendances). Confondre les deux transforme un ralentissement passager en panne généralisée."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Cycle de vie & probes",
+          "quizRef": "pods-cycle-check"
+        }
+      ]
+    },
+    {
+      "slug": "init-et-multi-conteneurs",
+      "title": "Init containers & multi-conteneurs",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les init containers",
+          "body": "Un pod peut déclarer des **init containers** (« conteneurs d'initialisation », *init* = initialisation). Ce sont des conteneurs qui s'exécutent **avant** les conteneurs applicatifs, **l'un après l'autre** (en séquence), et qui doivent **tous réussir** pour que l'application démarre. Si l'un échoue, le pod ne démarre pas.\n\n👉 **Analogie** : ce sont les **préparatifs avant l'ouverture d'un restaurant**. Avant que les serveurs (les conteneurs applicatifs) accueillent les clients, il faut livrer les ingrédients, allumer les fourneaux, dresser les tables. Tant que ces préparatifs ne sont pas terminés, on n'ouvre pas la salle.\n\nUsages typiques :\n- **Attendre** qu'une **dépendance** (un autre service dont ton appli a besoin, par exemple une base de données) soit **joignable** avant de démarrer.\n- **Préparer** des données : télécharger un fichier, ou jouer une **migration de schéma** (mettre à jour la structure des tables de la base pour qu'elle corresponde à la nouvelle version du code).\n- **Fixer les permissions** sur un **volume** (l'espace disque partagé du pod).\n\nL'intérêt : séparer proprement la **préparation** (jouée une seule fois au démarrage, avec ses propres outils) du **runtime** (l'anglais pour « le moment où ça tourne » : le conteneur applicatif, qui reste épuré, sans les outils de préparation). Bonus appréciable : si un init container échoue, on voit **immédiatement lequel** a bloqué le démarrage."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une chaine de montage : les init containers s'executent dans l'ordre, l'un apres l'autre, AVANT que l'application ne demarre.",
+          "body": "/images/lessons/init-et-multi-conteneurs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le pattern sidecar",
+          "body": "Un pod peut aussi faire tourner **plusieurs conteneurs applicatifs en même temps** qui collaborent : c'est le **pattern sidecar**. Un **pattern** est simplement une **solution type à un problème récurrent** (une « recette » éprouvée que l'on réutilise). Le mot **sidecar** vient du **side-car** de moto : la petite nacelle accrochée sur le côté, qui accompagne la moto partout. 👉 **Analogie** : le conteneur principal est la **moto** (il fait le travail) ; le sidecar est la **nacelle** greffée à côté, qui l'assiste et voyage toujours avec lui.\n\nComme les conteneurs d'un même pod partagent `localhost` (le réseau interne) et les **volumes** (le disque), un sidecar peut assister le conteneur principal de façon très directe. Exemples courants :\n- un **collecteur de logs** : les **logs** sont les **messages que l'application écrit pour raconter ce qu'elle fait** (précieux pour diagnostiquer un problème) ; le sidecar lit un fichier de logs partagé et l'envoie ailleurs pour l'archiver et l'analyser.\n- un **proxy réseau** : un **proxy** est un **intermédiaire qui gère le trafic** entrant et sortant. C'est le rôle du sidecar dans un **service mesh** (un « maillage de services » : une couche qui gère et sécurise la communication entre tous les services d'un cluster, par exemple **Istio**, dont le proxy s'appelle **Envoy**).\n- un rafraîchisseur de **configuration** ou de **certificats** (les fichiers qui prouvent l'identité et permettent le chiffrement).\n\n👉 **Règle de bon sens** : on réserve le sidecar aux conteneurs **vraiment couplés** au cycle de vie du principal (ils naissent et meurent avec lui). Si deux composants peuvent vivre indépendamment l'un de l'autre, on en fait **deux pods séparés** plutôt que de les entasser dans le même pod."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des engrenages qui cooperent : le conteneur principal et son sidecar travaillent cote a cote dans le meme Pod.",
+          "body": "/images/lessons/init-et-multi-conteneurs-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Init container + sidecar",
+          "codeLanguage": "yaml",
+          "body": "spec:\n  initContainers:\n    - name: wait-db          # attendre la base AVANT de démarrer l'app\n      image: busybox\n      command: ['sh','-c','until nc -z db 5432; do sleep 2; done']\n  containers:\n    - name: app              # conteneur principal\n      image: monorg/api:1.4.0\n    - name: log-shipper      # sidecar : expédie les logs partagés\n      image: fluent/fluent-bit\n      volumeMounts:\n        - { name: logs, mountPath: /var/log/app }\n  volumes:\n    - name: logs\n      emptyDir: {}           # volume partagé entre app et sidecar"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une application doit exécuter une migration de schéma de base de données une seule fois, avant que le serveur applicatif ne démarre, sinon l'app plante sur un schéma obsolète. Comment structurer cela proprement dans un pod ?",
+          "solution": "On utilise un init container qui exécute la migration de schéma AVANT le conteneur applicatif. Les init containers s'exécutent en séquence et doivent tous réussir pour que les conteneurs applicatifs démarrent : on place donc la commande de migration (ex. l'outil de migration jouant les scripts) dans un initContainer. Ainsi, la migration est garantie terminée avec succès avant que le serveur applicatif ne se lance ; si la migration échoue, le pod ne démarre pas (et on voit clairement, via describe/logs, que c'est l'init container de migration qui a bloqué), ce qui évite de faire tourner l'app sur un schéma obsolète. Avantages : séparation nette entre préparation (migration, jouée une fois, avec ses propres outils dans l'image de l'init container) et runtime (le serveur épuré) ; ordre garanti ; échec explicite. Attention en multi-répliques : si plusieurs pods démarrent en parallèle, la migration doit être idempotente/verrouillée pour ne pas être jouée en concurrence, un point à gérer (verrou applicatif, ou un Job dédié exécuté une seule fois avant le rollout)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Pods",
+          "quizRef": "pods-check"
+        }
+      ]
+    },
+    {
+      "slug": "arret-gracieux",
+      "title": "L'arrêt gracieux d'un pod",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La séquence de terminaison",
+          "body": "Supprimer un pod n'est **pas instantané**. Un **arrêt gracieux** (*graceful shutdown* en anglais) signifie « s'arrêter **proprement**, en finissant ce qu'on avait commencé, au lieu de couper net ». Pour cela, Kubernetes suit une **séquence** précise, étape par étape :\n\n1. Le pod passe en phase **`Terminating`** (« en cours de terminaison ») et il est **retiré des Endpoints** du Service. Les **Endpoints** sont la **liste des pods vers qui le Service envoie le trafic** ; sortir de cette liste veut dire « ne plus recevoir de **nouvelles** requêtes ».\n2. Le **hook `preStop`** s'exécute, s'il en existe un. Un **hook** est un **point d'accroche où l'on peut faire exécuter une action** ; `preStop` veut dire « juste **avant l'arrêt** ».\n3. Kubernetes envoie **SIGTERM** au conteneur. Un **signal** est un **petit message que le système d'exploitation envoie à un programme** ; **SIGTERM** (de *signal terminate*) veut dire poliment « **prépare-toi à t'arrêter** ». Un programme bien écrit l'intercepte pour finir ses requêtes en cours.\n4. Kubernetes **attend** un délai nommé **`terminationGracePeriodSeconds`** (« nombre de secondes de grâce avant terminaison »), **30 secondes par défaut**, pour laisser au conteneur le temps de finir.\n5. Si, passé ce délai, le conteneur **n'est toujours pas parti**, Kubernetes envoie **SIGKILL** : ce signal-là, contrairement à SIGTERM, **tue immédiatement et sans discussion** (le programme ne peut pas l'ignorer ni l'intercepter).\n\n👉 **Analogie** : c'est la **fermeture d'un magasin**. On décroche d'abord le magasin du plan (plus de nouveaux clients dirigés vers lui), on prévient poliment « on ferme, terminez vos achats » (SIGTERM), on laisse un quart d'heure aux derniers clients (la grace period), et si quelqu'un s'attarde vraiment trop, le vigile le raccompagne fermement (SIGKILL).\n\nComprendre cette séquence est **la clé** pour ne **pas couper les requêtes en cours** au mauvais moment : lors d'un **rolling update** (« mise à jour progressive » : on remplace les anciens pods par les nouveaux **un par un**, sans tout arrêter d'un coup), d'un **scale-down** (« réduction d'échelle » : on **diminue le nombre** de pods), ou d'un **drain de nœud** (« vidange » d'une machine qu'on veut libérer, en déplaçant ses pods ailleurs)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Couper proprement : a l'arret, le Pod recoit SIGTERM et dispose d'un delai pour terminer avant le SIGKILL.",
+          "body": "/images/lessons/arret-gracieux-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La course endpoint / SIGTERM",
+          "body": "Voici un **piège subtil et très répandu**. On parle de **course** (en anglais *race*, comme dans « course de vitesse ») : c'est une situation où **deux événements se produisent presque en même temps** et où le résultat dépend de **qui finit en premier**, ce qui rend le comportement imprévisible.\n\nLe problème : à l'étape 1, le retrait des Endpoints, et à l'étape 3, l'envoi de SIGTERM, sont déclenchés **quasi simultanément**. Or le retrait de la liste doit se **propager** (se répercuter) à **tous** les composants qui aiguillent le trafic, et cela **prend un court instant** :\n- **kube-proxy** : le composant présent **sur chaque nœud** qui applique les règles de routage vers les pods,\n- l'**Ingress** : la **porte d'entrée** du trafic venu de l'extérieur du cluster,\n- parfois des caches **DNS** (le **DNS**, de *Domain Name System*, est l'annuaire qui traduit un nom en adresse).\n\nRésultat de la course : pendant ce bref instant, l'application a **déjà reçu SIGTERM** (elle commence à s'arrêter) alors que du **trafic continue d'arriver** (les règles de routage ne sont pas encore toutes à jour). Ces requêtes-là **tombent** : l'utilisateur reçoit une erreur, typiquement un **502** (*Bad Gateway* : le code HTTP qui signifie « l'intermédiaire n'a pas réussi à joindre le serveur derrière »). Concrètement, **quelques requêtes échouent à chaque déploiement**.\n\n👉 **Analogie** : tu quittes ton poste (SIGTERM) au moment **précis** où le standard n'a pas encore fini de prévenir tout le monde de ne plus te transférer d'appels. Pendant quelques secondes, des appels arrivent dans le vide.\n\n**La parade classique** : un **hook `preStop` avec un `sleep`** (une petite pause de quelques secondes). Le pod **attend AVANT** de recevoir SIGTERM, ce qui **laisse le temps** au retrait de route de se propager partout ; quand SIGTERM arrive enfin, plus aucun nouveau trafic ne lui est envoyé. Attention, cela ne dispense de rien : l'application doit **aussi** gérer SIGTERM correctement (cesser d'accepter, finir les requêtes en cours, fermer proprement ses connexions)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une extinction en douceur : l'arret gracieux laisse finir les requetes en cours avant de fermer le conteneur.",
+          "body": "/images/lessons/arret-gracieux-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "La séquence d'arrêt, en image",
+          "diagramFormat": "MERMAID",
+          "body": "sequenceDiagram\n    participant U as Utilisateur\n    participant S as Service (Endpoints)\n    participant P as Pod (app)\n    U->>S: requetes\n    S->>P: trafic route vers le pod\n    Note over P: kubectl delete / rolling update\n    S-->>P: 1. retire des Endpoints (plus de NOUVEAU trafic)\n    Note over P: 2. hook preStop (sleep) : laisse le retrait se propager\n    S--xP: nouveau trafic bloque\n    P->>P: 3. SIGTERM recu : finit les requetes en cours\n    Note over P: 4. attente terminationGracePeriodSeconds (30s par defaut)\n    P->>P: 5. SIGKILL si toujours vivant (arret force)"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Un arrêt gracieux robuste",
+          "codeLanguage": "yaml",
+          "body": "spec:\n  terminationGracePeriodSeconds: 45     # laisser le temps de finir\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      lifecycle:\n        preStop:\n          exec:\n            # attendre que le pod soit retiré du routage AVANT SIGTERM\n            command: [\"sh\", \"-c\", \"sleep 5\"]\n# L'application, elle, doit intercepter SIGTERM : cesser d'accepter,\n# finir les requêtes en cours, fermer proprement les connexions."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "À chaque rolling update, une petite fraction des requêtes échoue avec des erreurs 502 pendant quelques secondes, alors que l'application gère pourtant correctement SIGTERM. Quelle course est en cause, et quelle est la parade classique ?",
+          "solution": "La course en cause est celle entre le retrait du pod du routage et la fin effective de son arrêt. Lors de la terminaison, Kubernetes fait deux choses quasi simultanément : il retire le pod des Endpoints du Service ET envoie SIGTERM au conteneur. Or le retrait des Endpoints doit se PROPAGER à tous les points de routage, kube-proxy sur chaque nœud, l'Ingress Controller, éventuellement des caches DNS, ce qui prend un court instant. Pendant ce laps de temps, l'application a déjà commencé à s'arrêter (elle a reçu SIGTERM et gère proprement la fin des requêtes en cours), mais du NOUVEAU trafic peut encore lui être routé par des composants pas encore à jour → ces nouvelles connexions tombent (502/refus), d'où les erreurs pendant le rollout. Le fait que l'app gère bien SIGTERM ne suffit donc pas : le problème est le décalage de propagation du retrait de route. Parade classique : ajouter un hook preStop avec un petit sleep (ex. `sleep 5`). Le pod attend ce délai AVANT que SIGTERM ne soit envoyé, ce qui laisse le temps à tous les composants de retirer le pod du routage ; quand l'app reçoit enfin SIGTERM, plus aucun nouveau trafic ne lui arrive, et elle termine tranquillement les requêtes en cours dans la terminationGracePeriodSeconds. On combine donc : preStop sleep (attendre le retrait des routes) + gestion de SIGTERM par l'app (finir proprement) + une grace period suffisante. C'est le pattern standard pour des déploiements réellement sans coupure."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Arrêt gracieux (expert)",
+          "quizRef": "graceful-shutdown-expert"
+        }
+      ]
+    },
+    {
+      "slug": "debug-et-patterns-avances",
+      "title": "Debug & patterns avancés",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Déboguer un pod minimal : ephemeral containers",
+          "body": "**Déboguer**, c'est **enquêter dans un programme pour comprendre pourquoi il se comporte mal**. Le souci : beaucoup d'images de production sont **distroless** (« sans distribution ») : on en a retiré tout ce qui n'est pas strictement nécessaire à l'application, **y compris le shell et les outils**. Un **shell** est l'**interpréteur de commandes** (le programme qui te donne une invite pour taper `ls`, `cat`, etc. **à l'intérieur** du conteneur). Sans shell, la commande habituelle **`kubectl exec`** (« exécuter une commande dans un conteneur existant ») ne peut même pas lancer `sh` : il n'y a rien à lancer.\n\n👉 **Analogie** : c'est une **voiture de course sans tableau de bord ni poignées intérieures** : allégée à l'extrême pour la performance, mais impossible à inspecter de l'intérieur avec les moyens du bord.\n\nLa réponse moderne : **`kubectl debug`**. Cette commande **injecte un ephemeral container** dans le pod. Un **ephemeral container** (« conteneur éphémère », temporaire) est un conteneur **ajouté à un pod déjà en cours d'exécution**, **sans le redémarrer ni le recréer**, avec l'image de débogage de ton choix (par exemple **busybox**, une mini-boîte à outils, ou **netshoot**, une trousse réseau bien fournie). Ce conteneur temporaire **partage les namespaces** du pod cible. Un **namespace** (« espace de noms ») est un **cloisonnement du système** qui définit ce qu'un conteneur voit (son réseau, ses processus...) ; **partager le namespace réseau**, par exemple, veut dire « voir exactement le même réseau que le conteneur applicatif ». 👉 **Analogie** : tu ne peux pas entrer **dans** la voiture allégée, alors tu **accroches à côté une remorque-atelier** pleine d'outils, branchée sur les mêmes commandes : tu diagnostiques de l'extérieur sans toucher à la voiture.\n\nRésultat : tu obtiens un shell et des outils **à côté** du conteneur applicatif, **sans reconstruire l'image** ni casser sa minimalité. On peut aussi créer une **copie** du pod avec des modifications pour investiguer plus librement. C'est l'outil standard de débogage en production sur des images épurées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "A la loupe : les ephemeral containers permettent d'inspecter un Pod minimal sans le modifier.",
+          "body": "/images/lessons/debug-et-patterns-avances-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "kubectl debug en action",
+          "codeLanguage": "bash",
+          "body": "# Injecter un conteneur de debug (avec des outils) dans un pod distroless\nkubectl debug -it pod/mon-api --image=nicolaka/netshoot \\\n  --target=api -- bash\n#   partage le namespace du conteneur 'api' : on inspecte son réseau,\n#   ses process, ses fichiers -- sans que l'image applicative ait de shell.\n\n# Déboguer un nœud entier\nkubectl debug node/mon-noeud -it --image=busybox"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Sidecars natifs & Downward API",
+          "body": "Deux mécaniques utiles à connaître.\n\n**Les sidecars natifs** (stables depuis la version 1.29 de Kubernetes). Rappel : un **sidecar** est un conteneur d'assistance qui vit dans le même pod que le conteneur principal. Historiquement, on ne maîtrisait pas bien **l'ordre** de démarrage et d'arrêt des conteneurs d'un pod, ce qui posait des problèmes. Un **sidecar natif** est un sidecar déclaré comme **init container** avec l'option **`restartPolicy: Always`** (« politique de redémarrage : toujours »). Cette astuce lui donne deux garanties précieuses : il **démarre AVANT** les conteneurs principaux et **s'arrête APRÈS** eux. 👉 **Exemple concret** : un proxy de service mesh doit être **prêt avant** l'application (sinon les toutes premières requêtes de l'app partent dans le vide), et un collecteur de logs doit rester **actif après** l'app (pour capter ses tout derniers messages au moment de l'arrêt). Les sidecars natifs règlent proprement ces problèmes d'ordre.\n\n**La Downward API** (« l'API descendante » : les informations qui **descendent** de Kubernetes vers le conteneur). C'est un mécanisme qui **expose au conteneur des informations sur lui-même** : le nom de son pod, son namespace, le nœud qui l'héberge, ses labels, ses limites de ressources (mémoire, CPU). Ces infos sont fournies via des **variables d'environnement** (des **valeurs nommées que le système met à disposition du programme**, par exemple `POD_NAME=web-abc123`) ou via des fichiers. L'intérêt : le conteneur connaît ces valeurs **sans les coder en dur** et **sans appeler l'API** de Kubernetes. 👉 **Exemple concret** : une application peut inscrire son propre nom de pod dans chacun de ses logs (pour savoir quel exemplaire a produit quoi), ou caler la taille de sa mémoire de travail (le *heap*, en Java) sur la **limite mémoire réelle** que le pod lui a allouée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deboguer avec methode : kubectl debug ouvre un conteneur d'investigation directement dans le Pod en panne.",
+          "body": "/images/lessons/debug-et-patterns-avances-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Bien régler les probes (niveau expert)",
+          "body": "Des probes (les sondes de santé vues plus haut) **mal réglées** provoquent des pannes **silencieuses** : le cluster « redémarre tout seul » sans qu'on comprenne pourquoi. Voyons comment les régler correctement.\n\nD'abord, une probe peut tester la santé de **quatre** façons :\n- **`httpGet`** : appeler une **URL** du conteneur et vérifier qu'elle répond correctement (le cas le plus courant, par exemple `/health`).\n- **`tcpSocket`** : juste vérifier qu'un **port réseau répond** (utile quand il n'y a pas d'URL de santé).\n- **`exec`** : lancer **une commande dans le conteneur** et vérifier qu'elle réussit (code de sortie 0).\n- **`grpc`** : test natif pour les services qui parlent le protocole **gRPC** (un protocole de communication performant entre services).\n\nEnsuite, quelques **réglages** qui comptent (des durées, en secondes) :\n- **`initialDelaySeconds`** : combien de temps **attendre avant le premier test** ; ou, mieux pour une appli lente, utiliser une **startupProbe** dédiée (sinon la liveness risque de **tuer l'appli avant qu'elle ait fini de démarrer**).\n- **`periodSeconds`** : **à quelle fréquence** relancer le test (toutes les X secondes).\n- **`failureThreshold`** : **combien d'échecs de suite** sont tolérés avant de déclarer la sonde en échec.\n- **`timeoutSeconds`** : **combien de temps** attendre une réponse avant de compter ce test comme échoué.\n\n👉 **Le piège classique** : une liveness **trop agressive** (délai trop court, seuil trop bas) **redémarre une application qui est juste un peu lente sous forte charge**, ce qui la surcharge encore plus au redémarrage : un **cercle vicieux**.\n\n👉 **La règle d'expert**, déjà vue mais capitale : la **liveness** teste la santé **interne** du processus (jamais une dépendance externe comme la base de données) ; la **readiness** gère le trafic (elle, peut inclure les dépendances). Des probes bien calibrées font la différence entre un cluster **stable** et un cluster qui **redémarre en boucle**."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Vous devez capturer le trafic réseau d'un pod applicatif en production pour diagnostiquer un problème, mais son image est distroless (aucun shell ni tcpdump), et vous ne voulez ni la reconstruire ni redémarrer le pod. Comment procéder ?",
+          "solution": "On utilise kubectl debug pour injecter un ephemeral container dans le pod en cours d'exécution. Un ephemeral container est un conteneur temporaire ajouté à un pod EXISTANT (sans le redémarrer ni le recréer), qui partage les namespaces du pod ciblé, notamment le namespace réseau. On lance donc un conteneur de debug avec une image outillée (ex. nicolaka/netshoot, qui contient tcpdump, curl, dig, ss...) en ciblant le conteneur applicatif : `kubectl debug -it pod/<nom> --image=nicolaka/netshoot --target=<conteneur> -- bash`. Comme ce conteneur de debug partage la pile réseau du pod, on y exécute tcpdump et on capture exactement le trafic du pod applicatif, alors que l'image distroless de l'app, elle, n'a ni shell ni tcpdump. Avantages : on ne reconstruit pas l'image (la minimalité/sécurité de l'image de prod est préservée), on ne redémarre pas le pod (pas d'interruption, on observe l'état réel de l'incident), et on dispose d'outils riches le temps du diagnostic. À la fin, l'ephemeral container disparaît avec le pod (ou on le laisse, il ne redémarre pas). C'est le pendant Kubernetes du nsenter/docker debug vu côté conteneurs : déboguer une image minimale de l'extérieur, sans la dénaturer."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Debug & patterns avancés (expert)",
+          "quizRef": "pods-debug-expert"
+        }
+      ]
+    }
+  ]
+}

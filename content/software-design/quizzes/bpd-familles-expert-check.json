@@ -1,0 +1,101 @@
+{
+  "ref": "bpd-familles-expert-check",
+  "node": "boundaries-policy-detail",
+  "lesson": "familles-architecture-frontieres-partielles",
+  "title": "Quiz, Familles d'architecture & frontières (expert)",
+  "description": "Hexagonal/Onion/Clean, frontières partielles, Anti-Corruption Layer.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'ont en commun l'architecture hexagonale, onion et clean ?",
+      "justification": "La règle des dépendances : le code source pointe vers l'intérieur, le domaine ne dépend de rien. Les différences sont d'emphase (symétrie des ports vs anneaux vs use cases formalisés).",
+      "position": 0,
+      "options": [
+        {
+          "label": "La règle des dépendances : dépendances de code vers l'intérieur, domaine indépendant",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'obligation d'utiliser exactement quatre couches",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'interdiction des interfaces",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise particulièrement l'hexagonal (Ports & Adapters) ?",
+      "justification": "La symétrie des ports, avec distinction des côtés driving/primaires (qui pilotent l'app) et driven/secondaires (que l'app pilote), sans notion de couches.",
+      "position": 1,
+      "options": [
+        {
+          "label": "La symétrie des ports (primaires/driving vs secondaires/driven)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Des anneaux concentriques numérotés",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'absence de domaine",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi recourir à une frontière partielle plutôt qu'une frontière complète ?",
+      "justification": "Une frontière complète (port + adapter + DTO + inversion) a un coût ; une frontière partielle (Facade, Strategy à sens unique) donne une partie du bénéfice à moindre coût, quand la complète serait du sur-engineering (YAGNI).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Obtenir une partie du bénéfice à moindre coût, quand la complète serait du sur-engineering",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que les frontières complètes sont toujours interdites",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour supprimer le domaine",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que protège un Anti-Corruption Layer ?",
+      "justification": "La cohérence conceptuelle : il traduit le modèle d'un contexte/legacy/tiers étranger en votre modèle, empêchant un vocabulaire étranger de corrompre votre langage ubiquitaire. C'est une frontière sémantique.",
+      "position": 3,
+      "options": [
+        {
+          "label": "La cohérence conceptuelle de votre domaine face à un modèle étranger (frontière sémantique)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Uniquement la performance réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des mots de passe",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "ref": "concurrence-rappels-problemes-classiques",
+  "node": "concurrence-rappels",
+  "lesson": "problemes-classiques",
+  "title": "Quiz : les problèmes classiques",
+  "description": "Blocage sur I/O, coût mémoire d'un thread plateforme et sa limite pratique.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe t il quand un thread bloque sur une I/O (par exemple une réponse réseau) ?",
+      "justification": "Pendant une I/O, le thread ne calcule rien, il attend ; mais il reste immobilisé et occupé, donc indisponible pour tout autre travail pendant toute l'attente.",
+      "position": 0,
+      "options": [
+        { "label": "Il attend sans rien calculer, tout en restant occupé et indisponible.", "correct": true, "position": 0 },
+        { "label": "Il se transforme automatiquement en plusieurs threads.", "correct": false, "position": 1 },
+        { "label": "Il libère sa pile mémoire et disparait le temps de l'attente.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Environ combien de mémoire de pile réserve par défaut un thread plateforme, et quelle limite pratique cela impose ?",
+      "justification": "Chaque thread plateforme réserve environ 1 Mo de pile dès sa création ; la mémoire s'épuise donc vite, ce qui limite en pratique à quelques milliers de threads sur une machine ordinaire.",
+      "position": 1,
+      "options": [
+        { "label": "Environ 1 Mo par thread, d'où une limite pratique de quelques milliers de threads.", "correct": true, "position": 0 },
+        { "label": "Environ 1 Ko par thread, on peut donc en créer des milliards.", "correct": false, "position": 1 },
+        { "label": "Aucune mémoire, un thread est totalement gratuit.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un serveur gère 10 000 clients, presque tous en attente d'une réponse de base de données, avec un pool de 200 threads plateforme. Le serveur ne répond plus alors que le processeur est quasi inactif. Pourquoi ?",
+      "justification": "Chaque thread du pool qui bloque sur une I/O est indisponible pour les autres clients. Quand les 200 threads attendent tous une I/O, plus aucun n'est libre, même si le processeur ne fait presque rien.",
+      "position": 2,
+      "options": [
+        { "label": "Les 200 threads sont tous bloqués en attente d'I/O, donc aucun n'est libre pour servir les autres clients.", "correct": true, "position": 0 },
+        { "label": "Le processeur est à 100 % à cause de trop de calculs.", "correct": false, "position": 1 },
+        { "label": "Le pool a créé automatiquement 10 000 threads et saturé les coeurs.", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

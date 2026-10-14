@@ -1,0 +1,10 @@
+{
+  "node": "container-security",
+  "lesson": "securite-des-images",
+  "title": "Faire échouer un build en CI sur une CVE critique",
+  "statement": "Dans une pipeline de CI, écris la commande Trivy qui scanne l'image `monorg/api:1.4.0` et fait ÉCHOUER le build (code de sortie non nul) si au moins une vulnérabilité de sévérité HIGH ou CRITICAL est trouvée. Astuce : `--severity` filtre les niveaux à considérer, et `--exit-code 1` demande à Trivy de renvoyer une erreur si des vulnérabilités correspondantes existent.",
+  "skeleton": "# Scan de l'image en CI, échouer sur HIGH ou CRITICAL\n",
+  "solution": "trivy image --severity HIGH,CRITICAL --exit-code 1 monorg/api:1.4.0",
+  "keyPoints": ["trivy image", "--severity HIGH,CRITICAL", "--exit-code 1", "monorg/api:1.4.0"],
+  "language": "bash"
+}

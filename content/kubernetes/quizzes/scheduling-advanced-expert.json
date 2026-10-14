@@ -1,0 +1,96 @@
+{
+  "ref": "scheduling-advanced-expert",
+  "node": "scheduling",
+  "lesson": "ordonnancement-avance",
+  "title": "Ordonnancement avancé, expert",
+  "description": "required vs preferred, taints automatiques/tolerationSeconds, descheduler.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre une nodeAffinity required et preferred ?",
+      "justification": "required est une contrainte dure (pod Pending si aucun nœud ne convient) ; preferred est souple (préférence, mais placement ailleurs sinon).",
+      "position": 0,
+      "options": [
+        {
+          "label": "required = contrainte dure, preferred = préférence souple",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "required = souple, preferred = dure",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune différence",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les pods d'un nœud tombé mettent-ils ~5 min à être replanifiés ?",
+      "justification": "Le taint automatique unreachable/not-ready + une tolerationSeconds (≈300 s) temporisent l'éviction, pour éviter de réagir aux coupures transitoires.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le taint automatique + tolerationSeconds (≈300 s) temporisent l'éviction",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Kubernetes est lent par nature",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le DNS met 5 min à se propager",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le Descheduler ?",
+      "justification": "À évincer périodiquement des pods mal placés (dérive après le placement initial) pour qu'ils soient replanifiés mieux (équilibrage, consolidation).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Rééquilibrer en évinçant des pods mal placés dans le temps",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer définitivement des pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le scheduler",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La vraie résilience à la perte d'un nœud passe surtout par la redondance (répliques réparties via topologySpreadConstraints), pas seulement par le délai de replanification.",
+      "justification": "Vrai : avec des répliques bien réparties, la perte d'un nœud n'affecte qu'une réplique et le service continue, indépendamment du délai d'éviction.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

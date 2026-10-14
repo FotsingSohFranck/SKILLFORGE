@@ -1,0 +1,53 @@
+{
+  "ref": "sql-modeling-agregation-check",
+  "node": "sql-modeling",
+  "lesson": "agreger-et-grouper",
+  "title": "Agréger & grouper",
+  "description": "Fonctions d'agrégation, GROUP BY, WHERE vs HAVING, COUNT.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle fonction d'agrégation donne la moyenne d'une colonne ?",
+      "justification": "AVG calcule la moyenne. COUNT compte, SUM additionne, MAX prend le plus grand.",
+      "position": 0,
+      "options": [
+        { "label": "AVG", "correct": true, "position": 0 },
+        { "label": "SUM", "correct": false, "position": 1 },
+        { "label": "MAX", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert `GROUP BY roadmap` ?",
+      "justification": "GROUP BY forme des groupes (ici un par parcours) sur lesquels les fonctions d'agrégation calculent un résultat par groupe.",
+      "position": 1,
+      "options": [
+        { "label": "Calculer une valeur agrégée par parcours (un résultat par groupe)", "correct": true, "position": 0 },
+        { "label": "Trier le résultat par parcours", "correct": false, "position": 1 },
+        { "label": "Supprimer les parcours en double", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle clause filtre les GROUPES, après agrégation ?",
+      "justification": "HAVING filtre après GROUP BY ; WHERE filtre les lignes avant le regroupement.",
+      "position": 2,
+      "options": [
+        { "label": "HAVING", "correct": true, "position": 0 },
+        { "label": "WHERE", "correct": false, "position": 1 },
+        { "label": "ORDER BY", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Avec un LEFT JOIN, tu veux un vrai 0 pour les parcours sans inscription. Quel comptage ?",
+      "justification": "COUNT(*) compterait 1 pour la ligne à NULL. COUNT(e.id) ne compte que les valeurs non nulles côté enrollments, donc 0 s'il n'y a pas d'enfant.",
+      "position": 3,
+      "options": [
+        { "label": "COUNT(e.id) (une colonne du côté enrollments)", "correct": true, "position": 0 },
+        { "label": "COUNT(*)", "correct": false, "position": 1 },
+        { "label": "SUM(e.id)", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

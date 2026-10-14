@@ -1,0 +1,96 @@
+{
+  "ref": "scaling-databases-sharding-check",
+  "node": "scaling-databases",
+  "lesson": "sharding",
+  "title": "Quiz, Sharding",
+  "description": "Répartir les écritures, clé de sharding, scatter-gather, hotspots.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Contrairement à la réplication, le sharding met à l'échelle surtout…",
+      "justification": "Le sharding répartit les données (et donc les écritures) sur plusieurs serveurs, chacun encaissant sa part. La réplication, elle, ne scale que les lectures.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les écritures",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les sauvegardes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle qualité doit avoir une bonne clé de sharding ?",
+      "justification": "Elle doit répartir la charge uniformément (haute cardinalité) entre les shards, pour éviter qu'un shard devienne un hotspot.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Répartir la charge uniformément entre les shards",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Concentrer le trafic sur un seul shard",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Être toujours identique pour toutes les lignes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "La base est shardée par `user_id`. Une requête cherche « tous les utilisateurs de Paris ». Que se passe-t-il ?",
+      "justification": "La requête ne porte pas la clé de sharding : la base doit interroger tous les shards puis agréger (scatter-gather), au rythme du shard le plus lent.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Elle interroge tous les shards puis agrège (scatter-gather)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle ne touche qu'un seul shard, très vite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle échoue systématiquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le sharding devrait être la première solution de mise à l'échelle envisagée.",
+      "justification": "Faux : on optimise, on cache puis on réplique d'abord. Le sharding casse jointures et transactions ; il vient en dernier recours.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

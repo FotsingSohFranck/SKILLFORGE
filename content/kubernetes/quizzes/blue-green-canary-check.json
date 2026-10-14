@@ -1,0 +1,63 @@
+{
+  "ref": "blue-green-canary-check",
+  "node": "deployment-strategies",
+  "lesson": "blue-green-et-canary",
+  "title": "Blue-green & canary",
+  "description": "Blue-green (bascule d'un coup), canary (fraction du trafic), compatibilité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En quoi consiste un déploiement blue-green ?",
+      "justification": "Deux environnements complets en parallèle (blue actif, green nouveau) ; on bascule le trafic d'un coup vers green une fois validé.",
+      "position": 0,
+      "options": [
+        { "label": "Deux environnements parallèles ; bascule instantanée du trafic", "correct": true, "position": 0 },
+        { "label": "Un seul pod mis à jour à la main", "correct": false, "position": 1 },
+        { "label": "La suppression des anciens pods sans remplacement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En quoi consiste un déploiement canary ?",
+      "justification": "Router une petite fraction du trafic vers la nouvelle version, surveiller, puis généraliser progressivement (ou annuler).",
+      "position": 1,
+      "options": [
+        { "label": "Router une fraction du trafic, surveiller, puis généraliser", "correct": true, "position": 0 },
+        { "label": "Basculer 100 % du trafic d'emblée", "correct": false, "position": 1 },
+        { "label": "Supprimer la moitié des nœuds", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel avantage majeur du blue-green ?",
+      "justification": "Le rollback immédiat : en cas de problème, on re-pointe le trafic sur blue instantanément.",
+      "position": 2,
+      "options": [
+        { "label": "Rollback immédiat en re-pointant sur blue", "correct": true, "position": 0 },
+        { "label": "Il ne consomme aucune ressource supplémentaire", "correct": false, "position": 1 },
+        { "label": "Il supprime le besoin de tests", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel outil met en œuvre un vrai canary (routage pondéré + analyse) au-delà du Deployment brut ?",
+      "justification": "Argo Rollouts ou Flagger (souvent avec un service mesh) automatisent la montée progressive et le rollback sur métriques.",
+      "position": 3,
+      "options": [
+        { "label": "Argo Rollouts / Flagger", "correct": true, "position": 0 },
+        { "label": "etcd", "correct": false, "position": 1 },
+        { "label": "kube-proxy", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Quelle que soit la stratégie, l'ancienne et la nouvelle version coexistent un moment, ce qui exige une compatibilité de schéma et de contrats.",
+      "justification": "Vrai : une stratégie sûre est autant une affaire de conception (compatibilité, feature flags, readiness) que de mécanique Kubernetes.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

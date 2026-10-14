@@ -1,0 +1,96 @@
+{
+  "ref": "locals-ephemeral-expert",
+  "node": "locals-outputs",
+  "lesson": "locals-transformations-et-ephemeral",
+  "title": "Transformations & sorties avancées, expert",
+  "description": "for/flatten dans les locals, valeurs ephemeral (1.10+) vs sensitive.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le pattern courant avec les locals et for expressions ?",
+      "justification": "Transformer/aplatir/indexer des données dans un local, puis passer la map résultante à un for_each, logique centralisée, ressources lisibles.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Transformer dans un local, consommer via for_each",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Écrire toute la logique dans chaque ressource",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Éviter les for expressions",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit une valeur ephemeral (Terraform 1.10+) ?",
+      "justification": "Elle n'est jamais écrite dans le state ni le plan : elle n'existe que pendant l'exécution, idéal pour les secrets.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Elle n'est jamais persistée dans le state ni le plan",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle est chiffrée dans le state",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle est affichée en clair",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Différence entre `sensitive` et `ephemeral` pour un secret ?",
+      "justification": "sensitive masque l'affichage mais garde la valeur en clair dans le state ; ephemeral ne la persiste nulle part (ni state ni plan).",
+      "position": 2,
+      "options": [
+        {
+          "label": "sensitive masque l'affichage (garde dans le state) ; ephemeral ne persiste pas",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont des synonymes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "ephemeral affiche en clair",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Marquer un secret sensitive suffit à garantir qu'il n'apparaît pas dans le fichier d'état.",
+      "justification": "Faux : sensitive ne masque que l'affichage ; la valeur reste en clair dans le state. Pour ne pas le persister, on utilise les ephemerals.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

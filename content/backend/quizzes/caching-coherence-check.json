@@ -1,0 +1,52 @@
+{
+  "ref": "caching-coherence-check",
+  "node": "caching",
+  "lesson": "coherence-races-invalidation",
+  "title": "Quiz : Cohérence & races d'invalidation",
+  "description": "Ordre d'écriture, supprimer plutôt que mettre à jour, race résiduelle, clés immuables.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En cache-aside, quel est le bon ordre lors d'une écriture ?",
+      "justification": "On écrit d'abord la base, puis on supprime la clé du cache. L'ordre inverse laisse une lecture concurrente recharger l'ancienne valeur encore en base et la re-cacher.",
+      "position": 0,
+      "options": [
+        { "label": "Écrire d'abord la base, puis supprimer la clé du cache", "correct": true, "position": 0 },
+        { "label": "Supprimer la clé du cache, puis écrire la base", "correct": false, "position": 1 },
+        { "label": "Mettre à jour la clé du cache, sans toucher la base", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi supprimer l'entrée du cache plutôt que la mettre à jour lors d'une écriture ?",
+      "justification": "Mettre à jour le cache ouvre des races entre écritures concurrentes qui pourraient déposer leurs valeurs dans le désordre. Supprimer force un rechargement propre depuis la base à la prochaine lecture.",
+      "position": 1,
+      "options": [
+        { "label": "Pour éviter les races entre écritures concurrentes qui laisseraient une mauvaise valeur", "correct": true, "position": 0 },
+        { "label": "Parce que la suppression est plus rapide à taper", "correct": false, "position": 1 },
+        { "label": "Parce que Redis interdit la mise à jour d'une clé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle approche supprime carrément le besoin d'invalidation ?",
+      "justification": "Cacher de l'immuable sous une clé versionnée ou à empreinte : une modification crée une nouvelle clé, l'ancienne n'est plus jamais demandée et expire seule. C'est le principe du cache busting appliqué aux données.",
+      "position": 2,
+      "options": [
+        { "label": "Cacher de l'immuable sous une clé versionnée / à empreinte (une modification crée une nouvelle clé)", "correct": true, "position": 0 },
+        { "label": "Augmenter indéfiniment le TTL", "correct": false, "position": 1 },
+        { "label": "Désactiver le cache la nuit", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec l'ordre « base d'abord, puis suppression de la clé », plus aucune race n'est possible.",
+      "justification": "Faux : il reste une race résiduelle (un lecteur suspendu qui re-cache une ancienne valeur). On l'atténue par un TTL court, le delayed double delete ou des clés versionnées.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

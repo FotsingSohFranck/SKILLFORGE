@@ -1,0 +1,122 @@
+{
+  "node": "providers",
+  "lessons": [
+    {
+      "slug": "le-registry-et-les-providers",
+      "title": "Le Registry & les providers",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un provider par plateforme",
+          "body": "Terraform, tout seul, ne sait rien faire de concret. Il connaît un langage (le **HCL**, pour *HashiCorp Configuration Language*, le langage dans lequel tu décris ce que tu veux) mais il ne sait pas, par lui-même, créer un serveur chez Amazon ou un projet chez Google. Ce qui lui donne ce pouvoir, ce sont les **providers**.\n\nUn **provider** est un **plugin** (un module d'extension qu'on branche sur Terraform pour lui ajouter une capacité) qui apprend à Terraform à gérer les ressources d'une **plateforme** précise. Le provider **aws** connaît les ressources d'Amazon Web Services (les serveurs, les espaces de stockage, les réseaux). Le provider **google** connaît celles de Google Cloud. Le provider **kubernetes** connaît les objets d'un cluster Kubernetes. Il en existe des **milliers**.\n\nConcrètement, le provider fait le **traducteur** : il prend ton bloc écrit en HCL et le transforme en **appels d'API** vers la plateforme. Une **API** (*Application Programming Interface*), c'est la porte d'entrée par laquelle un programme parle à un service : au lieu de cliquer dans une interface web, ton code envoie des requêtes que le service comprend. Le provider sait aussi lire l'état réel côté plateforme pour le comparer à ce que tu as demandé.\n\n👉 **Analogie** : Terraform est un **voyageur** qui parle une seule langue (le HCL). Chaque provider est un **interprète** local : celui qui parle « amazonien » te permet de te débrouiller chez AWS, celui qui parle « googlien » chez Google Cloud. Tu apprends une seule langue, et tu changes juste d'interprète selon le pays où tu vas.\n\n**Exemple concret** : tu veux créer un serveur chez AWS. Tu écris un bloc HCL qui dit « je veux une instance de type `t3.micro` ». Le provider aws lit ce bloc, appelle l'API d'Amazon avec la bonne requête, et Amazon crée la machine. Tu n'as jamais eu à connaître le détail de l'API d'Amazon : le provider l'a fait pour toi.\n\nOù trouve-t-on ces providers ? Sur le **Terraform Registry** (registre, sur *registry.terraform.io*), une bibliothèque publique en ligne où HashiCorp et la communauté publient tous les providers disponibles, chacun avec sa documentation. C'est là que Terraform va **télécharger** le bon plugin quand tu lances `terraform init`."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Comment un provider parle à la plateforme",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  A[\"Ton code HCL<br/>(main.tf)\"] --> B[\"Terraform Core<br/>(le moteur)\"]\n  B --> C[\"Provider aws<br/>(le plugin traducteur)\"]\n  C -->|\"appels d'API\"| D[\"Plateforme AWS<br/>(le vrai cloud)\"]\n  D -->|\"etat reel des ressources\"| C\n  C --> B\n  R[\"Terraform Registry<br/>(bibliotheque de plugins)\"] -.->|\"telecharge le provider<br/>au terraform init\"| C"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Déclarer & configurer un provider",
+          "codeLanguage": "hcl",
+          "body": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"    # depuis le Registry\n      version = \"~> 5.0\"           # contrainte de version\n    }\n  }\n}\n\n# Configurer le provider (région, authentification via l'environnement)\nprovider \"aws\" {\n  region = \"eu-west-3\"\n  # les credentials viennent des variables d'env / du profil, PAS du code\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Ne jamais mettre ses credentials dans le code",
+          "body": "Pour agir sur une plateforme, un provider doit d'abord **s'authentifier** : prouver qui il est et qu'il a le droit d'agir. Ce qui sert à cette preuve, ce sont les **credentials** (les identifiants d'accès : par exemple, chez AWS, une clé d'accès et une clé secrète, un peu comme un identifiant et un mot de passe pour un robot).\n\n**Règle absolue : jamais de credentials en dur dans les fichiers `.tf`.** En dur veut dire « écrits directement dans le code ». Pourquoi ce danger ? Parce que les fichiers `.tf` sont du **code versionné** : ils partent dans **Git** (l'outil qui garde tout l'historique du projet) et deviennent visibles par toute personne ayant accès au dépôt. Une clé qui a été committée reste dans l'historique **pour toujours**, même si tu l'effaces dans un commit suivant. Une clé AWS ainsi exposée, c'est la porte ouverte : un attaquant peut créer des ressources à tes frais, voler des données, ou miner de la cryptomonnaie sur ton compte.\n\n👉 **Analogie** : coller ses clés d'accès dans le code, c'est comme **écrire le code de ta carte bancaire au dos de la carte**, puis prêter la carte à tout le monde. Tu ranges le secret exactement là où il ne faut pas.\n\nAlors, où mettre ces credentials ? **Hors du code**, fournis par l'environnement qui exécute Terraform :\n- des **variables d'environnement** (des valeurs que le système garde en mémoire pour les programmes, comme `AWS_ACCESS_KEY_ID`), que le provider lit automatiquement sans qu'elles apparaissent dans les fichiers ;\n- un **profil de credentials local** (un fichier `~/.aws/credentials` sur ta machine, hors du dépôt) ;\n- mieux encore en production : une **identité fédérée**, c'est-à-dire une identité temporaire accordée par la plateforme elle-même (un **rôle IAM** assumé par la machine, ou l'**OIDC** en intégration continue), sans aucune clé longue à stocker.\n\nLe bloc `provider` ne contient alors que de la **configuration non secrète** : la région, les adresses de service. C'est exactement le même principe que « pas de secret dans une image Docker » : la partie sensible vient de l'environnement d'exécution, jamais du dépôt.\n\n**Exemple concret** : au lieu d'écrire ta clé dans `main.tf`, tu la poses une fois dans ton terminal avec `export AWS_ACCESS_KEY_ID=...`, et le provider aws la récupère tout seul au moment du `plan`. Ton code, lui, ne contient aucun secret et peut être partagé sans risque."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un débutant écrit ses clés d'accès AWS directement dans le bloc `provider \"aws\"` de son fichier main.tf « pour que ça marche ». Pourquoi est-ce une faille grave, et comment fournir les credentials correctement ?",
+          "solution": "C'est une faille grave car les fichiers .tf sont du code, versionné dans Git : mettre des clés d'accès en dur dedans les expose de façon permanente. Elles se retrouvent dans l'historique du dépôt (même si on les supprime plus tard, elles restent dans les commits passés), visibles par quiconque a accès au repo, et exfiltrables si le dépôt fuite. Des clés AWS ainsi exposées permettent à un attaquant d'agir sur le compte cloud (créer des ressources, exfiltrer des données, miner de la crypto...). Il faut considérer toute clé committée comme COMPROMISE et la faire tourner immédiatement. Comment fournir les credentials correctement (hors du code) : (1) Variables d'environnement, le provider AWS lit AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (et éventuellement AWS_SESSION_TOKEN) depuis l'environnement d'exécution, sans qu'elles apparaissent dans le code. (2) Profil de credentials local (~/.aws/credentials) référencé par le provider. (3) Meilleure option en production/CI : une identité FÉDÉRÉE sans clé statique, un rôle IAM assumé par la machine (instance profile) ou, en CI, l'authentification OIDC (GitHub Actions vers AWS) qui fournit des credentials temporaires, sans aucune clé longue à stocker. Le bloc provider ne doit contenir que de la configuration NON sensible (région, endpoints). Principe général : la configuration secrète vient de l'environnement (variables, profil, identité fédérée), jamais du dépôt, exactement comme « pas de secret dans une image Docker ni dans le code »."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Le Registry & les providers",
+          "quizRef": "providers-registry-check"
+        }
+      ]
+    },
+    {
+      "slug": "gerer-les-versions",
+      "title": "Gérer les versions",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Épingler les versions pour la reproductibilité",
+          "body": "Les providers sont des logiciels comme les autres : ils **évoluent**. De nouvelles versions sortent, apportant des corrections, mais parfois aussi des **changements cassants** (en anglais *breaking changes*, des modifications qui rendent l'ancien code invalide, par exemple un attribut renommé ou supprimé).\n\nLe piège : si tu ne dis rien, `terraform init` (la commande qui prépare ton projet et télécharge les providers) prend **la dernière version disponible**. Résultat, un beau matin, sans que tu aies touché à une seule ligne, ton code casse « tout seul » parce que le provider a changé sous tes pieds.\n\nLa parade s'appelle **épingler** (en anglais *to pin*), c'est-à-dire **fixer une fourchette de versions autorisées**. On l'écrit dans le bloc `required_providers` à l'aide d'**opérateurs** :\n- `= 5.31.0` : exactement cette version, rien d'autre.\n- `>= 5.0` : au moins la 5.0, et tout ce qui est plus récent (peu prudent, laisse passer une future 6.0 cassante).\n- **`~> 5.0`** : l'opérateur dit **pessimiste**. Il autorise toutes les versions 5.x (les correctifs et petites nouveautés) mais **bloque** le passage à la version **majeure** suivante, la 6.0. C'est le plus courant, car il te fait profiter des corrections sans risquer le changement cassant.\n\n👉 **Analogie** : `~> 5.0`, c'est comme dire à ton libraire « donne-moi n'importe quelle réédition du tome 5 (avec ses coquilles corrigées), mais surtout **pas le tome 6**, c'est une autre histoire ». Tu acceptes les petites mises à jour, tu refuses le grand saut.\n\nUne fois la fourchette posée, il reste un second garde-fou : le **lock file** (fichier de verrouillage), nommé `.terraform.lock.hcl`. Terraform le crée automatiquement et y **fige la version exacte** qu'il a réellement choisie (par exemple `5.31.0`), plus des empreintes de vérification. Tu le committes dans Git, et ainsi **toute l'équipe** (et la machine d'intégration continue) installe **strictement la même version**.\n\n**Exemple concret** : tu écris `version = \"~> 5.0\"`. Le premier `init` choisit la 5.31.0 et l'inscrit dans le lock file. Trois mois plus tard, une 5.40.0 est sortie : ton collègue qui clone le projet obtient quand même la **5.31.0** (celle du lock file), tant que personne n'a lancé une mise à jour volontaire. Contraindre **plus** verrouiller, cela donne des builds **reproductibles** : la même entrée produit toujours la même sortie, sans surprise."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Version de Terraform & multiples providers (niveau expert)",
+          "body": "Au-delà des providers, on épingle aussi la **version de Terraform lui-même**, avec `required_version = \">= 1.5\"` dans le bloc `terraform`. Cela évite qu'une version trop ancienne (qui ne connaît pas une syntaxe que tu utilises) ou trop récente (qui a changé un comportement) ne casse le code sur la machine d'un collègue.\n\nCas plus avancé : parfois tu as besoin de **plusieurs instances du même provider**. Le cas typique : déployer dans **deux régions** AWS en même temps (par exemple l'Europe et les États-Unis pour de la réplication). Un seul bloc `provider \"aws\"` ne suffit plus, puisqu'il ne porte qu'une seule région.\n\nLa solution s'appelle l'**alias** (un surnom qu'on donne à une configuration de provider pour la distinguer des autres). On écrit un `provider \"aws\" { alias = \"europe\" region = \"eu-west-3\" }` et un second `provider \"aws\" { alias = \"usa\" region = \"us-east-1\" }`. Ensuite, sur chaque ressource, on précise laquelle utiliser avec le **meta-argument** `provider` (un argument spécial reconnu par tous les blocs, ici `provider = aws.europe`).\n\n👉 **Analogie** : `aws` sans alias, c'est « le » bureau AWS par défaut. Les alias `aws.europe` et `aws.usa`, ce sont **deux guichets étiquetés** du même service : tu passes au guichet Europe ou au guichet USA selon ce que tu veux faire, mais c'est la même administration (le même provider).\n\nEnfin, mettre à jour un provider vers une **version majeure** (passer de `~> 5.0` à `~> 6.0`) ne se fait jamais par hasard : c'est un acte **volontaire**. On lit d'abord le **guide de migration** (la page qui liste ce qui change et casse), on teste avec `terraform plan` (qui montre l'effet sans rien appliquer), puis on met à jour le lock file avec `terraform init -upgrade`. C'est ainsi qu'on garde la maîtrise plutôt que de subir les mises à jour."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Une équipe n'a mis aucune contrainte de version sur son provider AWS. Un matin, sans avoir changé leur code, leurs `terraform plan` échouent avec des erreurs sur des attributs qui « n'existent plus ». Que s'est-il passé, et quelle contrainte de version aurait évité cela ?",
+          "solution": "Ce qui s'est passé : sans contrainte de version dans required_providers, Terraform (lors d'un init sur une nouvelle machine, un runner CI frais, ou après suppression du cache) a récupéré la DERNIÈRE version disponible du provider AWS. Or une nouvelle version MAJEURE du provider est sortie, introduisant des changements cassants (breaking changes), des attributs renommés ou supprimés, des comportements modifiés. Le code, inchangé, référence des attributs qui n'existent plus dans cette nouvelle version majeure, d'où les erreurs au plan. C'est le piège classique de l'absence d'épinglage : le code « casse tout seul » parce que la dépendance a bougé sous ses pieds. Contrainte qui l'aurait évité : l'opérateur de version pessimiste ~> (par exemple version = \"~> 5.0\" dans required_providers), qui autorise les mises à jour mineures et correctives de la série 5.x (bénéficier des corrections et petites nouveautés) mais BLOQUE le passage à la version majeure suivante (6.0), justement celle qui contient les changements cassants. Ainsi, tant que l'équipe n'a pas décidé de migrer volontairement vers la v6 (en lisant le guide de migration et en testant), init reste sur la 5.x compatible avec le code. En complément, committer le fichier .terraform.lock.hcl fige la version EXACTE choisie, garantissant que tout le monde (et la CI) utilise la même, une double protection : la contrainte ~> borne la fourchette acceptable, le lock file fixe la version précise. La migration vers une majeure se fait alors sciemment (terraform init -upgrade plus tests), jamais par surprise."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Providers",
+          "quizRef": "providers-check"
+        }
+      ]
+    },
+    {
+      "slug": "providers-modules-lock-file",
+      "title": "Providers, modules & lock file",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Passer un provider (aliasé) à un module",
+          "body": "Rappel : un **module** est un **paquet réutilisable** de code Terraform, un dossier contenant des ressources qu'on peut appeler depuis plusieurs endroits, comme une fonction qu'on réutilise. Un bon module est **agnostique** (indépendant du contexte) : il ne décide pas tout seul dans quelle région ni sur quel compte il agit, sinon il ne serait réutilisable qu'à un seul endroit.\n\nD'où une question : si un module a besoin d'un **provider aliasé** particulier (souviens-toi, un alias est un surnom qui distingue deux configurations du même provider, par exemple `aws.europe` et `aws.usa`), comment le lui fournir sans que le module choisisse lui-même ?\n\nLa réponse tient en deux temps. **Le module déclare son besoin** mais ne le remplit pas : dans son propre `required_providers`, il liste les alias qu'il **attend** grâce à **`configuration_aliases`** (par exemple « j'attends un `aws.primary` et un `aws.secondary` »). Puis **l'appelant fournit** les vraies instances, avec l'argument **`providers = { ... }`** du bloc `module`, en branchant ses propres providers sur les emplacements attendus.\n\n👉 **Analogie** : le module est un **appareil électrique** livré sans piles. Sur la boîte, il indique « il me faut deux piles, une nommée *primary*, une nommée *secondary* » (c'est `configuration_aliases`). L'appelant, lui, **insère les piles** de son choix dans les bons logements (c'est `providers = { ... }`). L'appareil marche partout, parce qu'il ne fournit pas ses propres piles, il déclare seulement lesquelles il attend.\n\n**Exemple concret** : un module de réplication qui copie des données d'une région vers une autre. Il déclare attendre `aws.primary` et `aws.secondary`. Une équipe l'appelle en branchant `aws.primary = aws.europe` et `aws.secondary = aws.usa` ; une autre équipe le réutilise tel quel avec deux autres régions. Le même code de module sert dans les deux cas."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Passer des providers à un module",
+          "codeLanguage": "hcl",
+          "body": "# Dans le module : déclarer les alias attendus\nterraform {\n  required_providers {\n    aws = {\n      source                = \"hashicorp/aws\"\n      configuration_aliases = [aws.primary, aws.secondary]\n    }\n  }\n}\n\n# Chez l'appelant : fournir les instances de provider\nmodule \"replication\" {\n  source = \"./modules/replication\"\n  providers = {\n    aws.primary   = aws.europe\n    aws.secondary = aws.usa\n  }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le lock file en profondeur (niveau expert)",
+          "body": "On a vu que le **`.terraform.lock.hcl`** (le lock file, fichier de verrouillage) fige la version exacte du provider. Mais il fait plus que ça, et le comprendre évite un bug qui piège presque toutes les équipes.\n\nEn plus du numéro de version, le lock file enregistre des **checksums** (des empreintes numériques, notées `h1:`, calculées à partir du contenu du binaire ; si le fichier change d'un seul octet, l'empreinte change). Ces empreintes servent à garantir l'**intégrité** : au moment d'installer, Terraform vérifie que le binaire téléchargé correspond bien à l'empreinte attendue, donc qu'il n'a pas été altéré ou remplacé.\n\nSubtilité clé : ces checksums sont enregistrés **par plateforme** (`linux_amd64`, `darwin_arm64`, `windows_amd64`...), car le binaire du provider n'est pas le même sur un Linux, un Mac Apple Silicon ou un Windows. Chaque système a sa propre empreinte.\n\n👉 **Analogie** : le lock file, c'est une **liste d'invités avec la photo de chacun**. À l'entrée, on ne laisse passer que ceux dont le visage correspond à la photo enregistrée (l'intégrité). Et comme un même provider a une « photo » différente selon la plateforme, il faut avoir enregistré la photo de **chaque** système que l'équipe utilise, sinon l'invité légitime est refusé à l'entrée.\n\n**Le piège classique en CI** (intégration continue, la machine automatique qui rejoue le build) : un développeur sur Mac (arm64) génère le lock file sur sa machine. Terraform n'y inscrit alors que les checksums de **sa** plateforme (`darwin_arm64`). La CI, qui tourne sur Linux (`amd64`), ne trouve pas d'empreinte pour elle et **refuse** d'installer, faisant échouer le `init`. La correction : régénérer le lock file en incluant **toutes** les plateformes de l'équipe, avec `terraform providers lock -platform=linux_amd64 -platform=darwin_arm64` (on ajoute `windows_amd64` si besoin).\n\nDernier cas de pro : les environnements **air-gapped** (coupés d'Internet, pour des raisons de sécurité). Sans accès au Registry public, on configure un **mirror** (un miroir, une copie interne des providers) via `provider_installation` / `filesystem_mirror` dans la configuration du CLI, pour installer les providers depuis une source de l'entreprise. Maîtriser le lock file, c'est obtenir des builds à la fois **reproductibles** (mêmes versions partout) et **sûrs** (binaires vérifiés) sur tous les postes et tous les runners."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un développeur sur Mac (arm64) commite le `.terraform.lock.hcl` généré sur sa machine. La CI, qui tourne sur Linux (amd64), échoue au `terraform init` avec une erreur de checksum manquant pour la plateforme linux_amd64. Que s'est-il passé et comment corriger ?",
+          "solution": "Ce qui s'est passé : le fichier .terraform.lock.hcl enregistre, pour chaque provider, des checksums (empreintes h1:) PAR PLATEFORME (OS/architecture). Quand le développeur lance terraform init sur son Mac arm64, Terraform ne télécharge et n'enregistre par défaut que les checksums correspondant à SA plateforme (darwin_arm64). Le lock file committé ne contient donc PAS les checksums pour linux_amd64. Sur la CI (Linux amd64), terraform init tente d'installer le provider pour cette plateforme, calcule son checksum, mais ne trouve pas d'empreinte correspondante dans le lock file, par sécurité (vérification d'intégrité) il REFUSE d'installer un binaire dont le checksum n'est pas déjà « verrouillé », d'où l'échec « checksum manquant / provider ... doesn't match » pour linux_amd64. C'est un garde-fou (empêcher l'installation d'un binaire non vérifié), mais gênant en équipe multi-plateforme. Comment corriger : régénérer le lock file en y incluant TOUTES les plateformes utilisées par l'équipe et la CI, avec la commande terraform providers lock -platform=linux_amd64 -platform=darwin_arm64 (ajouter windows_amd64, etc. selon les postes). Cette commande télécharge et enregistre les checksums pour chacune des plateformes listées, de sorte que le lock file committé couvre le Mac des développeurs ET le Linux de la CI (et Windows si besoin). Après ce commit, terraform init réussit sur toutes les plateformes car chaque runner trouve le checksum correspondant à la sienne. Bonne pratique d'équipe : dès qu'on ajoute/met à jour un provider, régénérer le lock avec toutes les plateformes cibles, et committer ce lock file « multi-plateforme ». Cela garantit à la fois la reproductibilité (mêmes versions partout) et l'intégrité (checksums vérifiés) sur tous les environnements. Alternative/complément : normaliser les plateformes en exécutant terraform dans un conteneur (même OS/arch partout), mais la commande providers lock -platform reste la solution directe au problème."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Providers, modules & lock file (expert)",
+          "quizRef": "providers-lock-expert"
+        }
+      ]
+    }
+  ]
+}

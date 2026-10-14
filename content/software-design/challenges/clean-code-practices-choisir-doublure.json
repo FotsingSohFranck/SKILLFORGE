@@ -1,0 +1,10 @@
+{
+  "node": "clean-code-practices",
+  "lesson": "tests-propres-tdd-doublures",
+  "title": "Choisir la bonne doublure de test",
+  "statement": "Tu écris un test unitaire pour un `PricingService`. Pour calculer un prix, ce service a besoin de lire le niveau de fidélité d'un client dans une base de données, via un `CustomerRepository`. Tu veux un test **rapide** et **reproductible**. Quel **type de doublure** choisis-tu pour le `CustomerRepository`, et pourquoi ? Explique aussi pourquoi tu ne mets **pas** ici un mock qui vérifie l'ordre exact des appels.",
+  "skeleton": "Réponds en quelques phrases : (1) le type de doublure choisi et son rôle, (2) la propriété F.I.R.S.T. que ça respecte, (3) pourquoi un mock d'interaction serait un mauvais choix ici.",
+  "solution": "On choisit un STUB (ou un FAKE en mémoire). Rôle : le CustomerRepository fait de l'I/O (un accès base) qui rendrait le test lent et non déterministe ; on le remplace par un stub qui renvoie une réponse préprogrammée, par exemple « le client n°7 est GOLD ». Le PricingService calcule alors son prix à partir de cette donnée, et on vérifie le résultat : c'est une vérification par l'ÉTAT (la sortie). Propriétés F.I.R.S.T. respectées : Fast (pas d'I/O réelle, tout est en mémoire) et Repeatable (la réponse est fixe, donc le même verdict à chaque exécution, partout). Pourquoi PAS un mock qui vérifie l'ordre exact des appels : ici le repository n'est qu'une source de données en lecture, pas une frontière à effet de bord qu'on tient à contrôler. Vérifier « findById a bien été appelé une fois puis telle autre méthode ensuite » couplerait le test aux DÉTAILS D'IMPLÉMENTATION (le « comment ») au lieu du COMPORTEMENT observable (le bon prix). Le test deviendrait fragile : il casserait au moindre refactoring interne même si le prix reste correct. On réserve les mocks d'interaction aux vraies frontières à effet de bord (par exemple : un email de confirmation DOIT partir, un paiement DOIT être débité une fois).",
+  "keyPoints": ["stub", "état", "reproductible", "fragile"],
+  "language": "text"
+}

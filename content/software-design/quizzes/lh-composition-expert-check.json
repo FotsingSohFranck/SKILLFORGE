@@ -1,0 +1,101 @@
+{
+  "ref": "lh-composition-expert-check",
+  "node": "layered-hexagonal",
+  "lesson": "composition-root-injection",
+  "title": "Quiz, Composition root & injection (expert)",
+  "description": "Composition root, injection par constructeur vs Service Locator, dépendance compile vs runtime.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que la composition root ?",
+      "justification": "L'unique endroit, au bord de l'application, où l'on assemble le graphe d'objets (adapters concrets branchés sur les ports). Le seul lieu qui connaît abstractions ET implémentations.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'unique endroit, au bord de l'app, où l'on câble adapters et ports",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La classe racine du domaine",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le point d'entrée de la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer l'injection par constructeur au Service Locator ?",
+      "justification": "Les dépendances sont explicites (la signature les déclare), l'objet est immuable et testable ; le Service Locator cache les dépendances et couple l'objet au registre global (donc au framework).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Dépendances explicites, objet immuable et testable ; le Service Locator les cache et couple au global",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le Service Locator est plus rapide à l'exécution",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il n'y a aucune différence",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans l'hexagonal, comment pointe la dépendance de CODE entre le use case et l'adapter R2DBC ?",
+      "justification": "Le use case ne dépend que du port (interface qu'il possède) ; c'est l'adapter qui dépend du port en l'implémentant. La flèche de dépendance de code pointe vers l'intérieur, à l'inverse du flux d'appel (inversion de dépendance).",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'adapter dépend du port (l'implémente) ; le use case ne dépend que du port, dépendance vers l'intérieur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le use case importe et dépend de R2DBC directement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun des deux ne dépend de l'autre",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ajouter un cache Redis devant le repository de progression, sans faire fuir le framework dans le use case. Où mettre la logique de cache ?",
+      "justification": "Dans un adapter (ex. CachingProgressStore implémentant le port ProgressStore, possédant Redis + le repo R2DBC), câblé dans la composition root. Le use case ne dépend que du port, ignore le cache.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Dans un adapter implémentant le port, câblé à la composition root ; le use case ne voit que le port",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Injecter RedisTemplate directement dans le use case",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Appeler ProgressCache.getInstance() depuis le use case",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

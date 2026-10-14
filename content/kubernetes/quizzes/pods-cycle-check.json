@@ -1,0 +1,53 @@
+{
+  "ref": "pods-cycle-check",
+  "node": "pods",
+  "lesson": "cycle-de-vie-et-probes",
+  "title": "Cycle de vie & probes",
+  "description": "Phases d'un pod, CrashLoopBackOff, liveness vs readiness vs startup.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un pod affiche le statut `CrashLoopBackOff`. Qu'est-ce que cela signifie ?",
+      "justification": "Le conteneur démarre, plante, redémarre, replante en boucle ; Kubernetes réessaie avec un délai croissant (BackOff). C'est l'erreur la plus fréquente du débutant.",
+      "position": 0,
+      "options": [
+        { "label": "Le conteneur plante en boucle et Kubernetes le relance en espaçant les tentatives", "correct": true, "position": 0 },
+        { "label": "Le pod tourne parfaitement", "correct": false, "position": 1 },
+        { "label": "L'image est en cours de téléchargement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la liveness probe ?",
+      "justification": "La liveness répond à « le conteneur est-il vivant ou bloqué ? ». Si elle échoue, Kubernetes REDÉMARRE le conteneur pour tenter de le débloquer.",
+      "position": 1,
+      "options": [
+        { "label": "Détecter un conteneur bloqué et le redémarrer", "correct": true, "position": 0 },
+        { "label": "Retirer le pod du trafic sans le tuer", "correct": false, "position": 1 },
+        { "label": "Télécharger l'image plus vite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une appli n'est pas encore prête à servir (elle charge sa configuration). Quelle probe la retire du trafic sans la tuer ?",
+      "justification": "La readiness probe : si elle échoue, le pod est retiré des Services (plus de trafic) mais n'est PAS redémarré ; il y revient dès qu'il est prêt.",
+      "position": 2,
+      "options": [
+        { "label": "La readiness probe", "correct": true, "position": 0 },
+        { "label": "La liveness probe", "correct": false, "position": 1 },
+        { "label": "La startup probe", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une grosse application Java met 60 secondes à démarrer, et la liveness la tue avant qu'elle soit prête. Quelle probe résout ce problème ?",
+      "justification": "La startup probe laisse le temps au conteneur de démarrer avant que la liveness ne commence à surveiller : elle empêche de tuer une appli lente encore en train de s'initialiser.",
+      "position": 3,
+      "options": [
+        { "label": "La startup probe (elle laisse le temps de démarrer avant la liveness)", "correct": true, "position": 0 },
+        { "label": "Une readiness probe plus agressive", "correct": false, "position": 1 },
+        { "label": "Aucune probe, il faut les désactiver toutes", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "ref": "web-servers-concurrence-check",
+  "node": "web-servers",
+  "lesson": "equilibrage-modele-concurrence",
+  "title": "Quiz, Algorithmes & modèle de concurrence",
+  "description": "L4/L7, algorithmes de répartition, C10k, keep-alive.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre un équilibrage en couche 4 (L4) et en couche 7 (L7) ?",
+      "justification": "En L4 (transport), on route selon IP/port sans lire le contenu (rapide mais aveugle). En L7 (application), on lit la requête HTTP (URL, en-têtes, cookies) pour router finement, terminer le TLS, cacher.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L4 route selon IP/port sans lire le contenu ; L7 lit la requête HTTP pour router finement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L4 est toujours plus intelligent et plus lent que L7",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il n'y a aucune différence, ce sont deux noms pour la même chose",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel modèle de concurrence permet à Nginx (et à Netty/WebFlux) de tenir des milliers de connexions avec peu de threads ?",
+      "justification": "Le modèle événementiel non bloquant (event loop) : une connexion en attente ne monopolise pas un thread, contrairement à l'approche « un thread par connexion ».",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un modèle événementiel non bloquant (boucle d'événements)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un thread (ou process) dédié par connexion",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une machine virtuelle par connexion",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un serveur « un thread par connexion » s'effondre sous 10 000 connexions lentes/inactives, alors que le CPU est presque inactif. Comment nomme-t-on ce problème ?",
+      "justification": "C'est le problème C10k : un thread par connexion épuise la mémoire (piles) et l'ordonnanceur bien avant le CPU, car les threads passent leur temps à attendre. L'event loop le résout.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le problème C10k",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une fuite de mémoire du garbage collector",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un conflit de fusion Git",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le keep-alive entre le proxy et l'upstream (le backend) ?",
+      "justification": "Le keep-alive réutilise la même connexion TCP pour plusieurs requêtes, au lieu d'en rouvrir une (et de refaire le handshake TLS) à chaque fois. Un pool de connexions keep-alive vers l'upstream évite de rouvrir une connexion à chaque requête proxifiée.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Réutiliser la même connexion TCP pour plusieurs requêtes, au lieu d'en rouvrir une à chaque fois",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer deux fois chaque requête",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les logs d'accès",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

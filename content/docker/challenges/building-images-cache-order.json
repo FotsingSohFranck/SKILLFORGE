@@ -1,0 +1,10 @@
+{
+  "node": "building-images",
+  "lesson": "cache-de-couches",
+  "title": "Ordonner un Dockerfile Node pour un cache efficace",
+  "statement": "Complète ce Dockerfile d'une app Node pour que le cache de couches soit efficace : une simple modification du code ne doit PAS réinstaller toutes les dépendances. Il faut copier d'abord les manifestes (`package*.json`), installer les dépendances avec `RUN npm ci`, PUIS copier le reste du code, et enfin lancer l'app avec `CMD [\"node\", \"server.js\"]`.",
+  "skeleton": "FROM node:22-alpine\nWORKDIR /app\n# 1. copier d'abord les manifestes\n# 2. installer les dépendances\n# 3. copier le reste du code\n# 4. commande de démarrage\n",
+  "solution": "FROM node:22-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nCMD [\"node\", \"server.js\"]",
+  "keyPoints": ["COPY package*.json", "RUN npm ci", "COPY . .", "CMD [\"node\", \"server.js\"]"],
+  "language": "dockerfile"
+}

@@ -1,0 +1,129 @@
+{
+  "node": "variables",
+  "lessons": [
+    {
+      "slug": "variables-dentree",
+      "title": "Les variables d'entrée",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Paramétrer son code",
+          "body": "Imagine que tu écris un bout de code qui crée une machine dans le cloud, et que tu écris **directement dedans** la région `eu-west-3` et la taille `t3.micro`. On appelle ça **coder une valeur en dur** (en anglais *hard-code*) : la valeur est gravée noir sur blanc dans le code. Le problème arrive vite : le jour où tu veux la même chose dans une autre région, ou une machine plus grosse pour la production, tu es obligé de **recopier tout le code** et d'y changer les valeurs à la main. Deux copies à maintenir, deux occasions de se tromper.\n\nLes **variables d'entrée** (en anglais *input variables*, mot-clé `variable` en Terraform) règlent ce problème. Une variable, c'est un **paramètre nommé** : au lieu d'écrire la valeur en dur, tu lui donnes un nom, et tu fournis la vraie valeur **au dernier moment**, quand tu lances Terraform.\n\n👉 **Analogie** : une recette de cuisine bien écrite ne dit pas « ajoute 200 g de farine », elle dit « ajoute *la quantité de farine* ». La quantité exacte est notée à part, sur une fiche. Une seule recette (le code), plusieurs fiches de quantités (les valeurs) : tu fais un petit gâteau ou un grand avec **la même recette**.\n\nConcrètement, il y a trois gestes :\n- **Déclarer** la variable (dire qu'elle existe et de quelle sorte elle est) avec un bloc `variable \"instance_type\" { ... }`.\n- **La référencer** dans le code avec la syntaxe `var.nom`, par exemple `var.instance_type`. Le préfixe `var.` veut dire « va chercher la valeur de la variable qui s'appelle... ».\n- **Fournir la valeur** au moment de l'exécution (on verra comment dans la leçon suivante).\n\nRésultat : **un même code** décliné pour plusieurs environnements (dev, préproduction, production) sans jamais le dupliquer.\n\nQuand tu déclares une variable, tu peux préciser trois choses utiles :\n- Un **type**, qui dit quelle *sorte* de valeur est attendue. Les types de base : `string` (du texte, ex. `\"eu-west-3\"`), `number` (un nombre, ex. `3`), `bool` (vrai ou faux, ex. `true`). Il existe aussi des types qui regroupent plusieurs valeurs (`list`, `map`, `object`) qu'on verra plus loin.\n- Une **description** : une phrase en français qui explique à quoi sert la variable. C'est de la documentation pour tes collègues (et pour toi dans six mois).\n- Une **valeur par défaut** (`default`) : la valeur utilisée si personne n'en fournit d'autre. 👉 C'est comme le réglage d'usine d'un appareil : ça marche sans y toucher, mais tu peux le changer si tu veux.\n\nPoint important : **si tu ne mets pas de valeur par défaut, la variable devient obligatoire**. Terraform refusera de continuer tant que tu ne lui as pas donné une valeur (il te la demandera, ou s'arrêtera avec une erreur). C'est voulu : certaines valeurs, comme le nom de l'environnement, n'ont aucun défaut raisonnable et doivent être choisies exprès à chaque fois."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Une variable, du code aux environnements",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Un seul code .tf (commun)<br/>variable + var.nom\"] --> B{\"Quelle valeur a l'execution ?\"}\n  B -->|dev.tfvars| C[\"Environnement dev\"]\n  B -->|staging.tfvars| D[\"Environnement staging\"]\n  B -->|prod.tfvars| E[\"Environnement prod\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Déclarer & typer une variable",
+          "codeLanguage": "hcl",
+          "body": "variable \"instance_type\" {\n  description = \"Taille des instances\"\n  type        = string\n  default     = \"t3.micro\"\n}\n\nvariable \"environment\" {\n  type = string\n  # pas de default -> obligatoire\n}\n\n# Type structuré (object) : une variable = une structure typée\nvariable \"network\" {\n  type = object({\n    cidr    = string\n    subnets = list(string)\n  })\n}\n\n# Usage : region = var.instance_type / var.network.cidr"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Contraintes de type & validation",
+          "body": "Le **type** d'une variable est déjà une première protection. Si une variable attend un `number` et que quelqu'un lui donne du texte, Terraform refuse tout de suite, **avant** de toucher au cloud. C'est un premier filet : on ne se retrouve pas avec une taille de disque valant `\"beaucoup\"`.\n\nMais le type ne dit pas *quelles valeurs précises* sont permises. Un `string` accepte n'importe quel texte, y compris une faute de frappe. Pour aller plus loin, on ajoute une **règle de validation** : un petit bloc `validation` dans la déclaration de la variable, qui vérifie une **condition** et affiche un **message d'erreur** (`error_message`) clair si elle n'est pas respectée.\n\nExemple concret : on veut que la variable `environment` ne vaille QUE `dev`, `staging` ou `prod`. On écrit une condition du genre `contains([\"dev\", \"staging\", \"prod\"], var.environment)` (« la valeur fait-elle partie de cette liste ? »), avec un `error_message` du type « environment doit être dev, staging ou prod ». Si quelqu'un tape `prd` par erreur, Terraform rejette la valeur immédiatement.\n\nDeux mots de vocabulaire qui reviennent tout le temps avec Terraform :\n- Le **plan** (commande `terraform plan`) : l'étape où Terraform **calcule et affiche** ce qu'il va faire, **sans encore rien créer**. C'est un aperçu, un devis.\n- L'**apply** (commande `terraform apply`) : l'étape où il **applique** réellement les changements dans le cloud.\n\nUne validation échoue **au plan**, donc *avant* le moindre appel au cloud. 👉 **Analogie** : c'est le portique de sécurité à l'entrée de l'aéroport : on t'arrête AVANT l'embarquement, pas une fois l'avion en vol. On appelle ce principe **échouer tôt** (en anglais *fail fast*) : mieux vaut une erreur immédiate et lisible qu'un bug obscur qui surgit plus tard, une fois des ressources déjà créées de travers.\n\n(Au passage, `CIDR` est une façon standard d'écrire une plage d'adresses réseau, par exemple `10.0.0.0/16` ; on peut valider qu'une variable contient bien un CIDR correct. Retiens juste que c'est un format d'adresses réseau.)\n\nTyper et valider ses variables, c'est exactement la même idée que **vérifier les données à l'entrée d'une API** : on contrôle au bord, une bonne fois, plutôt que de laisser une valeur douteuse se propager partout."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une variable `environment` accepte n'importe quelle chaîne. Un jour, quelqu'un tape `prd` (au lieu de `prod`) et le déploiement crée des ressources mal nommées/mal ciblées, causant un incident. Comment une contrainte de validation aurait-elle empêché cela, et quel est l'avantage de l'attraper au plan ?",
+          "solution": "Une règle de validation sur la variable environment aurait rejeté la valeur invalide AVANT tout déploiement. On ajoute dans la déclaration de la variable un bloc validation avec une condition restreignant les valeurs autorisées, par exemple : condition = contains([\"dev\", \"staging\", \"prod\"], var.environment), avec un error_message explicite du type « environment doit être dev, staging ou prod ». Avec cette contrainte, taper `prd` échoue immédiatement : Terraform refuse la valeur car elle n'est pas dans la liste autorisée, et affiche le message d'erreur clair, sans rien créer. La faute de frappe est donc attrapée à la source, avant qu'elle ne se propage dans des noms de ressources, des tags, des sélecteurs ou des chemins de state, évitant l'incident. Avantage d'attraper l'erreur AU PLAN (fail fast) : (1) On échoue TÔT, avant tout appel au cloud, donc aucune ressource mal nommée/mal ciblée n'est créée, pas d'effet de bord, pas de nettoyage à faire. (2) Le message d'erreur est CLAIR et actionnable (« doit être dev/staging/prod ») au lieu d'une erreur obscure du provider survenant plus tard à l'apply, ou pire, d'un déploiement qui « réussit » mais dans un mauvais périmètre. (3) On documente et on garantit le contrat de la variable : les valeurs acceptables sont explicites et vérifiées automatiquement pour tout le monde. C'est la même philosophie que la validation des entrées au bord d'une API : mieux vaut un rejet immédiat et lisible qu'une erreur tardive et coûteuse. Typer (type = string) et valider (bloc validation) ses variables transforme des fautes de frappe potentiellement catastrophiques en simples messages d'erreur au plan."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Les variables d'entrée",
+          "quizRef": "variables-entree-check"
+        }
+      ]
+    },
+    {
+      "slug": "fournir-les-valeurs",
+      "title": "Fournir les valeurs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les fichiers de définition (.tfvars)",
+          "body": "Tu as déclaré tes variables. Maintenant, comment leur **donner des valeurs** ? La façon la plus courante et la plus propre : un **fichier `.tfvars`**.\n\nUn fichier `.tfvars` (l'extension vient de *Terraform variables*) est un simple fichier texte qui contient des paires **`nom = valeur`**, une par ligne. Par exemple un fichier `prod.tfvars` :\n\n- `environment   = \"prod\"`\n- `instance_type = \"t3.large\"`\n\nTu l'appliques avec l'option `-var-file` : `terraform apply -var-file=prod.tfvars`. Terraform lit ce fichier et affecte chaque valeur à la variable du même nom.\n\n👉 **Analogie** : reprends la recette de cuisine. Le fichier `.tf` (le code) est la **recette**, toujours la même. Chaque fichier `.tfvars` est une **fiche de quantités** : `dev.tfvars` pour une petite portion, `prod.tfvars` pour un banquet. Même recette, fiches différentes.\n\nCas particulier bien pratique : un fichier nommé exactement **`terraform.tfvars`** (ou tout fichier finissant par **`.auto.tfvars`**) est chargé **automatiquement**, sans avoir à écrire `-var-file`. Terraform le repère tout seul.\n\nL'intérêt de fond : on **sépare** deux choses. D'un côté le **code** (`.tf`), qui décrit la *structure* (quelles ressources, comment elles s'articulent) et qui est **commun** à tous les environnements et versionné dans Git. De l'autre les **valeurs** (`.tfvars`), qui changent d'un environnement à l'autre. Cette séparation entre la logique (commune) et les valeurs (par environnement) est exactement ce qui rend le code réutilisable."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Précédence & variables d'environnement",
+          "body": "On vient de voir les fichiers `.tfvars`, mais ce n'est pas le seul canal pour donner une valeur. Terraform en accepte plusieurs, et il peut arriver que **deux canaux donnent une valeur différente** à la même variable. Lequel gagne ? C'est ce que règle la **précédence** : l'**ordre de priorité** entre les sources.\n\nDu plus **faible** (facile à écraser) au plus **fort** (a le dernier mot) :\n1. la **valeur par défaut** écrite dans la déclaration de la variable ;\n2. un fichier **`terraform.tfvars`** ou **`*.auto.tfvars`** (chargé automatiquement) ;\n3. un fichier passé avec **`-var-file`** ;\n4. une valeur passée directement en ligne de commande avec **`-var`** ;\n5. une **variable d'environnement** nommée **`TF_VAR_nom`**.\n\n👉 **Analogie** : plusieurs personnes proposent une valeur, mais elles n'ont pas le même poids. Le `default` est le stagiaire (on l'écoute seulement s'il n'y a personne d'autre) ; la variable d'environnement `TF_VAR_` est le patron (il tranche en dernier). Si le patron parle, c'est sa valeur qui s'applique.\n\nZoom sur le dernier canal, les **variables d'environnement** `TF_VAR_nom`. Une *variable d'environnement* est une valeur que le système d'exploitation met à disposition des programmes qui tournent (elle vit le temps d'une session, elle n'est pas dans un fichier). Terraform a une convention : toute variable d'environnement préfixée par `TF_VAR_` alimente la variable Terraform du même nom. Exemple : `TF_VAR_environment=prod` remplit `var.environment`.\n\nC'est **précieux dans deux cas** :\n- En **CI** (*Continuous Integration*, l'intégration continue : le serveur automatique qui construit, teste et déploie le projet à ta place, sans intervention manuelle). Le pipeline injecte les valeurs par l'environnement, sans fichier à modifier.\n- Pour les **secrets** (mots de passe, clés d'accès). On injecte la valeur sensible via l'environnement du pipeline, **sans jamais l'écrire dans un fichier** qui finirait dans Git. C'est la règle d'or : un secret ne se met pas dans un `.tfvars` versionné.\n\nComprendre la précédence évite la question piège « pourquoi Terraform utilise CETTE valeur et pas celle de mon fichier ? » : presque toujours, un canal plus fort l'a emporté."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Fournir des valeurs",
+          "codeLanguage": "bash",
+          "body": "# Un fichier par environnement\nterraform apply -var-file=prod.tfvars\n\n# En ligne de commande (précédence forte)\nterraform apply -var=\"environment=staging\"\n\n# Variable d'environnement (idéal en CI / pour les secrets)\nexport TF_VAR_db_password=\"...\"      # correspond à var.db_password\nterraform apply\n\n# terraform.tfvars est chargé automatiquement (ne PAS y mettre de secret committé)"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Dans un pipeline CI, vous devez fournir un mot de passe de base de données à Terraform sans jamais l'écrire dans un fichier versionné. Quel mécanisme utiliser, et pourquoi est-il adapté aux secrets en CI ?",
+          "solution": "On utilise une variable d'environnement au format TF_VAR_<nom> : pour une variable Terraform `variable \"db_password\"`, on exporte TF_VAR_db_password avec la valeur du secret dans l'environnement du job CI (généralement injectée depuis le gestionnaire de secrets du CI, GitHub Actions secrets, GitLab CI variables masquées, un coffre Vault, etc.). Terraform lit automatiquement cette variable d'environnement et l'affecte à var.db_password, sans qu'elle apparaisse dans aucun fichier .tf ni .tfvars committé. Pourquoi c'est adapté aux secrets en CI : (1) Le secret n'est JAMAIS écrit dans le dépôt : ni dans le code, ni dans un fichier de valeurs versionné (contrairement à terraform.tfvars qui, lui, serait committé et ne doit donc jamais contenir de secret). Le secret ne vit que le temps du job, dans l'environnement d'exécution. (2) Cela s'intègre naturellement avec les mécanismes de secrets des plateformes CI : on stocke le secret côté CI (chiffré, avec contrôle d'accès), et on l'expose comme variable d'environnement uniquement au moment de l'exécution. (3) La variable d'environnement a une précédence forte dans l'ordre de résolution de Terraform, donc elle prend le pas proprement. Précautions complémentaires : marquer la variable comme sensitive = true (pour éviter qu'elle ne s'affiche en clair dans les logs/plans), veiller à ce que le CI masque la variable dans les logs, et se rappeler que la valeur finit tout de même dans le fichier d'état (state), qu'il faut donc protéger (backend distant chiffré, accès restreint). En résumé : TF_VAR_db_password via l'environnement du pipeline = le secret est fourni à Terraform sans jamais toucher un fichier versionné, ce qui est exactement le besoin en CI."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Variables d'entrée",
+          "quizRef": "variables-check"
+        }
+      ]
+    },
+    {
+      "slug": "types-complexes-et-optional",
+      "title": "Types complexes & optional",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des objets avec attributs optionnels",
+          "body": "Jusqu'ici nos variables contenaient une seule valeur (un texte, un nombre). Mais parfois on veut regrouper **plusieurs valeurs liées** dans une seule variable, par exemple la configuration d'une application : son nom, sa taille, si elle est publique... Pour ça, on utilise le type **`object({...})`**.\n\nUn `object` est un type qui **rassemble plusieurs champs nommés**, chacun avec son propre type. 👉 **Analogie** : c'est une **fiche d'identité**. Au lieu de trois variables séparées (nom, taille, public), tu as une seule fiche `config` avec trois cases. On appelle chaque case un **attribut**.\n\nPar défaut, il y a un piège : dans un `object({...})`, **tous les attributs sont obligatoires**. L'appelant (la personne qui utilise ta variable) doit remplir **toutes** les cases à chaque fois, même celles qui ont une valeur évidente. Sur une fiche à 8 cases dont 6 ont un réglage habituel, c'est pénible et source d'erreurs.\n\nLa solution : la fonction **`optional(type, défaut)`**. Elle rend un attribut **facultatif** et lui donne une **valeur par défaut**. Par exemple `instance_type = optional(string, \"t3.micro\")` : si l'appelant ne remplit pas cette case, Terraform met automatiquement `t3.micro`. 👉 C'est le formulaire bien conçu où seules deux cases sont marquées « obligatoire » et le reste est pré-rempli avec des valeurs raisonnables : tu ne remplis que ce qui te concerne.\n\nRésultat : une **interface de module** confortable. L'*interface*, c'est l'ensemble des variables qu'un module expose à ceux qui l'utilisent, un peu comme les boutons visibles d'un appareil. L'utilisateur ne renseigne que l'essentiel, Terraform complète le reste.\n\nOn peut affiner encore avec **`nullable = false`**. Le mot `null` désigne l'**absence de valeur** (« vide », « rien »). Mettre `nullable = false` sur une variable **interdit** qu'on lui passe `null` : on garantit qu'il y a toujours une vraie valeur. Combiné à `optional`, on obtient des **contrats de variables** à la fois souples (peu à remplir) et sûrs (pas de trou)."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "optional() dans un object",
+          "codeLanguage": "hcl",
+          "body": "variable \"instances\" {\n  type = map(object({\n    instance_type = optional(string, \"t3.micro\")   # facultatif + défaut\n    disk_size     = optional(number, 20)\n    public        = optional(bool, false)\n    tags          = optional(map(string), {})\n  }))\n}\n# L'appelant ne renseigne que ce qui diffère du défaut :\n#   instances = { web = { public = true }, worker = {} }"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Validations multiples & croisées (niveau expert)",
+          "body": "Une même variable peut porter **plusieurs** blocs `validation`, chacun vérifiant une règle différente avec son propre message. Par exemple, sur un nom : un bloc « ne doit pas être vide », un autre « uniquement des minuscules ». Chaque règle donne un message précis, donc l'utilisateur sait exactement ce qui cloche.\n\nVient ensuite un cas plus subtil : la **validation croisée**, c'est-à-dire une règle qui dépend de **plusieurs variables à la fois**. Exemple : « si `enable_https` est vrai, alors `certificate_arn` doit être fourni » (un site en HTTPS a besoin d'un certificat). Le problème : un bloc `validation` de variable ne peut regarder **qu'elle-même**, jamais les autres variables. Il ne peut donc pas exprimer cette règle.\n\nLa solution est la **precondition**. Une *precondition* est une vérification qu'on attache non pas à la variable, mais à une **ressource** ou à un **output** (une valeur de sortie du module), et qui, elle, **peut lire plusieurs variables**. C'est là qu'on met les règles « si A alors B ». 👉 **Analogie** : la validation de variable, c'est le videur qui vérifie **une** carte d'identité isolément ; la precondition, c'est l'agent qui vérifie que **ton billet ET ta pièce d'identité correspondent** (deux éléments comparés ensemble).\n\nEnfin, on peut valider une **structure entière**. Si une variable est une `map` (un ensemble de paires clé/valeur) d'objets, on peut vérifier que **tous** les éléments respectent une règle avec `alltrue([for k, v in var.x : v.size > 0])`. Décortiquons : la partie `for k, v in var.x : v.size > 0` **parcourt** chaque élément et produit `true` ou `false` selon que sa taille est positive ; `alltrue([...])` renvoie vrai **seulement si tout est vrai**. Autrement dit « aucune taille ne doit être nulle ou négative ».\n\nToutes ces validations riches ont le même but : faire **échouer tôt et clairement** (fail fast) une configuration incohérente, et **documenter** les règles métier du module directement dans le code, là où elles sont vérifiées automatiquement pour tout le monde."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Vous créez un module dont la variable de configuration est un objet avec 8 attributs, mais seuls 2 sont réellement importants ; les 6 autres ont des valeurs par défaut sensées. Sans précaution, les utilisateurs du module doivent fournir les 8 attributs à chaque appel, ce qui est pénible. Comment rendre l'interface ergonomique ?",
+          "solution": "On rend les 6 attributs non essentiels FACULTATIFS avec des valeurs par défaut, grâce à la fonction optional() dans le type object de la variable. Par défaut, dans un type object({...}), TOUS les attributs sont obligatoires : l'appelant doit fournir les 8 à chaque appel, y compris ceux qui ont une valeur raisonnable par défaut, d'où une interface pénible et verbeuse. En déclarant chaque attribut non essentiel avec optional(type, défaut), par exemple `instance_type = optional(string, \"t3.micro\")`, `disk_size = optional(number, 20)`, `tags = optional(map(string), {})`, etc., on les rend facultatifs ET on leur donne une valeur par défaut appliquée automatiquement quand l'appelant ne les renseigne pas. Les 2 attributs vraiment importants restent obligatoires (sans optional()), forçant l'utilisateur à les fournir. Résultat : l'appelant ne renseigne QUE les 2 attributs importants (plus éventuellement ceux qu'il veut surcharger parmi les 6 optionnels), et Terraform complète le reste avec les défauts, par exemple `config = { name = \"web\", port = 8080 }` suffit, les 6 autres prenant leurs valeurs par défaut. On obtient une API de module ergonomique : simple à utiliser (peu à écrire), tout en restant typée et validée. On peut compléter avec nullable = false pour interdire null, et des blocs validation (voire des preconditions pour des règles croisées entre attributs). C'est exactement à cela que sert optional() dans les types object : offrir des variables structurées avec des attributs facultatifs et des défauts sensés, pour des interfaces de modules confortables où l'utilisateur ne remplit que l'essentiel."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Types complexes & optional (expert)",
+          "quizRef": "variables-optional-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "oop-constructs",
+  "lesson": "constructions-java-modernes",
+  "title": "Modéliser un résultat de paiement (sealed + records)",
+  "statement": "Modélise le résultat d'un paiement qui ne peut être QUE `Approved` (avec un `txId`), `Declined` (avec une `reason`) ou `Pending` (sans donnée). Utilise une interface `sealed` et des `record` pour rendre l'ensemble **fermé** et **immuable** : chaque variante ne porte que ses propres données, et il devient impossible de lire un `txId` sur un paiement refusé.",
+  "skeleton": "// Une interface sealed qui liste ses seules variantes...\n// public sealed interface PaymentResult permits ... {}\n",
+  "solution": "public sealed interface PaymentResult permits Approved, Declined, Pending {}\n\nrecord Approved(String txId) implements PaymentResult {}\nrecord Declined(String reason) implements PaymentResult {}\nrecord Pending() implements PaymentResult {}",
+  "keyPoints": ["sealed interface PaymentResult", "permits Approved, Declined, Pending", "record Approved(String txId)", "record Declined(String reason)", "implements PaymentResult"],
+  "language": "java"
+}

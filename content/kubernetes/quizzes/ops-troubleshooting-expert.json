@@ -1,0 +1,119 @@
+{
+  "ref": "ops-troubleshooting-expert",
+  "node": "cluster-operations",
+  "lesson": "dr-noeuds-depannage",
+  "title": "DR, nœuds & dépannage, expert",
+  "description": "Velero, cordon/drain, spot instances, playbook de diagnostic.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que sauvegarde Velero que la sauvegarde d'etcd ne couvre pas ?",
+      "justification": "Les objets Kubernetes ET les volumes persistants (données applicatives), avec restauration sélective/migration, backup applicatif.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les objets K8s et les volumes persistants (données)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le noyau Linux des nœuds",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les images de conteneurs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `kubectl drain` sur un nœud ?",
+      "justification": "Il le cordon (non planifiable) ET évince proprement ses pods vers d'autres nœuds (en respectant les PDB), avant maintenance/retrait.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le rend non planifiable et évince ses pods proprement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le supprime physiquement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le redémarre sans toucher aux pods",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quelles charges réserver les spot instances (machines bon marché mais révocables) ?",
+      "justification": "Aux charges tolérantes aux interruptions (batch, stateless bien réparti), un levier d'économie, à condition de concevoir pour la révocation.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Aux charges tolérantes aux interruptions",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Aux bases de données critiques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Au plan de contrôle",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un Service ne route plus alors que les pods sont Running. Quelle est la démarche la plus rapide ?",
+      "justification": "Inspecter les endpoints (kubectl get endpoints) : vides = aucun pod éligible, souvent un problème de selector ou de readiness.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vérifier les endpoints du Service",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Redémarrer tout le cluster",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer etcd",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le diagnostic Kubernetes consiste à suivre les objets (Events, conditions, endpoints, logs) qui disent où ça casse, plutôt que de deviner.",
+      "justification": "Vrai : Kubernetes est très observable ; describe/Events, conditions de nœud, endpoints et logs pointent la cause sans deviner.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

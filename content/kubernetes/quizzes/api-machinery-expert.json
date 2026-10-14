@@ -1,0 +1,96 @@
+{
+  "ref": "api-machinery-expert",
+  "node": "key-concepts",
+  "lesson": "api-machinery",
+  "title": "API machinery, expert",
+  "description": "Watch/informers, resourceVersion, concurrence optimiste, server-side apply.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un contrôleur observe-t-il les changements sans marteler l'apiserver ?",
+      "justification": "Via un watch (abonnement aux événements) et un informer (cache local maintenu à jour), d'où la réactivité de Kubernetes.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Via un watch/informer (abonnement + cache local)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En sondant l'API en boucle serrée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En lisant etcd directement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le resourceVersion d'un objet ?",
+      "justification": "À la concurrence optimiste : une mise à jour avec un resourceVersion périmé est rejetée (409 conflit), imposant relecture + retry.",
+      "position": 1,
+      "options": [
+        {
+          "label": "À détecter les écritures concurrentes (concurrence optimiste)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À numéroter les images de conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À définir le nombre de répliques",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte le server-side apply (SSA) par rapport au 3-way merge client ?",
+      "justification": "Chaque champ a un field manager côté serveur (managedFields) : plusieurs acteurs gèrent des champs différents sans s'écraser, conflits explicites.",
+      "position": 2,
+      "options": [
+        {
+          "label": "La propriété des champs par field manager (côté serveur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La suppression du besoin de manifestes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le chiffrement des objets",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Quand un HPA gère un Deployment, il ne faut pas laisser le champ replicas dans le manifeste appliqué, pour éviter que deux acteurs se disputent ce champ.",
+      "justification": "Vrai : un champ, un propriétaire, sinon apply remet replicas et écrase la valeur du HPA (yo-yo) ; on retire replicas du manifeste.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

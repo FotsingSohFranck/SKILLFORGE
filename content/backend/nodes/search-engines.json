@@ -1,0 +1,292 @@
+{
+  "node": "search-engines",
+  "lessons": [
+    {
+      "slug": "pourquoi-un-moteur",
+      "title": "Pourquoi un moteur de recherche",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les limites du LIKE",
+          "body": "Quand tu veux retrouver un texte dans une base de données, le premier réflexe est d'écrire en **SQL** (le langage des bases de données relationnelles) une requête comme `WHERE contenu LIKE '%mot%'`. Le `LIKE` cherche une **sous-chaîne** : `'%mot%'` signifie « n'importe quoi, puis `mot`, puis n'importe quoi ». Ça dépanne, mais dès qu'il y a du volume ou de vraies exigences, trois faiblesses apparaissent.\n\n- **C'est lent.** Pour trouver `%mot%`, la base doit lire **chaque ligne** une par une et regarder dedans : c'est un **balayage complet** (en anglais *full scan*). 👉 **Analogie** : c'est comme chercher un mot dans un livre en lisant **toutes les pages** depuis le début, au lieu d'aller voir l'index à la fin. Sur trois lignes ça va ; sur des millions, ça rame. Un **index** classique de base de données (une structure qui accélère les recherches) n'aide pas ici, car il ne sait pas retrouver un mot **au milieu** d'un texte.\n- **C'est rigide.** `LIKE` fait une correspondance **exacte** de caractères. `'%kubernetes%'` ne trouve pas `kubernets` (une faute de frappe), ni forcément `Kubernetes` selon la casse, ni un accent mal placé, ni un pluriel ou un synonyme. **Exemple** : un utilisateur tape `docker composé` et ne trouve rien, alors que le cours s'appelle « Docker Compose ».\n- **Aucune notion de pertinence.** `LIKE` répond par **oui ou non** : une ligne correspond ou pas. Il ne sait pas **classer** du plus pertinent au moins pertinent. 👉 **Analogie** : un moteur comme Google ne te rend pas « les 10 000 pages qui contiennent le mot », il met **les meilleures en premier**. `LIKE`, lui, en est incapable.\n\nDès qu'on veut une vraie **recherche plein texte** (retrouver des mots dans de grands textes, de façon rapide, tolérante et bien classée), on sort un outil dédié : un **moteur de recherche**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les limites du LIKE : lent, pas de pertinence, pas de tolerance aux fautes.",
+          "body": "/images/lessons/pourquoi-un-moteur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'index inversé",
+          "body": "Le secret qui rend un moteur de recherche rapide, c'est sa façon de ranger les données : l'**index inversé** (en anglais *inverted index*).\n\nUne base classique range l'information « dans le sens normal » : pour chaque **document** (une leçon, un article, une fiche produit), elle garde la liste de ses mots. C'est pratique pour **lire** un document, mais pour **chercher** un mot, il faut tout parcourir.\n\nL'index inversé fait l'**inverse** (d'où son nom) : pour chaque **mot**, il garde la **liste des documents qui le contiennent**. Chercher un terme revient alors à lire directement cette liste, sans parcourir le reste. C'est **instantané**.\n\n👉 **Analogie** : c'est exactement l'**index alphabétique à la fin d'un livre**. Tu ne relis pas le livre entier pour trouver « transaction » : tu vas à la lettre T de l'index, et il te dit « pages 42, 87, 190 ». L'index inversé d'un moteur dit pareil : « le mot *kubernetes* est dans les documents 3, 8 et 27 ».\n\n**Exemple concret.** Imagine deux leçons :\n- Doc 1 : « installer docker »\n- Doc 2 : « installer kubernetes »\n\nL'index inversé ressemble à :\n- `installer` → [Doc 1, Doc 2]\n- `docker` → [Doc 1]\n- `kubernetes` → [Doc 2]\n\nPour répondre à la recherche « kubernetes », le moteur lit une seule ligne (`kubernetes → [Doc 2]`) et répond aussitôt, sans jamais balayer tous les documents. C'est cette structure qui fait toute la différence de vitesse à grande échelle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'index inverse associe chaque mot aux documents qui le contiennent : la cle du plein texte.",
+          "body": "/images/lessons/pourquoi-un-moteur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "L'index inversé en image",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    D1[\"Doc 1 : installer docker\"]\n    D2[\"Doc 2 : installer kubernetes\"]\n    D1 --> IDX[\"Index inverse (mot vers documents)\"]\n    D2 --> IDX\n    IDX --> T1[\"installer : Doc 1, Doc 2\"]\n    IDX --> T2[\"docker : Doc 1\"]\n    IDX --> T3[\"kubernetes : Doc 2\"]\n    Q([\"Recherche : kubernetes\"]) --> T3"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une recherche de cours par mot-clé avec `LIKE '%kubernetes%'` devient lente sur des milliers de leçons et ne tolère pas « kubernets » (faute). Pourquoi, et quelle catégorie d'outil résout cela ?",
+          "solution": "LIKE '%...%' ne peut pas utiliser d'index classique (balayage complet → lent à l'échelle) et fait une correspondance exacte de sous-chaîne (aucune tolérance aux fautes, accents, synonymes). Un moteur de recherche plein texte (Elasticsearch, ou la recherche plein texte de PostgreSQL) résout cela avec un index inversé, l'analyse linguistique et le classement par pertinence."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Pourquoi un moteur de recherche",
+          "quizRef": "search-engines-pourquoi-check"
+        }
+      ]
+    },
+    {
+      "slug": "comment-ca-marche",
+      "title": "Analyse & pertinence",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Tokenisation & analyse",
+          "body": "Avant de ranger un texte dans l'index inversé, le moteur ne le prend pas « brut » : il le fait passer par une chaîne de traitement appelée l'**analyse** (en anglais *analysis*). Le but : transformer une phrase en une liste de mots **normalisés**, propres et comparables.\n\nÉtape par étape, sur l'exemple « Les Chats Couraient » :\n\n1. **Tokenisation** : découper le texte en **tokens** (un *token* est simplement une unité, ici un mot). « Les Chats Couraient » devient trois tokens : `Les`, `Chats`, `Couraient`. 👉 **Analogie** : c'est comme **découper une phrase en petits morceaux avec des ciseaux**, un mot par bout de papier.\n2. **Mise en minuscules** : `les`, `chats`, `couraient`. Ainsi `Chat` et `chat` deviennent identiques.\n3. **Suppression des accents** : `élève` et `eleve` se rejoignent. Bien utile en français.\n4. **Stemming** (« racinisation ») : réduire un mot à sa **racine**. `courir`, `courais`, `couraient` deviennent tous `cour`. 👉 **Analogie** : on garde le **tronc** du mot et on jette les terminaisons, comme on élague les branches pour ne garder que la souche. Une recherche sur un temps de verbe retrouve alors les autres.\n5. **Synonymes** (parfois) : on peut déclarer que `k8s` veut dire `kubernetes`, pour que l'un retrouve l'autre.\n\nPoint clé : cette **même analyse** est appliquée **deux fois**, à l'indexation **et** au moment de la recherche. **Exemple** : si on indexe `couraient` réduit à `cour`, et que l'utilisateur tape `courais`, sa requête est elle aussi réduite à `cour` : les deux formes se rencontrent et le document est trouvé. Sans cette symétrie, on ne trouverait rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tokenisation et analyse : decouper le texte en termes normalises (minuscules, racines, synonymes).",
+          "body": "/images/lessons/comment-ca-marche-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le classement par pertinence",
+          "body": "Un moteur de recherche ne se contente pas de dire « ces 200 documents contiennent ton mot ». Il les **classe** : les plus **pertinents** en haut. C'est la différence entre une liste en vrac et une recherche vraiment utile.\n\n👉 **Analogie** : quand tu cherches sur Google, tu ne regardes quasiment que les premiers résultats. Le tri **par pertinence** est ce qui rend l'outil agréable ; sans lui, tu devrais éplucher toute la liste toi-même.\n\nPour attribuer à chaque document un **score** (une note de pertinence), les moteurs utilisent des formules éprouvées, principalement **TF-IDF** et **BM25** (une version améliorée, celle utilisée par défaut aujourd'hui). Pas besoin des maths, l'idée tient en deux intuitions :\n- **TF** (*term frequency*, fréquence du terme) : plus un document **répète** le mot cherché, plus il en parle probablement, donc plus son score monte. **Exemple** : pour la recherche `docker`, une leçon qui dit dix fois « docker » passe avant une leçon qui le mentionne une seule fois.\n- **IDF** (*inverse document frequency*, rareté du terme) : un mot **rare** dans l'ensemble des documents est plus **révélateur** qu'un mot banal. **Exemple** : dans la requête `le conteneur docker`, le mot `le` est partout (il ne distingue rien), alors que `docker` est rare et bien plus parlant ; le moteur pèse donc `docker` beaucoup plus fort que `le`.\n\nEnfin, on peut **ajuster** ce classement selon le métier : donner plus de poids à un mot trouvé dans le **titre** que dans le corps, ou favoriser les contenus récents. Ce réglage s'appelle le **boosting**, on y revient dans une leçon plus avancée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le classement par pertinence ordonne les resultats du plus au moins pertinent (BM25).",
+          "body": "/images/lessons/comment-ca-marche-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Pourquoi appliquer la même analyse (minuscules, stemming) à la fois lors de l'indexation et lors de la requête ?",
+          "solution": "Pour que requête et documents soient comparés dans la même forme normalisée : si on indexe « courir » réduit à « cour » mais qu'on cherche « courais » sans le réduire, on ne trouve rien. En analysant identiquement les deux côtés (mêmes tokens, même stemming), une requête retrouve les documents pertinents malgré les variations de forme."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Analyse & pertinence",
+          "quizRef": "search-engines-analyse-check"
+        }
+      ]
+    },
+    {
+      "slug": "elasticsearch-et-usage",
+      "title": "Elasticsearch, Solr & usage",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Elasticsearch & Solr",
+          "body": "Passons aux outils concrets. Les deux moteurs de recherche les plus répandus sont **Elasticsearch** et **Solr**. Tous deux sont **open source** (leur code est libre et gratuit) et reposent sur la même brique interne : **Lucene**, une bibliothèque Java qui implémente l'index inversé, l'analyse et le scoring dont on vient de parler. 👉 **Analogie** : Lucene est le **moteur** (au sens mécanique), tandis qu'Elasticsearch et Solr sont les **voitures** construites autour, avec le tableau de bord, le réseau et les commandes prêtes à l'emploi.\n\nCes deux moteurs sont **distribués** : ils peuvent répartir les données sur plusieurs machines (on dit **nœuds**) pour encaisser d'énormes volumes, une capacité appelée **montée en charge horizontale** (ajouter des machines plutôt que d'en grossir une seule). Ils offrent la recherche plein texte, mais aussi des **agrégations** (aussi appelées **facettes** : compter et regrouper, par exemple « 42 cours en Docker, 30 en Kubernetes », comme les filtres à gauche d'un site marchand).\n\n**Elasticsearch** est le plus populaire, surtout grâce à son **écosystème** : on parle de la « stack » Elastic, avec notamment **Kibana**, un outil de visualisation très utilisé pour explorer des **logs** (les journaux d'activité des applications).\n\nDernier point important : tu n'as pas **toujours** besoin d'un moteur dédié. **PostgreSQL** (la base de données relationnelle) embarque sa **propre recherche plein texte** native. 👉 **Analogie** : c'est comme choisir entre un **vélo** (PostgreSQL, déjà là, suffisant pour aller au coin de la rue) et une **voiture** (Elasticsearch, à installer et entretenir, mais indispensable pour les longs trajets). Pour des besoins modestes, la recherche de PostgreSQL évite d'ajouter et de maintenir tout un système supplémentaire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Elasticsearch et Solr : des moteurs de recherche distribues, taillees pour le plein texte.",
+          "body": "/images/lessons/elasticsearch-et-usage-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Une source de vérité, un index à synchroniser (niveau expert)",
+          "body": "Une idée essentielle à bien intégrer : le moteur de recherche n'est **pas** l'endroit où vivent tes données. C'est seulement un **index**, une copie optimisée pour la recherche. La **source de vérité** (en anglais *source of truth*, l'exemplaire officiel et fiable) reste ta **base de données** principale, par exemple PostgreSQL.\n\n👉 **Analogie** : la source de vérité est l'**original** d'un document rangé au coffre ; l'index de recherche est une **photocopie annotée** que tu gardes sur ton bureau pour retrouver vite les choses. Si la photocopie brûle, ce n'est pas grave : tu la refais depuis l'original.\n\nDeux conséquences pratiques :\n- **Il faut synchroniser.** Quand une donnée change en base (un cours modifié, supprimé), il faut **répercuter** ce changement dans l'index. On le fait soit au moment de l'écriture, soit via un **flux d'événements** (un mécanisme qui annonce « telle donnée a changé » ; on parle aussi de **CDC**, *Change Data Capture*, la capture des changements de la base).\n- **On accepte un petit décalage.** L'index n'est pas mis à jour à la milliseconde près : un document modifié peut mettre **un court instant** à apparaître dans les résultats. On appelle ça la **cohérence à terme** (en anglais *eventual consistency* : tout finit par être cohérent, mais pas instantanément). **Exemple** : tu renommes un cours, et pendant deux secondes la recherche affiche encore l'ancien titre. Ce n'est pas un bug, c'est le fonctionnement normal.\n\nRassurant à savoir : puisque l'index n'est qu'une copie, on peut le **reconstruire entièrement** depuis la base en cas de problème (corruption, changement de structure)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une source de verite (la base) et un index a synchroniser : garder les deux coherents.",
+          "body": "/images/lessons/elasticsearch-et-usage-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une application indexe ses cours dans Elasticsearch pour la recherche. Un cours modifié en base met quelques secondes à refléter le changement dans les résultats. Est-ce un bug ? Comment le voir ?",
+          "solution": "Ce n'est pas un bug mais une cohérence à terme : Elasticsearch est un index synchronisé depuis la base (source de vérité), la propagation n'est pas instantanée. On l'assume et on informe l'utilisateur si besoin. Si la fraîcheur immédiate est critique pour un champ, on peut le lire depuis la base plutôt que depuis l'index."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz : Moteurs de recherche",
+          "quizRef": "search-engines-check"
+        }
+      ]
+    },
+    {
+      "slug": "elasticsearch-en-profondeur",
+      "title": "Elasticsearch en profondeur : shards, mapping, requêtes",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Shards & replicas : échelle et résilience",
+          "body": "On entre dans le fonctionnement interne d'Elasticsearch. Deux mots clés à comprendre : **shards** et **replicas**.\n\nUn **index** Elasticsearch (l'équivalent d'une « table », l'ensemble des documents d'un même type) peut être trop gros pour tenir sur une seule machine. On le **découpe** donc en morceaux appelés **shards** (« éclats », « fragments » en anglais). Chaque **shard primaire** est un index Lucene complet et autonome, posé sur un **nœud** (une machine du cluster). 👉 **Analogie** : au lieu d'un seul énorme classeur impossible à porter, tu répartis les fiches dans **plusieurs tiroirs** posés dans plusieurs bureaux ; on peut alors fouiller tous les tiroirs **en parallèle**, donc plus vite.\n\nChaque shard primaire a des **replicas** : des **copies** de secours posées sur d'autres nœuds. Elles servent à deux choses : la **résilience** (si le nœud qui portait le primaire tombe en panne, une copie prend le relais, aucune donnée perdue) **et** absorber des **lectures** supplémentaires (plusieurs copies peuvent répondre à des recherches en même temps). 👉 **Analogie** : c'est la **photocopie de sécurité** d'un document important, rangée dans un autre bâtiment.\n\nDétail structurant à retenir : le **nombre de shards primaires est figé à la création** de l'index. On ne peut pas le changer ensuite sans tout **réindexer** (reconstruire l'index), parce qu'Elasticsearch décide dans quel shard va un document par un calcul du type `hash(identifiant) modulo nombre_de_shards` : changer le nombre casserait ce routage. **Conséquence** : bien **dimensionner** dès le départ est une décision d'expert. Trop de shards : du gaspillage (chaque shard a un coût fixe). Trop peu : pas assez de parallélisme, on ne profite pas des machines."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Shards (echelle) et replicas (resilience) repartissent et dupliquent l'index.",
+          "body": "/images/lessons/elasticsearch-en-profondeur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Near-real-time : le refresh",
+          "body": "Elasticsearch est **near-real-time** (« quasi temps réel »), et **pas** temps réel strict. Traduction : quand tu indexes un document, il n'est **pas recherchable dans l'instant**, mais après un très court délai (environ une seconde par défaut).\n\nPourquoi ? À cause de la mécanique interne d'écriture :\n1. Un document indexé va d'abord dans un **buffer** (une mémoire tampon, une zone d'attente).\n2. Périodiquement, une opération appelée **refresh** vide ce buffer et le transforme en un **segment** Lucene, un petit fichier **interrogeable**. C'est seulement là que le document devient visible dans les recherches.\n3. Avec le temps, les nombreux petits segments sont fusionnés (**merge**) en plus gros, pour rester efficaces.\n\n👉 **Analogie** : tu écris des notes sur un **brouillon** (le buffer). Tes collègues ne peuvent les lire qu'une fois que tu les **recopies au propre et les affiches au tableau** (le refresh). Tant que c'est sur le brouillon, personne d'autre ne les voit.\n\nCe délai est **réglable** selon le besoin :\n- **Raccourcir** l'intervalle de refresh donne des résultats plus **frais**, mais coûte plus de ressources.\n- **Allonger** (ou couper) le refresh pendant un **import massif** de millions de documents accélère énormément l'opération, puisqu'on ne s'arrête pas pour publier à chaque document.\n\nComprendre ce cycle buffer → refresh → segment → merge explique deux choses qu'on observe en vrai : le petit **délai** avant qu'un document apparaisse, et les **pics de charge** lors des fusions de segments."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Near-real-time : un document indexe devient cherchable apres un refresh, pas instantanement.",
+          "body": "/images/lessons/elasticsearch-en-profondeur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Query vs filter : scoring et cache",
+          "body": "Quand tu interroges Elasticsearch, chaque condition de ta requête s'exécute dans l'un de deux **contextes**. Bien les distinguer est la clé de la performance.\n\n**Le query context** répond à la question « **à quel point** ce document correspond-il ? ». Il **calcule un score** de pertinence (avec BM25) et **classe** les résultats. C'est le contexte du texte à chercher, avec des requêtes comme `match`. **Exemple** : chercher `sécurité API` dans le titre et le corps ; on veut que les documents soient **notés et triés** du plus au moins pertinent.\n\n**Le filter context** répond par **oui ou non** : « ce document passe-t-il, oui ou non ? ». Pas de score, juste **inclure ou exclure**. C'est le contexte des conditions **binaires** : `term` (une valeur exacte), une **plage** de dates, un statut, une permission. **Exemple** : `statut = PUBLIÉ`, ou `date entre janvier et mars`.\n\n👉 **Analogie** : le **query** est un **jury de concours** qui donne une **note** à chaque candidat pour les classer. Le **filter** est le **videur** à l'entrée : il regarde juste si tu es sur la liste, c'est **oui ou non**, sans te noter.\n\nDeux avantages décisifs du filter :\n- Il **ne calcule pas de score** (inutile pour du binaire), donc c'est plus **rapide**.\n- Il est **cachable** : Elasticsearch **mémorise** le résultat d'un filtre et le **réutilise** d'une requête à l'autre. Comme beaucoup de recherches partagent la même condition (`statut = PUBLIÉ`), on ne recalcule pas à chaque fois.\n\n**Règle de performance** : mets en **filter** tout ce qui est binaire (facettes, permissions, plages de dates), et réserve le **query** au texte qu'il faut vraiment scorer. La bonne structure combine les deux : `bool { must: [ match sur le texte ], filter: [ term sur le statut ] }`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Query (scoring, pertinence) vs filter (oui/non, cache) : deux usages, deux performances.",
+          "body": "/images/lessons/elasticsearch-en-profondeur-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le piège de la pagination profonde & le reindex sans coupure (niveau expert)",
+          "body": "Deux pièges classiques rencontrés en production.\n\n**Piège 1 : la pagination profonde.** Pour afficher des résultats page par page, on est tenté d'écrire `from: 10000, size: 10` (« saute les 10 000 premiers, donne-m'en 10 »). Le problème : **chaque shard** doit trier et rapatrier les **10 010 premiers** résultats pour que le moteur n'en garde que 10. Plus tu vas **loin** dans les pages, plus ça coûte cher ; Elasticsearch **plafonne** d'ailleurs ce mécanisme (paramètre `max_result_window`). 👉 **Analogie** : lire la page 1 000 d'un livre en **recomptant** les pages depuis le début à chaque fois serait absurde ; mieux vaut un **marque-page**. La bonne solution s'appelle **`search_after`** : un **curseur** qui dit « donne-moi la suite **après** ce dernier résultat » (en s'appuyant sur les valeurs de tri), sans recompter depuis le début. Il existe aussi le *point in time* pour figer une vue le temps de paginer. **Exemple** : un défilement infini qui charge la suite utilise `search_after`, pas `from/size`.\n\n**Piège 2 : faire évoluer un index sans coupure.** On a vu que le **nombre de shards** et le **mapping** (la définition des champs et de leurs types, un peu comme le schéma d'une table) sont quasi **figés**. Pour les changer, il faut **réindexer** : reconstruire un nouvel index. Comment le faire **sans arrêter le service** ? Grâce à un **alias** : un **nom logique** qui pointe vers un index réel. 👉 **Analogie** : l'alias est un **panneau indicateur** ; l'application suit toujours le panneau, et toi tu peux **rediriger le panneau** vers une nouvelle route sans que personne ne s'en aperçoive. La manœuvre : l'application vise l'**alias** (jamais l'index directement) ; on **construit** le nouvel index en parallèle ; puis on **bascule l'alias** dessus, de façon **atomique** (en un seul geste indivisible). Résultat : **zéro coupure**, et un **rollback** (retour en arrière) trivial, il suffit de re-basculer l'alias sur l'ancien index."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le piege de la pagination profonde ; reindexer sans coupure via des alias.",
+          "body": "/images/lessons/elasticsearch-en-profondeur-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une recherche filtre les cours par `statut = PUBLIÉ` en plus du texte cherché. Faut-il mettre cette condition de statut dans le query context ou le filter context, et pourquoi ?",
+          "solution": "Dans le filter context. La condition statut = PUBLIÉ est binaire (le cours est publié ou non) : elle n'a pas à influencer le score de pertinence, seulement à inclure/exclure. La mettre en filter évite de calculer un score inutile ET rend la condition cachable (Elasticsearch réutilise le résultat du filtre entre requêtes, car beaucoup de recherches partagent 'statut = PUBLIÉ'), c'est plus rapide. Le texte cherché, lui, reste dans le query context (match) car on veut qu'il score et classe les résultats par pertinence. Bonne structure : bool { must: [match texte], filter: [term statut] }."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : Elasticsearch en profondeur",
+          "quizRef": "search-engines-profondeur-check"
+        }
+      ]
+    },
+    {
+      "slug": "pertinence-avancee-recherche-semantique",
+      "title": "Pertinence avancée & recherche sémantique",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ajuster la pertinence",
+          "body": "Le classement par défaut (BM25) est un bon point de départ, mais il se **règle** en fonction de ton métier. C'est un travail d'**ajustement de la pertinence**.\n\nPlusieurs leviers :\n- **Le boosting** (« dopage ») : donner plus de **poids** à certains champs ou conditions. **Exemple** : un mot trouvé dans le **titre** d'un cours devrait compter davantage que le même mot noyé dans le corps du texte ; on booste alors le titre. 👉 **Analogie** : c'est comme **surligner en jaune** les endroits qui comptent le plus ; le moteur les regarde en priorité. Une variante, `function_score`, permet de booster selon une **fonction**, par exemple favoriser la **fraîcheur** (contenus récents) ou la **popularité**.\n- **Les synonymes** : déclarer que `k8s` et `kubernetes` désignent la même chose, pour que l'un retrouve l'autre.\n- **Les stopwords** (« mots vides ») : retirer de l'analyse les mots trop fréquents et peu utiles comme `le`, `de`, `la`, qui n'aident pas à distinguer les documents.\n\nDernier principe, très professionnel : on **mesure** la pertinence au lieu de la juger « à l'œil ». On observe les **clics** des utilisateurs, ou des métriques dédiées comme le **NDCG** (une note qui évalue si les bons résultats sont bien placés en haut). 👉 **Idée à retenir** : régler la pertinence n'est pas un réglage universel qu'on fait une fois ; c'est un travail **itératif**, propre à **chaque corpus** (chaque ensemble de documents), qu'on améliore en mesurant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ajuster la pertinence : boosts, synonymes, champs ponderes selon le metier.",
+          "body": "/images/lessons/pertinence-avancee-recherche-semantique-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Autocomplétion & tolérance aux fautes",
+          "body": "Deux fonctionnalités qu'un utilisateur attend d'une bonne recherche moderne.\n\n**L'autocomplétion** : suggérer des résultats **pendant que l'utilisateur tape**, avant même qu'il ait fini. 👉 **Analogie** : c'est la barre de recherche de YouTube ou Google qui te propose la fin de ta phrase. Techniquement, on ne fait **pas** un `LIKE 'kub%'` (trop lent). On prépare l'index avec des **edge n-grams** : on découpe et on indexe à l'avance tous les **préfixes** d'un mot. Pour `kubernetes`, on indexe `kub`, `kube`, `kuber`, `kubern`... Ainsi, dès que l'utilisateur a tapé `kube`, le préfixe est déjà dans l'index et la suggestion est **instantanée**. Elasticsearch propose aussi un outil dédié, le *completion suggester*.\n\n**La tolérance aux fautes** : retrouver le bon résultat **malgré une faute de frappe**. On utilise la recherche **fuzzy** (« floue »), fondée sur la **distance d'édition** (dite de **Levenshtein**) : le nombre de lettres à changer, ajouter ou retirer pour passer d'un mot à un autre. **Exemple** : `kubernets` est à **une** correction de `kubernetes` (il manque un `e`), donc le moteur le retrouve. 👉 **Analogie** : c'est le correcteur qui te souffle « vouliez-vous dire *kubernetes* ? ». On peut d'ailleurs afficher cette suggestion « did you mean » (« vouliez-vous dire »).\n\nÀ retenir : ces deux mécaniques sont **coûteuses et pénibles** à faire en SQL brut, alors qu'elles sont **natives** dans un moteur de recherche. C'est l'une des grandes raisons d'en adopter un."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Autocompletion et tolerance aux fautes rendent la recherche fluide et indulgente.",
+          "body": "/images/lessons/pertinence-avancee-recherche-semantique-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Au-delà des mots-clés : la recherche vectorielle",
+          "body": "Jusqu'ici, toutes nos recherches cherchent des **mots**. BM25 compare les **termes** de la requête à ceux des documents. Sa limite : il ne relie pas `voiture` et `automobile` s'ils ne partagent aucun mot commun. On appelle ça le **fossé sémantique** (en anglais *vocabulary mismatch*, décalage de vocabulaire) : deux textes veulent dire la même chose, mais avec des mots différents.\n\nLa **recherche sémantique** (ou **vectorielle**) dépasse cette limite en travaillant sur le **sens**, pas sur les mots. Comment ? Un modèle d'IA transforme chaque texte en un **embedding** : un **vecteur**, c'est-à-dire une longue liste de nombres qui **capture le sens** du texte. Les textes de sens **proche** obtiennent des vecteurs **proches**. 👉 **Analogie** : imagine une **carte** géante où chaque texte est un point ; les idées voisines sont **côte à côte**. `sécuriser`, `authentification` et `protéger` se retrouvent dans le même quartier, même sans mot commun.\n\nChercher revient alors à transformer la **requête** en vecteur, puis à trouver les documents dont le vecteur est le **plus proche**. On parle de **kNN** (*k nearest neighbors*, les *k* plus proches voisins) et de **similarité cosinus** (une façon de mesurer si deux vecteurs pointent dans la même direction). **Exemple** : la requête « comment sécuriser une API » retrouve un document sur l'« authentification JWT », alors qu'ils ne partagent aucun mot.\n\nCette capacité est supportée par Elasticsearch, par PostgreSQL via l'extension **pgvector**, et par des bases **dédiées aux vecteurs** (Pinecone, Milvus). C'est devenu un **pilier des applications d'IA**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Au-dela des mots-cles : la recherche vectorielle compare le SENS, pas seulement les termes.",
+          "body": "/images/lessons/pertinence-avancee-recherche-semantique-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Hybride & RAG (niveau expert)",
+          "body": "En pratique, on ne choisit pas l'un **ou** l'autre : on **combine** les deux approches. C'est la **recherche hybride**.\n\nElle fusionne :\n- le **lexical** (BM25) : **précis** sur les termes exacts, les identifiants, les mots rares (un numéro de référence, un nom propre) ;\n- le **sémantique** (les vecteurs) : **robuste** au vocabulaire et à l'intention, même quand les mots diffèrent.\n\nOn additionne intelligemment les deux classements, souvent par une méthode appelée **RRF** (*Reciprocal Rank Fusion*, « fusion par rang réciproque » : une formule qui combine deux listes de résultats en une seule). 👉 **Analogie** : c'est comme demander l'avis de **deux experts complémentaires**, l'un fort sur les détails littéraux, l'autre sur le sens général, puis faire la **synthèse** de leurs classements.\n\nCette recherche hybride est le **socle** d'une technique très en vogue : le **RAG** (*Retrieval-Augmented Generation*, « génération augmentée par la récupération »). L'idée : pour qu'un **LLM** (un grand modèle de langage, le moteur d'un assistant comme celui-ci) réponde sur **tes** données à toi (que le modèle n'a jamais vues), on procède en deux temps. D'abord on **récupère** les passages pertinents de tes documents (par une recherche hybride sur les embeddings), puis on les **fournit** au modèle comme **contexte** pour qu'il rédige sa réponse à partir d'eux. **Exemple** : un chatbot de support qui répond en citant **ta** documentation interne.\n\n👉 **À retenir** : la recherche n'est plus seulement une fonctionnalité de confort. Elle est devenue **l'étage de récupération** des systèmes d'IA, ce qui explique son importance croissante pour un développeur backend."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Hybride (mots-cles + vecteurs) et RAG combinent recherche et generation.",
+          "body": "/images/lessons/pertinence-avancee-recherche-semantique-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un utilisateur cherche « comment protéger mon API » mais les documents pertinents parlent d'« authentification JWT » et de « rate limiting » sans jamais employer le mot « protéger ». Pourquoi une recherche BM25 classique échoue-t-elle, et quelle approche moderne y répond ?",
+          "solution": "BM25 (recherche lexicale) matche des termes : la requête « protéger mon API » ne partage pas de mots avec « authentification JWT » ou « rate limiting », donc ces documents pertinents ne sont pas (ou mal) retrouvés, c'est le fossé sémantique (vocabulary mismatch). La réponse moderne est la recherche sémantique/vectorielle : on encode la requête et les documents en embeddings (vecteurs capturant le sens, via un modèle) et on cherche les plus proches par similarité (kNN), ce qui rapproche « protéger une API » de « sécuriser », « authentification », « rate limiting » car les sens sont voisins. En pratique on utilise souvent une recherche hybride (BM25 + vecteurs, fusionnés par RRF) pour cumuler précision lexicale et robustesse sémantique, et c'est exactement l'étage de récupération d'un système RAG."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : documentation **Elasticsearch** (shards/replicas, mapping & analyzers, Query DSL query vs filter, search_after, aliases & reindex, kNN/dense_vector) et le guide *Relevant Search* (Manning) ; la doc **Apache Lucene** pour les internals (segments, BM25) ; **pgvector** pour la recherche vectorielle dans PostgreSQL ; sur le sémantique et le RAG : la documentation des modèles d'embeddings, l'article *Reciprocal Rank Fusion*, et les guides RAG (LangChain, LlamaIndex). Pour la mesure de pertinence : les métriques NDCG/MRR et l'A/B testing des résultats."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir la recherche.",
+          "body": "/images/lessons/pertinence-avancee-recherche-semantique-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : Moteurs de recherche (niveau expert)",
+          "quizRef": "search-engines-expert"
+        }
+      ]
+    }
+  ]
+}

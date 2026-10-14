@@ -1,0 +1,10 @@
+{
+  "node": "resources",
+  "lesson": "la-ressource-brique-de-base",
+  "title": "Écrire une dépendance implicite",
+  "statement": "Écris deux ressources Terraform. (1) Un réseau `aws_vpc` nommé `main`, avec l'argument `cidr_block = \"10.0.0.0/16\"`. (2) Un sous-réseau `aws_subnet` nommé `app`, avec `cidr_block = \"10.0.1.0/24\"`, et dont l'argument `vpc_id` RÉFÉRENCE l'id du VPC précédent (pour créer une dépendance implicite qui force Terraform à créer le VPC en premier).",
+  "skeleton": "resource \"aws_vpc\" \"main\" {\n  # complète ici\n}\n\nresource \"aws_subnet\" \"app\" {\n  # complète ici : cidr_block ET vpc_id (référence)\n}",
+  "solution": "resource \"aws_vpc\" \"main\" {\n  cidr_block = \"10.0.0.0/16\"\n}\n\nresource \"aws_subnet\" \"app\" {\n  vpc_id     = aws_vpc.main.id\n  cidr_block = \"10.0.1.0/24\"\n}",
+  "keyPoints": ["aws_vpc", "\"main\"", "10.0.0.0/16", "aws_subnet", "\"app\"", "vpc_id", "aws_vpc.main.id", "10.0.1.0/24"],
+  "language": "hcl"
+}

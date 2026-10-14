@@ -1,0 +1,119 @@
+{
+  "ref": "exit-codes-commands-expert",
+  "node": "docker-basics",
+  "lesson": "codes-sortie-et-commandes",
+  "title": "Codes de sortie & commandes, expert",
+  "description": "Exit codes 137/143/139, docker cp/diff/commit, attach vs exec.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que signale un conteneur « Exited (137) » ?",
+      "justification": "137 = 128+9 : tué par SIGKILL, typiquement un OOM (dépassement de la limite mémoire) ou un docker kill.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Tué par SIGKILL (souvent un OOM mémoire)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Arrêt normal réussi",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Commande introuvable",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie un code de sortie 143 ?",
+      "justification": "143 = 128+15 : arrêté par SIGTERM, soit un docker stop propre (arrêt gracieux).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Arrêté par SIGTERM (docker stop propre)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Crash mémoire SIGSEGV",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Erreur du daemon Docker",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi éviter `docker commit` pour produire une image de production ?",
+      "justification": "L'image obtenue n'est pas reproductible (aucun Dockerfile décrivant sa construction) ; commit sert au dépannage exploratoire.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'image n'est pas reproductible (pas de Dockerfile)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "commit efface les données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "commit est payant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour ouvrir un shell de débogage sans risquer de tuer le conteneur, utilise-t-on attach ou exec ?",
+      "justification": "exec lance un nouveau processus à côté (le quitter n'affecte pas le conteneur) ; attach se rattache au PID 1 (Ctrl-C le tue).",
+      "position": 3,
+      "options": [
+        {
+          "label": "docker exec (nouveau processus à côté)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker attach (au PID 1)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Peu importe, c'est identique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec `docker attach`, un Ctrl-C peut arrêter le conteneur car le signal est envoyé à son processus principal (PID 1).",
+      "justification": "Vrai : attach relie le terminal au PID 1 ; pour se détacher sans tuer, on utilise Ctrl-P Ctrl-Q.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

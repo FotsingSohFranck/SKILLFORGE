@@ -1,0 +1,96 @@
+{
+  "ref": "mvm-composition-expert-check",
+  "node": "monolith-vs-microservices",
+  "lesson": "composition-donnees-bff-service-mesh",
+  "title": "Quiz, Composition, BFF & service mesh (expert)",
+  "description": "API composition vs read model CQRS, BFF, service mesh et ses conditions de pertinence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne peut-on pas faire un simple JOIN entre services en microservices ?",
+      "justification": "Chaque service a sa propre base (database per service) ; un JOIN inter-bases recréerait un couplage fort (monolithe distribué). On compose via API composition ou un read model CQRS.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Chaque service a sa propre base ; le JOIN inter-bases recréerait un couplage fort",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les JOINs sont trop lents en SQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que les bases NoSQL n'ont pas de JOIN",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle d'un Backend-for-Frontend (BFF) ?",
+      "justification": "Une gateway/backend par type de client, taillée pour ses besoins : elle compose et façonne exactement les données du client (mobile vs web), réduisant sur-fetching et allers-retours, sans loger de logique métier.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une gateway par type de client, façonnant les données pour ce client",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une base de données partagée entre tous les clients",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un nouveau monolithe portant la logique métier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'externalise un service mesh via ses sidecars ?",
+      "justification": "Les préoccupations réseau transverses : mTLS, retries, timeouts, circuit breaking, routage, observabilité, appliquées hors du code applicatif, de façon déclarative.",
+      "position": 2,
+      "options": [
+        {
+          "label": "mTLS, retries, timeouts, circuit breaking, routage, observabilité, hors du code",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La logique métier des services",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le schéma de la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un service mesh se justifie toujours, même pour 3-4 services.",
+      "justification": "Faux : le mesh apporte de la valeur à l'échelle (beaucoup de services, besoins uniformes de sécurité/observabilité) mais est du sur-engineering pour quelques services, une lib de résilience (Resilience4j) suffit alors.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

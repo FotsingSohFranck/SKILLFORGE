@@ -1,0 +1,52 @@
+{
+  "ref": "data-persistence-ephemere-check",
+  "node": "data-persistence",
+  "lesson": "le-conteneur-est-ephemere",
+  "title": "Le conteneur est éphémère",
+  "description": "Couche d'écriture éphémère, copy-on-write, conteneur jetable, où stocker les données.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les données écrites dans un conteneur (sans volume) disparaissent-elles quand on le supprime ?",
+      "justification": "Elles vivaient dans la couche d'écriture éphémère, attachée au conteneur : la suppression du conteneur détruit cette couche avec elle.",
+      "position": 0,
+      "options": [
+        { "label": "Elles étaient dans la couche d'écriture éphémère, détruite avec le conteneur", "correct": true, "position": 0 },
+        { "label": "Elles sont recopiées dans l'image, qui les efface au redémarrage", "correct": false, "position": 1 },
+        { "label": "Docker les compresse et les rend illisibles", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que veut dire « le conteneur est éphémère (jetable) » ?",
+      "justification": "Il est conçu pour être supprimé et recréé à volonté ; son stockage propre (la couche d'écriture) ne dure pas.",
+      "position": 1,
+      "options": [
+        { "label": "Il est conçu pour être supprimé et recréé, et son stockage propre ne dure pas", "correct": true, "position": 0 },
+        { "label": "Il ne peut tourner qu'une seule fois puis devient inutilisable", "correct": false, "position": 1 },
+        { "label": "Il consomme trop de mémoire pour rester allumé longtemps", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où faut-il stocker les données qui doivent survivre à la suppression du conteneur ?",
+      "justification": "En dehors du conteneur : dans un volume nommé (données de prod) ou un bind mount, qui vivent hors de la couche éphémère.",
+      "position": 2,
+      "options": [
+        { "label": "En dehors du conteneur, dans un volume ou un bind mount", "correct": true, "position": 0 },
+        { "label": "Directement dans la couche d'écriture du conteneur", "correct": false, "position": 1 },
+        { "label": "Dans l'image, en la reconstruisant à chaque changement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un volume nommé comme un bind mount permettent tous deux aux données de survivre à un `docker rm`.",
+      "justification": "Vrai : les deux mécanismes stockent les données hors de la couche éphémère, elles persistent donc après la suppression du conteneur.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

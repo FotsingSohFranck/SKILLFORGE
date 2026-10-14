@@ -1,0 +1,10 @@
+{
+  "node": "autoscaling",
+  "lesson": "hpa-et-vpa",
+  "title": "Écrire un HorizontalPodAutoscaler",
+  "statement": "Écris un manifeste **HorizontalPodAutoscaler** (API `autoscaling/v2`) nommé `web-hpa` qui pilote un Deployment existant nommé `web`. Il doit :\n- garder **au moins 2** répliques et **au plus 10** ;\n- viser une **utilisation CPU moyenne de 70 %** de la request.\n\nRappel : l'HPA raisonne en pourcentage de la **request** CPU, donc le Deployment `web` doit avoir une request CPU définie pour que ça fonctionne (tu n'as pas à l'écrire ici).",
+  "skeleton": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: web-hpa\nspec:\n  # complète : scaleTargetRef, minReplicas, maxReplicas, metrics\n",
+  "solution": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: web-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: web\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: 70",
+  "keyPoints": ["autoscaling/v2", "HorizontalPodAutoscaler", "scaleTargetRef", "name: web", "minReplicas: 2", "maxReplicas: 10", "averageUtilization: 70"],
+  "language": "yaml"
+}

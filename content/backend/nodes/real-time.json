@@ -1,0 +1,292 @@
+{
+  "node": "real-time",
+  "lessons": [
+    {
+      "slug": "le-polling",
+      "title": "Le polling",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Demander régulièrement",
+          "body": "Avant de parler de temps réel, un rappel sur **HTTP**, le protocole du web (l'ensemble de règles que suivent les navigateurs et les serveurs pour se parler). HTTP fonctionne en **requête / réponse** : c'est toujours le **client** (ton navigateur, ton application mobile) qui **demande**, et le **serveur** (la machine qui héberge le service) qui **répond**. Le serveur ne peut **jamais** parler le premier : il attend qu'on le sollicite.\n\n👉 **Analogie** : c'est un **guichet**. Le client pose une question, l'employé répond, puis se tait. Il ne va pas te courir après pour te dire « au fait, il y a du nouveau ». Si tu veux savoir s'il y a du neuf, tu dois **repasser au guichet**.\n\nProblème : pour une messagerie, un score de match ou une notification, on voudrait que l'écran se mette à jour **tout seul** quand quelque chose arrive côté serveur. La solution la plus simple s'appelle le **polling** (de l'anglais *to poll*, « interroger ») : le client **redemande à intervalle régulier** « du nouveau ? du nouveau ? ». Cette version basique s'appelle le **short polling** (« interrogation courte »).\n\n**Exemple concret** : une page de suivi de commande qui envoie toutes les 3 secondes la requête `GET /commandes/42/statut`. La plupart du temps, le serveur répond « toujours en préparation ».\n\nDeux défauts : c'est **gaspilleur** (des dizaines de requêtes pour rien tant qu'il n'y a pas de nouveauté), et la **latence** (le délai entre l'instant où l'info existe et l'instant où le client la voit) vaut au pire l'intervalle : avec un sondage toutes les 3 secondes, une info peut mettre jusqu'à 3 secondes à s'afficher."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le polling : demander regulierement 'du nouveau ?', meme quand il n'y a rien.",
+          "body": "/images/lessons/le-polling-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Long polling",
+          "body": "Le **long polling** (« interrogation longue ») est une amélioration maligne du short polling. Le client envoie une requête, mais cette fois le serveur ne répond **pas tout de suite** s'il n'a rien : il **garde la requête ouverte**, en attente, jusqu'à ce qu'un événement survienne (il renvoie alors la réponse) ou qu'un délai maximum soit atteint. Ce délai maximum s'appelle le **timeout** (« délai d'expiration ») : passé ce temps sans nouvelle, le serveur répond « rien » pour éviter de laisser la connexion pendre indéfiniment. Dans les deux cas, le client **relance aussitôt** une nouvelle requête.\n\n👉 **Analogie** : au lieu de rappeler le service client toutes les 30 secondes pour demander si ton colis est arrivé (short polling), tu restes **en ligne, en attente**, et l'opérateur te parle **dès** que l'info tombe (long polling). Tu ne raccroches et rappelles que si l'attente devient trop longue.\n\n**Exemple concret** : une messagerie web d'avant 2015 utilisait le long polling ; le navigateur demandait « des nouveaux messages ? », le serveur gardait la main jusqu'à l'arrivée d'un message, puis répondait immédiatement.\n\nBilan : on **réduit fortement** le trafic inutile et la latence (l'info part dès qu'elle existe), au prix de **connexions maintenues ouvertes** côté serveur. C'était le compromis historique pour simuler du temps réel, avant l'arrivée de protocoles dédiés que l'on voit ensuite : **SSE** (Server-Sent Events) et **WebSockets**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le long polling garde la requete ouverte jusqu'a ce qu'il y ait une reponse : moins de bruit.",
+          "body": "/images/lessons/le-polling-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une application interroge le serveur toutes les 2 secondes pour voir s'il y a un nouveau message, alors qu'il en arrive rarement. Quel est le gaspillage, et quelle amélioration simple ?",
+          "solution": "Gaspillage : des centaines de requêtes qui renvoient \"rien de nouveau\", consommant réseau et serveur, avec jusqu'à 2 s de latence. Amélioration simple : le long polling (le serveur garde la requête ouverte jusqu'à un événement) ; mieux encore, SSE ou WebSockets pour une vraie poussée serveur → client."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Le polling",
+          "quizRef": "real-time-polling-check"
+        }
+      ]
+    },
+    {
+      "slug": "server-sent-events",
+      "title": "Server-Sent Events",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un flux du serveur vers le client",
+          "body": "Les **Server-Sent Events** (« événements envoyés par le serveur », abrégé **SSE**) sont un standard du web fait pour un cas précis : le serveur qui **pousse** des messages vers le client. « Pousser » (*push*), c'est l'inverse du polling : ici, c'est le **serveur qui parle le premier** dès qu'il a du nouveau, sans qu'on le lui redemande.\n\nSSE ouvre un **flux unidirectionnel** : un canal qui ne va que dans **un seul sens**, du serveur vers le client. Le mot **flux** désigne une suite continue de messages qui arrivent au fil de l'eau (par opposition à une réponse unique qui se termine). **Unidirectionnel** veut dire « à sens unique » : sur ce canal, le client **ne renvoie rien**, il écoute.\n\n👉 **Analogie** : SSE, c'est une **radio**. La station émet en continu, ton poste reçoit ; tu ne peux pas répondre à l'animateur par le même canal. C'est parfait quand seul l'émetteur a des choses à dire.\n\nTechniquement, c'est simple parce que **c'est du HTTP** : le client ouvre une connexion normale que le serveur **maintient ouverte** et sur laquelle il écrit les événements un à un. Le navigateur intègre même la **reconnexion automatique** : si la connexion tombe, il se rebranche tout seul, sans code de ta part.\n\n**Exemples concrets** où SSE brille : les notifications (« vous avez un nouveau message »), un fil d'événements en direct, la **progression d'une tâche** (« 42 % »), un cours de bourse qui défile. Dans tous ces cas, le client se contente de **recevoir**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SSE : un flux continu du serveur vers le client, a sens unique, simple sur HTTP.",
+          "body": "/images/lessons/server-sent-events-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Quand SSE suffit",
+          "body": "Beaucoup de besoins que l'on croit « temps réel » sont en fait **unidirectionnels** : le serveur **informe**, le client **affiche**. Une alerte, un compteur qui monte, un tableau de bord qui se rafraîchit : dans aucun de ces cas le client n'a besoin de **répondre sur le même canal**.\n\nPour ces cas, SSE est le bon outil, avec un **minimum de complexité**. Comme c'est du HTTP ordinaire, SSE réutilise toute l'**infrastructure existante** : les **proxys** (serveurs intermédiaires qui relaient le trafic), l'**authentification** par cookie ou en-tête, la compression, etc. Rien de nouveau à déployer.\n\nOn garde les **WebSockets** (vus à la leçon suivante) pour le vrai **bidirectionnel** : quand le client **et** le serveur doivent s'envoyer des messages en continu, dans les **deux sens** (un chat, un jeu). « Bidirectionnel » signifie « dans les deux directions ».\n\n👉 **Le principe à retenir** : choisis l'outil le plus simple qui **suffit**. Si un sens unique règle ton problème, prendre un WebSocket bidirectionnel, c'est comme installer une ligne téléphonique à double sens pour n'écouter que la météo : de la complexité inutile.\n\n**Exemple concret** : afficher en direct l'avancement d'un export de fichier (« 3 200 / 10 000 lignes traitées ») se fait très bien en SSE ; le client n'a jamais rien à renvoyer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quand SSE suffit : notifications, flux d'activite, mises a jour sans besoin de repondre.",
+          "body": "/images/lessons/server-sent-events-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un tableau de bord doit afficher en direct des notifications poussées par le serveur ; le client n'envoie jamais rien en retour sur ce canal. WebSockets ou SSE ?",
+          "solution": "SSE : le besoin est unidirectionnel (serveur → client). SSE est plus simple (HTTP, reconnexion automatique, compatible avec l'infra existante) et suffit parfaitement. Les WebSockets seraient de la complexité inutile ici, justifiée seulement par un vrai besoin bidirectionnel interactif."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Server-Sent Events",
+          "quizRef": "real-time-sse-check"
+        }
+      ]
+    },
+    {
+      "slug": "websockets",
+      "title": "WebSockets",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un canal bidirectionnel persistant",
+          "body": "Un **WebSocket** est un protocole qui établit un **canal bidirectionnel** et **persistant** entre le client et le serveur. Décortiquons ces deux mots.\n\n**Bidirectionnel** : les messages circulent dans les **deux sens**. Le client peut écrire au serveur **et** le serveur peut écrire au client, **à tout moment**, chacun à son initiative. C'est la grande différence avec SSE (sens unique) et avec HTTP classique (le client demande, le serveur répond).\n\n**Persistant** : une fois ouverte, la connexion **reste établie** (elle ne se referme pas après chaque message). Les deux camps gardent la ligne, ce qui donne une très **faible latence** : pas besoin de rouvrir une connexion à chaque échange, le message part immédiatement.\n\n👉 **Analogie** : si HTTP est un **échange de lettres** (une demande, une réponse, on referme l'enveloppe) et SSE une **radio** (un seul sens), le WebSocket est un **appel téléphonique** : la ligne reste ouverte et les deux personnes se parlent quand elles veulent, sans raccrocher entre chaque phrase.\n\nC'est **le** choix pour l'**interactif temps réel**, là où les deux côtés réagissent en continu. **Exemples concrets** : un **chat** (chacun envoie et reçoit), un **jeu multijoueur**, l'**édition collaborative** d'un document (type Google Docs), un tableau de **trading**.\n\nDétail technique utile : la connexion **démarre en HTTP** puis se transforme en WebSocket par une négociation appelée **upgrade** (« montée en gamme » de la connexion). Le client demande poliment « passe cette connexion HTTP en WebSocket », le serveur accepte, et à partir de là le canal bidirectionnel est ouvert. Cela permet à un WebSocket de passer par les mêmes ports (80 / 443) que le web ordinaire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le WebSocket ouvre un canal bidirectionnel persistant : client et serveur se parlent librement.",
+          "body": "/images/lessons/websockets-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le coût de l'état (niveau expert)",
+          "body": "Cette section porte la mention **niveau expert** : c'est un réflexe de professionnel, mais autant en semer l'idée tôt.\n\nUne connexion WebSocket est **persistante et à état** (en anglais *stateful*). « À état » veut dire que le serveur **garde en mémoire** quelque chose de vivant pour chaque client connecté (la connexion ouverte, à qui elle appartient). C'est l'opposé d'une API REST classique dite **stateless** (« sans état ») : là, chaque requête est indépendante et le serveur n'a rien à retenir entre deux appels.\n\nCe côté « à état » complique le **scale horizontal**, c'est-à-dire le fait d'**ajouter des serveurs** pour tenir la charge (par opposition au scale vertical, qui grossit une seule machine). Deux questions surgissent : à **quel** serveur tel client est-il connecté ? Et comment envoyer un message à **tous** les clients quand ils sont répartis sur, disons, 5 serveurs différents ?\n\n👉 **Analogie** : imagine un standard téléphonique éclaté sur 5 bâtiments. Chaque standardiste ne connaît que **les appels de son bâtiment**. Pour faire une annonce à **tout le monde**, il faut un **haut-parleur central** auquel tous les bâtiments sont reliés.\n\nCe haut-parleur central, en informatique, s'appelle un **backplane** (« fond de panier ») : un système partagé par lequel les serveurs se **rediffusent** les messages. On utilise typiquement un **pub/sub** (*publish/subscribe*, « publication / abonnement ») comme **Redis** : chaque serveur **publie** les messages qu'il reçoit et **s'abonne** pour recevoir ceux des autres, puis les renvoie à ses propres clients. Un **broker** (un logiciel de messagerie dédié, comme ceux vus au nœud sur les files de messages) joue le même rôle.\n\n**Exemple concret** : dans un chat sur 3 serveurs, quand Alice (serveur A) écrit, le serveur A publie le message sur Redis ; les serveurs B et C, abonnés, le reçoivent et le poussent à leurs clients. Sans ce backplane, le message d'Alice n'atteindrait que les gens connectés au serveur A."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cout de l'etat : chaque connexion ouverte consomme des ressources, difficile a scaler.",
+          "body": "/images/lessons/websockets-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une application de chat en WebSockets tourne sur 3 serveurs ; un message envoyé à un serveur n'atteint pas les utilisateurs connectés aux deux autres. Pourquoi, et quelle solution ?",
+          "solution": "Chaque serveur ne connaît que ses propres connexions WebSocket : un message reçu sur le serveur A n'est pas diffusé aux clients connectés à B et C. Solution : un backplane (ex. Redis pub/sub ou un broker) où chaque serveur publie les messages et auquel tous s'abonnent, pour les rediffuser à leurs clients. C'est la façon de scaler des connexions à état."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Temps réel",
+          "quizRef": "real-time-check"
+        }
+      ]
+    },
+    {
+      "slug": "fiabilite-temps-reel",
+      "title": "Fiabilité : reprise, ordre, backpressure",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une connexion longue va se couper : concevoir la reprise",
+          "body": "Sur une connexion **persistante** (SSE, WebSocket), la déconnexion n'est pas un accident rare, c'est une **certitude** : le Wi-Fi saute, le mobile passe de la 4G au Wi-Fi, un proxy coupe une connexion qu'il juge inactive, un tunnel fait perdre le réseau. La question n'est donc pas *si* la connexion va tomber, mais **comment reprendre sans perdre de messages**.\n\nLe mot **reprise** désigne exactement ça : la capacité, après une coupure, à **rattraper** les messages émis pendant qu'on était déconnecté, au lieu de les perdre.\n\nSSE fournit ce mécanisme **nativement** grâce à l'en-tête **`Last-Event-ID`** (« identifiant du dernier événement »). Le principe : le serveur attribue un **id** (un numéro) à chaque message. Le navigateur mémorise le dernier id reçu. À la reconnexion automatique, il le renvoie au serveur, qui **rejoue** tout ce qui est venu après.\n\n👉 **Analogie** : c'est comme une **série que tu regardes en streaming**. Si ta connexion coupe à l'épisode 7, tu ne recommences pas à l'épisode 1 : le service a retenu **où tu en étais** et reprend à la suite. L'id, c'est ton marque-page.\n\nLe pattern général derrière tout ça : un **journal d'événements** (une liste ordonnée des messages récents, conservée par le serveur) plus un **curseur** (la position « j'en étais là » du client). Le client dit « dernier vu = 57 », le serveur envoie 58, 59, 60. **Exemple concret** : un fil de notifications qui, à chaque reconnexion, renvoie les alertes manquées avant de reprendre le direct. Sans reprise, chaque micro-coupure crée un **trou silencieux** dans les données, un message disparu que personne ne remarque."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une connexion longue finira par se couper : concevoir la reprise et la reconnexion des le depart.",
+          "body": "/images/lessons/fiabilite-temps-reel-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ordre & doublons",
+          "body": "Un système temps réel fiable repose, comme les files de messages (nœud précédent), sur une garantie dite **at-least-once** (« au moins une fois ») : chaque message est livré **au moins** une fois, donc parfois **plusieurs** fois. Pourquoi ? Parce que la reprise (rejouer après une coupure) peut **renvoyer** un message que le client avait déjà reçu juste avant de perdre la connexion.\n\nConséquence : le client doit être **idempotent**. Un traitement **idempotent** est un traitement que l'on peut **répéter sans changer le résultat**. Concrètement ici, le client **déduplique** : il note les ids déjà vus et **ignore** un message dont l'id est déjà connu.\n\n👉 **Analogie de l'idempotence** : appuyer sur le bouton d'appel d'un ascenseur. Que tu appuies une fois ou dix fois, l'ascenseur vient **une** fois. Le dixième appui ne change rien : c'est idempotent.\n\nSecond problème : l'**ordre**. Rien ne garantit que les messages arrivent dans l'ordre où ils ont été émis, surtout après un rejeu ou sur plusieurs connexions. La parade est un **numéro de séquence** : un compteur croissant (1, 2, 3...) attaché à chaque message. Le client s'en sert pour **remettre les messages dans l'ordre** et pour **détecter un trou** (« j'ai reçu 5 puis 7 : il me manque le 6 »).\n\n**Exemple concret** : un chat qui, sans ces deux précautions, afficherait « Bonjour » deux fois, ou dans l'ordre « ça va ? » avant « salut ». La déduplication par id **et** le réordonnancement par numéro de séquence corrigent ces deux défauts."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Gerer l'ordre et les doublons : numeroter les messages pour les remettre en ordre cote client.",
+          "body": "/images/lessons/fiabilite-temps-reel-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le client lent : backpressure ou débordement",
+          "body": "Que se passe-t-il si le serveur **produit** des messages plus **vite** que le client ne les **consomme** ? Cela arrive tout le temps : mobile sur un réseau lent, onglet mis en arrière-plan, client sur une vieille machine. Les messages **s'accumulent** quelque part : en mémoire du serveur, ou dans les **tampons** réseau. Un **tampon** (en anglais *buffer*) est une zone d'attente temporaire où les données patientent avant d'être traitées. S'il grossit sans limite, on finit par un **débordement mémoire**, appelé **OOM** (*Out Of Memory*, « plus de mémoire disponible ») : le serveur **plante**.\n\n👉 **Analogie** : un tapis roulant de caisse de supermarché. Si la caissière (le client) scanne moins vite que les clients ne posent leurs articles (le serveur), le tapis se remplit. Trois issues : soit on **demande aux gens de ralentir** (backpressure), soit le tapis a une **taille limite** et ce qui déborde tombe par terre (drop), soit on **ferme la caisse** le temps de rattraper.\n\nCes trois options doivent être **choisies explicitement** :\n- La **backpressure** (« contre-pression ») : **ralentir la source** pour qu'elle n'aille pas plus vite que le consommateur. C'est **naturel** en programmation **réactive** avec un `Flux` (le type de flux de Spring WebFlux, notre stack) : le `ServerSentEvent` de WebFlux **respecte la demande** du client et ne pousse que ce qu'il peut absorber.\n- **Bufferiser avec une limite puis abandonner** (**drop**) les messages en trop : acceptable pour un flux où seule la **dernière** valeur compte (des positions GPS, un cours de bourse : le vieux prix ne sert plus).\n- **Fermer** la connexion lente : le client se reconnectera et fera un **catch-up** (rattrapage via la reprise vue plus haut).\n\nLe piège : **ne pas décider**. Ne rien choisir, c'est laisser les tampons enfler jusqu'au crash, autrement dit **choisir le crash** sans le savoir."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le client lent : backpressure ou debordement, sinon la memoire du serveur explose.",
+          "body": "/images/lessons/fiabilite-temps-reel-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Détecter les connexions mortes : heartbeats (niveau expert)",
+          "body": "Section **niveau expert**. Une connexion réseau peut être **morte sans que personne ne s'en aperçoive**. Rappel : les connexions du web reposent sur **TCP**, le protocole qui transporte les données de façon fiable et ordonnée. Normalement, quand un côté ferme proprement, il envoie un signal de fin appelé **FIN**. Mais si le câble est débranché, si le mobile s'éteint brutalement, ou si un **NAT** (le mécanisme des box et routeurs qui partage une seule adresse IP publique entre plusieurs machines) **oublie** la connexion, **aucun FIN n'est envoyé** : les deux côtés continuent de croire la connexion vivante alors qu'elle est morte.\n\nD'où les **heartbeats** (« battements de cœur ») : de petits messages envoyés périodiquement juste pour **vérifier que l'autre est toujours là**. WebSocket dispose de trames dédiées **ping/pong** (un côté envoie *ping*, l'autre répond *pong*). SSE envoie des **commentaires** périodiques, des lignes du type `:keep-alive` (« garder en vie ») qui ne portent aucune donnée mais entretiennent la connexion.\n\n👉 **Analogie** : au téléphone, quand un silence s'installe, on lâche un « allô, tu es toujours là ? ». Si l'autre ne répond pas, on comprend que la ligne est coupée et on raccroche.\n\nDeux usages :\n- **Détecter les morts** : si le *pong* n'arrive pas dans le délai imparti, on **considère la connexion morte**, on la ferme et on **libère les ressources** ; le client se reconnectera.\n- **Empêcher les coupures** : beaucoup de proxys et de **load balancers** (répartiteurs de charge) coupent une connexion jugée **oisive** (inactive). Un heartbeat régulier la garde « occupée » et évite ces coupures intempestives.\n\n**Exemple concret** : sans heartbeat, un serveur de chat accumule des **connexions fantômes** (clients partis dans le métro sans fermer proprement) qui consomment mémoire et ressources pour rien. Avec un ping toutes les 30 secondes, il repère et nettoie ces morts."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Detecter les connexions mortes avec des heartbeats : un ping regulier revele le silence.",
+          "body": "/images/lessons/fiabilite-temps-reel-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un flux SSE de notifications perd des messages quand l'utilisateur passe brièvement dans un tunnel (connexion coupée puis rétablie). Quel mécanisme standard de SSE résout ce problème, et comment le serveur doit-il coopérer ?",
+          "solution": "Le mécanisme Last-Event-ID de SSE : le serveur attribue un id à chaque événement (champ 'id:'), et le navigateur mémorise le dernier reçu. À la reconnexion automatique, le client renvoie cet id dans l'en-tête Last-Event-ID. Côté serveur, il faut coopérer : conserver un journal des événements récents (avec leurs ids) et, à la reconnexion, rejouer tous les événements postérieurs à l'id fourni avant de reprendre le flux en direct. Ainsi les messages émis pendant la coupure (le tunnel) sont rattrapés au lieu d'être perdus. C'est le pattern journal d'événements + curseur, intégré nativement à SSE."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Fiabilité du temps réel",
+          "quizRef": "real-time-fiabilite-check"
+        }
+      ]
+    },
+    {
+      "slug": "scaler-fanout-choisir-protocole",
+      "title": "Scaler le fan-out & choisir le protocole",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Diffuser à des milliers : le backplane pub/sub",
+          "body": "Sur **plusieurs serveurs**, chacun ne connaît que **ses** connexions. Pour diffuser un message à **tous** les clients, on utilise un **backplane** (le « haut-parleur central » vu au chapitre WebSockets) : chaque serveur **publie** sur un **pub/sub** partagé (Redis, un broker), tous **s'abonnent** et rediffusent à leurs connexions locales.\n\nReste une **question de conception** : au moment où un message doit atteindre beaucoup de destinataires, quand fait-on le travail de **diffusion** (le *fan-out*, littéralement « éventail sortant » : la démultiplication d'un message vers N destinataires) ?\n\n- **Fan-out on write** (« diffusion à l'écriture ») : dès que l'événement se produit, on le **pousse** immédiatement à tous les abonnés. Latence **minimale** (le message est déjà chez chacun), mais **coûteux** si un émetteur a énormément d'abonnés (il faut écrire N fois).\n- **Fan-out on read** (« diffusion à la lecture ») : on écrit l'événement dans des **boîtes** (une par destinataire, ou partagées) que les clients **viennent lire** quand ils se connectent. Moins de travail à l'émission, meilleur pour les comptes à **énorme audience**.\n\n👉 **Analogie** : annoncer une nouvelle à un groupe. *On write*, tu **envoies un SMS à chacun** tout de suite (rapide à recevoir, mais épuisant si tu as 10 millions de contacts). *On read*, tu **l'écris sur un panneau** que les gens consultent en passant (tu écris une fois, chacun lit quand il veut).\n\n**Exemple concret** : c'est le fameux problème du **fan-out des timelines** de Twitter/X. Pour un utilisateur normal, on pousse son message dans la timeline de ses abonnés (*on write*). Pour une star aux 100 millions d'abonnés, ce serait ruineux : on bascule sur du *on read* (ses abonnés vont chercher ses messages). Le bon choix dépend du ratio **producteurs / abonnés**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Diffuser a des milliers : un backplane pub/sub relaie les messages entre toutes les instances.",
+          "body": "/images/lessons/scaler-fanout-choisir-protocole-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La présence, plus dure qu'il n'y paraît",
+          "body": "Afficher « qui est en ligne » (ce qu'on appelle la **présence**) paraît trivial et se révèle un **classique sous-estimé**. À l'échelle, savoir en **temps réel** qui est connecté, sur quel serveur, et le **diffuser** à tous ceux que ça intéresse coûte cher : les statuts changent **sans arrêt** et il y a une **forte cardinalité** (la *cardinalité*, c'est le nombre de valeurs distinctes à suivre : ici, des millions d'utilisateurs multipliés par tous ceux qui observent leur statut).\n\nLa bonne approche s'appuie sur un **store partagé** (un espace de stockage commun, souvent Redis) avec un **TTL** (*Time To Live*, « durée de vie ») : le client **rafraîchit** sa présence à intervalle régulier (« je suis toujours là »), et cette information **expire toute seule** au bout du TTL si le rafraîchissement s'arrête. L'**absence de rafraîchissement** vaut alors « hors ligne ».\n\n👉 **Analogie** : un **badge d'accès qui se désactive tout seul** si tu ne le repasses pas régulièrement. On n'a pas besoin qu'un gardien note ton départ : ton badge s'éteint faute d'activité.\n\nPourquoi ne pas simplement écouter les événements **connexion / déconnexion** ? Parce qu'une **déconnexion brutale** (le mobile qui meurt, le tunnel) **n'émet aucun événement propre** : on croirait la personne toujours en ligne. Le TTL règle ça sans dépendre d'un signal fragile.\n\n**Exemple concret** : les pastilles vertes de Slack ou Discord reposent sur ce genre de mécanisme à rafraîchissement plus expiration. La présence illustre que « temps réel à l'échelle » est autant un problème de **données** que de **transport**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La presence (qui est en ligne) est plus dure qu'il n'y parait a l'echelle.",
+          "body": "/images/lessons/scaler-fanout-choisir-protocole-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Configurer l'infra pour les connexions longues",
+          "body": "Les connexions **persistantes** imposent des exigences d'**infrastructure** particulières, souvent oubliées jusqu'au jour où « ça coupe tout seul ».\n\nLe **load balancer** (**répartiteur de charge** : la machine placée devant tes serveurs qui distribue les requêtes entre eux) doit :\n- supporter l'**upgrade** WebSocket (le passage de HTTP à WebSocket, via l'en-tête HTTP/1.1 `Upgrade`), sinon la bascule échoue ;\n- appliquer des **timeouts d'inactivité longs** : par défaut, beaucoup de load balancers ferment une connexion silencieuse au bout de quelques dizaines de secondes, d'où l'utilité des **heartbeats** vus plus haut pour la garder active.\n\nSouvent, une **affinité de session** (en anglais *sticky session*, « session collante ») aide : elle garde un client **sur le même serveur** d'un bout à l'autre de sa connexion, au lieu de le renvoyer au hasard vers un serveur qui ne connaît pas sa connexion.\n\nEnfin, il faut **dimensionner**. Chaque connexion ouverte consomme un **descripteur de fichier** (*file descriptor* : un jeton que le système d'exploitation attribue à chaque connexion ouverte, en nombre limité) et de la mémoire. D'où l'intérêt d'un serveur **événementiel non bloquant** comme **Netty** (le moteur sous **Spring WebFlux**, notre stack) : au lieu de mobiliser **un thread par connexion** (coûteux, un thread pèse lourd), il gère **des dizaines de milliers** de connexions par instance avec une poignée de threads.\n\n👉 **Analogie** : un serveur « un thread par connexion » est comme un restaurant qui embauche **un serveur par client**, même quand le client ne fait que lire le menu pendant une heure : ruineux. Le modèle événementiel a **quelques serveurs très vifs** qui s'occupent de chaque table **seulement quand elle a besoin** de quelque chose.\n\nC'est le célèbre **problème C10k** (« comment tenir 10 000 connexions simultanées ? », vu au nœud Serveurs web) : le modèle thread-par-connexion s'effondre bien avant, l'événementiel encaisse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Configurer l'infra (timeouts, keep-alive, proxies) pour supporter les connexions longues.",
+          "body": "/images/lessons/scaler-fanout-choisir-protocole-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le bon protocole pour le bon besoin (niveau expert)",
+          "body": "Section **niveau expert**. Au-delà de SSE et WebSocket, il existe tout un paysage de protocoles temps réel. Tu n'as pas à tous les maîtriser ; la vraie compétence est de **choisir** le bon.\n\n- **WebRTC** : pour le **pair-à-pair** (*peer-to-peer*, P2P : une connexion **directe** entre deux clients, sans passer par le serveur) de média ou de données à très faible latence. Le trafic lourd (audio, vidéo) **évite le serveur**. Usage typique : la **visioconférence**, certains jeux.\n- **MQTT** : un protocole **léger** de type pub/sub conçu pour l'**IoT** (*Internet of Things*, les objets connectés : capteurs, ampoules, montres) sur des réseaux **contraints** (peu de débit, batterie limitée).\n- **Streaming gRPC** : un canal **bidirectionnel** et **typé** (le format des messages est défini à l'avance), basé sur **HTTP/2**, idéal pour le temps réel **entre services internes** (deux microservices qui se parlent), pas pour un navigateur.\n- Les **surcouches** qui ajoutent du confort par-dessus WebSocket : **STOMP** (un protocole de messagerie, avec des notions d'abonnement) et **Socket.IO** (une bibliothèque qui ajoute reconnexion automatique, repli sur d'autres transports si WebSocket est bloqué, et **rooms** pour grouper les clients).\n\n👉 **La grille de décision** de l'expert, selon la **direction du flux**, la **latence**, l'**échelle** et le **réseau** :\n- serveur vers client suffit ? **SSE**.\n- interactif dans les deux sens (chat, jeu) ? **WebSocket**.\n- média direct entre deux personnes ? **WebRTC**.\n- temps réel entre services internes ? **gRPC streaming**.\n- objets connectés sur réseau faible ? **MQTT**.\n\n**Exemple concret** : une app de visio utilise **WebRTC** pour l'audio/vidéo (P2P, faible latence) **et** un WebSocket en parallèle juste pour la **signalisation** (l'échange initial des informations de connexion). Chaque protocole à sa place."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le bon protocole pour le bon besoin : SSE, WebSocket ou simple polling selon l'usage.",
+          "body": "/images/lessons/scaler-fanout-choisir-protocole-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Choisir le bon protocole (arbre de décision)",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Besoin temps reel\"] --> B{\"Direction du flux ?\"}\n  B -->|\"Serveur vers client seulement\"| C[\"SSE\"]\n  B -->|\"Les deux sens (interactif)\"| D{\"Entre qui ?\"}\n  D -->|\"Client et serveur (chat, jeu)\"| E[\"WebSocket\"]\n  D -->|\"Deux clients, media direct\"| F[\"WebRTC (P2P)\"]\n  D -->|\"Deux services internes\"| G[\"gRPC streaming\"]\n  B -->|\"Objets connectes, reseau faible\"| H[\"MQTT\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Une application de visioconférence veut la plus faible latence possible pour l'audio/vidéo entre deux participants, sans surcharger ses serveurs avec le flux média. Quel protocole est adapté, et pourquoi n'utilise-t-on pas WebSocket ici ?",
+          "solution": "WebRTC : il établit une connexion pair-à-pair (P2P) directement entre les deux participants pour le flux média audio/vidéo, avec une latence minimale et sans faire transiter ce flux lourd par le serveur (qui ne sert qu'à la mise en relation initiale : la signalisation). WebSocket ne conviendrait pas car il est client↔serveur : tout le média devrait remonter au serveur puis redescendre, ajoutant de la latence et une charge réseau/CPU énorme sur le serveur à l'échelle. WebRTC est conçu précisément pour le média temps réel P2P (avec NAT traversal via STUN/TURN). On utilise généralement un WebSocket ou SSE en parallèle uniquement pour la signalisation (échange des métadonnées de connexion), pas pour le média lui-même."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 10,
+          "title": "Pour aller plus loin",
+          "body": "Références : les spécifications **WebSocket** (RFC 6455), **SSE** (WHATWG HTML : EventSource, Last-Event-ID), **WebRTC** (W3C) et **MQTT** ; la documentation **Spring WebFlux** sur les `Flux<ServerSentEvent>` et le support WebSocket réactif ; *Designing Data-Intensive Applications* (Kleppmann) pour le fan-out et la cohérence ; les retours d'expérience sur le fan-out de timelines (Twitter/Instagram) et sur la présence à l'échelle (Slack, Discord) ; la doc **STOMP** / **Socket.IO** pour les surcouches."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le temps reel.",
+          "body": "/images/lessons/scaler-fanout-choisir-protocole-5.jpg",
+          "position": 11
+        },
+        {
+          "type": "QUIZ",
+          "position": 12,
+          "title": "Quiz, Temps réel (niveau expert)",
+          "quizRef": "real-time-expert"
+        }
+      ]
+    }
+  ]
+}

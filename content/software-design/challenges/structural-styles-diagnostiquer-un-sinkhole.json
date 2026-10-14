@@ -1,0 +1,10 @@
+{
+  "node": "structural-styles",
+  "lesson": "couches-strictes-relachees-sinkhole",
+  "title": "Diagnostiquer un sinkhole",
+  "statement": "Dans une application en couches strictes (`Controller → Service → Repository`), tu observes que l'écran « liste des pays » déclenche un appel où le `Service` se contente d'appeler le `Repository`, qui se contente d'appeler la base, sans aucune règle métier. En analysant l'ensemble, 65 % des requêtes suivent ce schéma. (1) Nomme l'anti-pattern. (2) Rappelle le repère chiffré de Richards qui confirme le problème. (3) Propose deux remèdes concrets, sans jeter les couches là où elles servent.",
+  "skeleton": "Anti-pattern : ...\nRepère chiffré : ...\nRemèdes : ...\n",
+  "solution": "(1) Anti-pattern : l'architecture sinkhole (puits sans fond), c'est-à-dire des requêtes qui traversent toutes les couches en passe-plat (pass-through), chaque couche se contentant de déléguer sans ajouter de logique. (2) Repère de Richards, la règle des 80/20 : si plus d'environ 20 % des requêtes sont de simples pass-through, les couches coûtent plus qu'elles ne rapportent pour ces cas. Ici 65 % sont dans ce cas, on est très au-delà du seuil, le diagnostic est confirmé. (3) Remèdes, en gardant les couches là où une vraie logique le justifie : (a) OUVRIR / court-circuiter les couches pour les cas triviaux : le Controller (ou un handler de lecture) appelle directement le Repository pour un simple read, en sautant le Service vide ; décision explicite et documentée. (b) Adopter un style plus plat de type CQRS : les LECTURES simples court-circuitent le domaine (un read model requêté directement), tandis que les ÉCRITURES à règles continuent de passer par le domaine. On garde ainsi le layering fermé pour les 35 % de requêtes riches (paiement, scoring...), et on allège le passe-plat pour les CRUD triviaux.",
+  "keyPoints": ["sinkhole", "passe-plat", "80", "court-circuit", "CQRS"],
+  "language": "text"
+}

@@ -1,0 +1,10 @@
+{
+  "node": "running-containers",
+  "lesson": "options-runtime-durcissement",
+  "title": "Durcir un conteneur au lancement",
+  "statement": "Écris une commande `docker run` qui lance l'image `monorg/api:1.4.0` en respectant ces règles de durcissement : en arrière-plan (`-d`), nommée `api`, système de fichiers racine en lecture seule, sauf `/tmp` qui doit rester inscriptible (via un `tmpfs`), toutes les capabilities Linux retirées, aucune élévation de privilèges possible, limitée à 512 Mo de RAM et 1 CPU, et exécutée en utilisateur non-root (uid `10001`).",
+  "skeleton": "docker run -d \\\n  --name api \\\n  # ajoute ici les options de durcissement \\\n  monorg/api:1.4.0\n",
+  "solution": "docker run -d \\\n  --name api \\\n  --read-only \\\n  --tmpfs /tmp \\\n  --cap-drop ALL \\\n  --security-opt no-new-privileges \\\n  --memory=512m --cpus=1 \\\n  --user 10001 \\\n  monorg/api:1.4.0",
+  "keyPoints": ["-d", "--read-only", "--tmpfs /tmp", "--cap-drop ALL", "no-new-privileges", "--memory=512m", "--cpus=1", "--user 10001", "monorg/api:1.4.0"],
+  "language": "bash"
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "rest-apis-statuts-check",
+  "node": "rest-apis",
+  "lesson": "statuts-et-erreurs",
+  "title": "Quiz : Statuts & erreurs",
+  "description": "Codes de statut HTTP et enveloppe d'erreur normalisée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel statut renvoyer après avoir créé une ressource avec succès ?",
+      "justification": "201 Created signale précisément qu'une ressource a été créée. 200 conviendrait à une lecture ; 204 à un succès sans corps.",
+      "position": 0,
+      "options": [
+        { "label": "201 Created", "correct": true, "position": 0 },
+        { "label": "204 No Content", "correct": false, "position": 1 },
+        { "label": "400 Bad Request", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un client envoie un e-mail mal formé dans le corps de la requête. Quel statut ?",
+      "justification": "400 Bad Request signale une entrée invalide côté client. 500 laisserait croire à tort à un défaut du serveur.",
+      "position": 1,
+      "options": [
+        { "label": "400 Bad Request", "correct": true, "position": 0 },
+        { "label": "500 Internal Server Error", "correct": false, "position": 1 },
+        { "label": "200 OK", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un client demande un parcours dont l'identifiant n'existe pas. Quel statut ?",
+      "justification": "404 Not Found signale une ressource introuvable. C'est une faute d'entrée côté client (4xx), pas un plantage serveur (5xx).",
+      "position": 2,
+      "options": [
+        { "label": "404 Not Found", "correct": true, "position": 0 },
+        { "label": "403 Forbidden", "correct": false, "position": 1 },
+        { "label": "500 Internal Server Error", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Renvoyer la stacktrace complète au client est une bonne pratique de gestion d'erreur.",
+      "justification": "Faux : jamais de stacktrace renvoyée au client (elle trahit des détails internes et aide un attaquant). On renvoie une enveloppe normalisée avec code métier, message et détails.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

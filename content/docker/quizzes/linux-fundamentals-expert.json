@@ -1,0 +1,119 @@
+{
+  "ref": "linux-fundamentals-expert",
+  "node": "linux-fundamentals",
+  "lesson": "descripteurs-signaux-proc",
+  "title": "Linux avancé, expert",
+  "description": "Descripteurs stdin/out/err, redirections, signaux, /proc, bits spéciaux.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que capture `docker logs` d'un conteneur ?",
+      "justification": "Les flux stdout (1) et stderr (2) du processus PID 1 ; d'où la convention de logger sur la sortie standard, pas dans un fichier.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les flux stdout et stderr du processus PID 1",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tous les fichiers écrits dans le conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le contenu de /var/log uniquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait la redirection `2>&1` ?",
+      "justification": "Elle fusionne stderr (descripteur 2) dans stdout (descripteur 1), pour capturer erreurs et sortie ensemble.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Fusionne stderr dans stdout",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Redirige stdout vers un fichier nommé 2",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Duplique le processus",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel signal `docker stop` envoie-t-il d'abord pour un arrêt gracieux ?",
+      "justification": "SIGTERM (15), interceptable pour finir proprement ; SIGKILL (9), non interceptable, ne vient qu'après le délai de grâce.",
+      "position": 2,
+      "options": [
+        {
+          "label": "SIGTERM (interceptable)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "SIGKILL en premier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "SIGHUP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où une JVM conteneurisée lit-elle sa limite mémoire imposée par Docker ?",
+      "justification": "Dans /sys/fs/cgroup (les cgroups exposés en pseudo-FS) ; /proc et /sys sont les fenêtres sur l'état bas niveau.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Dans /sys/fs/cgroup (cgroups)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans le Dockerfile",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans /etc/hosts",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une application conteneurisée devrait écrire ses logs sur la sortie standard plutôt que dans un fichier interne.",
+      "justification": "Vrai : « logs as streams » (12-factor), stdout/stderr sont capturés par le daemon (docker logs) et routables vers une plateforme centralisée.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

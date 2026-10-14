@@ -1,0 +1,462 @@
+{
+  "node": "sql-modeling",
+  "lessons": [
+    {
+      "slug": "interroger-select",
+      "title": "Interroger : SELECT",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Décrire ce qu'on veut, pas comment",
+          "body": "**SQL** (prononcé « ess-cu-elle » ou « sicoule ») veut dire *Structured Query Language*, soit **langage de requêtes structuré**. C'est la langue qu'on parle à une **base de données** pour lire et écrire des informations.\n\nAvant tout, trois mots à connaître :\n- une **table** est un tableau de données, comme une feuille de calcul : par exemple une table `users` qui liste tes utilisateurs ;\n- chaque **ligne** (en anglais *row*) est une entrée : un utilisateur précis ;\n- chaque **colonne** (en anglais *column*) est une caractéristique : `email`, `display_name`, `created_at`.\n\nSQL est un langage **déclaratif** : tu décris **ce que** tu veux, et le **moteur** de la base (le programme qui exécute tes requêtes) décide **comment** l'obtenir (ce qu'on appelle le *plan d'exécution*).\n\n👉 **Analogie** : au restaurant, tu commandes « un steak-frites » (le résultat voulu), tu ne dictes pas au cuisinier chacun de ses gestes. En SQL, tu commandes le résultat, le moteur fait la cuisine.\n\nUne **requête** (en anglais *query*) de lecture s'écrit avec **`SELECT`**. Elle choisit des **colonnes**, dans une **table** (`FROM`), en gardant les lignes qui remplissent une **condition** (`WHERE`), parfois triées (`ORDER BY`) et limitées en nombre (`LIMIT`). Exemple concret : « donne-moi l'email des 10 derniers inscrits ». Maîtriser cette structure, c'est déjà 80 % du SQL du quotidien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SQL est declaratif : on decrit ce qu'on veut, la base decide comment l'obtenir.",
+          "body": "/images/lessons/interroger-select-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Les briques d'un SELECT",
+          "codeLanguage": "sql",
+          "body": "SELECT email, display_name\nFROM users\nWHERE email LIKE '%@dev'\nORDER BY created_at DESC\nLIMIT 10;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Filtrer avec justesse",
+          "body": "La clause **`WHERE`** est le **filtre** : elle ne garde que les lignes qui remplissent une condition ; tout le reste est écarté du résultat.\n\n👉 **Analogie** : c'est le **tamis** du chercheur d'or. Tu verses tout le seau (la table), seules les pépites qui passent le critère restent.\n\nOn combine plusieurs sortes d'opérateurs :\n- **comparaison** : `=` (égal), `<`, `>`, `>=`, `<=`, `<>` (différent) ; ex. `WHERE progress >= 50` ;\n- **logiques** : `AND` (et), `OR` (ou), `NOT` (non) ; ex. `WHERE progress >= 50 AND roadmap = 'backend'` ;\n- **appartenance** : `IN (...)` teste une liste de valeurs ; ex. `WHERE roadmap IN ('backend', 'docker')` ;\n- **intervalle** : `BETWEEN a AND b` ;\n- **motif** : `LIKE` cherche un texte partiel avec le joker `%` (qui remplace n'importe quoi) ; ex. `WHERE email LIKE '%@dev'` trouve tout email finissant par `@dev`. `ILIKE` fait pareil en ignorant les majuscules et minuscules.\n\n**Le piège du `NULL`.** En SQL, `NULL` ne veut dire ni « zéro » ni « chaîne vide » : il veut dire **valeur inconnue ou absente**. Et une valeur inconnue **n'est égale à rien**, pas même à elle-même. Donc `WHERE phone = NULL` ne matche **jamais** aucune ligne. 👉 **Analogie** : demander « deux inconnues sont-elles égales ? » n'a pas de réponse « oui » possible, c'est indécidable. Pour tester l'absence, on écrit `IS NULL` ou `IS NOT NULL`, jamais `= NULL`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Filtrer avec justesse (WHERE) pour ne ramener que les lignes utiles.",
+          "body": "/images/lessons/interroger-select-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Pagination stable (niveau expert)",
+          "body": "**Paginer**, c'est découper une longue liste en **pages** (par exemple 20 résultats par page, comme les pages d'un moteur de recherche).\n\nLa méthode simple : **`LIMIT n OFFSET m`** (« saute les `m` premières lignes, donne-m'en `n` »). Elle marche, mais **se dégrade sur de gros décalages** : pour afficher la page 5000, le moteur doit parcourir puis **jeter** toutes les lignes sautées, ce qui devient lent. Pire, si quelqu'un **insère** une ligne entre deux pages, tout se **décale** et un résultat peut apparaître deux fois ou être oublié.\n\n👉 **Analogie** : `OFFSET`, c'est **recompter depuis la première page du livre** à chaque fois pour retrouver ta page. Si on glisse une feuille entre-temps, ton compte est faux.\n\nPour de grandes listes, on préfère la **pagination par curseur** (en anglais *keyset pagination*) : au lieu de compter un rang, on **retient la dernière valeur vue** et on demande « ce qui vient après ». Ex. `WHERE created_at < :dernier ORDER BY created_at DESC LIMIT 20`. 👉 **Analogie** : c'est le **marque-page** glissé dans le livre. Tu reprends exactement où tu t'étais arrêté, quoi qu'on ajoute ailleurs. Résultat : rapide et stable quel que soit le rang."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Pagination stable : paginer par cle (keyset) plutot que par OFFSET, pour des pages fiables.",
+          "body": "/images/lessons/interroger-select-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Une requête `WHERE phone = NULL` ne retourne jamais de ligne, même quand des téléphones sont nuls. Pourquoi, et quelle est la bonne écriture ?",
+          "solution": "En SQL, une comparaison avec NULL vaut UNKNOWN (jamais vrai) : `= NULL` ne matche donc jamais. La bonne écriture est `WHERE phone IS NULL` (et `IS NOT NULL` pour l'inverse)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Interroger : SELECT",
+          "quizRef": "sql-modeling-select-check"
+        }
+      ]
+    },
+    {
+      "slug": "joindre-des-tables",
+      "title": "Joindre des tables",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Recomposer ce que le modèle a séparé",
+          "body": "Une base bien conçue **répartit** l'information dans plusieurs tables au lieu de tout entasser dans une seule. Les utilisateurs vont dans `users`, leurs inscriptions dans `enrollments`. Mais alors, comment relier une inscription à son utilisateur ? Grâce aux **clés**.\n\n- Une **clé primaire** (en anglais *primary key*) est l'**identifiant unique** d'une ligne dans sa table : la colonne `id` de `users` désigne un utilisateur et un seul. 👉 **Analogie** : c'est le **numéro de sécurité sociale**, unique par personne.\n- Une **clé étrangère** (en anglais *foreign key*) est une colonne qui **pointe vers** la clé primaire d'une autre table : `enrollments.user_id` contient l'`id` de l'utilisateur concerné. 👉 **Analogie** : c'est le **numéro de dossier** recopié sur un formulaire pour dire « ce formulaire appartient à cette personne ».\n\nLa **jointure** (en anglais *join*) est l'opération qui **recompose** à la lecture ce que le modèle a séparé : elle rapproche deux tables en appariant les lignes selon une **condition de jointure**, presque toujours l'égalité *clé étrangère = clé primaire* (`e.user_id = u.id`). 👉 **Analogie** : c'est le **jeu des paires** : on pose côte à côte la carte « inscription » et la carte « utilisateur » qui portent le même numéro. C'est l'opération la plus puissante du SQL, et celle qui, mal indexée, coûte le plus cher."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les jointures recomposent ce que le modele a separe en plusieurs tables.",
+          "body": "/images/lessons/joindre-des-tables-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "INNER JOIN",
+          "codeLanguage": "sql",
+          "body": "SELECT u.email, e.roadmap, e.progress\nFROM users u\nJOIN enrollments e ON e.user_id = u.id\nWHERE e.progress > 50\nORDER BY e.progress DESC;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "INNER vs LEFT vs FULL",
+          "body": "Il existe plusieurs **types** de jointure, et le choix change **radicalement** le résultat. Imagine deux tables, une « à gauche » (`users`) et une « à droite » (`enrollments`).\n\n- **`INNER JOIN`** ne garde que les lignes qui ont une **correspondance des deux côtés**. Un utilisateur sans aucune inscription **disparaît** du résultat. 👉 **Analogie** : c'est l'**intersection** de deux cercles, seulement ce qui leur est commun.\n- **`LEFT JOIN`** garde **toutes** les lignes de gauche, et complète par `NULL` quand il n'y a rien à droite. Ex. « **tous** les utilisateurs, même ceux sans inscription » : ceux-là apparaissent avec des colonnes d'inscription vides (`NULL`). 👉 **Analogie** : la liste **complète** des invités, avec une case « cadeau reçu ? » laissée vide pour ceux qui n'ont rien apporté.\n- **`RIGHT JOIN`** est le miroir (tout garder à droite), et **`FULL JOIN`** garde **les deux côtés**, comblant les trous par `NULL`.\n\nUne astuce très pratique découle du `LEFT JOIN` : pour **trouver les manquants** (les lignes de gauche **sans** correspondance à droite), on fait un `LEFT JOIN` puis on filtre `WHERE <colonne_de_droite> IS NULL`. Confondre `INNER` et `LEFT` est l'une des erreurs les plus fréquentes en SQL."
+        },
+        {
+          "type": "IMAGE",
+          "title": "INNER (intersection), LEFT (tout a gauche), FULL (tout) : choisir selon ce qu'on veut garder.",
+          "body": "/images/lessons/joindre-des-tables-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "LEFT JOIN : trouver les manquants",
+          "codeLanguage": "sql",
+          "body": "-- Utilisateurs SANS aucune inscription\nSELECT u.email\nFROM users u\nLEFT JOIN enrollments e ON e.user_id = u.id\nWHERE e.id IS NULL;"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Vous voulez lister tous les parcours, avec leur nombre d'inscriptions, y compris ceux à zéro inscription. INNER ou LEFT JOIN, et de quel côté ?",
+          "solution": "LEFT JOIN avec les parcours (roadmaps) à gauche : FROM roadmaps r LEFT JOIN enrollments e ON e.roadmap_id = r.id. Un INNER JOIN exclurait les parcours sans inscription. On compte ensuite les enrollments (COUNT sur une colonne d'enrollments, pas COUNT(*), pour compter 0 quand il n'y a pas de correspondance)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Joindre des tables",
+          "quizRef": "sql-modeling-jointures-check"
+        }
+      ]
+    },
+    {
+      "slug": "agreger-et-grouper",
+      "title": "Agréger & grouper",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Résumer des lignes",
+          "body": "Jusqu'ici, une requête renvoyait des lignes de détail. Souvent, on veut plutôt un **résumé** : « combien d'inscrits ? », « quelle progression moyenne ? ». C'est le rôle des **fonctions d'agrégation**, qui **condensent plusieurs lignes en une seule valeur** :\n- `COUNT` : le **nombre** de lignes ;\n- `SUM` : la **somme** d'une colonne numérique ;\n- `AVG` : la **moyenne** ;\n- `MIN` / `MAX` : la plus petite ou la plus grande valeur.\n\n👉 **Analogie** : c'est la **calculatrice posée en bas d'une colonne de chiffres** : elle remplace mille lignes par un total.\n\nSeules, ces fonctions résument **toute la table** (ex. `SELECT count(*) FROM enrollments` renvoie un seul nombre). Combinées à **`GROUP BY`**, elles résument **par groupe** : `GROUP BY roadmap` calcule un total **par parcours**. 👉 **Analogie** : au lieu d'un seul grand tas, tu fais des **piles séparées** (une par parcours) et tu comptes chaque pile. C'est exactement l'outil des tableaux de bord et des statistiques : un chiffre par catégorie, par jour, par utilisateur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Agreger resume des lignes en totaux : COUNT, SUM, AVG par groupe.",
+          "body": "/images/lessons/agreger-et-grouper-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "GROUP BY & HAVING",
+          "codeLanguage": "sql",
+          "body": "SELECT e.roadmap, count(*) AS inscrits, avg(e.progress) AS progression_moy\nFROM enrollments e\nGROUP BY e.roadmap\nHAVING count(*) >= 5          -- filtre APRÈS agrégation\nORDER BY inscrits DESC;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "WHERE vs HAVING",
+          "body": "`WHERE` et `HAVING` filtrent tous les deux, mais **à des moments différents**, et les confondre change le sens de la requête.\n\nUne requête suit un **ordre logique** d'exécution (même si on l'écrit dans un autre ordre) :\n`FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY`.\n\n- **`WHERE`** filtre les **lignes** *avant* le regroupement (ex. « ne garder que les inscriptions actives »).\n- **`GROUP BY`** forme ensuite les groupes.\n- **`HAVING`** filtre les **groupes** *après* agrégation (ex. « ne garder que les parcours ayant au moins 5 inscrits » : `HAVING count(*) >= 5`).\n\n👉 **Analogie** : `WHERE`, c'est **trier les fruits avant** de composer les paniers ; `HAVING`, c'est **jeter les paniers** qui pèsent moins de 2 kg une fois remplis. On ne peut pas peser un panier qui n'existe pas encore, donc `HAVING count(*) >= 5` ne peut venir qu'après le regroupement. Écrire `HAVING progress > 50` là où on voulait `WHERE progress > 50` est une erreur classique : retenir l'ordre l'évite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "WHERE filtre les lignes avant l'agregation ; HAVING filtre les groupes apres.",
+          "body": "/images/lessons/agreger-et-grouper-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "COUNT(*) vs COUNT(col) (niveau expert)",
+          "body": "Trois formes de `COUNT` qui ne comptent **pas** la même chose :\n- **`COUNT(*)`** compte les **lignes**, quelles qu'elles soient (même remplies de `NULL`).\n- **`COUNT(colonne)`** compte seulement les lignes où **cette colonne n'est pas `NULL`**.\n- **`COUNT(DISTINCT colonne)`** compte les **valeurs distinctes** (dédoublonnées).\n\n👉 **Analogie** : dans une salle, `COUNT(*)` compte **toutes les chaises**, `COUNT(prenom)` compte les chaises **occupées** (où quelqu'un a donné son prénom), et `COUNT(DISTINCT prenom)` compte le nombre de **prénoms différents**.\n\nPourquoi ça compte vraiment ? Dans un **`LEFT JOIN`**, un parcours sans inscription produit tout de même **une ligne** (avec des `NULL` du côté droit). Un `COUNT(*)` compterait alors **1** pour ce parcours vide, ce qui est faux. En comptant une colonne du côté droit, `COUNT(e.id)`, on obtient un vrai **0** pour les groupes sans enfant. Autre exemple : compter les utilisateurs uniques ayant complété une leçon se fait avec `COUNT(DISTINCT user_id)`, sinon un utilisateur ayant fini 10 leçons serait compté 10 fois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "COUNT(*) compte toutes les lignes ; COUNT(col) ignore les NULL : une difference piegeuse.",
+          "body": "/images/lessons/agreger-et-grouper-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Vous voulez le nombre d'utilisateurs distincts ayant complété au moins une leçon. Quelle fonction d'agrégation utiliser et pourquoi pas COUNT(*) ?",
+          "solution": "COUNT(DISTINCT user_id) : COUNT(*) compterait les lignes (une par complétion), pas les utilisateurs uniques, un même utilisateur ayant complété 10 leçons serait compté 10 fois. DISTINCT dédoublonne sur user_id."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Agréger & grouper",
+          "quizRef": "sql-modeling-agregation-check"
+        }
+      ]
+    },
+    {
+      "slug": "requetes-avancees",
+      "title": "Requêtes avancées",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Sous-requêtes & CTE",
+          "body": "Une **sous-requête** (en anglais *subquery*) est une **requête imbriquée dans une autre** : un `SELECT` placé à l'intérieur d'un `WHERE`, d'un `FROM` ou de la liste de colonnes. Ex. « les utilisateurs dont l'id apparaît dans (la sous-requête qui liste les inscrits au backend) ».\n\n👉 **Analogie** : c'est une **parenthèse dans une phrase** : on résout d'abord ce qui est entre parenthèses, puis on s'en sert dans la phrase principale.\n\nQuand une requête devient complexe, les sous-requêtes imbriquées deviennent illisibles. On préfère alors une **CTE** (en anglais *Common Table Expression*, « expression de table commune »), introduite par le mot-clé **`WITH nom AS (...)`** : on **nomme une étape intermédiaire** en haut, puis on l'utilise ensuite comme si c'était une table.\n\n👉 **Analogie** : c'est comme **poser une variable** dans un calcul (`x = ...` puis on réutilise `x`), ou une **recette** où l'on prépare d'abord une sauce à part avant de l'incorporer. Les CTE rendent les requêtes complexes **lisibles** et **composables** : on construit le résultat **par étapes** claires plutôt qu'en un seul bloc emmêlé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sous-requetes et CTE (WITH) decomposent une requete complexe en etapes lisibles.",
+          "body": "/images/lessons/requetes-avancees-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une CTE lisible",
+          "codeLanguage": "sql",
+          "body": "WITH progression AS (\n    SELECT roadmap, avg(progress) AS moy\n    FROM enrollments\n    GROUP BY roadmap\n)\nSELECT roadmap, moy\nFROM progression\nWHERE moy > 60\nORDER BY moy DESC;"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Fonctions fenêtre (window functions)",
+          "codeLanguage": "sql",
+          "body": "-- Classer les apprenants par XP SANS regrouper (chaque ligne reste)\nSELECT display_name, xp,\n       rank() OVER (ORDER BY xp DESC) AS rang,\n       xp - avg(xp) OVER () AS ecart_moyenne\nFROM learners;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le pouvoir des window functions (niveau expert)",
+          "body": "Rappel : `GROUP BY` **réduit** plusieurs lignes en une seule (une ligne par groupe). Une **fonction fenêtre** (en anglais *window function*, reconnaissable au mot-clé **`OVER (...)`**) fait quelque chose de différent et très puissant : elle calcule sur un ensemble de lignes **tout en gardant chaque ligne individuelle**.\n\n👉 **Analogie** : `GROUP BY`, c'est **résumer** un bulletin en une moyenne unique. Une window function, c'est **garder chaque note** de l'élève **et** ajouter en face, sur la même ligne, son **rang dans la classe** et son **écart à la moyenne**. Rien n'est perdu, on enrichit.\n\nLe terme « fenêtre » vient de là : pour chaque ligne, la fonction regarde par une **fenêtre** un groupe de lignes voisines (défini par `OVER (...)`, éventuellement `PARTITION BY` pour découper en groupes). On obtient ainsi, en **une seule requête** et sans auto-jointure coûteuse :\n- des **rangs** (`rank()`, `row_number()`), pour des classements ;\n- des **totaux courants** (somme cumulée) et **moyennes glissantes** ;\n- des **comparaisons à la moyenne** du groupe.\n\nC'est l'outil qui distingue le SQL intermédiaire du SQL expert : classements, **top-N par groupe**, analyses temporelles. Exemple typique : `row_number() OVER (PARTITION BY roadmap ORDER BY progress DESC)` numérote les apprenants **dans chaque parcours** ; garder les lignes de rang 1 donne le meilleur de chaque parcours."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les window functions calculent sur une fenetre de lignes sans ecraser le detail (rang, cumul, moyenne glissante).",
+          "body": "/images/lessons/requetes-avancees-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Vous voulez, pour chaque parcours, le nom de l'apprenant le plus avancé (top-1 par groupe). Pourquoi une fonction fenêtre (`row_number() OVER (PARTITION BY ...)`) est-elle adaptée ?",
+          "solution": "PARTITION BY roadmap crée une \"fenêtre\" par parcours ; row_number() OVER (PARTITION BY roadmap ORDER BY progress DESC) numérote les apprenants dans chaque parcours. On garde ensuite les lignes de rang 1. C'est plus simple et rapide qu'une sous-requête corrélée ou une auto-jointure pour du top-N par groupe."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Requêtes avancées",
+          "quizRef": "sql-modeling-avancees-check"
+        }
+      ]
+    },
+    {
+      "slug": "modelisation-et-normalisation",
+      "title": "Modélisation & normalisation",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Concevoir un schéma",
+          "body": "**Modéliser**, c'est traduire un **domaine** (le sujet de ton application : des apprenants, des parcours, des leçons) en **tables** et en **relations**. Le résultat s'appelle le **schéma** (en anglais *schema*) de la base : son plan d'ensemble.\n\n👉 **Analogie** : c'est le **plan d'architecte** d'une maison, dessiné **avant** de poser la première brique. On réfléchit à la structure d'abord, on construit ensuite.\n\nOn procède en trois temps :\n- repérer les **entités** : les « choses » importantes du domaine, qui deviendront des tables (`User`, `Roadmap`, `Lesson`) ;\n- lister leurs **attributs** : leurs caractéristiques, qui deviendront des colonnes (un User a un `email`, un `display_name`) ;\n- décrire les **relations** entre entités, avec leur **cardinalité** (le « combien ») :\n  - **un-à-un** (1-1) : une ligne d'un côté correspond à une seule de l'autre ;\n  - **un-à-plusieurs** (1-N) : un parcours a **plusieurs** inscriptions, mais chaque inscription appartient à **un** parcours. On place alors une **clé étrangère** du côté « plusieurs » (`enrollments.roadmap_id`). 👉 **Analogie** : une mère a plusieurs enfants, chaque enfant a une mère ;\n  - **plusieurs-à-plusieurs** (N-N) : un utilisateur gagne plusieurs badges, un badge est gagné par plusieurs utilisateurs. Ça ne se stocke pas directement : on introduit une **table de liaison** (`user_badges`) qui porte les deux clés étrangères. 👉 **Analogie** : les acteurs et les films, un tableau de « qui a joué dans quoi » relie les deux."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Concevoir un schema : identifier entites, relations et cles avant d'ecrire la moindre table.",
+          "body": "/images/lessons/modelisation-et-normalisation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Visualiser le schéma : entités et relations",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    U[\"users (apprenants)\"]\n    R[\"roadmaps (parcours)\"]\n    E[\"enrollments (inscriptions)\"]\n    B[\"badges\"]\n    L[\"user_badges (table de liaison)\"]\n    U -->|\"1 user, N inscriptions (FK user_id)\"| E\n    R -->|\"1 parcours, N inscriptions (FK roadmap_id)\"| E\n    U -->|\"N-N\"| L\n    B -->|\"N-N\"| L"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Une relation plusieurs-à-plusieurs",
+          "codeLanguage": "sql",
+          "body": "-- Un utilisateur a plusieurs badges ; un badge est gagné par plusieurs users.\n-- On introduit une table de liaison :\nCREATE TABLE user_badges (\n    user_id  uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n    badge_id uuid NOT NULL REFERENCES badges(id) ON DELETE CASCADE,\n    earned_at timestamptz NOT NULL DEFAULT now(),\n    PRIMARY KEY (user_id, badge_id)\n);"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La normalisation",
+          "body": "**Normaliser**, c'est organiser les tables pour **éviter la redondance** (recopier la même donnée à plusieurs endroits) et les incohérences qui en découlent.\n\n👉 **Analogie** : plutôt que de réécrire l'adresse d'un fournisseur sur **chaque** facture (et devoir toutes les corriger s'il déménage), on la note **une seule fois** dans une fiche fournisseur, et chaque facture y **renvoie**. Une donnée, un seul endroit.\n\nEn pratique, on suit quelques **formes normales** (des paliers de rangement) :\n- **1NF** (première forme normale) : des valeurs **atomiques**, c'est-à-dire indivisibles, une seule valeur par case. Pas de liste `\"docker,rust,aws\"` entassée dans une colonne ; on éclate en lignes ou en table dédiée.\n- **2NF / 3NF** : chaque attribut dépend de **la clé, toute la clé, et rien que la clé** (la formule mnémotechnique classique). Autrement dit, une colonne qui ne décrit pas directement l'identifiant de la table n'a rien à y faire.\n\nConcrètement pour nous : on ne recopie **pas** le titre du parcours dans chaque inscription, on **référence** le parcours par sa clé étrangère `roadmap_id`. Ainsi, changer le titre du parcours ne laisse **aucune copie périmée** derrière lui."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La normalisation elimine la redondance : chaque fait est stocke a un seul endroit.",
+          "body": "/images/lessons/modelisation-et-normalisation-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Dénormaliser à bon escient (niveau expert)",
+          "body": "La normalisation est la **règle par défaut**. La **dénormalisation** est l'exception : **dupliquer volontairement** une donnée pour gagner en vitesse de lecture.\n\nQuand la choisir ? Quand une lecture **très fréquente** exigerait **trop de jointures** coûteuses. Ex. afficher partout le nombre de leçons complétées : plutôt que de recompter à chaque affichage, on stocke un **compteur** déjà calculé.\n\n👉 **Analogie** : c'est comme **noter le total en bas d'un ticket de caisse**. Le total est « redondant » (on pourrait le recalculer en additionnant les articles), mais l'avoir déjà écrit fait gagner du temps à chaque lecture, au prix de devoir le **recalculer** si un article change.\n\nCar la dénormalisation a un **coût** : il faut maintenir les copies **cohérentes** (via des *triggers*, des événements, des tâches planifiées), sinon elles divergent. D'où l'**ordre des priorités**, à ne jamais inverser : modéliser **normalisé** d'abord, **mesurer** où ça coince réellement, **puis** dénormaliser **un point chaud précis**, jamais « par confort » ni « au cas où »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Denormaliser a bon escient : dupliquer sciemment pour accelerer certaines lectures.",
+          "body": "/images/lessons/modelisation-et-normalisation-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un développeur stocke, dans la table `enrollments`, une colonne `roadmap_title` recopiée depuis `roadmaps`. Quel problème cela crée-t-il, et quelle est l'alternative normalisée ?",
+          "solution": "Redondance : si le titre du parcours change, toutes les copies dans enrollments deviennent périmées (incohérence), et il faut penser à toutes les mettre à jour. Alternative normalisée : ne stocker que roadmap_id (clé étrangère) et récupérer le titre par jointure. Une donnée, un seul endroit."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : SQL & modélisation",
+          "quizRef": "sql-modeling-check"
+        }
+      ]
+    },
+    {
+      "slug": "sql-avance",
+      "title": "SQL avancé",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Requêtes récursives",
+          "body": "Certaines données sont **hiérarchiques** : un arbre de catégories, un fil de commentaires (une réponse à une réponse à une réponse), un organigramme, un graphe de dépendances. Chaque élément **pointe vers son parent** (une colonne `parent_id`).\n\nComment récupérer « **tous les descendants** d'un nœud » quand on ne sait pas d'avance sur combien de niveaux ça descend ? Avec une **CTE récursive**, introduite par **`WITH RECURSIVE`**. **Récursif** veut dire « qui se **rappelle lui-même** » : la requête se réfère à sa propre définition pour descendre niveau après niveau.\n\n👉 **Analogie** : les **poupées russes**. Tu ouvres une poupée, dedans il y en a une autre, que tu ouvres à son tour, jusqu'à la dernière. La récursion répète le même geste jusqu'au bout.\n\nElle s'écrit en **deux parties** reliées par `UNION ALL` : un **cas de base** (le point de départ, ex. le nœud racine) et une **partie récursive** qui référence la CTE elle-même pour aller chercher les enfants du niveau précédent. C'est l'outil propre pour parcourir une hiérarchie **sans boucle applicative** ni problème **N+1** (le N+1 : envoyer une requête par nœud, ce qui inonde la base de centaines d'allers-retours)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les requetes recursives (WITH RECURSIVE) parcourent des hierarchies et des graphes.",
+          "body": "/images/lessons/sql-avance-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Descendre une hiérarchie",
+          "codeLanguage": "sql",
+          "body": "WITH RECURSIVE sous_arbre AS (\n    SELECT id, parent_id, title, 1 AS niveau\n    FROM nodes WHERE id = :racine           -- cas de base\n  UNION ALL\n    SELECT n.id, n.parent_id, n.title, s.niveau + 1\n    FROM nodes n JOIN sous_arbre s ON n.parent_id = s.id  -- récursion\n)\nSELECT * FROM sous_arbre ORDER BY niveau;"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "UPSERT idempotent (ON CONFLICT)",
+          "codeLanguage": "sql",
+          "body": "-- Insérer ou mettre à jour en une requête atomique.\n-- C'est le socle de l'ingestion idempotente de cette plateforme.\nINSERT INTO roadmaps (slug, title, position)\nVALUES ('backend', 'Développeur Backend', 0)\nON CONFLICT (slug) DO UPDATE\n  SET title = EXCLUDED.title, position = EXCLUDED.position;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "LATERAL, set operations & anti-joins",
+          "body": "Trois outils avancés qui remplacent souvent des boucles applicatives par **une seule requête** efficace.\n\n- **`LATERAL`** autorise une sous-requête (placée dans le `FROM`) à **référencer les colonnes de la table de gauche**, ligne par ligne. C'est l'outil idéal du **« top-N par groupe »** : « les 3 dernières leçons **de chaque** nœud ». 👉 **Analogie** : pour chaque dossier de la pile de gauche, on va chercher **à la demande** les 3 fiches qui lui correspondent, dossier par dossier.\n- Les **opérations d'ensemble** combinent les résultats de deux requêtes, comme en théorie des ensembles : **`UNION`** (réunion, tout des deux), **`INTERSECT`** (ce qui est dans les deux), **`EXCEPT`** (ce qui est dans la première mais pas la seconde). 👉 **Analogie** : les **diagrammes de Venn** appliqués à des listes de lignes.\n- Les **anti-joins** trouvent « **ce qui n'a pas de correspondance** », typiquement avec `WHERE NOT EXISTS (…)` : « les utilisateurs qui n'ont **aucune** inscription ». 👉 **Analogie** : pointer les absents en repérant qui **n'est pas** sur la liste de présence. C'est souvent plus lisible et performant qu'un `LEFT JOIN … IS NULL`.\n\nCes outils remplacent des boucles applicatives par une seule requête efficace."
+        },
+        {
+          "type": "IMAGE",
+          "title": "LATERAL, operations d'ensemble (UNION, INTERSECT) et anti-joins : des outils puissants.",
+          "body": "/images/lessons/sql-avance-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Agrégations multi-niveaux (niveau expert)",
+          "body": "Parfois on veut **plusieurs niveaux d'agrégation en une seule passe** : un total **par catégorie** **et** le **total général** en dessous, comme le bas d'un tableau de comptabilité. Trois extensions de `GROUP BY` le font sans multiplier les requêtes :\n- **`ROLLUP`** ajoute les **sous-totaux** puis le **total général** le long d'une hiérarchie (par année, puis par année et mois, puis total). 👉 **Analogie** : les lignes « sous-total » et « total » au bas d'une facture.\n- **`CUBE`** calcule **toutes les combinaisons** de regroupement possibles (un vrai tableau croisé, un *cube* analytique).\n- **`GROUPING SETS`** te laisse **choisir précisément** quels regroupements calculer.\n\nCombinés aux **window functions**, ces outils couvrent l'essentiel du **reporting analytique** directement **en base**, là où la donnée se trouve, plutôt qu'en rapatriant tout côté application pour le recalculer. Moins de données transférées, moins de code, plus de rapidité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ROLLUP, CUBE, GROUPING SETS : des agregations multi-niveaux en une seule requete.",
+          "body": "/images/lessons/sql-avance-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Vous devez afficher, pour chaque nœud d'une roadmap, ses 3 leçons les plus récentes. Pourquoi une jointure LATERAL est-elle adaptée, plutôt qu'une sous-requête corrélée classique ou du code applicatif ?",
+          "solution": "LATERAL permet à une sous-requête (SELECT ... FROM lessons l WHERE l.node_id = n.id ORDER BY l.created_at DESC LIMIT 3) de référencer n.id de la table de gauche, exécutée une fois par nœud, en UNE seule requête. C'est plus efficace et lisible qu'une sous-requête corrélée dans le SELECT (limitée à une valeur) ou qu'un chargement applicatif ligne par ligne (N+1). C'est le pattern top-N par groupe."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : SQL avancé",
+          "quizRef": "sql-modeling-sqlavance-check"
+        }
+      ]
+    },
+    {
+      "slug": "modelisation-avancee-optimisation",
+      "title": "Modélisation avancée & optimisation",
+      "position": 6,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Patterns de modélisation",
+          "body": "Au-delà des règles de base, des **patterns** (des solutions-types éprouvées, réutilisables) reviennent souvent en modélisation :\n- **audit / temporal tables** : garder l'**historique** des changements d'une donnée (qui a modifié quoi, et quand), au lieu d'écraser l'ancienne valeur. 👉 **Analogie** : l'historique des versions d'un document.\n- **soft delete** (« suppression douce ») : au lieu d'effacer une ligne (`DELETE`), on pose une date `deleted_at` pour la marquer supprimée sans la détruire. Pratique pour restaurer, **mais** ça **complique toutes les requêtes** (il faut penser à filtrer `deleted_at IS NULL` partout).\n- **slowly changing dimensions** (SCD) : gérer l'historisation des données de référence pour l'analytique.\n- **star schema** (« schéma en étoile ») : une table de **faits** (les événements mesurés) entourée de tables de **dimensions** (les axes d'analyse), organisation reine du reporting. 👉 **Analogie** : une étoile, les faits au centre, les dimensions autour.\n\nEt un **anti-pattern** célèbre (une « fausse bonne idée » à éviter) : l'**EAV** (*Entity-Attribute-Value*), qui stocke tout en lignes génériques clé/valeur pour être « flexible ». Séduisant sur le papier, mais il **détruit** les performances et l'**intégrité** des données. Pour du contenu semi-structuré, on lui préfère une colonne **`jsonb`** (du JSON stocké et indexable nativement par PostgreSQL)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des patterns de modelisation reutilisables pour des cas recurrents (historisation, arborescences).",
+          "body": "/images/lessons/modelisation-avancee-optimisation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Écrire des requêtes conscientes des index",
+          "body": "Un **index** est une structure annexe qui permet à la base de **retrouver vite** les lignes cherchées, sans lire toute la table. 👉 **Analogie** : l'**index alphabétique à la fin d'un livre**. Au lieu de feuilleter les 800 pages, tu vas droit au mot. Sans index, la base fait un **balayage complet** (en anglais *seq scan*) ; avec, elle fait un accès direct (*index scan*).\n\nUn expert écrit ses requêtes **en pensant aux index** :\n- **filtrer sur des colonnes indexées** plutôt que sur n'importe quoi ;\n- **ne pas appliquer de fonction sur la colonne filtrée** : `WHERE lower(email) = …` **casse** l'usage de l'index posé sur `email` (la base ne peut plus s'en servir tel quel). On dit que le prédicat n'est plus **sargable** (utilisable par l'index) ; il faudrait alors un index sur l'**expression** `lower(email)` ;\n- respecter l'**ordre** d'un **index composite** (posé sur plusieurs colonnes, ex. `(user_id, last_activity_at)`) : seul le **préfixe** de gauche est exploitable, filtrer sur `last_activity_at` seul ne l'utilise pas.\n\nLe réflexe pro : une requête « index-aware » **plus** un **`EXPLAIN ANALYZE`** (qui montre le plan réel choisi par le moteur) valent bien mieux que d'ajouter des index **au hasard** en espérant que ça aille plus vite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ecrire des requetes conscientes des index : eviter les fonctions sur colonnes indexees.",
+          "body": "/images/lessons/modelisation-avancee-optimisation-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Optimiser une requête réelle",
+          "codeLanguage": "sql",
+          "body": "-- 1) Mesurer le plan actuel\nEXPLAIN (ANALYZE, BUFFERS)\nSELECT * FROM enrollments\nWHERE user_id = :id ORDER BY last_activity_at DESC LIMIT 20;\n-- \"Seq Scan\" + \"Sort\" coûteux ?\n\n-- 2) Index composite couvrant filtre + tri\nCREATE INDEX idx_enr_user_activity\n  ON enrollments (user_id, last_activity_at DESC);\n\n-- 3) Re-mesurer : \"Index Scan\", plus de Sort. Comparer le temps."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Dénormaliser en connaissance de cause (niveau expert)",
+          "body": "La normalisation est la **règle** ; la **dénormalisation** est une optimisation **ciblée et mesurée**. On **duplique** une donnée (un compteur agrégé déjà calculé, un champ recopié) quand une lecture **très fréquente** exigerait trop de jointures.\n\n👉 **Analogie** : c'est le **cache** d'un navigateur : on garde une copie locale pour éviter de tout recharger à chaque fois, en acceptant de devoir la **rafraîchir** quand la source change.\n\nOn l'assume avec son **coût** : maintenir la **cohérence** des copies (triggers, événements, jobs planifiés), sinon elles divergent silencieusement. Ordre des priorités, jamais inversé : modéliser **normalisé**, **mesurer** le vrai point de douleur, **puis** dénormaliser **un point chaud précis**, jamais « par confort » ni « au cas où »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Denormaliser en connaissance de cause : accepter la redondance pour un gain mesure.",
+          "body": "/images/lessons/modelisation-avancee-optimisation-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Une équipe ajoute une colonne `deleted_at` (soft delete) sur toutes les tables « pour ne rien perdre ». Quel coût caché cela introduit-il sur l'ensemble des requêtes ?",
+          "solution": "Chaque requête de lecture doit désormais filtrer `WHERE deleted_at IS NULL`, sinon un oubli renvoie des lignes « supprimées ». Cela alourdit toutes les requêtes, complique les contraintes d'unicité (un email « supprimé » bloque-t-il une réinscription ?), gonfle les tables et les index, et complexifie les jointures. Le soft delete est utile mais a un coût transversal réel ; on ne l'applique pas partout par défaut, on le réserve aux cas qui l'exigent (audit, restauration)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "Références : *SQL Performance Explained* (Markus Winand, aussi use-the-index-luke.com), le meilleur pour comprendre index et plans ; *Designing Data-Intensive Applications* (Martin Kleppmann) pour la modélisation et les systèmes de données ; la documentation PostgreSQL (SQL, functions, EXPLAIN). Outil : **explain.dalibo.com** pour visualiser et partager un plan d'exécution."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir la modelisation SQL.",
+          "body": "/images/lessons/modelisation-avancee-optimisation-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz : SQL (niveau expert)",
+          "quizRef": "sql-expert"
+        }
+      ]
+    }
+  ]
+}

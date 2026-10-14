@@ -1,0 +1,10 @@
+{
+  "node": "orms",
+  "lesson": "mapping-et-frontieres",
+  "title": "Mapper une entité vers le domaine",
+  "statement": "Respecte la frontière hexagonale : le domaine reste pur, l'entité vit dans l'adaptateur. Écris (1) un record de domaine `User(UserId id, String email)` **sans aucune** annotation ni dépendance technique ; (2) un record d'entité `UserEntity(UUID id, String email)` avec une méthode `toDomain()` qui construit et renvoie un `User` (en enveloppant l'`UUID` dans un `UserId`). Le mapping se fait dans l'entité, jamais l'inverse.",
+  "skeleton": "// Domaine pur (aucune dépendance technique)\npublic record User(/* ... */) {}\n\n// Adaptateur out : entité + mapping vers le domaine\nrecord UserEntity(/* ... */) {\n    // méthode toDomain()\n}",
+  "solution": "public record User(UserId id, String email) {}\n\nrecord UserEntity(UUID id, String email) {\n    User toDomain() {\n        return new User(new UserId(id), email);\n    }\n}",
+  "keyPoints": ["record User", "record UserEntity", "toDomain", "new User"],
+  "language": "java"
+}

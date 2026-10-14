@@ -1,0 +1,134 @@
+{
+  "node": "cluster-security",
+  "lessons": [
+    {
+      "slug": "network-policies",
+      "title": "NetworkPolicies : segmenter le réseau",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Par défaut, tout le monde se parle",
+          "body": "Avant de parler de sécurité réseau, un rappel de vocabulaire. Un **pod** est la plus petite unité que Kubernetes sait déployer : c'est une enveloppe qui contient un ou plusieurs **conteneurs**, c'est-à-dire ton application en train de tourner. Un **cluster**, lui, est l'ensemble des machines pilotées par Kubernetes, sur lesquelles vivent tous ces pods.\n\nVoici le point de départ, souvent surprenant quand on débute : **par défaut, dans un cluster Kubernetes, tous les pods peuvent se parler entre eux**, sans aucune restriction. Le pod du site web public peut ouvrir une connexion vers le pod de la base de données, vers un pod interne d'administration, vers n'importe quoi. Rien ne l'en empêche.\n\n👉 **Analogie** : imagine un immeuble de bureaux où **aucune porte n'a de serrure**. N'importe qui entré dans le hall peut se promener dans tous les bureaux, y compris la salle des coffres. C'est pratique, jusqu'au jour où un intrus entre.\n\nLe danger concret : si un attaquant prend le contrôle d'**un seul** pod (par exemple le site web exposé sur Internet, le plus facile à atteindre), il peut ensuite **rebondir** vers tous les autres. Ce rebond d'un pod compromis vers d'autres cibles porte un nom : le **déplacement latéral** (*lateral movement* en anglais : une fois entré, l'attaquant se déplace « sur les côtés », de pod en pod).\n\nLes **NetworkPolicies** (littéralement « politiques réseau ») sont la parade : ce sont des règles qui décident **qui a le droit de parler à qui** à l'intérieur du cluster. C'est le **pare-feu interne** du cluster. On les détaille dans les sections suivantes."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Deny by default, puis autoriser",
+          "body": "Une **NetworkPolicy** est un objet Kubernetes (un petit fichier de configuration) qui autorise ou bloque des connexions réseau entre pods. Elle raisonne sur deux sens de circulation :\n- l'**ingress** (« entrée » : le trafic qui **arrive** vers un pod) ;\n- l'**egress** (« sortie » : le trafic qui **part** d'un pod vers l'extérieur).\n\nPour désigner *quels* pods sont concernés, on n'utilise pas leur adresse (elle change tout le temps) mais leurs **labels** : de simples étiquettes au format `clé: valeur` collées sur les pods (par exemple `app: db`, `app: frontend`). Une NetworkPolicy dit alors « les pods étiquetés `app: frontend` peuvent joindre les pods étiquetés `app: backend` ». 👉 **Analogie** : à l'entrée d'une soirée, les videurs ne connaissent pas ton nom, ils regardent ton **bracelet de couleur** ; le label, c'est ce bracelet.\n\nLa bonne pratique tient en deux temps :\n1. **Deny by default** (« tout refuser par défaut ») : on pose d'abord une politique qui **bloque tout** le trafic entrant dans un namespace. Un **namespace** est un simple dossier logique qui regroupe des pods (par exemple, tous les pods de l'application de production dans le namespace `prod`).\n2. **Autoriser explicitement** : on ajoute ensuite des politiques qui rouvrent **seulement** les flux légitimes (« `frontend` peut joindre `backend` sur le port 8080 », « seul `backend` peut joindre `db` »).\n\nOn passe ainsi d'un réseau grand ouvert à un réseau **segmenté**, où chaque connexion autorisée a une raison d'être.\n\n⚠️ **Piège important** : une NetworkPolicy n'est réellement appliquée que si le **CNI** du cluster sait le faire. Le **CNI** (*Container Network Interface*, « interface réseau des conteneurs ») est le composant, à installer, qui gère le réseau entre les pods. Certains CNI appliquent les NetworkPolicies (**Calico**, **Cilium**), d'autres, plus basiques, les **ignorent en silence**. Sur un CNI non compatible, tu peux écrire la plus belle des politiques : elle ne bloquera rien du tout. Vérifie toujours ce point avant de compter dessus."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Isoler la base de données",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata: { name: db-allow-backend, namespace: prod }\nspec:\n  podSelector:\n    matchLabels: { app: db }        # s'applique aux pods db\n  policyTypes: [\"Ingress\"]\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels: { app: backend }   # SEUL backend peut entrer\n      ports:\n        - { protocol: TCP, port: 5432 }\n# Tout autre pod (front, compromis...) ne peut PAS joindre la base."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un attaquant compromet un pod frontend exposé sur Internet. Sans NetworkPolicies, pourquoi peut-il potentiellement atteindre directement la base de données, et comment les NetworkPolicies l'en empêchent-elles ?",
+          "solution": "Sans NetworkPolicies, le modèle réseau de Kubernetes laisse TOUS les pods se joindre librement entre eux : rien ne restreint qui parle à qui. Un attaquant qui compromet le pod frontend peut donc, depuis ce pod, ouvrir directement une connexion vers l'IP/le Service de la base de données (port 5432) et tenter de l'exploiter (identifiants, injection), c'est un déplacement latéral. Le frontend n'a pourtant aucune raison légitime de parler à la base (il passe par le backend). Les NetworkPolicies l'empêchent en segmentant le réseau selon le principe deny-by-default puis autorisation explicite : on applique une politique sur les pods db qui n'autorise le trafic entrant QUE depuis les pods backend, sur le port 5432. Tout autre pod, dont le frontend compromis, se voit refuser la connexion à la base au niveau réseau, quelle que soit son intention. On réduit ainsi drastiquement le rayon d'un compromis : même maître du frontend, l'attaquant ne peut pas sauter directement sur la base. Prérequis : un CNI qui applique les NetworkPolicies (Calico, Cilium), sinon la politique est ignorée."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Sécurité réseau",
+          "quizRef": "network-security-check"
+        }
+      ]
+    },
+    {
+      "slug": "pod-security",
+      "title": "Sécurité des pods & admission",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "securityContext : durcir le pod",
+          "body": "Segmenter le réseau protège les échanges *entre* pods. Mais il faut aussi durcir **l'intérieur** de chaque pod, pour qu'un attaquant qui compromet un conteneur puisse faire le moins de dégâts possible. C'est le rôle du **securityContext**.\n\nLe **securityContext** est une section du **manifeste** (le fichier YAML qui décrit le pod) où l'on précise **sous quelles restrictions** le conteneur a le droit de tourner. Passons en revue les réglages clés, chacun avec son idée simple :\n\n- **Tourner en non-root** (`runAsNonRoot: true`, `runAsUser: 10001`). L'utilisateur **root** est le super-administrateur d'un système Linux : il a **tous les droits**. Faire tourner une application en root, c'est lui donner les pleins pouvoirs pour rien. On la fait donc tourner sous un utilisateur ordinaire, sans privilège. 👉 **Analogie** : tu ne confies pas le **passe-partout de tout l'immeuble** au livreur, il a juste besoin d'entrer dans le hall.\n- **Système de fichiers en lecture seule** (`readOnlyRootFilesystem: true`) : le conteneur ne peut **pas modifier ses propres fichiers**. Un attaquant ne peut donc pas y déposer un outil malveillant. 👉 Comme une borne d'accueil dont l'écran est **sous vitre** : on regarde, on ne bidouille pas.\n- **Retirer les capabilities** (`capabilities.drop: [\"ALL\"]`). Les **capabilities** sont de petits pouvoirs système découpés en morceaux (ouvrir un port réservé, changer l'horloge de la machine, etc.). Par défaut un conteneur en reçoit plusieurs, presque toujours inutiles à ton appli : on les **enlève toutes**, quitte à n'en remettre qu'une précise si vraiment nécessaire.\n- **Interdire l'élévation de privilèges** (`allowPrivilegeEscalation: false`) : on empêche un processus de **gagner en cours de route plus de droits** que ceux reçus au départ.\n- **Filtrer les appels système** (`seccompProfile: { type: RuntimeDefault }`). **seccomp** est un filtre du noyau Linux qui limite les commandes bas niveau (les *syscalls*, les demandes qu'un programme adresse au système) qu'un conteneur peut émettre. Le profil `RuntimeDefault` bloque d'office les plus dangereuses, inutiles à la plupart des applications.\n- **Jamais `privileged: true`**. Un conteneur **privileged** (« privilégié ») dispose de quasiment les mêmes pouvoirs que la machine hôte elle-même : c'est la porte grande ouverte pour s'évader du conteneur. On ne l'active jamais, sauf cas très particulier et parfaitement maîtrisé.\n\nToutes ces règles appliquent un même principe, le **moindre privilège** : ne donner à chaque conteneur **que** les droits strictement nécessaires, rien de plus. Moins il a de pouvoir, moins un attaquant en récupère en le compromettant."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Un pod durci",
+          "codeLanguage": "yaml",
+          "body": "spec:\n  securityContext:\n    runAsNonRoot: true\n    runAsUser: 10001\n    seccompProfile: { type: RuntimeDefault }\n  containers:\n    - name: app\n      image: monorg/api:1.4.0\n      securityContext:\n        allowPrivilegeEscalation: false\n        readOnlyRootFilesystem: true\n        capabilities:\n          drop: [\"ALL\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pod Security Standards & admission",
+          "body": "Écrire un bon securityContext, c'est bien. Mais rien n'oblige les équipes à le faire : compter sur la bonne volonté de chacun ne suffit pas. Il faut un mécanisme qui **impose** les règles et **refuse** les pods non conformes. C'est le rôle du contrôle à **l'admission**.\n\nL'**admission** est le moment précis où quelqu'un demande à Kubernetes de créer un objet (un pod, par exemple). Un **contrôleur d'admission** (*admission controller*) est un videur posté à cette porte : il **inspecte la demande** et peut l'**accepter** ou la **rejeter** avant même que l'objet existe. 👉 **Analogie** : le videur à l'entrée de la boîte de nuit vérifie ta tenue **avant** de te laisser entrer, pas une fois que tu es à l'intérieur.\n\nDeux briques travaillent ensemble :\n- Les **Pod Security Standards** (« standards de sécurité des pods ») définissent trois **niveaux** d'exigence, du plus laxiste au plus strict : **privileged** (permissif, presque tout est permis), **baseline** (bloque les configurations les plus dangereuses), **restricted** (durci : non-root, capabilities retirées, etc.).\n- Le **Pod Security Admission** est le contrôleur, **intégré d'origine** à Kubernetes, qui applique l'un de ces niveaux **par namespace**. Tu étiquettes le namespace `prod` en `restricted`, et tout pod qui n'y respecte pas les règles est **refusé dès sa création**. Exemple concret : un développeur tente d'y déployer un pod avec `privileged: true` ; la création est bloquée avec un message d'erreur explicite.\n\nPour des règles **plus fines** que ces trois niveaux, on ajoute un contrôleur d'admission programmable comme **Kyverno** ou **OPA/Gatekeeper** (des outils à installer). L'**OPA** (*Open Policy Agent*) est un moteur de règles générique, **Gatekeeper** l'intègre à Kubernetes, et **Kyverno** est une alternative dont les règles s'écrivent directement en YAML. Avec eux, tu imposes des politiques sur mesure : « interdit les images en version `:latest` », « exige des limites de CPU et de mémoire », « n'accepte que des images signées ». La sécurité devient alors **appliquée par l'infrastructure elle-même**, et non plus simplement recommandée dans une documentation."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "La chaîne d'approvisionnement (niveau expert)",
+          "body": "La sécurité d'un cluster ne s'arrête pas à ce qui y tourne : elle englobe aussi **d'où vient** ce qu'on y déploie. C'est la sécurité de la **chaîne d'approvisionnement** (*supply chain* : tout le trajet d'une image de conteneur, depuis son code source jusqu'à son exécution dans le cluster). Une **image** est le **paquet figé** qui contient ton application et tout ce qu'il lui faut pour tourner ; si on y glisse du code malveillant en amont, tout le cluster est exposé.\n\nOn applique donc, comme côté Docker, une série de bonnes pratiques :\n- **Images minimales et scannées** : une image réduite au strict nécessaire offre moins de prises. **Trivy** est un outil qui **scanne** une image à la recherche de failles de sécurité connues (les vulnérabilités des bibliothèques qu'elle embarque).\n- **Images signées** : **cosign** appose une **signature** cryptographique sur l'image, comme un **sceau de cire** sur une lettre, qui prouve qu'elle vient bien de toi et n'a pas été altérée. On y joint un **SBOM** (*Software Bill of Materials*, la « liste des ingrédients » : l'inventaire de tout ce que contient l'image) et des garanties de provenance décrites par le cadre **SLSA** (un référentiel qui atteste *comment* l'image a été construite).\n- **Vérification à l'admission** : grâce à Kyverno/OPA vus juste avant, on **refuse** à l'entrée toute image non signée ou d'origine inconnue.\n- **Détection au runtime** : même avec l'amont bien verrouillé, on surveille ce qui se passe **pendant l'exécution**. **Falco** observe les **syscalls** (les *appels système* : les demandes qu'un programme adresse au noyau Linux, comme « ouvre ce fichier » ou « lance ce programme ») et **alerte** sur tout comportement anormal, par exemple un shell qui s'ouvre dans un conteneur qui ne devrait jamais en lancer.\n\nAjoute à cela la **limitation des droits** grâce au **RBAC** (*Role-Based Access Control*, « contrôle d'accès par rôles » : qui a le droit de faire quoi dans le cluster) et à des **ServiceAccounts** (les comptes d'identité que les pods utilisent pour parler à Kubernetes) au périmètre réduit.\n\nLa boucle complète se lit alors comme un empilement de protections : **durcir** (securityContext) + **segmenter** (NetworkPolicies) + **limiter les droits** (RBAC/ServiceAccounts) + **imposer** (admission) + **vérifier la chaîne d'appro** (scan, signature) + **détecter** (Falco). Aucune de ces couches n'est parfaite toute seule ; c'est leur superposition qui protège. C'est le principe de la **défense en profondeur** : plusieurs remparts successifs, pour qu'une seule faille ne suffise jamais. 👉 **Analogie** : un château fort n'a pas qu'un mur, il a des **douves, un pont-levis, des remparts et un donjon** ; franchir l'un ne donne pas la place."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une organisation veut garantir qu'aucun pod privilégié, ni tournant en root, ni utilisant une image non signée, ne puisse être déployé, sans compter sur la vigilance manuelle des équipes. Quels mécanismes Kubernetes mettent en œuvre cette garantie ?",
+          "solution": "Il faut appliquer les règles à l'ADMISSION, le point où un objet demande à être créé dans le cluster, de sorte que toute demande non conforme soit automatiquement REJETÉE, pas laissée à la discipline des équipes. Deux couches complémentaires : (1) Le Pod Security Admission (intégré) : on étiquette les namespaces avec le niveau « restricted » des Pod Security Standards, qui refuse à la création tout pod privilégié, tournant en root, avec escalade de privilèges, capabilities dangereuses, etc. Cela couvre le « pas de privileged / pas de root » de façon native. (2) Un contrôleur d'admission de politique (Kyverno ou OPA/Gatekeeper) pour les règles arbitraires que PSA ne couvre pas, notamment la vérification de signature d'image : une politique qui refuse toute image dont la signature cosign n'est pas vérifiée (et, si voulu, interdit :latest, exige des requests/limits, restreint les registres autorisés...). Comme ces vérifications s'exécutent au moment de l'admission et bloquent le déploiement en cas de violation, la garantie est IMPOSÉE par l'infrastructure, inviolable et auditable, indépendamment de la vigilance des développeurs. On complète par la signature à la construction (cosign) pour que la vérification ait du sens, et par de la détection runtime (Falco) pour ce qui échapperait aux contrôles statiques. C'est le passage d'une sécurité « recommandée » à une sécurité « appliquée »."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Sécurité des pods & admission",
+          "quizRef": "pod-security-check"
+        }
+      ]
+    },
+    {
+      "slug": "audit-conformite-4c",
+      "title": "Audit, conformité & les 4C",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les 4C de la sécurité cloud native",
+          "body": "Comment ne rien oublier quand on sécurise Kubernetes ? On raisonne en **couches**, avec un modèle mémotechnique appelé les **4C**. L'expression **cloud native** désigne les applications conçues pour tourner dans le cloud sous forme de conteneurs orchestrés ; les 4C sont ses quatre couches de sécurité, emboîtées comme des **poupées russes**, de l'extérieur vers l'intérieur :\n\n- **Cloud** : la couche la plus externe, l'**infrastructure** sur laquelle tout repose (les serveurs, le réseau du fournisseur, le chiffrement des disques). On y trouve l'**IAM** (*Identity and Access Management*, « gestion des identités et des accès » : qui, chez le fournisseur cloud, a le droit de créer ou de détruire des machines).\n- **Cluster** : le durcissement de Kubernetes lui-même (le **RBAC** qui règle qui peut faire quoi, le contrôle d'**admission**, l'accès à l'API).\n- **Container** : les images des conteneurs (minimales, scannées, signées, non-root).\n- **Code** : la couche la plus interne, ton **application** elle-même (ses dépendances tenues à jour, ses secrets bien gérés, la validation des entrées utilisateur).\n\n👉 **L'idée clé** : chaque couche protège la suivante, et une faille dans une couche **externe** compromet toutes les couches internes. Durcir son code ne sert à rien si le cluster est grand ouvert ; et un cluster parfaitement configuré ne protège pas d'un **compte cloud** volé qui permettrait d'éteindre toutes les machines. On raisonne donc **de l'extérieur vers l'intérieur**, chaque C renforçant le précédent. Les 4C sont surtout une **grille de contrôle** : quatre cases à cocher pour être sûr de n'avoir oublié aucun niveau."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Les 4C, emboîtés comme des poupées russes",
+          "diagramFormat": "MERMAID",
+          "body": "graph TD\n  subgraph Cloud[\"Cloud : infrastructure, IAM\"]\n    subgraph Cluster[\"Cluster : RBAC, admission, API\"]\n      subgraph Container[\"Container : image minimale, signee, non-root\"]\n        Code[\"Code : appli, dependances, secrets\"]\n      end\n    end\n  end"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Auditer la conformité : kube-bench & CIS",
+          "body": "Une fois qu'on connaît les bonnes pratiques, comment **vérifier** qu'un vrai cluster les respecte, sans tout inspecter à la main ? On s'appuie sur un **référentiel** reconnu et sur un outil qui le contrôle automatiquement.\n\nLe **CIS Kubernetes Benchmark** est ce référentiel : une longue **liste officielle de bonnes pratiques** de configuration, publiée par le CIS (*Center for Internet Security*, un organisme reconnu). 👉 **Analogie** : c'est la **check-list du contrôle technique** de ta voiture, mais pour ton cluster. Elle couvre par exemple les droits des fichiers du **plan de contrôle** (*control plane* : le cerveau du cluster, l'ensemble des composants qui prennent les décisions), les options du **kubelet** (l'agent présent sur chaque machine, qui lance et surveille les pods), ou les paramètres de l'**apiserver** (la porte d'entrée du cluster : le composant qui reçoit toutes les commandes).\n\nL'outil **`kube-bench`** **automatise** cette check-list : il scanne le cluster et, pour chaque point du benchmark, affiche un verdict **PASS** (conforme), **FAIL** (non conforme) ou **WARN** (à vérifier à la main). Plutôt que de le lancer une fois puis d'oublier, on le fait tourner **régulièrement** sous forme de **Job** (une tâche ponctuelle) ou de **CronJob** (une tâche répétée selon un horaire, comme « tous les lundis matin »), afin de repérer les **dérives** : une configuration correcte au départ peut se dégrader au fil du temps et des modifications.\n\nC'est, côté cluster, l'équivalent du scan d'images (Trivy) côté conteneurs : une vérification **automatisée et continue** de la posture de sécurité, bien plus fiable qu'un audit manuel fait une fois par an."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Audit logging & egress (niveau expert)",
+          "body": "Deux sujets pour une sécurité mûre : garder une **trace** de ce qui se passe, et contrôler ce qui **sort** du cluster.\n\n**L'audit logging** (« journalisation d'audit ») de l'apiserver enregistre, pour chaque commande envoyée au cluster, **qui a fait quoi, quand, et sur quoi**. 👉 **Analogie** : c'est le **registre à l'entrée d'un bâtiment sécurisé** où chaque visiteur signe son passage ; sans ce registre, impossible de savoir qui est venu après coup. C'est indispensable pour l'**investigation** après un incident (« quel compte a supprimé ce déploiement, et à quelle heure ? ») et pour prouver sa conformité. On définit une **politique d'audit** (*audit policy* : quels événements enregistrer, et avec quel niveau de détail, de la simple métadonnée au contenu complet de la requête), puis on **envoie ces journaux vers un stockage sûr**, idéalement en dehors du cluster pour qu'un attaquant ne puisse pas les effacer.\n\nCôté réseau, on a vu l'**ingress** (le trafic entrant). Son miroir, l'**egress** (le trafic **sortant** d'un pod vers l'extérieur), est souvent **négligé**, à tort. Le contrôler limite l'**exfiltration** : le vol de données par un attaquant qui les **fait sortir** du cluster vers un serveur qu'il contrôle. Un pod compromis ne devrait pas pouvoir joindre n'importe quelle adresse sur Internet. Attention en particulier au **DNS** (*Domain Name System* : le service qui traduit un nom comme `exemple.com` en adresse IP) : c'est un canal discret souvent détourné pour l'exfiltration, à surveiller de près.\n\nUne sécurité aboutie combine donc les trois : on **trace** tout (audit logging), on **segmente les deux sens** du trafic (ingress **et** egress), et on **scanne la conformité** en continu (kube-bench)."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Après un incident, l'équipe sécurité veut savoir quel compte a supprimé un Deployment critique et quand, mais ne trouve aucune trace. Par ailleurs, elle veut vérifier systématiquement que le cluster respecte les bonnes pratiques de durcissement. Quels deux mécanismes mettre en place ?",
+          "solution": "Deux mécanismes complémentaires. (1) L'audit logging de l'apiserver, pour la traçabilité « qui a fait quoi » : par défaut, l'absence d'audit configuré explique qu'on ne trouve aucune trace de la suppression. On configure une politique d'audit (audit policy) sur l'apiserver définissant quels événements enregistrer et à quel niveau (Metadata/Request/RequestResponse), a minima les opérations d'écriture/suppression sur les ressources sensibles, et on route ces logs d'audit vers un stockage durable et sécurisé (hors du cluster idéalement). Ainsi, chaque requête API (utilisateur/ServiceAccount, verbe, ressource, horodatage, résultat) est enregistrée : on peut retrouver exactement quel compte a supprimé le Deployment et quand, et détecter des usages anormaux. En managé, le fournisseur expose souvent ces logs d'audit (à activer/router). (2) kube-bench (fondé sur le CIS Kubernetes Benchmark) pour vérifier systématiquement le durcissement : on l'exécute régulièrement (via un Job/CronJob) pour scanner la configuration du cluster (plan de contrôle, kubelet, apiserver, droits des fichiers...) et signaler les écarts (PASS/FAIL/WARN) par rapport aux bonnes pratiques. Cela transforme l'audit de conformité en vérification automatisée et continue, révélant les dérives de configuration avant qu'elles ne soient exploitées. On complète le tout par le modèle des 4C (Cloud/Cluster/Container/Code) comme grille pour couvrir toutes les couches, et par des NetworkPolicies egress pour limiter l'exfiltration. Traçabilité (audit) + conformité automatisée (kube-bench) sont les deux réponses directes au besoin exprimé."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Audit, conformité & 4C (expert)",
+          "quizRef": "security-audit-4c-expert"
+        }
+      ]
+    }
+  ]
+}

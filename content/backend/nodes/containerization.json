@@ -1,0 +1,299 @@
+{
+  "node": "containerization",
+  "lessons": [
+    {
+      "slug": "conteneurs-vs-virtualisation",
+      "title": "Conteneurs vs virtualisation",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Empaqueter l'app et son environnement",
+          "body": "Quand tu écris une application, elle ne tourne jamais toute seule : elle a besoin d'un **environnement** pour fonctionner. Cet environnement, ce sont ses **dépendances** : la bonne version du langage (Java 21, Node 20...), des bibliothèques, des réglages système, des variables. Sur ta machine tout est installé ; sur une autre machine, il manque souvent quelque chose, et l'app plante.\n\nUn **conteneur** résout ce problème : c'est une **boîte** qui empaquète ton application **et toutes ses dépendances** ensemble, dans une unité isolée qui tourne à l'identique partout.\n\n👉 **Analogie** : un conteneur, c'est comme un **plat surgelé** tout prêt. Peu importe le four (ta machine, celle d'un collègue, un serveur), tu réchauffes et tu obtiens exactement le même plat, parce que tous les ingrédients sont déjà dedans, dans les bonnes proportions.\n\nPour bien saisir, comparons avec l'ancienne solution : la **machine virtuelle** (VM). Une VM simule un **ordinateur complet** : par-dessus ton système, un logiciel appelé **hyperviseur** fait tourner un **système d'exploitation** (OS) invité entier (son propre Linux ou Windows, avec son démarrage, sa mémoire). C'est étanche, mais **lourd** : chaque VM pèse plusieurs Go et met des dizaines de secondes à démarrer.\n\nUn conteneur, lui, ne réembarque **pas** d'OS complet. Il **partage le noyau** (en anglais *kernel* : le cœur du système d'exploitation, celui qui parle au matériel) de la machine qui l'héberge, et n'emporte que ton app et ses dépendances. Résultat : démarrage en **millisecondes**, empreinte de quelques Mo, et tu peux en lancer des dizaines sur une seule machine (forte densité).\n\nExemple concret : sur cette plateforme, le backend Spring Boot tourne dans un conteneur qui contient Java 21 et le jar de l'app ; il démarre en une poignée de secondes là où une VM équivalente prendrait bien plus. (Vocabulaire : **LXC** est une forme ancienne de conteneur « système » ; **Docker** a popularisé le conteneur **applicatif**, une boîte par application, celui qu'on utilise ici.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un conteneur empaquete l'app ET son environnement : il tourne pareil partout.",
+          "body": "/images/lessons/conteneurs-vs-virtualisation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Fini le « ça marche chez moi »",
+          "body": "« Ça marche chez moi ! » : c'est la phrase culte du développeur dont le code fonctionne sur son poste mais casse ailleurs. La cause est presque toujours un **décalage d'environnement** : une version différente, une bibliothèque manquante, un réglage absent sur l'autre machine.\n\nLe conteneur fait disparaître ce décalage. On construit une **image** (le modèle figé qui contient l'app et son environnement, on la détaille à la leçon suivante), et c'est **exactement la même image** qui tourne partout :\n- sur le **poste du développeur** pendant qu'il code ;\n- en **CI** (l'**intégration continue** : le serveur qui compile et teste automatiquement à chaque changement) ;\n- en **production** (l'environnement réel où de vrais utilisateurs se servent de l'app).\n\nPlus de « chez moi ça marchait » : si l'image passe les tests, elle se comportera pareil en prod, parce que c'est le même paquet, au bit près.\n\n👉 **Analogie** : au lieu d'envoyer à un ami la **recette** d'un gâteau (qu'il ratera peut-être avec son four et ses ingrédients), tu lui envoies le **gâteau déjà cuit**. Tu **versionnes ton environnement comme ton code** : il voyage avec l'app.\n\nExemple concret : sur cette plateforme, une seule commande, `docker compose up`, démarre tout le stack (base de données, backend, frontend) déjà configuré et relié, de façon **reproductible** sur n'importe quelle machine. Un nouvel arrivant est opérationnel en minutes, sans passer une journée à installer des outils."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Fini le 'ca marche chez moi' : le meme conteneur s'execute a l'identique sur toutes les machines.",
+          "body": "/images/lessons/conteneurs-vs-virtualisation-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "VM vs conteneur : deux façons d'empiler",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n    subgraph VM[Machine virtuelle: lourde]\n      direction TB\n      MatV[Materiel]\n      HoteV[Systeme hote]\n      Hyp[Hyperviseur]\n      OS1[OS invite 1]\n      OS2[OS invite 2]\n      AppV1[App A]\n      AppV2[App B]\n      MatV --> HoteV --> Hyp\n      Hyp --> OS1 --> AppV1\n      Hyp --> OS2 --> AppV2\n    end\n    subgraph CT[Conteneurs: legers]\n      direction TB\n      MatC[Materiel]\n      HoteC[Systeme hote et noyau partage]\n      Moteur[Moteur de conteneurs]\n      Cont1[Conteneur App A]\n      Cont2[Conteneur App B]\n      MatC --> HoteC --> Moteur\n      Moteur --> Cont1\n      Moteur --> Cont2\n    end"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Pourquoi un conteneur démarre-t-il en quelques millisecondes là où une VM met plusieurs secondes ?",
+          "solution": "Une VM démarre un système d'exploitation invité complet au-dessus d'un hyperviseur (boot de l'OS, initialisation). Un conteneur partage le noyau de l'hôte et ne lance que le processus applicatif isolé : rien à booter, d'où un démarrage quasi instantané et une empreinte bien plus légère."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Conteneurs vs virtualisation",
+          "quizRef": "containerization-conteneurs-check"
+        }
+      ]
+    },
+    {
+      "slug": "images-et-dockerfile",
+      "title": "Images & Dockerfile",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Image, conteneur, registre",
+          "body": "Trois mots reviennent tout le temps avec Docker ; posons-les clairement.\n\n**L'image** : c'est un **modèle en lecture seule** qui contient ton application **et** son environnement (le système de base, le langage, les bibliothèques). Elle est figée : on ne la modifie pas, on la **construit** une fois. Une image est faite de **couches** (en anglais *layers*) empilées : chaque étape de construction ajoute une couche, et Docker les met en **cache** (les garde de côté) pour ne pas tout refaire à chaque build.\n\n👉 **Analogie** : l'image est un **moule à gâteau** (le modèle figé) ; le **conteneur** est le **gâteau** qu'on en sort. Avec un seul moule (une image), tu peux cuire autant de gâteaux (conteneurs) identiques que tu veux.\n\n**Le conteneur** : c'est une **instance en cours d'exécution** d'une image, autrement dit l'app qui tourne réellement. D'une même image, tu peux lancer plusieurs conteneurs à la fois.\n\n**Le registre** (en anglais *registry*) : c'est un **entrepôt** qui stocke et distribue les images, pour les partager entre machines et coéquipiers. Les plus connus sont **Docker Hub** et **GHCR** (le registre de GitHub).\n\nLe vocabulaire des actions, que tu vas croiser sans cesse :\n- **build** : *construire* une image à partir d'un **Dockerfile** (le fichier-recette qui liste les étapes, on le voit juste après) ;\n- **run** : *lancer* un conteneur à partir d'une image ;\n- **push** : *pousser* (envoyer) une image vers un registre ;\n- **pull** : *tirer* (télécharger) une image depuis un registre.\n\nExemple concret : `docker build -t mon-app .` construit l'image, `docker run mon-app` la lance, `docker push` l'envoie sur le registre pour qu'un collègue fasse `docker pull` et obtienne exactement la même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'image est le moule, le conteneur l'instance qui tourne, le registre l'entrepot d'images.",
+          "body": "/images/lessons/images-et-dockerfile-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un build multi-stage",
+          "codeLanguage": "bash",
+          "body": "# On compile avec les outils lourds, on ne livre que l'artefact\nFROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /app\nCOPY . .\nRUN mvn -q -pl app -am package -DskipTests\n\nFROM eclipse-temurin:21-jre   # image d'exécution minimale\nCOPY --from=build /app/app/target/skillforge.jar app.jar\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Images de production (niveau expert)",
+          "body": "Une image qui marche, c'est bien ; une image **prête pour la production**, c'est mieux. Voici les réflexes de pro (n'aie pas peur du mot « expert » : ce sont surtout des habitudes à prendre tôt).\n\n- **Build multi-stage** : compiler dans une première étape avec les gros outils, puis ne copier que le résultat dans une image finale minimale (voir l'exemple de code de cette leçon). Image légère égale déploiement rapide.\n- **Base slim ou alpine** : partir d'une image de base **allégée**. *slim* et *alpine* sont des variantes minuscules des images officielles (Alpine est une mini-distribution Linux de quelques Mo). Moins il y a de choses dedans, moins il y a de failles possibles.\n- **Épingler les versions** : écrire `eclipse-temurin:21-jre` plutôt que `:latest`. 👉 **Analogie** : `:latest` (« la dernière en date »), c'est comme commander « le plat du jour » sans savoir ce que ce sera demain : le contenu change dans ton dos, et un build qui marchait aujourd'hui peut casser demain. Une version épinglée est **reproductible**.\n- **.dockerignore** : un fichier (cousin du `.gitignore`) qui liste ce qu'il ne faut **pas** embarquer dans l'image, comme `node_modules/`, `.git/` ou les fichiers de build. Ça allège l'image et évite d'y copier des choses inutiles ou sensibles.\n- **Jamais de secret dans l'image** : un mot de passe ou une clé d'API **écrit en dur** dans l'image y reste pour toujours et sera lisible par quiconque récupère l'image. Les secrets s'injectent **au runtime** (au moment de lancer le conteneur) via des **variables d'environnement**, jamais dans l'image.\n- **Exécution en non-root** : par défaut, un conteneur tourne en **root** (l'utilisateur tout-puissant). Créer un utilisateur normal et tourner avec lui limite les dégâts si l'app est compromise.\n\n👉 **Le principe commun** : une image **petite et sûre** se déploie vite et offre une **surface d'attaque** (la quantité de choses qu'un pirate peut viser) réduite. Ce sont exactement les Dockerfiles de cette plateforme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une image de production est minimale, sans outils inutiles : plus legere et plus sure.",
+          "body": "/images/lessons/images-et-dockerfile-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Pourquoi utiliser un build multi-stage plutôt qu'inclure Maven et le JDK complet dans l'image finale ?",
+          "solution": "Le multi-stage compile avec les outils lourds (Maven, JDK) dans une étape de build, puis ne copie que l'artefact (le jar) dans une image d'exécution minimale (JRE). L'image livrée est bien plus petite (téléchargement/déploiement rapides) et expose moins de surface d'attaque (pas de compilateur ni d'outils inutiles en production)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Images & Dockerfile",
+          "quizRef": "containerization-images-check"
+        }
+      ]
+    },
+    {
+      "slug": "orchestration-kubernetes",
+      "title": "Orchestration : Kubernetes",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Gérer une flotte de conteneurs",
+          "body": "Lancer **un** conteneur sur ta machine, tu sais maintenant faire. Mais en production, une vraie application, c'est souvent **des dizaines ou des centaines** de conteneurs, répartis sur **plusieurs machines**, qu'il faut redémarrer quand ils tombent, mettre à jour sans interrompre le service, et multiplier quand il y a du monde. Faire ça à la main serait un cauchemar.\n\nC'est le travail d'un **orchestrateur** : un chef d'orchestre logiciel qui pilote automatiquement une flotte de conteneurs. Le plus répandu est **Kubernetes** (souvent abrégé **k8s**).\n\n👉 **Analogie** : un orchestrateur, c'est le **chef d'orchestre**. Toi, tu ne dis pas à chaque musicien quelle note jouer à la milliseconde près ; tu donnes la **partition** (le résultat voulu) et le chef fait jouer tout le monde ensemble, remplace un musicien absent, ajuste le tempo.\n\nLe principe clé de Kubernetes est la **réconciliation vers l'état désiré**. Tu **décris** ce que tu veux (« je veux 3 exemplaires de mon backend qui tournent en permanence »), et Kubernetes compare sans arrêt cet **état désiré** avec l'**état réel**, puis agit pour combler l'écart. Concrètement, il gère pour toi :\n- la **réplication** : faire tourner plusieurs copies (répliques) identiques d'un conteneur ;\n- la **résilience** (ou auto-réparation) : si une copie plante ou si une machine tombe, il en relance une ailleurs automatiquement ;\n- la **mise à jour sans coupure** (*rolling update*) : remplacer progressivement les anciennes copies par les nouvelles, sans jamais tout arrêter d'un coup ;\n- la **mise à l'échelle** (*scaling*) : ajouter ou retirer des copies selon la charge.\n\nExemple concret : tu déclares « 3 répliques ». Une machine grille et en emporte une : Kubernetes le détecte et en redémarre une sur une autre machine pour revenir à 3, sans que tu lèves le petit doigt."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Orchestrer, c'est gerer une flotte de conteneurs : placement, sante, mise a l'echelle, reseau.",
+          "body": "/images/lessons/orchestration-kubernetes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Compose pour le local, Kubernetes pour la prod",
+          "body": "Faut-il Kubernetes dès le premier jour ? Non. Le bon outil dépend du besoin.\n\n**En local, pour développer : Docker Compose suffit.** **Docker Compose** est un outil qui démarre **plusieurs conteneurs reliés** à partir d'un seul fichier **YAML** (un format texte simple, à base d'indentation, pour décrire de la configuration de façon lisible). Dans ce fichier, tu décris tes **services** (un « service » égale un conteneur avec sa config : la base, le backend, le frontend), et **une seule commande** les lance tous, connectés entre eux.\n\n👉 **Analogie** : Compose, c'est la **cuisine d'un particulier** : parfaite pour préparer un repas chez toi. Kubernetes, c'est la **cuisine d'un restaurant** qui sert des milliers de couverts : indispensable à grande échelle, mais démesuré pour un dîner à la maison.\n\n**En production à l'échelle : Kubernetes prend le relais.** Il apporte ce que Compose ne fait pas : l'**auto-scaling** (ajouter/retirer des répliques automatiquement selon la charge), la **haute disponibilité** (en anglais *high availability*, abrégé **HA** : le service reste debout même si une machine tombe, grâce à plusieurs **nœuds**, c'est-à-dire plusieurs machines du cluster) et l'auto-réparation.\n\nLa règle de sagesse : **on ne saute pas à Kubernetes sans besoin réel.** Sa puissance a un **coût d'exploitation** bien concret (installer, surveiller, maintenir). Exemple concret : cette plateforme utilise **Docker Compose** en local, amplement suffisant pour développer avec base, back et front ; Kubernetes n'aurait de sens qu'en production à fort trafic."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Compose pour le poste local, Kubernetes pour la production a l'echelle.",
+          "body": "/images/lessons/orchestration-kubernetes-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Pour un projet local en développement avec base + backend + frontend, faut-il Kubernetes ou Docker Compose ? Justifiez.",
+          "solution": "Docker Compose : il décrit et démarre le stack multi-services en une commande, simple et suffisant en local/dev. Kubernetes apporte auto-scaling, HA multi-nœuds et auto-réparation, utiles en production à l'échelle mais avec une complexité d'exploitation disproportionnée pour un développement local."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Conteneurs & orchestration",
+          "quizRef": "containerization-check"
+        }
+      ]
+    },
+    {
+      "slug": "sous-le-capot-images-production",
+      "title": "Sous le capot & images de production",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un conteneur, ce sont des fonctionnalités du noyau Linux",
+          "body": "On dit « conteneur » comme si c'était une petite machine, mais c'est trompeur. Un conteneur n'est **pas** une machine : c'est un **processus** ordinaire (un programme en cours d'exécution) de ta machine hôte, à qui le noyau Linux fait croire qu'il est seul au monde. Trois mécanismes du noyau produisent cette illusion.\n\n**1. Les namespaces (espaces de noms), pour isoler ce qu'il voit.** Un **namespace** cloisonne la **vue** d'un processus : ses propres numéros de processus (**PID**), son propre réseau, ses propres points de montage de fichiers, son propre nom d'hôte. Du coup, à l'intérieur, le conteneur croit être seul sur la machine.\n\n👉 **Analogie** : les namespaces, ce sont les **cloisons d'un open space**. Tout le monde partage le même bâtiment (le noyau), mais chacun dans son box ne voit que son propre bureau et se croit dans une pièce à part.\n\n**2. Les cgroups (groupes de contrôle), pour limiter ce qu'il consomme.** Un **cgroup** plafonne les **ressources** qu'un processus peut utiliser : tant de CPU, tant de mémoire. 👉 **Analogie** : c'est le **disjoncteur** de l'appartement, il empêche un conteneur gourmand de tirer tout le courant et d'assécher les voisins.\n\n**3. Le système de fichiers en union (overlay), pour l'image en couches.** Il **empile** les **couches** en lecture seule de l'image et ajoute par-dessus une fine **couche d'écriture** propre au conteneur. Ainsi, plusieurs conteneurs partagent les mêmes couches de base sans les dupliquer, et ce que l'un écrit ne touche pas les autres.\n\nComprendre ces trois briques démystifie tout : pourquoi un conteneur est **isolé** (namespaces), pourquoi on peut **limiter ses ressources** (cgroups), et pourquoi il **partage le noyau** de l'hôte (ce n'est qu'un processus, pas un OS complet)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un conteneur n'est pas une VM : ce sont des fonctionnalites du noyau Linux (namespaces, cgroups).",
+          "body": "/images/lessons/sous-le-capot-images-production-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'ordre des couches fait (ou casse) le cache",
+          "body": "Reprenons les **couches**. Chaque instruction de ton Dockerfile (`FROM`, `COPY`, `RUN`...) crée une **couche**, et Docker les met en **cache** : lors du build suivant, il **réutilise** une couche telle quelle tant que rien **avant elle** n'a changé. Dès qu'une couche change, cette couche **et toutes celles d'après** doivent être reconstruites (on dit que le cache est **invalidé**).\n\nD'où la **règle d'or** : place ce qui **change rarement** en haut du Dockerfile, ce qui **change souvent** en bas.\n\n👉 **Analogie** : c'est comme s'habiller. Tu mets d'abord les sous-vêtements et le pantalon (qui changent peu), puis le manteau (qu'on enlève et remet souvent). Personne ne se déshabille entièrement juste pour retirer son manteau : on ne rejoue que la dernière couche.\n\nApplication très concrète, la plus rentable de toutes : copier **d'abord** le fichier de dépendances (`pom.xml` pour Maven, `package.json` pour Node) et **installer les dépendances**, **puis seulement** copier le code source. Pourquoi ? Parce que ton code change à chaque commit, mais tes dépendances presque jamais. Avec ce bon ordre, une modification de code ne réinvalide **pas** la couche de téléchargement des dépendances : elle reste en cache, et le build prend quelques secondes.\n\nÀ l'inverse, un `COPY . .` placé **avant** l'installation des dépendances invalide tout dès qu'une seule ligne de code bouge : Docker retélécharge toutes les dépendances à chaque build, soit des **minutes perdues à chaque commit**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'ordre des couches d'une image fait (ou casse) le cache de build : du stable vers le volatil.",
+          "body": "/images/lessons/sous-le-capot-images-production-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "PID 1 & arrêt gracieux",
+          "body": "Dans un conteneur, ton application est **PID 1** : le tout premier processus, celui qui porte un numéro spécial (1) et un rôle particulier hérité d'Unix. Ce détail a des conséquences réelles à l'arrêt.\n\nQuand l'orchestrateur veut arrêter un conteneur (un déploiement, une réduction du nombre de répliques), il ne le tue pas d'un coup. Il envoie d'abord un **signal** (un petit message du système à un processus) nommé **`SIGTERM`**, qui veut dire « prépare-toi à t'arrêter, s'il te plaît » ; puis, si le processus n'a pas fini au bout d'un délai (par défaut une trentaine de secondes), il envoie **`SIGKILL`**, l'ordre brutal et non négociable « meurs maintenant ».\n\nUne application qui **ignore SIGTERM** est donc tuée de force : les requêtes en cours sont coupées net, les connexions à la base laissées ouvertes, des données peuvent se perdre. Il faut au contraire **intercepter SIGTERM** pour faire un **arrêt gracieux** : cesser d'accepter de nouvelles requêtes, **finir** celles qui sont en cours, fermer proprement les connexions, puis se terminer.\n\n👉 **Analogie** : SIGTERM, c'est le patron du bar qui annonce « dernière tournée, on ferme bientôt » (tu finis de servir les clients présents) ; SIGKILL, c'est la police qui vide la salle de force dix minutes plus tard. Le premier permet une fin **propre**, le second casse tout.\n\nBonne nouvelle : **Spring Boot gère l'arrêt gracieux nativement** (il attend la fin des requêtes en cours). Un piège annexe à connaître : si PID 1 est un **shell** (parce que l'`ENTRYPOINT` est écrit sous forme de texte simple), ce shell ne **transmet pas** SIGTERM à ton app et ne **nettoie pas** les processus **zombies** (des processus terminés mais pas récupérés). La parade : utiliser la **forme exec** de l'`ENTRYPOINT` (`ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]`, en tableau) pour que ton app soit **directement** PID 1, ou activer un init léger (l'option `--init`)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "PID 1 doit propager les signaux : sinon l'arret du conteneur n'est pas gracieux.",
+          "body": "/images/lessons/sous-le-capot-images-production-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Durcir l'image pour la production (niveau expert)",
+          "body": "Dernier cran : **durcir** l'image, c'est-à-dire réduire au maximum ce qu'un attaquant pourrait exploiter. Au-delà du multi-stage, quelques pratiques de pro.\n\n**Une base minimale, voire distroless.** Une image **distroless** ne contient **que** ton app et son runtime, sans shell ni utilitaires système. Pas de shell égale un intrus qui entre ne peut presque rien faire (pas de `bash` pour fouiner). 👉 **Analogie** : c'est une pièce **vide et lisse**, sans meuble ni outil qu'un cambrioleur pourrait détourner.\n\n**Scanner l'image.** Des outils comme **Trivy** ou **Grype** analysent l'image et signalent ses **CVE** (*Common Vulnerabilities and Exposures* : des failles de sécurité connues et répertoriées), pour que tu corriges avant de déployer.\n\n**Signer l'image et fournir un SBOM.** **Signer** (avec **cosign**) prouve que l'image vient bien de toi et n'a pas été trafiquée en chemin. Un **SBOM** (*Software Bill of Materials*, « liste des ingrédients logiciels ») énumère tout ce que contient l'image, pour savoir instantanément si un composant vulnérable est présent.\n\n**Appliquer le moindre privilège au runtime.** Le principe du **moindre privilège** : ne donner que les droits strictement nécessaires. Concrètement :\n- utilisateur **non-root** (pas l'utilisateur tout-puissant) ;\n- système de fichiers **en lecture seule** (`readOnlyRootFilesystem`), pour empêcher toute écriture indésirable ;\n- **retirer les capabilities** Linux inutiles (une *capability* est une permission fine du noyau, comme « ouvrir un port privilégié » ; on enlève celles dont l'app n'a pas besoin) ;\n- **`no-new-privileges`** pour interdire au processus de gagner des droits en cours de route.\n\n👉 **Le fil rouge** : chaque mesure réduit le **rayon d'explosion** (l'ampleur des dégâts) si le conteneur est compromis. Une image de prod idéale est **petite, scannée, signée et non-root**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Durcir l'image : utilisateur non-root, surface minimale, scan de vulnerabilites.",
+          "body": "/images/lessons/sous-le-capot-images-production-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un développeur se plaint que chaque build Docker retélécharge toutes les dépendances Maven, même quand il ne change qu'une ligne de code. Le Dockerfile copie tout le projet (`COPY . .`) avant de lancer `mvn package`. Que corriger ?",
+          "solution": "Le problème vient de l'ordre des couches : `COPY . .` place le code source AVANT le téléchargement des dépendances, donc toute modification de code invalide le cache de cette couche et de toutes les suivantes, dont l'installation des dépendances, refaite à chaque fois. Correction : copier d'abord le pom.xml (COPY pom.xml puis mvn dependency:go-offline, ou l'équivalent), ce qui met en cache les dépendances tant que le pom ne change pas, PUIS COPY le code source et compiler. Une simple modif de code réutilise alors le cache des dépendances et le build est quasi instantané."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Sous le capot & images de production",
+          "quizRef": "containerization-souscapot-check"
+        }
+      ]
+    },
+    {
+      "slug": "deployer-kubernetes-essentiel-backend",
+      "title": "Déployer sur Kubernetes : l'essentiel backend",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les objets qu'un dev backend doit connaître",
+          "body": "Tu n'as pas besoin d'être expert Kubernetes pour déployer ton backend, mais quelques **objets** de base sont incontournables. Dans Kubernetes, tu ne lances pas des conteneurs à la main : tu **décris** des objets, et Kubernetes s'occupe du reste.\n\n**Le Pod** : la plus petite unité déployable. Un **Pod** enveloppe un (ou parfois plusieurs) conteneurs qui vivent **ensemble** sur la même machine et partagent réseau et stockage. 👉 **Analogie** : si le conteneur est un colis, le Pod est le **carton d'expédition** qui l'entoure ; Kubernetes ne manipule que des cartons.\n\n**Le Deployment** : il déclare **combien de répliques** (copies identiques) d'un Pod tu veux, et les maintient. Une **réplique** est simplement une instance de plus, pour encaisser la charge et survivre aux pannes. Le Deployment gère aussi les **rolling updates** (remplacer les anciennes répliques par les nouvelles, une à une, sans coupure) et l'**auto-réparation** (recréer une réplique qui a planté).\n\n**Le Service** : les Pods sont **jetables** et leurs adresses **IP** (leur numéro sur le réseau) changent à chaque recréation. Le **Service** fournit une **adresse stable** unique, qui répartit automatiquement le trafic entre les Pods du moment. 👉 **Analogie** : le Service, c'est le **standard téléphonique** de l'entreprise ; tu appelles toujours le même numéro, et il te bascule vers un employé disponible, peu importe lequel.\n\n**ConfigMap et Secret** : ils sortent la **configuration** hors de l'image. Une **ConfigMap** stocke des réglages ordinaires (URL, options) ; un **Secret** stocke des données **sensibles** (mots de passe, clés). Tous deux s'injectent dans le conteneur en variables d'environnement ou en fichiers. C'est l'application du principe **12-factor** « configuration par l'environnement » : la **même image** partout, et seule la config change d'un environnement à l'autre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Pod, Deployment, Service, ConfigMap, Secret : les objets qu'un dev backend doit connaitre.",
+          "body": "/images/lessons/deployer-kubernetes-essentiel-backend-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Liveness vs readiness : la distinction critique",
+          "body": "Deux **probes** que presque tout le monde confond, et cette confusion coûte cher en production. Une **probe** (« sonde ») est une petite vérification que Kubernetes exécute **régulièrement** sur ton conteneur pour savoir comment il va.\n\n**La liveness probe** répond à la question : « le process est-il encore **vivant** (pas figé) ? ». Si elle échoue, Kubernetes en conclut que le conteneur est bloqué et le **redémarre**.\n\n**La readiness probe** répond à une autre question : « le process est-il **prêt à recevoir du trafic** maintenant ? ». Si elle échoue, Kubernetes **retire** le Pod du Service (il ne lui envoie plus de requêtes) **sans le tuer**, jusqu'à ce qu'il redevienne prêt.\n\n👉 **Analogie** : imagine un serveur de restaurant. La **liveness**, c'est « est-il conscient ? » : s'il s'est évanoui, on appelle les secours (redémarrage). La **readiness**, c'est « est-il disponible **là, tout de suite** ? » : s'il est parti en pause, on n'envoie pas de clients à sa table (retrait du trafic), mais on ne le renvoie surtout pas.\n\nPourquoi c'est **critique** de ne pas les confondre : si tu mets un test de la **base de données** dans la **liveness**, alors dès que la base hoquette, la liveness échoue et Kubernetes **redémarre** ton app, alors qu'elle est parfaitement saine, ce qui **amplifie** la panne au lieu de l'absorber. Ce test de dépendance a sa place dans la **readiness** (retirer du trafic, pas tuer). La readiness gère aussi le **démarrage** : ne router aucune requête tant que l'app n'a pas fini de démarrer. Exemple concret : **Spring Boot Actuator** expose tout prêts les endpoints `/actuator/health/liveness` et `/actuator/health/readiness`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Liveness (es-tu vivant ?) vs readiness (es-tu pret a recevoir du trafic ?) : une distinction critique.",
+          "body": "/images/lessons/deployer-kubernetes-essentiel-backend-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Requests & limits : ni trop, ni trop peu",
+          "body": "Pour chaque conteneur, tu peux (et devrais) déclarer deux niveaux de ressources : les **requests** et les **limits**.\n\nLes **requests** (demandes) sont les ressources **garanties** : ce que le conteneur est **sûr** d'obtenir. Kubernetes s'en sert pour le **scheduling**, c'est-à-dire **choisir sur quelle machine placer** le Pod (il faut une machine ayant assez de libre). Les **limits** (limites) sont le **plafond** : le conteneur ne pourra pas dépasser.\n\n👉 **Analogie** : la request, c'est ta **réservation de table** garantie au restaurant ; la limit, c'est le **plafond de ta carte bancaire** ce soir-là. La première te réserve une place ; la seconde t'empêche de dépenser au-delà.\n\nQue se passe-t-il si on dépasse la **limit** ? Cela dépend de la ressource, et c'est important :\n- dépasser la **limite mémoire** : le conteneur est **OOMKilled** (*Out Of Memory Killed*, tué par le système faute de mémoire), donc **arrêté brutalement** ;\n- dépasser la **limite CPU** : le conteneur est **throttlé** (*throttling* égale bridage), c'est-à-dire **ralenti**, mais pas tué.\n\nLe bon réglage est un équilibre : **sous-estimer** provoque des kills et des lenteurs ; **surestimer** gaspille les ressources et réduit la densité (moins de Pods par machine).\n\nPiège spécifique à Java : la **JVM** (la machine virtuelle Java qui exécute ton app) doit **aligner sa mémoire** (le **heap**, l'espace où vivent les objets) sur la limite mémoire du conteneur. Les JVM récentes la détectent automatiquement via les **cgroups**, mais **vérifie-le** : sinon la JVM se croit seule sur toute la machine, réserve trop de mémoire, dépasse la limite et se fait **OOMKiller**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Requests et limits : reserver assez de ressources, sans gaspiller ni etouffer.",
+          "body": "/images/lessons/deployer-kubernetes-essentiel-backend-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Scaler automatiquement : HPA (niveau expert)",
+          "body": "Comment adapter **automatiquement** la puissance à la charge ? Avec le **HPA**, le *Horizontal Pod Autoscaler* (« autoscaler horizontal de Pods »). « Horizontal » signifie qu'il joue sur le **nombre de répliques** (ajouter des copies), pas sur la taille de chacune.\n\nLe HPA surveille une **métrique** (une mesure : le CPU, la mémoire, ou une métrique sur mesure comme le **consumer lag** d'un **broker** de messages, c'est-à-dire le retard accumulé de messages en attente de traitement dans une file). Sous forte charge, il **ajoute** des Pods ; au calme, il en **retire**.\n\n👉 **Analogie** : le HPA, c'est l'**ouverture automatique de caisses** au supermarché : la file s'allonge, on ouvre des caisses ; le magasin se vide, on en referme.\n\nDeux prérequis souvent oubliés :\n- des **requests** bien réglées, car le HPA raisonne en **pourcentage de la request** (par exemple « ajoute des Pods au-dessus de 70 % du CPU demandé ») ; mal réglées, il déclenche à tort ou trop tard ;\n- une application **sans état** (en anglais *stateless* : elle ne garde rien d'important en mémoire locale entre deux requêtes) et à **démarrage rapide**. Sinon, une réplique ajoutée arrive trop tard ou perd des données, et le scaling ne sert à rien.\n\nC'est l'**élasticité** concrète (la capacité à grandir et rétrécir tout seul), mais elle suppose une app **conçue pour le scale horizontal**, dans l'esprit **12-factor**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le HPA ajoute ou retire des pods automatiquement selon la charge.",
+          "body": "/images/lessons/deployer-kubernetes-essentiel-backend-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe configure une liveness probe qui vérifie la connexion à la base de données. Un jour, la base ralentit brièvement ; tous les Pods de l'application redémarrent en même temps, aggravant la panne. Quelle est l'erreur, et quelle probe aurait dû faire ce test ?",
+          "solution": "L'erreur est d'avoir mis la vérification d'une dépendance externe (la base) dans la LIVENESS probe : quand la base ralentit, la liveness échoue, et Kubernetes REDÉMARRE les conteneurs, alors que l'application elle-même est saine. Tous redémarrent en même temps, coupent leurs requêtes en cours et martèlent la base au redémarrage, amplifiant l'incident. La vérification des dépendances relève de la READINESS probe : si la base est indisponible, le Pod est simplement retiré du Service (ne reçoit plus de trafic) mais n'est PAS tué ; dès que la base revient, il redevient prêt sans redémarrage. Règle : liveness = « suis-je vivant/bloqué ? » (test interne léger) ; readiness = « puis-je servir ? » (peut inclure les dépendances)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : la documentation **Kubernetes** (Concepts : Pods, Deployments, Services, ConfigMaps/Secrets, Probes, Resource Management, HPA) ; les livres *Kubernetes Up & Running* (Burns, Beda, Hightower) et *Kubernetes Patterns* (Ibryam & Huß, notamment les patterns Health Probe et Predictable Demands) ; la spec **OCI** (image et runtime) ainsi que **containerd** et **runc** pour les internals ; **Trivy** et **cosign** pour la sécurité d'image ; enfin la doc Spring Boot sur les *Actuator health groups* (liveness/readiness) et l'arrêt gracieux."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir la conteneurisation.",
+          "body": "/images/lessons/deployer-kubernetes-essentiel-backend-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Conteneurs (niveau expert)",
+          "quizRef": "containerization-expert"
+        }
+      ]
+    }
+  ]
+}

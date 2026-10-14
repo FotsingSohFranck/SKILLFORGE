@@ -1,0 +1,52 @@
+{
+  "ref": "testing-integration-check",
+  "node": "testing",
+  "lesson": "tests-integration",
+  "title": "Quiz : Tests d'intégration",
+  "description": "Assemblage réel des couches, Testcontainers, tests déterministes et flaky.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que vérifie un test d'intégration ?",
+      "justification": "Que plusieurs couches fonctionnent ensemble avec de vraies dépendances (SQL réel, mapping, routage HTTP), ce que l'unitaire ne voit pas.",
+      "position": 0,
+      "options": [
+        { "label": "Que plusieurs couches fonctionnent ensemble avec de vraies dépendances", "correct": true, "position": 0 },
+        { "label": "Une seule fonction isolée, sans aucune dépendance", "correct": false, "position": 1 },
+        { "label": "Uniquement l'affichage du navigateur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait Testcontainers pour un test d'intégration ?",
+      "justification": "Il démarre une vraie base PostgreSQL dans un conteneur jetable le temps du test, puis la détruit : une base propre et réelle à chaque exécution.",
+      "position": 1,
+      "options": [
+        { "label": "Il démarre une vraie base jetable en conteneur, puis la détruit", "correct": true, "position": 0 },
+        { "label": "Il remplace la base par un mock en mémoire", "correct": false, "position": 1 },
+        { "label": "Il partage une seule base commune entre tous les tests", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Pour tester un repository, pourquoi préférer une vraie base (Testcontainers) à un mock de la base ?",
+      "justification": "Le mock reproduit ce qu'on IMAGINE de la base ; il ne détecte ni SQL invalide, ni contrainte violée, ni mapping erroné. La vraie base reflète la production.",
+      "position": 2,
+      "options": [
+        { "label": "Une vraie base détecte SQL invalide, contraintes et mapping erronés ; le mock non", "correct": true, "position": 0 },
+        { "label": "Le mock est toujours plus fidèle à la production", "correct": false, "position": 1 },
+        { "label": "Une vraie base évite d'écrire du SQL", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un test flaky (qui échoue par intermittence) est pire qu'un test absent.",
+      "justification": "Vrai : il détruit la confiance dans la suite, on finit par ignorer ses alertes, y compris les vraies. On élimine ses causes (temps, aléa, ordre, réseau).",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "node": "cluster-operations",
+  "lessons": [
+    {
+      "slug": "manage-ou-auto-gere",
+      "title": "Managé ou auto-géré ?",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La question qui précède tout",
+          "body": "Avant même d'opérer un cluster, une décision structure tout le reste : le gérer soi-même, ou le prendre **managé** ?\n\nD'abord, un mot de vocabulaire. Un **cluster** Kubernetes, c'est un **ensemble de machines** (physiques ou virtuelles) qui travaillent ensemble pour faire tourner tes applications. On y distingue deux parties. Le **plan de contrôle** (en anglais *control plane*) est le **cerveau** du cluster : il décide où placer les applications, surveille leur état et applique tes ordres. Les **nœuds de travail** (en anglais *worker nodes*) sont les **bras** : ce sont les machines qui exécutent réellement tes applications.\n\n👉 **Analogie** : imagine un restaurant. Le plan de contrôle, c'est le **chef** qui organise, distribue les tâches et vérifie que le service suit. Les nœuds, ce sont les **cuisiniers** qui préparent réellement les plats. Le chef ne cuisine pas, mais sans lui c'est le chaos.\n\nLe plan de contrôle contient lui-même quelques pièces (on les détaille juste après) : l'**apiserver** (la porte d'entrée), **etcd** (la mémoire), le **scheduler** (le placeur de tâches). Ce sont exactement les pièces les plus **critiques** et les plus **pénibles** à opérer.\n\nD'où la question. Un **Kubernetes managé** (les services **EKS** chez Amazon, **GKE** chez Google, **AKS** chez Microsoft) : le fournisseur cloud exploite **pour toi** ce plan de contrôle (sa disponibilité, ses mises à jour, ses sauvegardes) et tu t'occupes surtout de tes applications. Un cluster **auto-géré** (monté à la main avec l'outil `kubeadm`) : tu gères **tout**, y compris cette partie critique.\n\nPour l'immense majorité des cas, le **managé est le bon choix** : il t'enlève des mains le travail le plus risqué. Un exemple concret : une mise à jour ratée du plan de contrôle peut rendre le cluster injoignable ; en managé, c'est le problème du fournisseur, pas le tien. L'auto-géré ne se justifie que pour des besoins particuliers (souveraineté des données, installation sur tes propres serveurs *on-premise*, contraintes réglementaires) et demande une vraie **équipe d'exploitation**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Installer le plan de contrôle & les nœuds (auto-géré)",
+          "body": "Si tu choisis de gérer toi-même, voici ce que ça implique concrètement (et pourquoi c'est du travail).\n\n**kubeadm** est l'outil standard pour **amorcer** un cluster (en anglais *bootstrap*, c'est-à-dire le faire démarrer de zéro). 👉 **Analogie** : `kubeadm`, c'est le **kit de montage** d'un meuble en kit : il te donne les étapes et les pièces de base, mais c'est toi qui assembles, et toi qui répares si une vis lâche plus tard.\n\nLes grandes étapes :\n- `kubeadm init` **initialise** le plan de contrôle sur un premier nœud maître. Il installe ses pièces : l'**apiserver** (la porte d'entrée du cluster, par où passent tous les ordres), **etcd** (la base de données qui garde tout l'état), le **scheduler** (qui décide sur quel nœud placer chaque application) et le **controller-manager** (qui vérifie en boucle que l'état réel colle à l'état voulu).\n- `kubeadm join` **rattache** ensuite des **nœuds de travail** au cluster.\n\nChaque nœud a besoin de trois briques installées à la main :\n- un **container runtime** (le moteur qui fait tourner les conteneurs, aujourd'hui **containerd**) ; 👉 c'est le *moteur* de la voiture, celui qui exécute vraiment le travail.\n- le **kubelet** : le petit agent présent sur chaque nœud qui parle au plan de contrôle et lance ou arrête les conteneurs qu'on lui demande. 👉 c'est le *contremaître* local qui reçoit les ordres du chef et les fait appliquer sur place.\n- un **CNI** (*Container Network Interface*) : le plugin réseau qui permet aux applications de **se parler** d'un nœud à l'autre (par exemple Calico, Cilium).\n\nEnfin, pour éviter que la panne d'une seule machine n'arrête tout le cluster, on veut de la **haute disponibilité** (en anglais *High Availability*, abrégé **HA**) : on met **plusieurs** nœuds maîtres et un **etcd** réparti sur plusieurs membres. Comme etcd doit toujours savoir « qui a raison » en cas de désaccord, il fonctionne au **quorum** : il faut une **majorité** de membres d'accord pour décider (d'où un nombre **impair** : 3 ou 5). 👉 **Analogie** : c'est un **conseil qui vote** : avec 3 membres, il en faut 2 d'accord ; si un membre tombe en panne, les 2 autres continuent de décider.\n\nBilan : chaque brique (etcd, réseau, certificats de sécurité) est un sujet d'exploitation à part entière. C'est faisable, mais c'est précisément ce que le **managé** t'évite."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Qui gère quoi : l'arbre de décision",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    Q{\"Ai-je une equipe d'exploitation\\net un besoin specifique\\n(souverainete, on-premise) ?\"}\n    Q -->|Non| MAN[\"Kubernetes MANAGE\\nEKS / GKE / AKS\\nLe fournisseur gere le plan de controle\"]\n    Q -->|Oui| SELF[\"AUTO-GERE avec kubeadm\\nJe gere plan de controle, etcd,\\nreseau, certificats, upgrades\"]\n    MAN --> FOCUS[\"Je me concentre sur mes applications\"]\n    SELF --> WORK[\"Exploitation a temps plein\\net a haut risque\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe de 5 personnes, sans expert Kubernetes dédié, doit lancer ses applications en production sur Kubernetes dans le cloud. Faut-il monter un cluster auto-géré avec kubeadm ou prendre un service managé ? Justifiez.",
+          "solution": "Un service Kubernetes managé (EKS/GKE/AKS), sans hésitation à ce stade. Raison : gérer soi-même un cluster (kubeadm) signifie exploiter la partie la plus critique et pénible, le plan de contrôle (apiserver, scheduler, controller-manager) et surtout etcd (disponibilité, sauvegardes/restaurations, quorum), les certificats, les mises à jour du cluster, le réseau CNI, la haute disponibilité des masters. C'est un travail d'exploitation à temps plein, à haut risque (une erreur sur etcd = perte de l'état du cluster), qui requiert une vraie expertise que cette équipe de 5 sans spécialiste Kubernetes n'a pas, et qui la détournerait de son produit. Un cluster managé délègue tout le plan de contrôle au fournisseur : il garantit sa disponibilité, gère ses mises à jour et ses sauvegardes, et l'équipe se concentre sur ses applications (déploiements, services, config), parfois même avec des nœuds managés/serverless (Fargate, Autopilot) pour ne pas gérer non plus les machines. L'auto-géré ne se justifie que pour des besoins spécifiques (souveraineté, on-premise, réglementation) ET avec une équipe d'exploitation dédiée. Règle : managé par défaut ; auto-géré seulement quand un besoin réel l'impose et qu'on a l'expertise pour l'assumer."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Managé ou auto-géré ?",
+          "quizRef": "cluster-operations-manage-check"
+        }
+      ]
+    },
+    {
+      "slug": "upgrades-etcd-multicluster",
+      "title": "Upgrades, etcd & multi-cluster",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Mettre à jour un cluster sans tout casser",
+          "body": "Kubernetes sort une nouvelle version tous les ~4 mois, et l'équipe qui le développe ne **maintient** que les quelques versions les plus récentes. Traduction : **rester à jour n'est pas optionnel**, c'est une obligation d'exploitation (sinon tu te retrouves sur une version qui ne reçoit plus de correctifs de sécurité).\n\nDeux mots sur les numéros de version. Kubernetes se numérote `1.30`, `1.31`, `1.32`… : le nombre du milieu est la **version mineure**. Passer de `1.30` à `1.31`, c'est monter d'**une** version mineure.\n\nUne mise à jour suit un **ordre** précis :\n1. On met d'abord à jour le **plan de contrôle** (le cerveau).\n2. Puis les **nœuds**, **un par un**, jamais tous en même temps.\n\nPour mettre à jour un nœud sans couper le service, on le **draine**. La commande `kubectl drain` fait deux choses : elle empêche de nouvelles applications d'arriver sur ce nœud, et elle **évince** (déplace proprement) les applications déjà présentes vers d'**autres** nœuds. Ce déplacement respecte les **PodDisruptionBudgets** (souvent abrégés **PDB**) : une règle que tu poses pour dire « garde-moi **toujours au moins** N copies de cette application en ligne ». Kubernetes ne videra donc pas un nœud si ça ferait descendre l'application sous ce seuil.\n\n👉 **Analogie** : drainer un nœud, c'est comme **fermer une caisse de supermarché** en douceur : on n'accepte plus de nouveaux clients à cette caisse, et on **réoriente** ceux qui attendent vers les caisses voisines, sans jamais laisser le magasin sans aucune caisse ouverte (c'est le rôle du PDB).\n\nEnfin, **la** règle à retenir sur les versions, appelée politique de **skew** (« écart » en anglais) : on ne **saute pas** de versions mineures. On monte `1.30 → 1.31 → 1.32`, jamais directement `1.30 → 1.32`. Et le **kubelet** (l'agent sur chaque nœud) ne doit jamais être **plus récent** que l'apiserver. En managé, le fournisseur orchestre l'essentiel de cette danse à ta place."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "etcd : sauvegarder l'état du cluster",
+          "body": "On a dit qu'**etcd** est la mémoire du cluster. Précisons : **etcd** est une petite **base de données** qui stocke **tout** l'état du cluster (quelles applications tournent, leur configuration, leurs secrets, qui a le droit de faire quoi). 👉 **Analogie** : etcd est le **carnet de bord** du cluster ; le plan de contrôle ne « sait » rien d'autre que ce qui est écrit dedans. Efface le carnet, et le cluster oublie tout ce qu'il faisait.\n\nConséquence : perdre etcd **sans sauvegarde**, c'est perdre le cluster. En auto-géré, la **sauvegarde régulière d'etcd** est donc l'une des opérations les plus critiques qui soient. On la fait avec l'outil `etcdctl` :\n\n`etcdctl snapshot save sauvegarde.db`\n\nUn **snapshot** (« instantané » en anglais) est une **photo** de la base à un instant T, rangée dans un fichier. C'est le filet qui te permet de **reconstruire** un plan de contrôle après une catastrophe.\n\n**Point capital** : une sauvegarde qu'on n'a **jamais testée en restauration** n'est **pas** une garantie. 👉 **Analogie** : c'est comme un extincteur qu'on n'a jamais vérifié : le jour de l'incendie, on découvre s'il fonctionne. On teste donc régulièrement de **restaurer** le snapshot sur un cluster de test.\n\nEn **managé**, le fournisseur gère etcd et ses sauvegardes pour toi : c'est très précisément l'un des plus gros avantages du managé. Le réflexe d'expert : traiter etcd comme **la base de données la plus critique** de toute ton infrastructure."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Multi-cluster & flotte (niveau expert)",
+          "body": "Jusqu'ici, un seul cluster. À plus grande échelle, on en gère souvent **plusieurs**. Pourquoi ?\n- par **région** géographique (rapprocher le service des utilisateurs, respecter la souveraineté des données) ;\n- par **environnement** (isoler complètement la *production* du *staging*, c'est-à-dire l'environnement de test) ;\n- par **équipe** ;\n- pour la **résilience** : survivre à la perte d'un cluster entier.\n\nGérer un parc de clusters s'appelle la **gestion de flotte** (en anglais *fleet management*). 👉 **Analogie** : passer d'un cluster à plusieurs, c'est passer de **conduire une voiture** à **gérer une compagnie de taxis** : ce ne sont plus les mêmes problèmes (coordination, cohérence, supervision d'ensemble).\n\nCela fait apparaître de nouveaux besoins :\n- **déployer la même chose de façon cohérente** sur N clusters. On utilise pour cela le **GitOps** : une approche où l'état voulu du cluster est décrit dans un dépôt Git, et un outil (**Argo CD**, **Flux**) applique automatiquement ce dépôt sur les clusters. 👉 le dépôt Git devient la **télécommande unique** de toute la flotte.\n- **router le trafic** entre clusters (DNS global, ou un *service mesh* multi-cluster, c'est-à-dire une couche réseau qui relie les applications entre elles) ;\n- **fédérer l'observabilité** (rassembler logs et métriques de tous les clusters au même endroit) ;\n- garder des **politiques cohérentes** partout.\n\nDes outils industrialisent tout ça : **Cluster API** (qui permet de gérer des clusters **comme** de simples ressources Kubernetes, du Kubernetes qui fabrique du Kubernetes), **Rancher** ou **Fleet**.\n\nLe multi-cluster apporte résilience et conformité, mais **au prix d'une réelle complexité opérationnelle** : on ne le choisit **que** pour un besoin justifié, jamais « pour faire bien »."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Sur un cluster auto-géré, un administrateur veut mettre à jour Kubernetes de la version 1.30 à la 1.33 en une seule fois pour « gagner du temps », et n'a jamais sauvegardé etcd. Quels sont les deux risques majeurs, et la bonne démarche ?",
+          "solution": "Deux risques majeurs. (1) Sauter des versions mineures : Kubernetes ne supporte que des upgrades entre versions mineures ADJACENTES (skew policy). Passer directement de 1.30 à 1.33 saute 1.31 et 1.32, c'est non supporté et peut casser le cluster (incompatibilités entre composants, API dépréciées supprimées entre plusieurs versions, kubelet trop en avance sur l'apiserver). La bonne démarche est de monter une mineure à la fois : 1.30 → 1.31 → 1.32 → 1.33, en validant à chaque étape. (2) Aucune sauvegarde d'etcd : etcd contient tout l'état du cluster ; si l'upgrade tourne mal (corruption, plan de contrôle cassé), sans snapshot etcd on ne peut PAS restaurer, on perd la connaissance de tout ce que le cluster fait. Il faut IMPÉRATIVEMENT prendre (et vérifier) un snapshot etcd AVANT toute upgrade : `etcdctl snapshot save`, testé en restauration. Bonne démarche complète : sauvegarder etcd (et le tester), mettre à jour version mineure par version mineure, dans l'ordre plan de contrôle puis nœuds un par un (drain → upgrade → uncordon, en respectant les PodDisruptionBudgets pour ne pas casser la disponibilité), en vérifiant la compatibilité (API dépréciées, addons/CNI) et les release notes à chaque palier. Idéalement, on répète d'abord sur un cluster de staging. (En managé, le fournisseur orchestre l'essentiel, l'une des raisons de préférer le managé.)"
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Opérer un cluster",
+          "quizRef": "cluster-operations-check"
+        }
+      ]
+    },
+    {
+      "slug": "dr-noeuds-depannage",
+      "title": "DR, opérations nœuds & dépannage",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Sauvegarder plus qu'etcd : Velero",
+          "body": "Sauvegarder etcd protège l'**état** du cluster (la liste de ce qui tourne), mais **pas** deux choses : les **données de tes applications** (le contenu réel des disques, par exemple une base de données) et la possibilité de **restaurer juste un morceau** (un seul namespace). Il manque donc un outil.\n\nUn mot de vocabulaire d'abord : un **namespace** est une **cloison** logique à l'intérieur d'un cluster, qui regroupe les objets d'une équipe ou d'une application (par exemple `prod`, `equipe-paiement`). 👉 **Analogie** : ce sont les **dossiers** d'un même disque dur : tout est sur la même machine, mais bien rangé et isolé.\n\n**Velero** comble le manque. C'est l'outil standard de **sauvegarde applicative** en Kubernetes. Il sauvegarde deux choses :\n- les **objets Kubernetes** (tu peux cibler par namespace, par étiquette) ;\n- les **volumes persistants**, c'est-à-dire les **disques** de tes applications (via des snapshots de disque, appelés *snapshots CSI*, ou une copie fichier par fichier), vers un stockage de fichiers économique (par exemple un *bucket* S3).\n\nCe qu'il permet ensuite :\n- **restaurer un namespace entier** d'un coup ;\n- **migrer** une application vers un **autre cluster** ;\n- faire de la **reprise après sinistre** (en anglais *Disaster Recovery*, abrégé **DR**) : tout remonter après une catastrophe.\n\n👉 **Analogie** : si etcd est la sauvegarde du **sommaire** du livre (la table des matières), Velero est la sauvegarde des **pages elles-mêmes**. Les deux sont **complémentaires**, pas interchangeables. Velero sait aussi lancer des **hooks** (des actions automatiques) avant et après la sauvegarde, par exemple mettre une base de données « au repos » un instant pour que la photo soit cohérente."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Opérer les nœuds : cordon, drain, spot",
+          "body": "Faire vivre les nœuds (les réparer, les mettre à jour, les retirer) est un geste d'exploitation quotidien. Trois commandes le rendent sûr.\n\n- **`kubectl cordon <nœud>`** marque un nœud comme **non planifiable** : aucune **nouvelle** application n'y sera placée, mais celles qui y tournent déjà **restent en place**. 👉 **Analogie** : tu poses un panneau « **complet** » sur un parking : les voitures garées restent, mais on n'en fait plus entrer.\n- **`kubectl drain <nœud>`** va plus loin : il *cordon* **ET** **évince** proprement les applications présentes vers d'autres nœuds (en respectant les **PodDisruptionBudgets** vus plus haut). C'est LA procédure pour mettre à jour, réparer ou retirer un nœud **sans coupure**. 👉 on **évacue le parking en douceur** pour pouvoir refaire le bitume.\n- **`kubectl uncordon <nœud>`** retire le panneau « complet » : le nœud **reprend du service**.\n\nÀ grande échelle, deux notions reviennent :\n- les **node pools** (groupes de nœuds **homogènes**, du même type de machine, dédiés à un type de charge) ; 👉 des **flottes de véhicules** distinctes : les camions d'un côté, les scooters de l'autre, selon la livraison.\n- les **spot instances** : des machines cloud **bon marché** (souvent jusqu'à 70 % moins chères) mais **révocables**, c'est-à-dire que le fournisseur peut te les **reprendre à tout moment** avec très peu de préavis. 👉 **Analogie** : ce sont des **billets d'avion en standby** : beaucoup moins chers, mais on peut te débarquer si un client plein tarif se présente.\n\nLe bon usage : réserver les spot aux charges **tolérantes aux interruptions** (traitements par lots, applications *stateless* bien réparties qui redémarrent ailleurs sans douleur). C'est un **levier d'économie majeur**, à condition d'avoir **conçu pour la révocation**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le playbook de dépannage (niveau expert)",
+          "body": "Un expert ne bricole pas au hasard : il a une **démarche**. Le principe transverse : **suivre les objets** que Kubernetes t'expose (leurs *Events*, leurs *conditions*, leurs *endpoints*, leurs *logs*), car ils te disent **où** ça casse, au lieu de deviner. Kubernetes est très **observable** quand on sait quoi regarder.\n\nDeux commandes de base reviennent partout : **`kubectl describe <objet>`** affiche l'état détaillé et surtout les **Events** (le journal des évènements récents), et **`kubectl logs <pod>`** affiche ce que l'application a écrit.\n\nLes situations classiques :\n- **Un pod ne démarre pas.** (*Rappel : un **pod** est la plus petite unité déployable, un ou plusieurs conteneurs regroupés.*) On tape `kubectl describe pod` (section Events) puis `logs`. On lit l'**état** affiché : `Pending` (Kubernetes ne trouve pas de place, problème de ressources ou de placement), `ImagePullBackOff` (il n'arrive pas à télécharger l'**image** du conteneur, souvent un mauvais nom ou des droits manquants), `CrashLoopBackOff` (l'application **démarre puis plante en boucle** ; on lit ses logs avec l'option `--previous` pour voir le plantage précédent).\n- **Un nœud est `NotReady`** (pas prêt). On tape `kubectl describe node` (ses **conditions** : mémoire, disque, réseau), puis on regarde les logs du **kubelet** sur ce nœud.\n- **Le DNS ne résout pas** (les applications n'arrivent pas à se trouver par leur nom). On teste depuis un pod (`nslookup`), on vérifie **CoreDNS** (le composant qui fait l'annuaire du cluster : `kubectl -n kube-system get pods` et ses logs) et les **NetworkPolicies** (les règles de pare-feu internes).\n- **Un Service ne route pas** le trafic. On vérifie ses **endpoints** avec `kubectl get endpoints` : ce sont les **adresses des pods** vers lesquels le Service envoie réellement le trafic. Une liste **vide** = aucune cible, souvent un **selector** (l'étiquette qui relie le Service à ses pods) mal réglé, ou des pods qui ne sont pas **Ready** (pas prêts). 👉 **Analogie** : un Service, c'est un **standard téléphonique** ; ses endpoints sont les **postes** au bout de la ligne. Un standard qui ne transfère plus + une liste de postes vide = personne n'est branché au bout.\n\n👉 **Le réflexe d'expert** : à chaque panne, se demander « **quel objet peut me dire où ça casse ?** » et lire ses Events, conditions ou endpoints avant de toucher à quoi que ce soit."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un Service ne route plus le trafic vers ses pods, qui sont pourtant tous en état Running. Quelle est la démarche de diagnostic la plus rapide, et quelles sont les deux causes les plus probables ?",
+          "solution": "Démarche la plus rapide : inspecter les ENDPOINTS du Service, avec `kubectl get endpoints <service>` (ou `kubectl get endpointslices -l kubernetes.io/service-name=<service>`). Les endpoints listent les IP des pods vers lesquels le Service route effectivement. Le résultat oriente immédiatement : si la liste est VIDE, le Service n'a aucune cible, c'est la cause du non-routage, et il faut chercher pourquoi aucun pod n'est éligible. Deux causes les plus probables d'endpoints vides alors que les pods sont Running : (1) Un problème de SELECTOR : les labels du selector du Service ne correspondent pas (ou plus) aux labels des pods (faute de frappe, label changé, mauvais namespace). Le Service ne « voit » donc aucun pod. Vérification : comparer `kubectl get svc <service> -o yaml` (spec.selector) et `kubectl get pods --show-labels`, les labels doivent matcher. (2) Un problème de READINESS : les pods sont Running mais PAS Ready (leur readiness probe échoue). Or un Service n'inclut dans ses endpoints que les pods PRÊTS ; des pods Running-non-Ready sont exclus, d'où des endpoints vides malgré des pods « qui tournent ». Vérification : `kubectl get pods` (colonne READY, ex. 0/1) et `kubectl describe pod` (Events de la readiness probe). Selon le cas : corriger le selector/les labels pour qu'ils correspondent, ou corriger la readiness (endpoint /ready, port, dépendance) pour que les pods deviennent Ready et rejoignent les endpoints. Cette démarche (partir des endpoints) est bien plus rapide que de deviner, car elle distingue en une commande « le Service ne cible personne » (selector/readiness) d'autres problèmes réseau. C'est l'illustration du principe : suivre les objets qui disent où ça casse."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, DR, nœuds & dépannage (expert)",
+          "quizRef": "ops-troubleshooting-expert"
+        }
+      ]
+    }
+  ]
+}

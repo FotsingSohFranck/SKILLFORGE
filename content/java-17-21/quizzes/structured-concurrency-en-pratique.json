@@ -1,0 +1,41 @@
+{
+  "ref": "structured-concurrency-en-pratique",
+  "node": "structured-concurrency",
+  "lesson": "en-pratique",
+  "title": "Quiz : en pratique",
+  "description": "Appels parallèles, virtual threads et statut aperçu en Java 21.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour appeler deux services indépendants et combiner leurs deux résultats, quelle politique convient ?",
+      "justification": "Il faut les deux résultats pour construire la réponse : c'est du tout ou rien, donc ShutdownOnFailure. Si l'un échoue, on annule l'autre.",
+      "position": 0,
+      "options": [
+        { "label": "ShutdownOnFailure, car on a besoin des deux résultats", "correct": true, "position": 0 },
+        { "label": "ShutdownOnSuccess, car un seul résultat suffit", "correct": false, "position": 1 },
+        { "label": "Aucune, il faut lancer les appels l'un après l'autre", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelles options faut il passer pour compiler ce code en Java 21 ?",
+      "justification": "StructuredTaskScope est une fonctionnalité en aperçu (JEP 453) en Java 21 : il faut compiler avec --release 21 --enable-preview, sinon le compilateur refuse le code.",
+      "position": 1,
+      "options": [
+        { "label": "--release 21 --enable-preview", "correct": true, "position": 0 },
+        { "label": "--release 17 sans option supplémentaire", "correct": false, "position": 1 },
+        { "label": "--disable-preview", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La concurrence structurée se combine naturellement avec les virtual threads : par défaut, chaque fork lance sa sous-tâche sur un virtual thread.",
+      "justification": "Les deux outils sont faits pour travailler ensemble : les virtual threads légers permettent d'ouvrir de nombreuses sous-tâches dans une portée sans coût notable.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

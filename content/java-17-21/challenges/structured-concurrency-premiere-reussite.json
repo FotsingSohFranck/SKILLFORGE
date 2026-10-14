@@ -1,0 +1,10 @@
+{
+  "node": "structured-concurrency",
+  "lesson": "shutdownonfailure-et-success",
+  "title": "Garde la première réponse avec ShutdownOnSuccess",
+  "statement": "Complète la méthode reponseLaPlusRapide : interroge deux miroirs du même service, \"serveur-A\" et \"serveur-B\", via interroger(nom), dans une portée ShutdownOnSuccess. Une seule réponse suffit : attends la première réussite et renvoie son résultat.",
+  "skeleton": "String reponseLaPlusRapide() throws Exception {\n    // Ouvre une portee ShutdownOnSuccess<String> avec try-with-resources\n    // fork les deux interrogations, join(), puis renvoie result()\n}",
+  "solution": "String reponseLaPlusRapide() throws Exception {\n    try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {\n        scope.fork(() -> interroger(\"serveur-A\"));\n        scope.fork(() -> interroger(\"serveur-B\"));\n        scope.join();\n        return scope.result();\n    }\n}",
+  "keyPoints": ["ShutdownOnSuccess", "fork", "join", "result"],
+  "language": "java"
+}

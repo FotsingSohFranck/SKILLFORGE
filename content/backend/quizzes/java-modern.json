@@ -1,0 +1,142 @@
+{
+  "ref": "java-modern",
+  "node": "java-language",
+  "lesson": "concurrence-moderne",
+  "title": "Java moderne, l'essentiel",
+  "description": "JVM, records, sealed, pattern matching, streams et concurrence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que compile `javac` à partir d'un fichier `.java` ?",
+      "justification": "Java compile en bytecode (.class), exécuté par la JVM, pas directement en code machine.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Du bytecode exécuté par la JVM",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Du code machine natif spécifique à l'OS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Du JavaScript",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principal avantage d'un `record` pour un DTO ou une valeur métier ?",
+      "justification": "Un record est immuable et concis (equals/hashCode/toString générés), donc sûr à partager entre threads.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il est immuable et concis, sûr à partager entre threads",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est plus rapide à l'exécution qu'une classe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il permet l'héritage multiple",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un `switch` exhaustif sur une interface `sealed` n'a-t-il pas besoin de `default` ?",
+      "justification": "Le compilateur connaît tous les sous-types permis ; si tous sont traités, l'exhaustivité est garantie.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le compilateur connaît tous les sous-types et vérifie l'exhaustivité",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le default est interdit dans un switch expression",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que les records n'ont pas de sous-types",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un Stream, quand le calcul est-il réellement déclenché ?",
+      "justification": "Les opérations intermédiaires sont paresseuses ; c'est l'opération terminale (toList, sum, collect…) qui déclenche le calcul.",
+      "position": 3,
+      "options": [
+        {
+          "label": "À l'opération terminale (toList, sum, collect…)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dès le premier filter/map",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À la création du stream",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème les virtual threads (Java 21+) résolvent-ils principalement ?",
+      "justification": "Ils libèrent le thread porteur pendant l'I/O bloquante : on n'est plus limité par le nombre de threads OS pour des charges I/O-bound.",
+      "position": 4,
+      "options": [
+        {
+          "label": "La saturation du pool par des threads en attente d'I/O",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La lenteur des calculs CPU intensifs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les fuites de mémoire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Renvoyer `Optional<User>` plutôt que `null` force l'appelant à traiter le cas « absent ».",
+      "justification": "Optional rend l'absence explicite dans le type ; l'appelant doit la gérer (orElse, orElseThrow…), évitant les NullPointerException.",
+      "position": 5,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

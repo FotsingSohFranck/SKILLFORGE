@@ -1,0 +1,52 @@
+{
+  "ref": "data-sources-check",
+  "node": "data-sources",
+  "lesson": "interroger-lexistant",
+  "title": "Data sources",
+  "description": "data (lire sans gérer), connecter à l'existant, templatefile.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre un bloc `data` et un bloc `resource` ?",
+      "justification": "data LIT des informations sur un objet existant (sans le gérer) ; resource CRÉE et gère un objet.",
+      "position": 0,
+      "options": [
+        { "label": "data lit sans gérer ; resource crée et gère", "correct": true, "position": 0 },
+        { "label": "Ce sont des synonymes", "correct": false, "position": 1 },
+        { "label": "data crée, resource lit", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une data source ?",
+      "justification": "À récupérer des informations existantes (dernière AMI, id d'un VPC géré ailleurs, zones...) pour les référencer, sans dupliquer ni reprendre l'objet.",
+      "position": 1,
+      "options": [
+        { "label": "Récupérer des infos existantes pour les référencer", "correct": true, "position": 0 },
+        { "label": "Stocker l'état", "correct": false, "position": 1 },
+        { "label": "Verrouiller le state", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer une data source à un id d'AMI codé en dur ?",
+      "justification": "La data source résout dynamiquement la dernière AMI à jour (correctifs) ; un id figé devient obsolète et n'est jamais mis à jour.",
+      "position": 2,
+      "options": [
+        { "label": "Elle résout dynamiquement l'image à jour (pas d'id figé obsolète)", "correct": true, "position": 0 },
+        { "label": "Elle est obligatoire pour toute AMI", "correct": false, "position": 1 },
+        { "label": "Elle chiffre l'AMI", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "templatefile() rend un fichier modèle en y injectant des variables (ex. un script user_data paramétré).",
+      "justification": "Vrai : on sépare le gabarit (.tftpl) des valeurs fournies par Terraform, pour générer scripts et fichiers de config dynamiques.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

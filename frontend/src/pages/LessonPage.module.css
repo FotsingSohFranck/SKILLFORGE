@@ -1,0 +1,549 @@
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+/* Disposition : rail de curriculum | article | sommaire. */
+.layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr) 220px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .toc {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .rail {
+    display: none;
+  }
+}
+
+/* --- Rail de curriculum --- */
+.rail {
+  position: sticky;
+  /* Calé juste sous l'en-tête fixe ; scroll interne si la liste dépasse. */
+  top: calc(var(--header-h) + var(--space-4));
+  max-height: calc(100vh - var(--header-h) - var(--space-5));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.railNode {
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+  line-height: 1.3;
+}
+
+.railNode:hover {
+  color: var(--color-primary);
+}
+
+.railProgress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.railBar {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.railBar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width var(--dur-slow) var(--ease-standard);
+}
+
+.railCount {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.railList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  /* Gap unifie avec la nav principale (4px, sur grille). */
+  gap: var(--space-1);
+}
+
+.railItem {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: start;
+  gap: var(--space-2);
+  /* Padding horizontal elargi (~12px) : plus proche des 17pt Apple. */
+  padding: var(--space-2) var(--space-3);
+  /* Pastille de selection tendue (~8pt), coherente avec la nav. */
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.railItem:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.railCurrent {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.railCheck {
+  display: inline-flex;
+  color: var(--color-success);
+  margin-top: 1px;
+}
+
+.railCurrent .railCheck {
+  color: var(--color-primary);
+}
+
+.railIndex {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.railTitle {
+  min-width: 0;
+}
+
+/* --- Colonne centrale --- */
+.center {
+  min-width: 0;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Bouton d'ouverture du tiroir des leçons : visible uniquement quand le rail est masqué. */
+.drawerToggle {
+  display: none;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 880px) {
+  .drawerToggle {
+    display: inline-flex;
+  }
+}
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: var(--color-overlay);
+}
+
+.drawer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(86vw, 320px);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.readbar {
+  position: sticky;
+  /* Juste sous l'en-tête fixe (sinon masquée dessous). */
+  top: var(--header-h);
+  z-index: 5;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.readbar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.1s linear;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-primary);
+}
+
+.crumbSep {
+  color: var(--color-border);
+}
+
+.crumbCurrent {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.readtime {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.star {
+  flex: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  color: var(--color-primary);
+  padding: 0;
+}
+
+.star:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Rythme éditorial : beaucoup d'espace ENTRE les sections (macro-whitespace façon Apple). */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* --- Sections --- Par défaut la PROSE COULE (pas de carte) : on réserve les conteneurs aux
+   blocs interactifs. Code/Schéma/Callout se distinguent via leur propre composant. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /* Ancrage (clic sommaire) : la section vient se placer SOUS l'en-tête fixe, pas dessous. */
+  scroll-margin-top: calc(var(--header-h) + var(--space-4));
+}
+
+/* Blocs « fais quelque chose » (exercice, quiz) : léger conteneur pour les repérer, sans
+   barre colorée tapageuse. */
+.section[data-kind='exercise'],
+.section[data-kind='quiz'] {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.section[data-kind='callout'] {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Étiquette « eyebrow » : petit intertitre discret (pas de pastille colorée sur chaque bloc). */
+.kindChip {
+  align-self: flex-start;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-muted);
+}
+
+/* Hiérarchie renforcée : titre de section nettement plus grand/lourd que le corps. */
+.sectionTitle {
+  margin: 0;
+  max-width: var(--reading-width);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-snug);
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+.paragraph {
+  margin: 0;
+  /* Mesure ~66 caractères (règle Apple/éditoriale) : lignes confortables, pas de « saut de ligne ». */
+  max-width: var(--reading-width);
+  color: var(--color-text);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+/* Listes markdown (- puce / 1. numérotée) rendues proprement. */
+.list {
+  margin: 0;
+  max-width: var(--reading-width);
+  padding-left: var(--space-5);
+  color: var(--color-text);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.list li {
+  padding-left: var(--space-1);
+}
+
+/* Illustration pédagogique (section IMAGE) : image + légende, dans la largeur de lecture. */
+.figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.figureImg {
+  display: block;
+  width: 100%;
+  max-width: var(--reading-width);
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+.figureCaption {
+  max-width: var(--reading-width);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Icônes injectées dans le texte (remplacent les emojis du contenu). */
+.iconInsight {
+  color: var(--color-primary);
+  margin-right: 0.15em;
+}
+
+.iconWarn {
+  color: var(--color-warning, #b8860b);
+  margin-right: 0.15em;
+}
+
+.iconOk {
+  color: var(--color-success, #2e7d32);
+  margin-right: 0.1em;
+}
+
+.iconKo {
+  color: var(--color-danger, #c62828);
+  margin-right: 0.1em;
+}
+
+.inlineCode {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+/* Exercice corrigé : la solution reste repliée pour préserver l'effort de réflexion. */
+.solution {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 0 var(--space-4);
+}
+
+.solutionSummary {
+  cursor: pointer;
+  padding: var(--space-3) 0;
+  font-weight: 600;
+  color: var(--color-primary);
+  list-style-position: inside;
+}
+
+.solutionSummary:hover {
+  color: var(--color-primary-hover);
+}
+
+.solutionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-4);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+}
+
+.diagram {
+  margin: 0;
+}
+
+.diagramBody {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--color-text);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.diagramCaption {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.completeBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* --- Sommaire "sur cette page" --- */
+.toc {
+  position: sticky;
+  /* Calé sous l'en-tête fixe ; scroll interne si le sommaire est long. */
+  top: calc(var(--header-h) + var(--space-4));
+  max-height: calc(100vh - var(--header-h) - var(--space-5));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.tocTitle {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-muted);
+}
+
+.tocList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 2px solid var(--color-border);
+}
+
+.tocLink {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1) var(--space-3);
+  margin-left: -2px;
+  border-left: 2px solid transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.tocLink:hover {
+  color: var(--color-text);
+}
+
+.tocActive {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  font-weight: 600;
+}

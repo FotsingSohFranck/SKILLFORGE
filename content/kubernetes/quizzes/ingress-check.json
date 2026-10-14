@@ -1,0 +1,52 @@
+{
+  "ref": "ingress-check",
+  "node": "ingress-networking",
+  "lesson": "ingress",
+  "title": "Ingress",
+  "description": "Point d'entrée HTTP, routage par domaine/chemin, TLS, Ingress Controller.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un Ingress ?",
+      "justification": "Un point d'entrée HTTP(S) unique qui route vers des Services selon le domaine et le chemin, et gère le TLS de façon centralisée.",
+      "position": 0,
+      "options": [
+        { "label": "Router le trafic HTTP(S) vers des Services par domaine/chemin", "correct": true, "position": 0 },
+        { "label": "Stocker des données persistantes", "correct": false, "position": 1 },
+        { "label": "Construire des images", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un objet Ingress est appliqué sans erreur mais rien n'est accessible. Cause probable ?",
+      "justification": "Aucun Ingress Controller n'est installé : l'Ingress n'est qu'une déclaration ; c'est le contrôleur qui applique les règles.",
+      "position": 1,
+      "options": [
+        { "label": "Aucun Ingress Controller n'est installé pour appliquer les règles", "correct": true, "position": 0 },
+        { "label": "Le YAML est forcément invalide", "correct": false, "position": 1 },
+        { "label": "Les Ingress sont dépréciés", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer un Ingress à un LoadBalancer par service pour du HTTP multi-services ?",
+      "justification": "Un seul point d'entrée route plusieurs services par domaine/chemin avec TLS centralisé, au lieu d'une IP publique (et coût) par service.",
+      "position": 2,
+      "options": [
+        { "label": "Un seul point d'entrée pour plusieurs services (routage + TLS)", "correct": true, "position": 0 },
+        { "label": "L'Ingress chiffre les volumes", "correct": false, "position": 1 },
+        { "label": "L'Ingress remplace les pods", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La Gateway API tend à remplacer l'Ingress pour les besoins de routage avancés.",
+      "justification": "Vrai : la Gateway API, plus riche et standardisée (trafic pondéré, multi-protocole), succède progressivement à l'Ingress.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

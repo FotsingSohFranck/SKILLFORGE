@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: skillforge
+
+  # --- Runtime réactif : R2DBC (non bloquant) ---
+  r2dbc:
+    url: ${SF_R2DBC_URL:r2dbc:postgresql://localhost:5432/skillforge}
+    username: ${SF_DB_USER:skillforge}
+    password: ${SF_DB_PASSWORD:skillforge}
+
+  # --- Migrations : Flyway via JDBC (démarrage uniquement) ---
+  flyway:
+    url: ${SF_JDBC_URL:jdbc:postgresql://localhost:5432/skillforge}
+    user: ${SF_DB_USER:skillforge}
+    password: ${SF_DB_PASSWORD:skillforge}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # --- E-mail (réinitialisation de mot de passe). En local : conteneur Mailpit (SMTP 1025). ---
+  mail:
+    host: ${SF_MAIL_HOST:localhost}
+    port: ${SF_MAIL_PORT:1025}
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+# --- Sécurité / JWT (HS256). Le secret DOIT être surchargé hors dev (>= 32 octets). ---
+skillforge:
+  security:
+    jwt:
+      secret: ${SF_JWT_SECRET:dev-only-change-me-please-32bytes-minimum-secret-0123456789}
+      access-ttl-minutes: ${SF_JWT_ACCESS_TTL_MINUTES:60}
+      refresh-ttl-days: ${SF_JWT_REFRESH_TTL_DAYS:30}
+    # Flux "mot de passe oublié" : durée du jeton, URL du front (lien) et expéditeur.
+    reset:
+      ttl-minutes: ${SF_RESET_TTL_MINUTES:30}
+      frontend-base-url: ${SF_FRONTEND_BASE_URL:http://localhost:8081}
+      mail-from: ${SF_MAIL_FROM:no-reply@skillforge.local}
+
+# --- Documentation OpenAPI ---
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+# --- Supervision locale ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+---
+# Profil "docker" : l'hôte de la base devient le service `postgres` du réseau Compose.
+spring:
+  config:
+    activate:
+      on-profile: docker
+  r2dbc:
+    url: ${SF_R2DBC_URL:r2dbc:postgresql://postgres:5432/skillforge}
+  flyway:
+    url: ${SF_JDBC_URL:jdbc:postgresql://postgres:5432/skillforge}
+  # En réseau Compose, le serveur SMTP est le service `mailpit`.
+  mail:
+    host: ${SF_MAIL_HOST:mailpit}

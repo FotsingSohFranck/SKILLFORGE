@@ -1,0 +1,38 @@
+{
+  "node": "config-security",
+  "lessons": [
+    {
+      "slug": "config-ressources-securite",
+      "title": "Config, ressources & sécurité",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le domaine le plus lourd (25%)",
+          "body": "C'est le domaine le plus pondéré du CKAD. Il couvre : **ConfigMaps/Secrets** (injection en env ou volume), **requests/limits** de ressources, **SecurityContext** (utilisateur non-root, capabilities), et **ServiceAccounts**. Autant de petits gestes à automatiser en impératif."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Créer vite config et secret",
+          "codeLanguage": "bash",
+          "body": "kubectl create configmap app-config --from-literal=GREETING=Bonjour\nkubectl create secret generic app-secret --from-literal=TOKEN=s3cr3t\n# Injecter dans un pod : envFrom.configMapRef / secretRef"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Limiter les ressources",
+          "codeLanguage": "yaml",
+          "body": "resources:\n  requests:\n    cpu: \"100m\"\n    memory: \"128Mi\"\n  limits:\n    cpu: \"500m\"\n    memory: \"256Mi\""
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Vérifions",
+          "quizRef": "ckad-config"
+        }
+      ]
+    }
+  ]
+}

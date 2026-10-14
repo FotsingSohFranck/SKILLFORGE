@@ -1,0 +1,119 @@
+{
+  "ref": "state-management-check",
+  "node": "state-management",
+  "lesson": "remote-state-et-locking",
+  "title": "L'état & le remote state",
+  "description": "Rôle du state, données sensibles, backend distant, state locking.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le fichier d'état (state) ?",
+      "justification": "Il mappe chaque ressource du code à son objet réel (id, attributs) : la mémoire de Terraform pour comparer code, state et réel.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Mapper les ressources du code aux objets réels",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Stocker les providers",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Formater le code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne jamais committer le state dans Git ?",
+      "justification": "Il contient des données sensibles en clair (mots de passe, clés) et Git n'offre pas de verrouillage (risque de conflits/corruption).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il contient des secrets en clair et n'a pas de verrouillage",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il est trop volumineux",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Git ne supporte pas le JSON",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte un backend distant (S3, GCS, HCP) ?",
+      "justification": "Un état partagé (source de vérité unique), chiffré, à accès restreint, versionné et verrouillable, indispensable en équipe.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un état partagé, chiffré, restreint et verrouillable",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Des serveurs plus puissants",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La suppression du besoin de code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que prévient le verrouillage d'état (state locking) ?",
+      "justification": "La corruption due à deux applies simultanés : il sérialise les écritures (un verrou empêche un second apply concurrent).",
+      "position": 3,
+      "options": [
+        {
+          "label": "La corruption due à des applies simultanés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les fautes de frappe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les coûts cloud",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le fichier d'état contient les attributs sensibles des ressources (mots de passe, clés) en clair, et doit donc être protégé comme la donnée la plus sensible.",
+      "justification": "Vrai : d'où le backend chiffré, l'accès restreint, jamais dans Git, et idéalement l'externalisation des secrets.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

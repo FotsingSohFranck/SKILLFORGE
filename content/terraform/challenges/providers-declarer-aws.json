@@ -1,0 +1,10 @@
+{
+  "node": "providers",
+  "lesson": "le-registry-et-les-providers",
+  "title": "Déclarer et configurer le provider AWS",
+  "statement": "Écris un bloc `terraform { required_providers { ... } }` qui déclare le provider AWS depuis le Registry (source `hashicorp/aws`) avec la contrainte de version `~> 5.0`, puis un bloc `provider \"aws\"` configuré sur la région `eu-west-3`. Rappel de la règle de sécurité : AUCUN credential (clé d'accès, secret) ne doit apparaître dans le code, ils viennent de l'environnement.",
+  "skeleton": "terraform {\n  required_providers {\n    # complète ici\n  }\n}\n\nprovider \"aws\" {\n  # complète ici\n}",
+  "solution": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = \"eu-west-3\"\n  # les credentials viennent des variables d'environnement / du profil, jamais du code\n}",
+  "keyPoints": ["required_providers", "hashicorp/aws", "~> 5.0", "provider \"aws\"", "region", "eu-west-3"],
+  "language": "hcl"
+}

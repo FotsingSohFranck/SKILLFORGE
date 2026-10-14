@@ -1,0 +1,10 @@
+{
+  "node": "scaling-databases",
+  "lesson": "partitionnement-haute-disponibilite",
+  "title": "Partitionner une table par plage de dates",
+  "statement": "Écris le SQL PostgreSQL qui : (1) crée une table `events` (colonnes `id uuid DEFAULT uuidv7()`, `occurred_at timestamptz NOT NULL`, `payload jsonb`) partitionnée par plage (`RANGE`) sur `occurred_at` ; (2) crée une partition `events_2026_07` couvrant tout le mois de juillet 2026 (borne haute exclue).",
+  "skeleton": "-- 1) table parente partitionnée par RANGE sur occurred_at\n\n-- 2) partition events_2026_07 pour juillet 2026\n",
+  "solution": "CREATE TABLE events (\n  id uuid DEFAULT uuidv7(),\n  occurred_at timestamptz NOT NULL,\n  payload jsonb\n) PARTITION BY RANGE (occurred_at);\n\nCREATE TABLE events_2026_07 PARTITION OF events\n  FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');",
+  "keyPoints": ["PARTITION BY RANGE", "PARTITION OF", "FOR VALUES FROM", "occurred_at"],
+  "language": "sql"
+}

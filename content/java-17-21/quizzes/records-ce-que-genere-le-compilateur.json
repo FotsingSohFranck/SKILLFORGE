@@ -1,0 +1,42 @@
+{
+  "ref": "records-ce-que-genere-le-compilateur",
+  "node": "records",
+  "lesson": "ce-que-genere-le-compilateur",
+  "title": "Quiz : ce que génère le compilateur",
+  "description": "Membres générés, égalité par valeur, code de hachage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Lequel n'est PAS généré automatiquement par un record ?",
+      "justification": "Le record génère constructeur canonique, accesseurs, equals, hashCode et toString, mais pas de setters : il est immuable.",
+      "position": 0,
+      "options": [
+        { "label": "Des setters (setX, setY)", "correct": true, "position": 0 },
+        { "label": "equals et hashCode", "correct": false, "position": 1 },
+        { "label": "toString", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour deux Point(3, 4) créés séparément, que vaut a.equals(b) ?",
+      "justification": "Un record compare par valeur : mêmes composants donc equals renvoie true, même si ce sont deux instances distinctes.",
+      "position": 1,
+      "options": [
+        { "label": "true", "correct": true, "position": 0 },
+        { "label": "false", "correct": false, "position": 1 },
+        { "label": "Cela dépend de l'ordre de création", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu utilises un record comme clé dans une HashMap, et tu retrouves bien tes valeurs. Pourquoi ça marche sans effort ?",
+      "justification": "La HashMap s'appuie sur hashCode et equals ; le record les génère de façon cohérente, donc une clé par valeur fonctionne correctement.",
+      "position": 2,
+      "options": [
+        { "label": "Parce que equals et hashCode générés sont cohérents entre eux", "correct": true, "position": 0 },
+        { "label": "Parce que les records désactivent le hachage", "correct": false, "position": 1 },
+        { "label": "Parce qu'une HashMap n'utilise jamais hashCode", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

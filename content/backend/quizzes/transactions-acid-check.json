@@ -1,0 +1,63 @@
+{
+  "ref": "transactions-acid-check",
+  "node": "transactions-acid",
+  "lesson": "transactions-en-pratique",
+  "title": "Transactions & ACID",
+  "description": "Atomicité, isolation, verrous, cohérence distribuée.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit l'atomicité d'une transaction ?",
+      "justification": "Tout ou rien : soit toutes les opérations sont validées, soit aucune n'a d'effet.",
+      "position": 0,
+      "options": [
+        { "label": "Toutes les opérations réussissent, ou aucune n'a d'effet", "correct": true, "position": 0 },
+        { "label": "Les données sont chiffrées", "correct": false, "position": 1 },
+        { "label": "Les requêtes vont plus vite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel niveau d'isolation empêche toutes les anomalies de concurrence ?",
+      "justification": "Serializable rend l'exécution équivalente à une exécution en série ; c'est le plus strict.",
+      "position": 1,
+      "options": [
+        { "label": "Serializable", "correct": true, "position": 0 },
+        { "label": "Read Uncommitted", "correct": false, "position": 1 },
+        { "label": "Read Committed", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Deux mises à jour concurrentes, l'une écrase l'autre sans en tenir compte : quelle anomalie ?",
+      "justification": "C'est un lost update ; on l'évite par verrou, isolation stricte ou mise à jour atomique.",
+      "position": 2,
+      "options": [
+        { "label": "Lost update", "correct": true, "position": 0 },
+        { "label": "Dirty read", "correct": false, "position": 1 },
+        { "label": "Phantom read", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il est acceptable d'appeler un service HTTP externe au milieu d'une transaction de base ouverte.",
+      "justification": "Non : la transaction (et ses verrous) reste ouverte pendant l'I/O, bloquant les autres et augmentant deadlocks et bloat. On sort l'I/O de la transaction.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour garantir qu'un événement est publié si et seulement si la donnée est écrite, on utilise…",
+      "justification": "Le pattern outbox écrit l'événement dans la même transaction que la donnée, puis le publie de façon fiable.",
+      "position": 4,
+      "options": [
+        { "label": "Le pattern outbox", "correct": true, "position": 0 },
+        { "label": "Un simple try/catch", "correct": false, "position": 1 },
+        { "label": "Une transaction distribuée triviale entre base et broker", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

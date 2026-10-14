@@ -1,0 +1,63 @@
+{
+  "ref": "resource-management-check",
+  "node": "resource-management",
+  "lesson": "qos-quotas-limitrange",
+  "title": "Requests, limits & quotas",
+  "description": "Requests/limits, CPU vs mémoire, classes QoS, ResourceQuota/LimitRange.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les requests d'un conteneur ?",
+      "justification": "Elles indiquent les ressources garanties et servent au scheduler pour choisir un nœud ayant assez de ressources libres.",
+      "position": 0,
+      "options": [
+        { "label": "Ressources garanties, utilisées par le scheduler pour placer le pod", "correct": true, "position": 0 },
+        { "label": "Le plafond absolu du conteneur", "correct": false, "position": 1 },
+        { "label": "Le nombre de répliques", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il si un conteneur dépasse sa limite mémoire ?",
+      "justification": "La mémoire est non compressible : dépassement = OOMKilled (code 137). Le CPU, lui, est throttlé (ralenti), pas tué.",
+      "position": 1,
+      "options": [
+        { "label": "Il est tué (OOMKilled)", "correct": true, "position": 0 },
+        { "label": "Il est seulement ralenti", "correct": false, "position": 1 },
+        { "label": "Rien ne se passe", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle classe QoS protège le plus un pod contre l'éviction en cas de pression mémoire ?",
+      "justification": "Guaranteed (requests = limits) est tuée en dernier ; BestEffort (aucune ressource) est sacrifiée en premier.",
+      "position": 2,
+      "options": [
+        { "label": "Guaranteed (requests = limits)", "correct": true, "position": 0 },
+        { "label": "BestEffort", "correct": false, "position": 1 },
+        { "label": "Burstable", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel objet empêche une équipe de consommer toutes les ressources d'un cluster partagé ?",
+      "justification": "Un ResourceQuota par namespace plafonne le total consommable (CPU, mémoire, nombre de pods) de ce namespace.",
+      "position": 3,
+      "options": [
+        { "label": "Un ResourceQuota par namespace", "correct": true, "position": 0 },
+        { "label": "Un Service LoadBalancer", "correct": false, "position": 1 },
+        { "label": "Un Ingress", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une JVM, il faut aligner le heap sur la limite mémoire du pod, sinon elle risque de se faire OOMKill.",
+      "justification": "Vrai : sans respecter la limite cgroup, la JVM dimensionne son heap d'après la RAM machine et dépasse la limite du pod → OOMKill.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

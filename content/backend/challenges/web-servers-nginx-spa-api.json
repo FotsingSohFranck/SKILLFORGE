@@ -1,0 +1,10 @@
+{
+  "node": "web-servers",
+  "lesson": "choisir-et-servir",
+  "title": "Servir un SPA et proxifier /api avec Nginx",
+  "statement": "Complète ce bloc `server` Nginx pour qu'il : (1) proxifie toutes les requêtes commençant par `/api/` vers le backend `http://backend:8080`, et (2) serve la SPA en renvoyant `index.html` sur toute route inconnue (fallback SPA), pour qu'un rafraîchissement sur une route profonde comme `/profil` ne renvoie pas 404.",
+  "skeleton": "server {\n    listen 443 ssl;\n    server_name exemple.com;\n    root /var/www/spa;\n\n    # 1) proxifier /api/ vers http://backend:8080\n\n    # 2) servir la SPA avec fallback vers index.html\n}\n",
+  "solution": "server {\n    listen 443 ssl;\n    server_name exemple.com;\n    root /var/www/spa;\n\n    location /api/ {\n        proxy_pass http://backend:8080;\n    }\n\n    location / {\n        try_files $uri /index.html;\n    }\n}\n",
+  "keyPoints": ["location /api/", "proxy_pass", "http://backend:8080", "location /", "try_files", "index.html"],
+  "language": "nginx"
+}

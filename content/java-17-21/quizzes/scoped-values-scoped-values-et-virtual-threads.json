@@ -1,0 +1,41 @@
+{
+  "ref": "scoped-values-scoped-values-et-virtual-threads",
+  "node": "scoped-values",
+  "lesson": "scoped-values-et-virtual-threads",
+  "title": "Quiz : Scoped Values et threads virtuels",
+  "description": "Pourquoi les Scoped Values sont pensés pour les threads virtuels.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle propriété d'un Scoped Value le rend sûr à partager entre de nombreux appels concurrents ?",
+      "justification": "L'immuabilité : la valeur ne change pas pendant le bloc, donc on peut la partager sans verrou ni copie défensive.",
+      "position": 0,
+      "options": [
+        { "label": "Elle est immuable pendant toute la durée du bloc", "correct": true, "position": 0 },
+        { "label": "Elle peut être modifiée par chaque thread indépendamment", "correct": false, "position": 1 },
+        { "label": "Elle est recopiée dans chaque thread enfant à chaque appel", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un serveur crée un thread virtuel par requête, soit des millions à la fois, et veut partager un identifiant de requête en lecture seule sans risque de fuite. Quel outil est le mieux adapté ?",
+      "justification": "Le Scoped Value : immuable, à portée bornée, nettoyé automatiquement, donc léger et sûr même à très grande échelle.",
+      "position": 1,
+      "options": [
+        { "label": "Un Scoped Value, grâce à l'immuabilité, la portée bornée et le nettoyage automatique", "correct": true, "position": 0 },
+        { "label": "Un ThreadLocal, car il est plus léger avec des millions de threads", "correct": false, "position": 1 },
+        { "label": "Une variable globale statique modifiable partagée par tous les threads", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec un Scoped Value, il n'y a pas de nettoyage manuel : la liaison disparait automatiquement à la fin du bloc.",
+      "justification": "Vrai : aucun remove() à appeler, la liaison se défait seule à la fin du bloc, ce qui évite les fuites même à grande échelle.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

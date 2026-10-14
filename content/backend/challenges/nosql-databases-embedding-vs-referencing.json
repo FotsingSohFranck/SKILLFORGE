@@ -1,0 +1,10 @@
+{
+  "node": "nosql-databases",
+  "lesson": "modeliser-en-nosql",
+  "title": "Imbriquer ou référencer un article de blog",
+  "statement": "Modélise en JSON (style MongoDB) le stockage d'un article de blog en appliquant la règle « imbrique ce qui est borné et lu ensemble, référence le reste ».\n\n- Les **tags** (peu nombreux, toujours lus avec l'article) doivent être **imbriqués** dans le document article, sous la forme d'un tableau `tags`.\n- L'**auteur** (partagé entre plusieurs articles) doit être **référencé** par un champ `auteurId`, pas recopié.\n- Les **commentaires** (potentiellement des milliers) doivent être **référencés** dans une collection séparée : chaque commentaire porte un champ `articleId` qui pointe vers l'article.\n\nÉcris le document `article` puis un exemple de document `commentaire`.",
+  "skeleton": "// collection articles\n{\n\n}\n\n// collection commentaires\n{\n\n}",
+  "solution": "// collection articles\n{\n  \"_id\": \"article-1\",\n  \"titre\": \"Débuter avec NoSQL\",\n  \"tags\": [\"nosql\", \"mongodb\", \"backend\"],\n  \"auteurId\": \"auteur-42\"\n}\n\n// collection commentaires (séparée, référence l'article)\n{\n  \"_id\": \"com-1\",\n  \"articleId\": \"article-1\",\n  \"texte\": \"Super article, merci !\"\n}",
+  "keyPoints": ["\"tags\"", "auteurId", "articleId"],
+  "language": "json"
+}

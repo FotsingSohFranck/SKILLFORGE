@@ -1,0 +1,52 @@
+{
+  "ref": "orms-check",
+  "node": "orms",
+  "lesson": "pieges-des-orms",
+  "title": "ORMs & accès aux données",
+  "description": "Mapping, frontières et pièges.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un ORM ?",
+      "justification": "Il traduit entre objets et lignes (mapping), et génère le SQL des opérations courantes.",
+      "position": 0,
+      "options": [
+        { "label": "Traduire entre objets du code et lignes de la base", "correct": true, "position": 0 },
+        { "label": "Chiffrer les données au repos", "correct": false, "position": 1 },
+        { "label": "Remplacer la base de données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi séparer l'entité de persistance du modèle de domaine ?",
+      "justification": "Pour garder le domaine pur (sans dépendance à l'ORM/base), testable et découplé du schéma.",
+      "position": 1,
+      "options": [
+        { "label": "Pour garder le domaine pur et découplé de la base", "correct": true, "position": 0 },
+        { "label": "Pour doubler le nombre de classes par plaisir", "correct": false, "position": 1 },
+        { "label": "Parce que l'ORM l'exige techniquement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel piège classique le lazy loading d'un ORM peut-il provoquer ?",
+      "justification": "Accéder à une relation paresseuse par élément déclenche une requête à chaque fois : N+1.",
+      "position": 2,
+      "options": [
+        { "label": "Le problème N+1", "correct": true, "position": 0 },
+        { "label": "Un chiffrement involontaire", "correct": false, "position": 1 },
+        { "label": "La perte des index", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une requête analytique lourde, il vaut mieux écrire du SQL explicite que de tordre l'ORM.",
+      "justification": "Les agrégations/window functions s'exécutent efficacement en base via du SQL ciblé ; l'ORM objet par objet serait coûteux.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

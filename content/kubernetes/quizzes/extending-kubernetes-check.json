@@ -1,0 +1,52 @@
+{
+  "ref": "extending-kubernetes-check",
+  "node": "extending-kubernetes",
+  "lesson": "crds-et-operateurs",
+  "title": "Étendre Kubernetes",
+  "description": "CRDs, contrôleurs, pattern operator, réconciliation d'applications.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet une Custom Resource Definition (CRD) ?",
+      "justification": "Ajouter ses propres types d'objets (kinds) à l'API Kubernetes, manipulables comme des ressources natives.",
+      "position": 0,
+      "options": [
+        { "label": "Ajouter ses propres types d'objets à l'API", "correct": true, "position": 0 },
+        { "label": "Chiffrer etcd", "correct": false, "position": 1 },
+        { "label": "Créer des nœuds", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une CRD seule suffit-elle à faire agir les ressources qu'elle définit ?",
+      "justification": "Non : une CRD ne fait que stocker les objets ; il faut un contrôleur qui les observe et réconcilie pour qu'ils agissent.",
+      "position": 1,
+      "options": [
+        { "label": "Non, il faut un contrôleur qui les réconcilie", "correct": true, "position": 0 },
+        { "label": "Oui, la CRD agit toute seule", "correct": false, "position": 1 },
+        { "label": "Oui, si le YAML est valide", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un operator ?",
+      "justification": "Un contrôleur personnalisé (via CRDs) qui encode l'expertise d'exploitation d'une application (réplication, failover, sauvegardes...).",
+      "position": 2,
+      "options": [
+        { "label": "Un contrôleur qui encode l'expertise d'exploitation d'une app", "correct": true, "position": 0 },
+        { "label": "Un opérateur humain de garde", "correct": false, "position": 1 },
+        { "label": "Un type de Service", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le pattern operator étend le modèle déclaratif : on réconcilie non plus des pods, mais des applications entières.",
+      "justification": "Vrai : on déclare l'état d'une application complexe (ex. un cluster de base) et l'operator applique en continu l'expertise pour l'atteindre.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,379 @@
+{
+  "node": "authentication",
+  "lessons": [
+    {
+      "slug": "authentifier-vs-autoriser",
+      "title": "Authentifier vs autoriser",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux questions distinctes",
+          "body": "Avant tout code, il faut séparer deux mots qu'on confond sans arrêt.\n\n**Authentifier** (en anglais *authentication*, souvent abrégé **authN**) : c'est **établir qui appelle**, prouver l'identité. La question est « **es-tu bien celui que tu prétends être ?** ». Quand tu tapes ton e-mail et ton mot de passe, tu t'authentifies.\n\n**Autoriser** (en anglais *authorization*, abrégé **authZ**) : c'est **décider ce que cette personne a le droit de faire** une fois son identité connue (ses permissions, ses rôles). La question est « **as-tu le droit de faire ça ?** ».\n\n👉 **Analogie** : à l'entrée d'un immeuble, le **vigile** vérifie ta carte d'identité (il t'**authentifie** : il sait qui tu es). Ensuite, ton **badge** ouvre certaines portes mais pas d'autres (il t'**autorise** : il décide où tu peux aller). Deux étapes, deux rôles.\n\n**Exemple concret** : sur cette plateforme, un apprenant authentifié est autorisé à lire **ses** propres résultats de quiz, mais **pas** ceux d'un autre apprenant. Même identité prouvée, droits limités. Séparer les deux idées clarifie la conception et évite des failles (on verra qu'oublier le contrôle d'autorisation est l'une des erreurs les plus fréquentes)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Authentifier repond a 'qui es-tu ?' ; autoriser repond a 'as-tu le droit ?' : deux questions distinctes.",
+          "body": "/images/lessons/authentifier-vs-autoriser-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ne jamais stocker un mot de passe en clair",
+          "body": "Règle absolue : un mot de passe ne se stocke **jamais** en clair (lisible tel quel), ni même chiffré de façon réversible (qu'on pourrait déchiffrer). Voici pourquoi et comment.\n\nOn stocke à la place un **hachage** (en anglais *hash*). **Hacher**, c'est passer le mot de passe dans une fonction qui produit une **empreinte** de taille fixe, impossible à inverser : de l'empreinte, on ne peut pas retrouver le mot de passe d'origine. 👉 **Analogie** : hacher, c'est comme réduire un fruit en **smoothie**. Tu peux vérifier que deux fruits identiques donnent le même smoothie, mais tu ne peux pas reconstituer le fruit à partir du verre.\n\nMais toutes les fonctions de hachage ne conviennent pas. Il faut une fonction **lente** et **salée** :\n- **Lente** : pour résister au *brute force* (attaque par force brute), c'est-à-dire un attaquant qui teste des milliards de mots de passe à la seconde. Une fonction lente rend ces essais massifs trop coûteux.\n- **Salée** : le **sel** (en anglais *salt*) est une valeur aléatoire ajoutée avant de hacher, propre à chaque utilisateur. Résultat : deux personnes qui choisissent le **même** mot de passe obtiennent des empreintes **différentes**. Cela casse les *rainbow tables* (tables d'empreintes pré-calculées).\n\nLes bons algorithmes pour ça sont **BCrypt**, **Argon2** ou **scrypt** (conçus exprès, lents et salés). Au moment de la connexion, on re-hache ce que tape l'utilisateur (avec le même sel, stocké à côté de l'empreinte) et on compare les deux empreintes. **Exemple** : si la base de données fuite, l'attaquant ne récupère que des empreintes inutilisables, pas les mots de passe. C'est toute la différence entre une fuite gênante et une catastrophe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un mot de passe ne se stocke jamais en clair : on garde une empreinte lente et salee (bcrypt, argon2).",
+          "body": "/images/lessons/authentifier-vs-autoriser-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Hacher et vérifier (BCrypt)",
+          "codeLanguage": "java",
+          "body": "var encoder = new BCryptPasswordEncoder();\nString hash = encoder.encode(rawPassword);      // à l'inscription\nboolean ok = encoder.matches(rawPassword, hash); // à la connexion\n// On ne compare JAMAIS les chaînes directement."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Pourquoi MD5 ou SHA-256 « simple » sont-ils de mauvais choix pour stocker des mots de passe, alors qu'ils sont de bons algorithmes de hachage ?",
+          "solution": "Ils sont RAPIDES : c'est une qualité pour vérifier l'intégrité d'un fichier, mais un défaut pour les mots de passe, car un attaquant peut tester des milliards de combinaisons par seconde (brute force, rainbow tables). On veut un algorithme LENT et salé (BCrypt/Argon2), conçu pour ralentir les attaques."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Authentifier vs autoriser",
+          "quizRef": "authentication-bases-check"
+        }
+      ]
+    },
+    {
+      "slug": "sessions-vs-tokens",
+      "title": "Sessions/cookies vs tokens/JWT",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'authentification par session",
+          "body": "Une fois l'utilisateur authentifié (il a prouvé son identité), le serveur doit **se souvenir** de lui à chaque requête suivante, sinon il faudrait retaper son mot de passe à chaque clic. Première approche, la plus ancienne : la **session**.\n\nUne **session** est un espace mémoire **côté serveur** qui garde les informations de l'utilisateur connecté (son identifiant, ses droits). Le serveur crée cette session au login et renvoie au navigateur un **cookie** : un petit fichier que le navigateur stocke et **renvoie automatiquement** à chaque requête vers le site. Ce cookie contient seulement l'**identifiant de session** (une longue chaîne aléatoire), pas les données elles-mêmes. À chaque requête, le serveur lit cet identifiant dans le cookie et retrouve la session correspondante.\n\n👉 **Analogie** : au **vestiaire** d'un musée, tu déposes ton manteau (les données restent au vestiaire, côté serveur) et on te donne un **ticket numéroté** (le cookie). Tu montres ton ticket pour récupérer tes affaires ; le personnel, lui, garde le manteau.\n\nAvantages : simple, et **révocable instantanément** (pour déconnecter quelqu'un, le serveur supprime sa session, le ticket ne vaut plus rien). Inconvénient : c'est une approche **avec état** (en anglais *stateful*), le serveur doit mémoriser toutes les sessions. **Exemple concret** du problème : si ton application tourne sur trois serveurs derrière un répartiteur de charge, une session créée sur le serveur A est inconnue des serveurs B et C. Il faut alors partager le stockage des sessions entre toutes les instances (une base commune type Redis), ce qui complique la mise à l'échelle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La session garde l'etat cote serveur et remet un ticket au client, comme un vestiaire.",
+          "body": "/images/lessons/sessions-vs-tokens-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'authentification par token (JWT)",
+          "body": "Deuxième approche, pensée pour les APIs et la montée en charge : le **token** (jeton), typiquement un **JWT**.\n\nUn **JWT** (JSON Web Token, prononcé « jot ») est un **jeton signé** que le serveur émet au login. Il contient directement l'identité de l'utilisateur et une date d'**expiration**, le tout **signé** cryptographiquement par le serveur. Le client (navigateur, application mobile) le conserve et le renvoie à chaque requête dans un en-tête HTTP : `Authorization: Bearer <le-jeton>` (le mot *Bearer* signifie « au porteur »). Le serveur **vérifie la signature** et fait confiance au contenu, **sans rien stocker** de son côté.\n\n👉 **Analogie** : le JWT est comme un **billet de concert infalsifiable**. Toute l'information utile (ton nom, la date, ta place) est **imprimée sur le billet** et scellée d'un hologramme officiel. Le contrôleur vérifie l'hologramme d'un coup d'œil et te laisse entrer, sans avoir besoin de téléphoner à la billetterie pour vérifier qui tu es.\n\nC'est une approche **sans état** (en anglais *stateless*) : le serveur ne mémorise aucune session. **Exemple concret** : avec trois serveurs derrière un répartiteur, **n'importe lequel** peut valider le jeton (il suffit qu'ils connaissent la clé de vérification), sans stockage partagé. C'est idéal pour scaler et pour sécuriser des APIs. C'est le choix retenu pour cette plateforme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le token (JWT) est auto-porteur : il contient l'info signee, le serveur n'a rien a retenir.",
+          "body": "/images/lessons/sessions-vs-tokens-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Anatomie et limites d'un JWT (niveau expert)",
+          "body": "Regardons **de quoi est fait** un JWT, car ça éclaire ses limites.\n\nUn JWT a **trois parties** séparées par des points :\n1. l'**en-tête** (*header*) : indique l'algorithme de signature utilisé ;\n2. les **claims** (« revendications ») : les données portées par le jeton, par exemple l'identifiant de l'utilisateur et la date d'expiration ;\n3. la **signature** : le sceau qui garantit que personne n'a modifié le contenu.\n\nPoint crucial : un JWT est **signé, pas chiffré**. La signature prouve l'**authenticité** (le jeton vient bien du serveur et n'a pas été altéré), mais les claims restent **lisibles par tous** (ils sont juste encodés, pas cachés). 👉 **Analogie** : c'est une **carte postale tamponnée** par une autorité : le tampon prouve qu'elle est officielle, mais **tout le monde peut lire** le message au dos. Donc : **jamais de secret dans les claims** (pas de mot de passe, pas de numéro de carte).\n\nSa force est aussi sa faiblesse : comme le serveur ne le stocke pas, un JWT est **difficile à révoquer** avant son expiration. Si un jeton est volé, on ne peut pas simplement « l'effacer » côté serveur. La parade classique combine deux jetons :\n- un **access token** (jeton d'accès) à durée de vie **courte**, utilisé à chaque requête ;\n- un **refresh token** (jeton de rafraîchissement) à durée de vie **longue**, mais **révocable** (souvent stocké et haché côté serveur), dont le seul rôle est d'**obtenir un nouvel access token** quand l'ancien expire.\n\n**Exemple concret** : c'est exactement le schéma de cette plateforme, access token valable 60 minutes, refresh token valable 30 jours avec rotation (on le renouvelle à chaque usage). Ainsi, un access token volé n'est exploitable qu'une heure au maximum."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un JWT a trois parties (entete, charge utile, signature) : lisible, mais seulement signe, pas chiffre.",
+          "body": "/images/lessons/sessions-vs-tokens-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Pourquoi émettre un access token à durée de vie courte plutôt qu'un jeton valable des mois ?",
+          "solution": "Parce qu'un JWT est difficile à révoquer avant expiration : si un jeton valable des mois est volé, l'attaquant en profite longtemps. Un access token court limite la fenêtre d'exploitation d'un vol ; on renouvelle discrètement via un refresh token (lui révocable). Sécurité et confort sont ainsi conciliés."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Sessions vs tokens",
+          "quizRef": "authentication-sessions-check"
+        }
+      ]
+    },
+    {
+      "slug": "oauth-et-oidc",
+      "title": "OAuth 2 & OpenID Connect",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Déléguer l'accès sans partager le mot de passe",
+          "body": "Imagine une application qui veut lire ton agenda Google pour te proposer des créneaux libres. Tu ne vas quand même pas lui **donner ton mot de passe Google** : elle pourrait alors tout faire en ton nom, pour toujours. Le protocole qui résout proprement ce problème s'appelle **OAuth 2**.\n\n**OAuth 2** (prononcé « o-auth deux ») est un protocole d'**autorisation déléguée** : il permet à une application d'accéder à **certaines** ressources d'un utilisateur (ses fichiers, son profil, son agenda) **sans jamais connaître son mot de passe**. Le mécanisme : l'utilisateur s'authentifie **directement chez le fournisseur** (Google, GitHub…), et ce fournisseur délivre à l'application un **access token** dont les droits sont **limités** par des **scopes**.\n\nUn **scope** (« périmètre ») est une permission précise attachée au jeton, par exemple `read:calendar` (lire l'agenda) ou `read:profile` (lire le profil). L'application n'obtient **que** les scopes que tu as acceptés.\n\n👉 **Analogie** : c'est la **clé voiturier** de certaines voitures de luxe. Tu la confies au voiturier pour qu'il gare ta voiture : elle démarre le moteur et roule à basse vitesse, mais **n'ouvre pas le coffre** et **bride la vitesse**. Tu délègues un usage limité **sans donner ta vraie clé** (ton mot de passe).\n\n**Exemple concret** : le bouton « Se connecter avec Google » et, plus largement, tout accès d'une API à une autre au nom d'un utilisateur, reposent sur OAuth 2."
+        },
+        {
+          "type": "IMAGE",
+          "title": "OAuth delegue un acces limite sans partager son mot de passe, comme une cle voiturier.",
+          "body": "/images/lessons/oauth-et-oidc-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "OpenID Connect : l'authentification par-dessus",
+          "body": "Attention à un piège fréquent : OAuth 2 gère l'**autorisation** (accéder à des ressources), **pas l'identité**. Il te dit « ce jeton a le droit de lire tel agenda », mais **pas** de façon fiable « voici qui est l'utilisateur connecté ». Pour ça, il existe une couche dédiée : **OpenID Connect**.\n\n**OpenID Connect** (abrégé **OIDC**) est une petite **surcouche d'authentification** posée au-dessus d'OAuth 2. Concrètement, en plus de l'access token, le fournisseur délivre un **ID token** : un **JWT décrivant l'utilisateur** (son identifiant, son nom, son e-mail, la date de connexion). C'est **ce jeton d'identité** qui répond correctement à la question « **qui** est connecté ? ».\n\n👉 **Analogie** : OAuth 2 te donne un **badge d'accès** qui ouvre certaines portes (autorisation), mais ne dit pas de façon sûre qui tu es. OIDC ajoute par-dessus une **carte d'identité officielle** avec ta photo (l'ID token). Le badge dit *ce que tu peux faire*, la carte dit *qui tu es*.\n\n**Exemple concret du piège** : une application qui utilise l'access token OAuth pour « deviner » l'identité de l'utilisateur ouvre une faille connue (un access token peut avoir été émis pour une autre application). La bonne réponse est d'utiliser l'ID token d'OIDC. Confondre OAuth 2 (autorisation) et OIDC (authentification) est une erreur classique et une source de failles."
+        },
+        {
+          "type": "IMAGE",
+          "title": "OpenID Connect ajoute l'identite par-dessus OAuth : savoir QUI est l'utilisateur.",
+          "body": "/images/lessons/oauth-et-oidc-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le bon flow (niveau expert)",
+          "body": "Un **flow** (« flux ») OAuth est la **suite d'étapes** par laquelle l'application obtient ses jetons. Il en existe plusieurs ; le choix a un impact direct sur la sécurité.\n\nLe flow recommandé aujourd'hui pour une application web ou mobile s'appelle **Authorization Code + PKCE** :\n1. l'application **redirige** l'utilisateur vers le fournisseur (Google…), où il s'authentifie ;\n2. le fournisseur renvoie l'utilisateur vers l'application avec un **code** temporaire (le *authorization code*), pas encore les jetons ;\n3. l'application **échange** ce code contre les vrais jetons, en prouvant qu'elle est bien celle qui a lancé la demande.\n\nCette preuve, c'est **PKCE** (Proof Key for Code Exchange, prononcé « pixy »). Au départ, l'application invente un secret aléatoire, en envoie une **empreinte** ; à la fin, elle doit présenter le secret original. 👉 **Analogie** : tu déchires un **billet en deux** au début et tu ne peux récupérer ton colis qu'en présentant la moitié correspondante. Un attaquant qui intercepterait le code n'aurait pas la seconde moitié, le code seul ne lui sert à rien.\n\nÀ l'inverse, on **n'utilise plus** l'ancien flow *implicit*, qui renvoyait le jeton **directement dans l'URL** : une URL finit dans l'historique du navigateur et les journaux des serveurs, donc le jeton fuitait facilement.\n\n**Exemple concret et conseil** : déléguer l'authentification à un fournisseur mûr (Google, un fournisseur d'identité d'entreprise) t'évite de gérer toi-même les mots de passe, le MFA et les réinitialisations, ce qui est souvent **plus sûr** que de tout réimplémenter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Choisir le bon flow OAuth selon le client : web, mobile, machine a machine.",
+          "body": "/images/lessons/oauth-et-oidc-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Le flux Authorization Code + PKCE (schéma)",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[Utilisateur] -->|1. clique Se connecter| B[Application]\n    B -->|2. redirige avec empreinte PKCE| C[Fournisseur d'identite Google]\n    C -->|3. l'utilisateur s'authentifie| C\n    C -->|4. renvoie un code temporaire| B\n    B -->|5. echange code + secret PKCE| C\n    C -->|6. delivre access token + ID token| B\n    B -->|7. acces autorise| A"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un développeur utilise OAuth 2 seul pour « savoir qui est l'utilisateur connecté ». Où est le piège, et que faut-il ajouter ?",
+          "solution": "OAuth 2 délivre une autorisation d'accès à des ressources, pas une preuve d'identité fiable de l'utilisateur. Utiliser l'access token comme identité est une faille connue. Il faut OpenID Connect (OIDC), qui ajoute un ID token attestant l'identité de manière standardisée."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz, OAuth 2 & OIDC",
+          "quizRef": "authentication-oauth-check"
+        }
+      ]
+    },
+    {
+      "slug": "saml-et-bonnes-pratiques",
+      "title": "SAML & bonnes pratiques",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "SAML & SSO d'entreprise",
+          "body": "En entreprise, tu croises souvent un autre standard : **SAML**.\n\n**SAML** (Security Assertion Markup Language) est un standard **plus ancien**, basé sur le format **XML** (un format de données à balises, verbeux, antérieur à JSON). Son rôle principal est le **SSO** : le **Single Sign-On**, c'est-à-dire l'**authentification unique**. Le SSO permet de se connecter **une seule fois** avec un identifiant central, puis d'accéder à **tous** les outils internes sans retaper son mot de passe partout.\n\n👉 **Analogie** : le SSO, c'est le **bracelet d'un resort tout compris**. Tu t'identifies une fois à l'accueil, on te met le bracelet, et ensuite le restaurant, la piscine et la salle de sport te laissent entrer sur simple présentation du bracelet, sans repayer ni re-prouver ton identité à chaque fois.\n\n**Exemple concret** : on rencontre SAML pour brancher une application sur l'annuaire d'identité d'une entreprise (des solutions comme **Okta** ou **ADFS** de Microsoft). Pour un projet **neuf**, on préfère aujourd'hui **OIDC** (plus léger, basé sur JSON, mieux adapté au mobile), mais SAML reste **incontournable** dans beaucoup de contextes B2B (entre entreprises), donc il faut le connaître."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SAML porte le SSO d'entreprise : une seule connexion pour de multiples applications.",
+          "body": "/images/lessons/saml-et-bonnes-pratiques-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "MFA & bonnes pratiques",
+          "body": "Le mot de passe seul ne suffit plus : il peut être deviné, réutilisé ou volé dans une fuite. On ajoute donc une barrière supplémentaire, le **MFA**.\n\n**MFA** (Multi-Factor Authentication, **authentification multifacteur**) exige **au moins deux preuves d'identité de natures différentes** : quelque chose que tu **sais** (ton mot de passe), quelque chose que tu **as** (ton téléphone, une clé physique), quelque chose que tu **es** (empreinte digitale). Un code temporaire reçu sur ton téléphone ou une clé de sécurité sont des exemples de deuxième facteur.\n\n👉 **Analogie** : pour retirer de l'argent, il faut **la carte** (ce que tu as) **et** le **code** (ce que tu sais). Voler seulement l'un des deux ne suffit pas. Le MFA applique la même idée à tes comptes.\n\nAutres réflexes de bonnes pratiques :\n- **Verrouiller ou limiter** les tentatives après plusieurs échecs, pour contrer le *credential stuffing* (rejeu massif de couples e-mail/mot de passe volés ailleurs).\n- Ne **pas** imposer de règles de complexité absurdes, mais **vérifier** le mot de passe choisi contre des listes de mots de passe déjà fuités.\n- Prévoir un **parcours de réinitialisation sûr** (le fameux « mot de passe oublié »), car c'est une porte d'entrée que les attaquants adorent. **Exemple** : un lien de réinitialisation doit être à usage unique et expirer vite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La MFA ajoute un second facteur : meme un mot de passe vole ne suffit plus.",
+          "body": "/images/lessons/saml-et-bonnes-pratiques-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Protéger le jeton (niveau expert)",
+          "body": "Un jeton (session ou JWT) est une **identité en circulation** : quiconque le détient est traité comme son propriétaire, jusqu'à son expiration. Un jeton volé égale donc une **identité usurpée**. On le protège avec plusieurs couches.\n\n- **HTTPS obligatoire** : le HTTP simple circule en clair, un jeton y serait lisible par quiconque écoute le réseau. HTTPS (la version chiffrée) est non négociable. 👉 **Analogie** : envoyer un jeton en HTTP, c'est écrire son code de carte sur une **carte postale** ; HTTPS, c'est le mettre sous **enveloppe scellée**.\n- **Stockage prudent côté client** : un cookie marqué `HttpOnly` (inaccessible au JavaScript), `Secure` (envoyé seulement en HTTPS) et `SameSite` (limite l'envoi à ton propre site) **échappe au JavaScript malveillant**. À l'inverse, ranger le jeton dans le `localStorage` du navigateur l'expose aux attaques **XSS** (Cross-Site Scripting : du code injecté dans la page qui peut alors lire le `localStorage`).\n- **Durée de vie courte** et **rotation** des refresh tokens (les renouveler à chaque usage), pour limiter la valeur d'un vol.\n\n**Exemple concret de piège à éviter** : ne **jamais** écrire un jeton dans les journaux (logs) de l'application, ni le mettre dans une **URL**, car les URLs finissent dans l'historique du navigateur et les journaux des serveurs. Un jeton qui traîne dans un fichier de logs, c'est une fuite silencieuse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Proteger le jeton : courte duree de vie, stockage sur, et revocation possible.",
+          "body": "/images/lessons/saml-et-bonnes-pratiques-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Citez deux mesures concrètes qui limitent l'impact d'un access token JWT volé.",
+          "solution": "1) Durée de vie courte de l'access token (la fenêtre d'exploitation d'un vol est réduite ; on renouvelle via refresh token révocable). 2) Transport et stockage sûrs : HTTPS obligatoire, cookie HttpOnly/Secure/SameSite (ou stockage prudent), jamais de jeton dans les logs ni les URLs. On peut ajouter la rotation des refresh tokens et la révocation côté serveur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Authentification",
+          "quizRef": "authentication-check"
+        }
+      ]
+    },
+    {
+      "slug": "autorisation-en-profondeur",
+      "title": "Autorisation en profondeur : RBAC, ABAC, scopes",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "RBAC, ABAC, ReBAC : trois modèles",
+          "body": "Une fois l'utilisateur authentifié, comment décider **ce qu'il a le droit de faire** ? Il existe trois grands modèles d'autorisation, du plus simple au plus expressif.\n\n**RBAC** (Role-Based Access Control, contrôle d'accès **basé sur les rôles**) : les permissions sont attachées à des **rôles** (un rôle est une étiquette comme `ADMIN` ou `LEARNER`), et on donne un rôle à chaque utilisateur. 👉 **Analogie** : dans une entreprise, tes droits dépendent de ta **fonction** (« manager », « stagiaire ») ; tous les managers ont les mêmes accès. Simple et suffisant pour la plupart des applications.\n\n**ABAC** (Attribute-Based Access Control, basé sur les **attributs**) : la décision dépend d'un ensemble d'**attributs** (le rôle, mais aussi le service, l'heure, une propriété de la ressource visée). 👉 **Analogie** : un accès qui dépend de plusieurs critères combinés, comme « les livraisons ne sont acceptées **qu'aux heures ouvrées** ». **Exemple** : « un manager peut voir les dossiers de **son** équipe » (l'attribut « équipe du dossier » doit correspondre à « équipe du manager »). Plus fin que RBAC.\n\n**ReBAC** (Relationship-Based Access Control, basé sur les **relations**, popularisé par le système **Zanzibar** de Google) : l'accès découle de **relations** dans un graphe (« est membre de », « est propriétaire de »). 👉 **Analogie** : le partage de documents façon Google Drive, où tu as accès à un fichier parce que quelqu'un t'a explicitement **relié** à lui en tant que lecteur. Idéal pour les autorisations complexes de partage.\n\n**Principe directeur** : on choisit le modèle **le plus simple** qui couvre le besoin réel (souvent RBAC), sans sur-concevoir."
+        },
+        {
+          "type": "IMAGE",
+          "title": "RBAC (roles), ABAC (attributs), ReBAC (relations) : trois facons de decider qui peut quoi.",
+          "body": "/images/lessons/autorisation-en-profondeur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Rôles, scopes et permissions ne sont pas la même chose",
+          "body": "Trois mots reviennent sans arrêt et sont souvent confondus. Les distinguer est une marque de maturité.\n\n- Un **rôle** décrit **qui est** l'utilisateur dans ton application (`ADMIN`, `LEARNER`). C'est le vocabulaire du RBAC vu juste avant.\n- Un **scope** (OAuth) décrit **ce qu'une application** a le droit de faire **au nom** de l'utilisateur (`read:profile`). Ce n'est pas l'utilisateur qui agit, c'est une application à qui il a délégué un accès limité.\n- Une **permission** est l'**action atomique** effectivement vérifiée au point d'usage (« peut supprimer cette leçon »). C'est le niveau le plus fin, celui qu'on contrôle juste avant d'agir.\n\n👉 **Analogie** : le **rôle**, c'est ta **fonction** dans l'entreprise (« comptable ») ; le **scope**, c'est le **mandat limité** que tu confies à un prestataire (« il peut consulter mes factures, rien d'autre ») ; la **permission**, c'est le **geste précis** autorisé à la porte (« ouvrir cette salle-ci »).\n\n**Exemple de piège** : confondre les trois mène à des jetons **trop puissants** (un jeton censé juste lire un profil qui se retrouve capable de tout modifier). Deux principes gardent le cap : le **moindre privilège** (n'accorder que le strict nécessaire, rien de plus) et le **deny by default** (« interdit par défaut » : tout est refusé, sauf ce qui est **explicitement** permis)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Roles, scopes et permissions ne sont pas la meme chose : les confondre ouvre des failles.",
+          "body": "/images/lessons/autorisation-en-profondeur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Externaliser la décision : policy engines",
+          "body": "Quand les règles d'accès se multiplient et sont dispersées dans le code de dizaines de services, elles deviennent ingérables. La solution des systèmes matures : **sortir** la logique d'autorisation du code métier vers un **moteur de politiques** (en anglais *policy engine*).\n\nUn **moteur de politiques** est un composant dédié qui **répond aux questions d'autorisation**. Le code métier lui demande simplement « **cet utilisateur peut-il faire l'action X sur la ressource Y ?** » et le moteur répond oui ou non, en appliquant des règles définies à part.\n\n👉 **Analogie** : plutôt que chaque employé improvise ses propres règles de sécurité, l'entreprise a un **service juridique central** ; en cas de doute, tout le monde pose la même question au même service, qui applique une politique unique et à jour.\n\nExemples d'outils : **OPA** avec son langage **Rego**, **Cedar** (proposé par AWS), ou des services ReBAC comme **OpenFGA** et **SpiceDB** (inspirés de Google Zanzibar). Avantages concrets : les politiques deviennent **centralisées** (un seul endroit), **auditables** (on peut les relire et prouver ce qui est autorisé), **testables**, et modifiables **sans redéployer** chaque service. C'est ce qui rend l'autorisation gérable à grande échelle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Externaliser la decision d'acces dans un policy engine centralise et testable.",
+          "body": "/images/lessons/autorisation-en-profondeur-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "La faille reine : l'IDOR (niveau expert)",
+          "body": "Voici la faille d'autorisation la plus courante, et la plus facile à commettre sans s'en rendre compte : l'**IDOR**.\n\n**IDOR** (Insecure Direct Object Reference, aussi nommée *broken object-level authorization*, classée **numéro 1 du OWASP API Top 10**, le palmarès de référence des failles d'API) survient quand l'application vérifie que l'utilisateur est **authentifié**, mais **oublie** de vérifier qu'il **possède** réellement la ressource demandée.\n\n**Exemple concret** : l'endpoint `GET /api/v1/invoices/42` renvoie la facture numéro 42 dès que l'appelant est connecté. Un utilisateur malin remplace `42` par `43`, `44`, `45`… et lit **les factures des autres**, simplement parce que le code ne contrôle jamais **qui est le propriétaire** de la facture demandée.\n\n👉 **Analogie** : un hôtel où **ta clé ouvre toutes les chambres** parce que le videur a juste vérifié que tu es un client, sans vérifier que **cette chambre-ci est la tienne**.\n\n**Parade** : **toujours** vérifier l'appartenance de la ressource à l'utilisateur courant, au plus près de la donnée. Concrètement, la requête ne doit renvoyer la facture que si elle appartient à l'appelant (`WHERE owner_id = :currentUser`). C'est aussi tout l'intérêt de la **RLS** (Row-Level Security, la sécurité au niveau de la ligne en base de données, voir le nœud Bases relationnelles), qui applique ce filtre automatiquement. **Règle d'or** : ne **jamais** faire confiance à un identifiant fourni par le client."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'IDOR : acceder a la ressource d'autrui en changeant un identifiant ; la faille reine de l'autorisation.",
+          "body": "/images/lessons/autorisation-en-profondeur-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un endpoint `GET /api/v1/enrollments/{id}` renvoie l'inscription demandée dès que l'appelant est authentifié. Quelle faille classique cela crée-t-il, et comment la corriger ?",
+          "solution": "Une faille IDOR (broken object-level authorization) : un utilisateur authentifié peut lire l'inscription de n'importe qui en changeant l'id dans l'URL, car on vérifie l'authentification mais pas la propriété. Correction : vérifier que l'inscription appartient à l'utilisateur courant (WHERE id = :id AND user_id = :currentUser, ou contrôle explicite avant de renvoyer), et renvoyer 404/403 sinon. On applique le contrôle d'accès au niveau de l'objet, au plus près de la donnée (idéalement renforcé par la RLS)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Autorisation en profondeur",
+          "quizRef": "authentication-autorisation-check"
+        }
+      ]
+    },
+    {
+      "slug": "securiser-jwt-sessions-profondeur",
+      "title": "Sécuriser JWT & sessions en profondeur",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Valider un JWT correctement (pas seulement la signature)",
+          "body": "Une erreur répandue : croire qu'un JWT est digne de confiance dès que « la signature est valide ». C'est **nécessaire mais insuffisant**. Un jeton parfaitement signé peut quand même être illégitime.\n\nUn JWT vraiment fiable exige de valider **plusieurs claims** (rappel : les claims sont les données portées par le jeton) :\n- l'**algorithme attendu** : ne pas laisser le jeton imposer le sien (voir l'attaque de la section suivante) ;\n- l'**émetteur**, claim `iss` (*issuer*) : le jeton vient-il bien du fournisseur que j'attends ?\n- l'**audience**, claim `aud` (*audience*) : ce jeton est-il **destiné à mon service** ? Un jeton émis pour l'application A ne doit pas être accepté par l'application B ;\n- l'**expiration**, claim `exp` (*expiration*) : le jeton n'est-il pas périmé ? On tolère un tout petit décalage d'horloge (*clock skew*), pas plus ;\n- le moment d'**activation**, claim `nbf` (*not before*) : le jeton n'est-il pas utilisé **avant** sa date de validité ?\n\n👉 **Analogie** : contrôler un **billet d'avion**. Vérifier que le papier est authentique (la signature) ne suffit pas : il faut aussi qu'il soit à **ton nom** (émetteur/audience), pour **aujourd'hui** et **pas déjà expiré** (exp), et pour **ce vol-ci** (audience). Un vrai billet, mais pour un autre vol, ne t'embarque pas.\n\n**Exemple concret** : un jeton parfaitement signé mais destiné à une autre audience, ou expiré, doit être **rejeté**. Conseil : utiliser une **bibliothèque éprouvée** qui fait ces vérifications, plutôt que de parser le jeton à la main."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Valider un JWT, c'est bien plus que verifier la signature : issuer, audience, expiration, algorithme.",
+          "body": "/images/lessons/securiser-jwt-sessions-profondeur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'attaque par confusion d'algorithme",
+          "body": "Deux attaques historiques montrent pourquoi il ne faut **jamais** laisser un jeton dicter comment il doit être vérifié.\n\n**Attaque `alg: none`** : le champ *algorithme* de l'en-tête indique `none`, c'est-à-dire « ce jeton n'est pas signé ». Une bibliothèque naïve lit ce champ, conclut « pas de signature à vérifier » et **accepte le jeton tel quel**. N'importe qui peut alors forger un jeton en s'attribuant les droits qu'il veut.\n\n**Confusion RS256 vers HS256** : ces sigles désignent deux familles de signatures.\n- **RS256** est **asymétrique** : le serveur **signe** avec une clé **privée** (secrète) et **vérifie** avec la clé **publique** (connue de tous, c'est normal).\n- **HS256** est **symétrique** : la **même** clé sert à signer et à vérifier, elle doit donc rester secrète.\n\nL'attaque : le serveur attend du RS256 et vérifie avec sa clé publique. L'attaquant forge un jeton en le déclarant **HS256** et le signe avec cette **clé publique connue** comme s'il s'agissait du secret HMAC. Si la bibliothèque choisit l'algorithme **d'après l'en-tête du jeton**, elle vérifie le HMAC avec la clé publique… et **accepte le faux jeton**.\n\n👉 **Analogie** : c'est comme un cadenas qui **demanderait au visiteur quelle serrure utiliser**. L'attaquant répond « la serrure ouverte » (`none`) ou « celle dont la clé est affichée à l'entrée » (la clé publique), et entre sans effort.\n\n**Parade** : **fixer explicitement** côté serveur le ou les algorithmes acceptés (« je n'accepte **que** du RS256 »), ne **jamais** laisser le jeton choisir, et **refuser** `none`. **Exemple concret** : configurer la bibliothèque en lui passant la liste blanche des algorithmes autorisés."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'attaque par confusion d'algorithme : forcer le serveur a accepter un jeton non signe ou mal signe.",
+          "body": "/images/lessons/securiser-jwt-sessions-profondeur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Rotation des clés & des refresh tokens",
+          "body": "Les secrets ne doivent pas être éternels : on les fait **tourner** (les remplacer régulièrement). Deux rotations importantes.\n\n**Rotation des clés de signature.** Comment changer la clé qui signe les JWT **sans invalider d'un coup tous** les jetons déjà émis ? On publie un **JWKS** (JSON Web Key Set) : un ensemble de clés publiques exposé par le serveur. Chaque JWT porte un claim **`kid`** (key id) qui **désigne quelle clé** l'a signé. Le vérificateur lit le `kid`, va chercher la bonne clé dans le JWKS, et peut ainsi valider aussi bien les anciens jetons (ancienne clé) que les nouveaux (nouvelle clé) pendant la transition. 👉 **Analogie** : chaque billet indique **de quelle imprimerie** il sort ; on peut ouvrir une nouvelle imprimerie sans que les billets de l'ancienne deviennent faux du jour au lendemain.\n\n**Rotation des refresh tokens.** Le refresh token (jeton de renouvellement) est mis en **usage unique** : à chaque fois qu'on s'en sert pour obtenir un nouvel access token, il est **remplacé** par un neuf, l'ancien étant invalidé. On y ajoute la **détection de réutilisation** : si un ancien refresh **déjà consommé** réapparaît, c'est un **signe de vol** (quelqu'un a copié le jeton). On **révoque alors toute la famille** de jetons issus de ce refresh, forçant une reconnexion. 👉 **Analogie** : un **ticket à souche** ; si deux personnes présentent le même numéro de souche, on sait qu'il y a eu copie, et on annule le carnet entier.\n\n**Exemple concret** : c'est le schéma robuste retenu par cette plateforme (access token 60 minutes, refresh token 30 jours avec rotation)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Faire tourner regulierement les cles et les refresh tokens limite la casse en cas de fuite.",
+          "body": "/images/lessons/securiser-jwt-sessions-profondeur-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Au-delà du mot de passe : passkeys & TOTP (niveau expert)",
+          "body": "L'avenir de l'authentification cherche à **réduire la dépendance au mot de passe**, sa faiblesse la plus exploitée. Deux mécaniques à connaître.\n\n**WebAuthn / passkeys** (standard **FIDO2**) : au lieu d'un mot de passe partagé, on utilise une **paire de clés cryptographiques**. L'appareil de l'utilisateur garde une clé **privée** (jamais transmise) et le service ne stocke que la clé **publique**. Résultat : **il n'y a rien à voler** côté serveur qui donnerait accès, et le procédé est **résistant au phishing** (hameçonnage) car la clé est **liée au domaine** légitime, elle ne fonctionne pas sur un faux site imitateur. 👉 **Analogie** : au lieu d'un mot de passe recopiable, tu as une **clé physique unique** dont le double n'existe nulle part, et qui refuse d'entrer dans une **fausse serrure**.\n\n**TOTP** (Time-based One-Time Password, mot de passe à usage unique **basé sur le temps**) : ce sont les fameux **codes à 6 chiffres** des applications d'authentification. Le code est calculé (via une fonction **HMAC**) à partir d'un **secret partagé** entre le téléphone et le serveur **et de l'heure courante**. Comme l'heure entre dans le calcul, le code **change toutes les 30 secondes**, et il faut que les **horloges soient synchronisées** des deux côtés pour tomber d'accord. 👉 **Analogie** : un **cadenas dont la combinaison change toute seule** selon l'heure ; seul celui qui connaît le secret **et** qui est à la même heure peut retrouver le bon code.\n\n**Exemple concret** : comprendre ces mécaniques permet de proposer un MFA solide (TOTP) et de tracer une trajectoire vers le *passwordless* (l'authentification **sans mot de passe** via passkeys)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Au-dela du mot de passe : passkeys et TOTP, plus surs et plus simples pour l'utilisateur.",
+          "body": "/images/lessons/securiser-jwt-sessions-profondeur-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un service vérifie ses JWT (signés en RS256) en appelant `verify(token, clePublique)` sans imposer l'algorithme. Quelle attaque devient possible, et quel est le correctif ?",
+          "solution": "L'attaque par confusion d'algorithme RS256→HS256 : l'attaquant forge un jeton en le déclarant HS256 et le signe avec la clé PUBLIQUE (connue) utilisée comme secret HMAC. Si la lib choisit l'algorithme d'après l'en-tête du jeton, elle vérifie le HMAC avec cette clé publique et accepte le faux jeton. Correctif : imposer explicitement l'algorithme attendu côté serveur (n'accepter que RS256), ne jamais laisser le token dicter son alg, et refuser 'none'. Utiliser une bibliothèque qui exige la liste des algorithmes autorisés."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références. **OWASP** : API Security Top 10 (BOLA/IDOR), Authentication & JWT Cheat Sheets ; RFC 7519 (JWT), 8725 (*JWT Best Current Practices*), 9700 (OAuth 2 Security BCP), 6749/6819 (OAuth 2 + threat model), 9068 (JWT access tokens) ; la spec **WebAuthn** (W3C) et **FIDO2** ; **OPA/Rego**, **Cedar** et le papier **Google Zanzibar** pour l'autorisation à l'échelle. Livre : *OAuth 2 in Action* (Richer & Sanso)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir l'authentification.",
+          "body": "/images/lessons/securiser-jwt-sessions-profondeur-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Authentification (niveau expert)",
+          "quizRef": "authentication-expert"
+        }
+      ]
+    }
+  ]
+}

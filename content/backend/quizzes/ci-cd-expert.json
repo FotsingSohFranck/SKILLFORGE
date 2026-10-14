@@ -1,0 +1,63 @@
+{
+  "ref": "ci-cd-expert",
+  "node": "ci-cd",
+  "lesson": "securiser-chaine-cicd-gitops",
+  "title": "CI/CD (niveau expert)",
+  "description": "Build-once-deploy-many, expand/contract, DORA, OIDC, signature, GitOps.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit le principe « build once, deploy many » ?",
+      "justification": "On promeut un unique artefact immuable à travers les environnements : ce qui a été testé est exactement ce qui tourne en prod.",
+      "position": 0,
+      "options": [
+        { "label": "L'artefact déployé en prod est celui testé, non reconstruit", "correct": true, "position": 0 },
+        { "label": "Chaque environnement a sa propre image reconstruite", "correct": false, "position": 1 },
+        { "label": "Le build est plus rapide car parallélisé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel pattern de migration permet un déploiement sans coupure où ancien et nouveau code coexistent ?",
+      "justification": "Expand/contract : on ajoute (expand) sans casser, on migre, puis on retire l'ancien (contract) une fois tout le trafic basculé.",
+      "position": 1,
+      "options": [
+        { "label": "Expand / contract", "correct": true, "position": 0 },
+        { "label": "Renommer la colonne en une seule migration", "correct": false, "position": 1 },
+        { "label": "Supprimer d'abord, recréer ensuite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que mesurent les métriques DORA ?",
+      "justification": "Fréquence de déploiement, lead time, MTTR et change failure rate : la santé de la livraison logicielle.",
+      "position": 2,
+      "options": [
+        { "label": "La performance de livraison (fréquence, lead time, MTTR, taux d'échec)", "correct": true, "position": 0 },
+        { "label": "La couverture de tests", "correct": false, "position": 1 },
+        { "label": "La consommation mémoire des conteneurs", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment éviter de stocker une clé cloud permanente dans la CI pour déployer ?",
+      "justification": "La fédération OIDC fournit au runner un jeton d'accès à courte durée et scopé : plus de secret longue durée à voler.",
+      "position": 3,
+      "options": [
+        { "label": "Utiliser la fédération OIDC (jeton court, scopé)", "correct": true, "position": 0 },
+        { "label": "Mettre la clé en clair dans le YAML", "correct": false, "position": 1 },
+        { "label": "Partager la clé entre tous les projets", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En GitOps, l'état désiré du déploiement est déclaré dans Git et un agent réconcilie en continu l'état réel du cluster avec lui.",
+      "justification": "Vrai : modèle pull, Git comme source de vérité auditée, rollback par revert et correction automatique des dérives.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

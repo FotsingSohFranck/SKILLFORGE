@@ -1,0 +1,119 @@
+{
+  "ref": "testing-expert",
+  "node": "testing",
+  "lesson": "tester-reactif-discipline-suite",
+  "title": "Tests, niveau expert",
+  "description": "Couverture vs qualité, mutation testing, property-based, StepVerifier, flaky.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi 100 % de couverture ne prouve-t-il pas la qualité des tests ?",
+      "justification": "La couverture mesure les lignes exécutées, pas les comportements vérifiés : on peut tout exécuter sans aucune assertion utile.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Elle mesure l'exécution du code, pas ce qui est réellement vérifié",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle est toujours fausse",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle ne compte que les tests unitaires",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le mutation testing (ex. PIT) ?",
+      "justification": "Il injecte des bugs dans le code et vérifie qu'au moins un test échoue ; un mutant survivant révèle un test faible.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il injecte des bugs et vérifie que les tests les détectent",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il génère automatiquement le code de production",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il mesure la vitesse des tests",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En quoi consiste le property-based testing ?",
+      "justification": "Il génère de nombreuses entrées aléatoires et vérifie une propriété/invariant pour toutes, en réduisant les contre-exemples.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Générer de nombreuses entrées et vérifier une propriété invariante",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tester uniquement les propriétés (getters/setters)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Écrire un test par ligne de code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment tester un `Mono`/`Flux` dans une pile WebFlux sans trahir le modèle réactif ?",
+      "justification": "StepVerifier s'abonne au flux et vérifie la séquence d'événements de façon asynchrone, sans .block().",
+      "position": 3,
+      "options": [
+        {
+          "label": "Avec StepVerifier (expectNext/verifyComplete)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Avec mono.block() puis assertEquals",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En désactivant le réactif",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un test flaky (qui échoue par intermittence) est pire qu'absent, car il détruit la confiance dans toute la suite.",
+      "justification": "Vrai : on finit par ignorer les échecs, y compris les vrais ; on élimine les causes (temps, aléa, ordre, concurrence).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

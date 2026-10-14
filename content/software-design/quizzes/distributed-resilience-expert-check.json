@@ -1,0 +1,96 @@
+{
+  "ref": "distributed-resilience-expert-check",
+  "node": "distributed-styles",
+  "lesson": "patterns-de-resilience",
+  "title": "Quiz, Patterns de résilience (expert)",
+  "description": "Timeout, retry/backoff, circuit breaker, bulkhead, fallback.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un circuit breaker (disjoncteur) ?",
+      "justification": "Au-delà d'un seuil d'échecs, il ouvre le circuit et échoue vite au lieu d'appeler un service en détresse, il empêche la panne en cascade et laisse le service récupérer.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Arrêter d'appeler un service défaillant pour éviter la cascade",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les appels réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Accélérer un service lent",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi réessayer avec backoff exponentiel et jitter ?",
+      "justification": "Pour éviter que tous les clients ne réessaient en même temps (thundering herd) et n'achèvent le service ; et seulement sur des opérations idempotentes.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Éviter que tous les clients réessaient simultanément et aggravent la panne",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Réessayer le plus vite possible sans attendre",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rendre l'appel plus lent volontairement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le pattern Bulkhead (cloison) ?",
+      "justification": "Il isole les ressources (pools séparés par dépendance) pour qu'une dépendance saturée ne noie pas tout le service, la défaillance reste cloisonnée.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Isoler les ressources pour cloisonner une défaillance",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Fusionner tous les pools de threads",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les timeouts",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La dégradation gracieuse consiste à perdre des fonctionnalités non essentielles (via un fallback) plutôt que de laisser tout le système s'effondrer.",
+      "justification": "Vrai : afficher le produit sans les recommandations si ce service est down préserve l'essentiel, on échoue « bien ».",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "ref": "sql-modeling-sqlavance-check",
+  "node": "sql-modeling",
+  "lesson": "sql-avance",
+  "title": "SQL avancé",
+  "description": "Récursif, UPSERT, anti-joins et LATERAL.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment parcourir une hiérarchie (tous les descendants d'un nœud) en pur SQL ?",
+      "justification": "Une CTE récursive (WITH RECURSIVE) descend niveau par niveau, sans boucle applicative ni N+1.",
+      "position": 0,
+      "options": [
+        { "label": "Une CTE récursive (WITH RECURSIVE)", "correct": true, "position": 0 },
+        { "label": "Une boucle côté application (une requête par nœud)", "correct": false, "position": 1 },
+        { "label": "Un simple GROUP BY", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle clause réalise un insert-ou-update atomique et idempotent ?",
+      "justification": "INSERT ... ON CONFLICT DO UPDATE (UPSERT) insère ou met à jour en une seule requête atomique.",
+      "position": 1,
+      "options": [
+        { "label": "INSERT ... ON CONFLICT DO UPDATE", "correct": true, "position": 0 },
+        { "label": "Un SELECT puis un INSERT en deux temps", "correct": false, "position": 1 },
+        { "label": "TRUNCATE puis INSERT", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu veux lister « ce qui n'a AUCUNE correspondance » (ex. users sans inscription), lisiblement. Quel outil ?",
+      "justification": "Un anti-join avec WHERE NOT EXISTS (…) exprime clairement l'absence de correspondance, souvent mieux qu'un LEFT JOIN ... IS NULL.",
+      "position": 2,
+      "options": [
+        { "label": "Un anti-join : WHERE NOT EXISTS (...)", "correct": true, "position": 0 },
+        { "label": "Un INNER JOIN classique", "correct": false, "position": 1 },
+        { "label": "Un UNION des deux tables", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu veux, pour CHAQUE nœud, ses 3 dernières leçons (top-N par groupe) en une seule requête. Quelle construction ?",
+      "justification": "LATERAL laisse la sous-requête référencer les colonnes de la table de gauche (n.id), exécutée une fois par nœud : idéal pour un top-N par groupe.",
+      "position": 3,
+      "options": [
+        { "label": "Une jointure LATERAL", "correct": true, "position": 0 },
+        { "label": "Un GROUP BY node_id", "correct": false, "position": 1 },
+        { "label": "Un DISTINCT sur node_id", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

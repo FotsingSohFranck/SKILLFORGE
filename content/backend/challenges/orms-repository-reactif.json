@@ -1,0 +1,10 @@
+{
+  "node": "orms",
+  "lesson": "quest-ce-quun-orm",
+  "title": "Déclarer un repository réactif",
+  "statement": "Déclare une interface `UserRepository` qui étend `ReactiveCrudRepository<UserEntity, UUID>` (elle hérite ainsi du CRUD réactif de base). Ajoute une **requête dérivée du nom** : une méthode `findByEmail(String email)` qui renvoie un `Mono<UserEntity>` (un utilisateur au plus). Tu n'écris aucun SQL : le nom de la méthode suffit à générer la requête.",
+  "skeleton": "public interface UserRepository extends /* ... */ {\n    // requête dérivée du nom : rechercher par email\n}",
+  "solution": "public interface UserRepository extends ReactiveCrudRepository<UserEntity, UUID> {\n    Mono<UserEntity> findByEmail(String email);\n}",
+  "keyPoints": ["ReactiveCrudRepository", "findByEmail", "Mono<UserEntity>"],
+  "language": "java"
+}

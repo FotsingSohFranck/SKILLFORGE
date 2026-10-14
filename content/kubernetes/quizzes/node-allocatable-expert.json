@@ -1,0 +1,96 @@
+{
+  "ref": "node-allocatable-expert",
+  "node": "resource-management",
+  "lesson": "node-allocatable-densite",
+  "title": "Node allocatable & densité, expert",
+  "description": "Capacity vs allocatable, kube/system-reserved, overcommit, densité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quelle valeur le scheduler place-t-il les pods ?",
+      "justification": "Sur l'allocatable (capacity moins kube-reserved, system-reserved et seuil d'éviction), pas sur la capacity physique brute.",
+      "position": 0,
+      "options": [
+        {
+          "label": "L'allocatable (capacity moins les réserves système)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La capacity physique totale",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le nombre de pods déjà présents",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi correspond la différence entre capacity et allocatable d'un nœud ?",
+      "justification": "Aux réserves système : kube-reserved (kubelet/runtime), system-reserved (OS) et le seuil d'éviction (marge de sécurité).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Aux ressources réservées au système (kube/system-reserved, éviction)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À un bug de comptage",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Au nombre de conteneurs par pod",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que l'overcommit permet ?",
+      "justification": "La somme des limites peut dépasser la capacité (le scheduler ne place que selon les requests), permettant une densité élevée puisque tous n'utilisent pas leur max.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une densité élevée : somme des limites > capacité, requests qui tiennent",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "De doubler la RAM physique",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "D'ignorer les requests",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Régler des requests basses augmente la densité (plus de pods par nœud) mais rapproche du risque d'éviction/throttling si trop de pods pointent en même temps.",
+      "justification": "Vrai : c'est l'arbitrage densité/coût vs stabilité ; on règle à partir de la consommation mesurée (VPA reco, right-sizing).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

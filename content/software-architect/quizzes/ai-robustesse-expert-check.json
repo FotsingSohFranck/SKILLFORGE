@@ -1,0 +1,96 @@
+{
+  "ref": "ai-robustesse-expert-check",
+  "node": "apis-integrations",
+  "lesson": "robustesse-et-async",
+  "title": "Quiz, Robustesse & APIs asynchrones (expert)",
+  "description": "Idempotency keys, pagination curseur, Webhooks/SSE/WebSocket, GraphQL N+1.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment éviter un double paiement quand un client réessaie après un timeout ?",
+      "justification": "Une clé d'idempotence : le serveur reconnaît la clé déjà vue et renvoie le résultat existant au lieu de re-traiter.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Une clé d'idempotence (Idempotency-Key)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Interdire les réessais",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ignorer le problème",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour paginer une grande collection de façon stable et scalable, on préfère… ?",
+      "justification": "La pagination par curseur (stable sous écriture) à l'offset (fragile et lent sur de gros décalages).",
+      "position": 1,
+      "options": [
+        {
+          "label": "La pagination par curseur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Renvoyer tout d'un coup",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La pagination par offset uniquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour notifier un partenaire d'un événement (paiement confirmé) au lieu du polling, on utilise… ?",
+      "justification": "Des Webhooks : le serveur rappelle une URL du partenaire à l'événement (avec réessais, signature, idempotence côté partenaire).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Des Webhooks",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Du polling toutes les secondes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un rechargement de page",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En GraphQL, le problème N+1 se résout notamment avec le pattern DataLoader (batcher les accès).",
+      "justification": "Vrai : sans batching, un champ résolu par élément explose en de nombreux appels ; on impose aussi des limites de complexité/profondeur.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "node": "deployments",
+  "lessons": [
+    {
+      "slug": "replicasets-et-deployments",
+      "title": "ReplicaSets & Deployments",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le ReplicaSet maintient N pods",
+          "body": "Avant de parler de **Deployment**, il faut comprendre la brique juste en dessous : le **ReplicaSet**.\n\nRappel express : un **pod** est la plus petite chose que Kubernetes sait faire tourner. C'est une **enveloppe autour d'un ou plusieurs conteneurs** (une instance de ton application qui s'exécute). Un pod tout seul est **fragile** : si le serveur qui l'héberge redémarre, ou si l'app plante, le pod disparaît et **rien ne le remet en route** de lui-même.\n\nUn **contrôleur**, dans Kubernetes, est un programme qui **surveille en boucle** l'état du cluster et agit pour que la **réalité** corresponde à ce que tu as **demandé**. 👉 **Analogie** : c'est un **thermostat**. Tu règles 20 degrés (l'état désiré), il compare avec la température réelle et allume ou coupe le chauffage jusqu'à y arriver, sans que tu aies à surveiller.\n\nLe **ReplicaSet** est précisément le contrôleur qui garantit qu'un nombre **N de pods identiques** (on dit **N répliques**) tourne en permanence. Une **réplique** est simplement une **copie interchangeable** du même pod. Le ReplicaSet crée, surveille et **remplace** les pods pour maintenir ce nombre : si un pod meurt, il en recrée un ; s'il y en a trop, il en supprime. C'est ce qu'on appelle l'**auto-réparation** (le système se répare tout seul) et la **réplication** (faire tourner plusieurs copies en parallèle).\n\nComment sait-il quels pods sont « les siens » ? Grâce à un **sélecteur de labels**. Un **label** est une petite **étiquette** `clé: valeur` collée sur un objet (par exemple `app: web`). Le ReplicaSet dit « je surveille tous les pods qui portent l'étiquette `app: web` ». 👉 **Analogie** : à l'aéroport, un accompagnateur repère son groupe grâce aux **casquettes rouges** que tout le monde porte ; peu importe qui sont les gens, la casquette suffit à les reconnaître.\n\nExemple concret : tu demandes 3 répliques de `web`. Un pod plante à 3 h du matin. Le ReplicaSet le remarque en quelques secondes, en recrée un identique, et tu retrouves tes 3 pods au réveil sans avoir rien fait. Mais en pratique, **on ne crée presque jamais un ReplicaSet à la main** : on utilise un **Deployment**, qui les gère pour nous (c'est la section suivante)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le Deployment : gérer les mises à jour",
+          "body": "Le **Deployment** est le contrôleur que tu utilises **au quotidien** pour faire tourner une application **sans état**.\n\n**Sans état** (en anglais *stateless*) veut dire que le pod ne **garde rien d'important en local** : chaque réplique est interchangeable, tu peux en détruire une et en recréer une autre sans rien perdre. 👉 **Analogie** : ce sont les **caisses d'un supermarché**. Peu importe à quelle caisse tu passes, elles sont équivalentes ; si l'une ferme, tu vas à la suivante sans conséquence. (À l'inverse, une base de données qui stocke des fichiers sur son disque est « avec état », et se gère autrement, avec un objet `StatefulSet`.)\n\nLe Deployment pilote un ReplicaSet, mais il ajoute l'essentiel : la **gestion des versions**. Une **version** de ton app est définie par son **image** : l'image est le **paquet figé** qui contient ton application et tout ce qu'il lui faut pour tourner (tu l'as vu dans le parcours conteneurs). Passer de `nginx:1.27.0` à `nginx:1.27.1`, c'est changer de version.\n\nQuand tu changes l'image, le Deployment orchestre une **mise à jour progressive** (en anglais *rolling update*) : il crée un **nouveau** ReplicaSet avec la nouvelle version et **bascule les pods petit à petit**, sans jamais tout couper d'un coup. Et il garde l'**historique** des versions précédentes, ce qui te permet de **revenir en arrière** (en anglais *rollback*) si la nouvelle version pose problème.\n\n👉 **En résumé** : Deployment = répliques + auto-réparation + déploiements sans coupure + retour arrière. C'est **l'objet central** pour faire tourner une application sur Kubernetes.\n\nExemple concret : tu déploies la v2 de ton site à midi, en pleine heure de pointe. Le Deployment remplace tes 4 pods un par un ; à aucun moment le site n'est indisponible. La v2 a un bug ? Une seule commande (`kubectl rollout undo`) et te revoilà en v1."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "La hiérarchie Deployment → ReplicaSet → Pods",
+          "diagramFormat": "MERMAID",
+          "body": "graph TD\n  D[\"Deployment web<br/>gere les VERSIONS<br/>rolling update + rollback\"] --> RS[\"ReplicaSet<br/>maintient N repliques<br/>auto-reparation\"]\n  RS --> P1[\"Pod web-1<br/>conteneur\"]\n  RS --> P2[\"Pod web-2<br/>conteneur\"]\n  RS --> P3[\"Pod web-3<br/>conteneur\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Un Deployment et son scaling",
+          "codeLanguage": "bash",
+          "body": "kubectl apply -f web.yaml            # créer/mettre à jour le Deployment\nkubectl get deployment web           # READY 3/3, UP-TO-DATE, AVAILABLE\nkubectl get rs                       # les ReplicaSets gérés (dont l'historique)\n\n# Scaler (déclaratif : modifier replicas dans le YAML puis apply ; ou impératif) :\nkubectl scale deployment web --replicas=5\n\n# Mettre à jour l'image -> déclenche un rolling update\nkubectl set image deployment/web web=nginx:1.27.1\nkubectl rollout status deployment/web   # suivre le déploiement"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Quelle est la relation entre un Deployment, un ReplicaSet et des Pods, et pourquoi manipule-t-on le Deployment plutôt que directement les ReplicaSets ou les Pods ?",
+          "solution": "C'est une hiérarchie de contrôle à trois niveaux : le Deployment gère un (ou plusieurs) ReplicaSet, qui gère lui-même les Pods. Le Pod exécute les conteneurs ; le ReplicaSet maintient le bon NOMBRE de pods identiques (auto-réparation/réplication) ; le Deployment gère les VERSIONS, il crée un nouveau ReplicaSet à chaque mise à jour, orchestre la bascule progressive (rolling update) et conserve l'historique pour le rollback. On manipule le Deployment (pas les ReplicaSets ni les Pods directement) parce qu'il apporte la couche essentielle de gestion des mises à jour et de l'historique : modifier directement un ReplicaSet ou un Pod court-circuiterait cette logique (un pod supprimé serait recréé, un ReplicaSet modifié serait écrasé par le Deployment lors du prochain apply). En déclarant l'état désiré au niveau du Deployment, on laisse Kubernetes gérer proprement toute la cascade (ReplicaSets, Pods), c'est le bon niveau d'abstraction pour une application sans état."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, ReplicaSets & Deployments",
+          "quizRef": "deployments-replicasets-check"
+        }
+      ]
+    },
+    {
+      "slug": "rolling-update-et-rollback",
+      "title": "Rolling update & rollback",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La mise à jour progressive",
+          "body": "Par défaut, un Deployment met à jour ses pods en **rolling update** (mise à jour progressive) : au lieu de tout arrêter puis tout redémarrer, il **remplace les anciens pods par les nouveaux petit à petit**, quelques-uns à la fois, en s'assurant qu'il reste toujours assez de pods disponibles pour servir les utilisateurs. Résultat : **zéro coupure**.\n\n👉 **Analogie** : c'est comme **repeindre un pont sans le fermer**. On ferme une voie, on la repeint, on la rouvre, puis on passe à la suivante. La circulation ne s'arrête jamais, même si tout le pont finit repeint.\n\nDeux réglages pilotent le **rythme** de la bascule :\n- **`maxUnavailable`** : combien de pods peuvent être **indisponibles** en même temps pendant la bascule. Exemple : sur 4 répliques avec `maxUnavailable: 1`, il y aura toujours **au moins 3 pods** qui répondent.\n- **`maxSurge`** : combien de pods **en plus** du total prévu Kubernetes a le droit de créer temporairement. Exemple : avec `maxSurge: 1` sur 4 répliques, il peut monter jusqu'à **5 pods** un court instant, pour préparer les nouveaux avant de retirer les anciens.\n\nComment Kubernetes sait-il qu'un nouveau pod est **vraiment prêt** à recevoir du trafic ? Grâce à la **readiness probe** (sonde de disponibilité). Une **probe** est un petit **test** que Kubernetes répète régulièrement sur le pod ; la readiness probe répond à la question « ce pod est-il prêt à servir des requêtes ? ». Tant qu'elle n'est pas au vert, **aucun trafic** n'est envoyé à ce pod. 👉 **Analogie** : c'est le **panneau « ouvert / fermé »** sur la porte d'un commerce. Les lumières sont allumées (le pod tourne), mais tant que le panneau n'affiche pas « ouvert », personne n'entre.\n\nC'est pour ça qu'une readiness probe correcte est la **clé d'un déploiement sans accroc** : sans elle, Kubernetes envoie des clients vers un pod qui démarre encore, et ils reçoivent des erreurs."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Rollout, historique & rollback",
+          "codeLanguage": "bash",
+          "body": "kubectl rollout status deployment/web     # suivre la progression\nkubectl rollout history deployment/web    # l'historique des révisions\n\n# Un problème avec la nouvelle version ? Revenir en arrière :\nkubectl rollout undo deployment/web                  # révision précédente\nkubectl rollout undo deployment/web --to-revision=3  # une révision précise\n\n# Suspendre/reprendre un rollout (ex. pour un canary manuel)\nkubectl rollout pause deployment/web\nkubectl rollout resume deployment/web"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Compatibilité et migrations (niveau expert)",
+          "body": "Un rolling update a une conséquence qu'on oublie souvent : pendant la bascule, l'**ancienne et la nouvelle version tournent en même temps** quelques minutes. Certains utilisateurs tapent sur des pods v1, d'autres sur des pods v2. Cette **coexistence** impose deux précautions de pro.\n\n**Côté base de données.** Le **schéma** est la **structure** de la base (ses tables, ses colonnes). Si la v2 a besoin d'une nouvelle colonne et que tu la crées en supprimant l'ancienne d'un coup, les pods v1 encore vivants **cassent** parce que la base ne ressemble plus à ce qu'ils attendent. La parade est de rendre chaque changement **rétrocompatible** (compatible avec l'ancien code), grâce au patron **expand/contract** (« étendre puis resserrer ») : on **ajoute** d'abord le nouveau (la colonne) sans rien retirer, on déploie le code qui l'utilise, et on **supprime l'ancien seulement quand plus aucun pod v1 ne tourne**. 👉 **Analogie** : pour changer une ampoule au plafond sans plonger la pièce dans le noir, tu **ajoutes** d'abord une lampe d'appoint, puis tu enlèves l'ancienne une fois la nouvelle allumée ; jamais de moment sans lumière.\n\n**Côté API et contrats.** Un **contrat**, c'est la **promesse** que ton service fait à ceux qui l'appellent (le format attendu des requêtes et des réponses). Pendant la coexistence, la v2 ne doit pas **casser** ce que les clients ou les autres services attendent, sinon tout ce qui parle encore comme avant tombe en panne.\n\nDernier piège : si la **readiness probe** est absente ou mauvaise, Kubernetes bascule le trafic vers des pods pas encore prêts. Le rolling update « réussit » côté Kubernetes, mais **les utilisateurs voient des erreurs**. 👉 **À retenir** : un déploiement sans coupure est autant une affaire de **conception** (compatibilité, readiness) que de mécanique Kubernetes."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Tu déploies une nouvelle version. Le rolling update se déroule « avec succès » selon Kubernetes, mais les utilisateurs signalent des erreurs intermittentes pendant quelques minutes. Quelle configuration du pod est probablement en cause ?",
+          "solution": "La readiness probe est probablement absente ou mal configurée. Sans readiness probe correcte, Kubernetes considère un nouveau pod comme « prêt » dès que son conteneur est démarré (processus lancé), et commence à lui router du trafic, même si l'application n'a pas fini son initialisation (connexion à la base, chargement de config/cache, warmup). Résultat : pendant le rolling update, une partie du trafic atteint des pods qui répondent par des erreurs le temps de vraiment démarrer, d'où les erreurs intermittentes, alors que Kubernetes annonce un déploiement « réussi » (les pods sont Running). Correction : ajouter une readiness probe qui ne passe au vert que lorsque l'application est réellement capable de servir (endpoint /ready vérifiant l'initialisation, la connexion aux dépendances essentielles). Kubernetes n'enverra alors du trafic à un nouveau pod, et ne retirera un ancien, que lorsque le nouveau est vraiment prêt, supprimant les erreurs pendant la bascule. Pour une app lente à démarrer, on combine avec une startupProbe. La leçon : un rolling update sans coupure repose sur une readiness fidèle à l'état réel de l'application."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, ReplicaSets & Deployments",
+          "quizRef": "deployments-check"
+        }
+      ]
+    },
+    {
+      "slug": "rollouts-en-profondeur",
+      "title": "Rollouts en profondeur",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Recreate vs RollingUpdate",
+          "body": "Un Deployment a deux **stratégies** de déploiement, c'est-à-dire deux façons de remplacer les anciens pods par les nouveaux.\n\n**RollingUpdate** (la stratégie par défaut) : le remplacement progressif qu'on vient de voir, **zéro coupure**. C'est le cas général, celui que tu veux presque toujours.\n\n**Recreate** : Kubernetes **arrête tous** les anciens pods **d'abord**, puis crée les nouveaux. Il y a donc une **coupure** (un court moment où l'application ne répond pas), mais c'est parfois **nécessaire** quand l'ancienne et la nouvelle version **ne peuvent pas coexister**. 👉 **Analogie** : RollingUpdate, c'est remplacer les rames d'un métro une par une pendant que la ligne tourne ; Recreate, c'est **fermer la station** le temps de tout changer, parce qu'on ne peut pas faire cohabiter l'ancien et le nouveau système.\n\nQuand la coexistence est-elle impossible ? Trois exemples :\n- un **volume `ReadWriteOnce`** : un disque que Kubernetes n'autorise à monter **qu'en écriture par un seul pod à la fois**. Deux versions ne peuvent pas l'utiliser en parallèle.\n- une **incompatibilité de schéma** qu'on ne peut pas gérer en douceur.\n- une app **singleton** : une application conçue pour tourner **en un seul exemplaire** (par exemple parce qu'elle prend un verrou exclusif sur une ressource).\n\nChoisir Recreate est donc un **choix assumé** : tu acceptes une petite coupure pour éviter les problèmes de cohabitation.\n\nAutre réglage utile : **`revisionHistoryLimit`** borne le nombre d'anciens ReplicaSets que le Deployment **garde en mémoire** pour d'éventuels rollbacks (10 par défaut). Chaque ancienne version laisse derrière elle un ReplicaSet à **zéro pod** ; cette limite évite d'en **accumuler** indéfiniment. Exemple : `revisionHistoryLimit: 3` ne conserve que les 3 dernières versions."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Diagnostiquer un rollout bloqué",
+          "body": "Un rollout ne reste pas « en attente » à l'infini. **`progressDeadlineSeconds`** (600 secondes, soit 10 minutes, par défaut) est le **délai maximum** qu'un Deployment a pour **avancer**. Passé ce délai sans progrès, il est marqué **`ProgressDeadlineExceeded`** : une **condition** (un indicateur d'état) visible dans `kubectl describe` ou dans le `status` de l'objet.\n\nUn rollout **bloqué** veut presque toujours dire la même chose : les **nouveaux pods ne deviennent pas `Ready`** (prêts). Tant qu'un nouveau pod n'est pas prêt, le Deployment n'ose pas retirer l'ancien, et la bascule s'arrête. Les causes classiques :\n- **`ImagePullBackOff`** : Kubernetes n'arrive pas à **télécharger l'image** (nom ou tag erroné, registre privé sans identifiants). 👉 Le mot *BackOff* signifie « il réessaie en espaçant de plus en plus les tentatives ».\n- **`CrashLoopBackOff`** : le conteneur **démarre puis plante en boucle** (variable d'environnement manquante, config invalide, dépendance injoignable). Kubernetes le relance, il replante, et ainsi de suite.\n- **readiness probe qui ne passe jamais** : le pod tourne (`Running`) mais reste **non-`Ready`**, donc il ne remplace pas l'ancien.\n- **pods `Pending`** : le pod ne trouve **pas de place** où tourner (pas assez de CPU/mémoire libre, aucun nœud disponible, quota atteint).\n\nLa démarche de diagnostic est toujours la même, **du général au précis** : `kubectl rollout status` (confirme le blocage), puis `kubectl get pods` (dans quel état sont les nouveaux pods ?), puis `kubectl describe pod` (section *Events*) et `kubectl logs` sur un nouveau pod pour la cause exacte.\n\n👉 **À retenir** : le Deployment ne « ment » pas. S'il est bloqué, c'est que les nouveaux pods **ne sont pas sains** ; ton travail est de descendre au niveau du pod pour trouver **pourquoi**. Bonne nouvelle : pendant ce temps, l'ancienne version continue de servir (c'est justement l'intérêt du rolling update)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le conflit replicas ↔ HPA (niveau expert)",
+          "body": "Voici un piège d'expert très courant. L'**HPA** (de l'anglais *Horizontal Pod Autoscaler*, « autoscaleur horizontal de pods ») est un contrôleur qui **ajuste automatiquement le nombre de répliques** d'un Deployment selon la charge (par exemple : plus de CPU consommé, donc plus de pods). Le champ qu'il pilote s'appelle **`replicas`** (le nombre de pods voulus).\n\nLe problème : si tu laisses **aussi** `replicas: N` écrit **en dur** dans le manifeste que tu appliques, tu te retrouves avec **deux chefs qui donnent des ordres contradictoires** sur le même champ. Chaque `kubectl apply` (ou chaque synchronisation en GitOps) **remet la valeur N**, écrasant la décision de l'HPA ; l'HPA la recorrige aussitôt selon la charge ; l'apply suivant la réécrit... C'est un **yo-yo** de scaling, un va-et-vient permanent.\n\n👉 **Analogie** : deux personnes règlent le **même thermostat** en se contredisant. L'une le remet à 20 toutes les minutes, l'autre le remonte à 24. La température n'arrête pas de sauter et personne n'est content.\n\nQuelques termes du contexte :\n- **GitOps** : une façon de gérer le cluster où **l'état voulu est décrit dans un dépôt Git**, et un outil applique automatiquement ce dépôt sur le cluster. **Argo CD** est l'un de ces outils.\n- **`apply`/`sync`** : l'action d'appliquer le manifeste sur le cluster (à la main avec `kubectl apply`, ou automatiquement avec Argo CD).\n\nLa règle d'or : **un champ mutable, un seul propriétaire**. Concrètement, si un Deployment est autoscalé, **ne déclare pas `replicas`** dans son manifeste (laisse ce champ à l'HPA), et en GitOps configure l'outil pour **ignorer** les différences sur `spec.replicas`. C'est aussi l'esprit du **server-side apply**, le mécanisme par lequel Kubernetes retient **qui possède quel champ** pour éviter ces batailles d'écriture silencieuses."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un rollout reste bloqué : `kubectl rollout status` ne se termine jamais et affiche « waiting for deployment to finish ». Quelle est la démarche de diagnostic, et quelles causes typiques cherchez-vous ?",
+          "solution": "Un rollout bloqué signifie que les NOUVEAUX pods ne deviennent pas Ready, le Deployment ne peut donc pas terminer la bascule. Démarche : (1) `kubectl rollout status deployment/<nom>` confirme le blocage (et, au-delà de progressDeadlineSeconds, la condition ProgressDeadlineExceeded apparaît dans le status). (2) `kubectl get pods -l <selector>` pour voir l'état des nouveaux pods : sont-ils Pending, ImagePullBackOff, CrashLoopBackOff, Running mais pas Ready ? (3) `kubectl describe pod <nouveau-pod>` (section Events) et `kubectl logs <nouveau-pod>` (et --previous si crash) pour la cause exacte. Causes typiques recherchées : image introuvable ou tag erroné / registre privé sans secret (ImagePullBackOff) ; l'application plante au démarrage, variable d'env manquante, config invalide, dépendance injoignable (CrashLoopBackOff) ; la readiness probe ne passe jamais (endpoint /ready faux, port erroné, app pas réellement prête) donc le pod reste Running non-Ready et ne remplace pas l'ancien ; ressources insuffisantes → nouveaux pods Pending (pas de nœud, quota atteint). Corriger selon le cas. Le principe : un rollout bloqué n'est pas un bug de Kubernetes, c'est le signal que les nouveaux pods ne sont pas sains ; on descend au niveau du pod pour trouver pourquoi. En attendant, l'ancienne version continue de servir (c'est justement l'intérêt du rolling update), et on peut `kubectl rollout undo` pour repartir proprement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Rollouts en profondeur (expert)",
+          "quizRef": "rollouts-deep-expert"
+        }
+      ]
+    }
+  ]
+}

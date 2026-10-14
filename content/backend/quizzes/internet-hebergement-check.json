@@ -1,0 +1,96 @@
+{
+  "ref": "internet-hebergement-check",
+  "node": "internet",
+  "lesson": "hebergement-et-mise-en-ligne",
+  "title": "Quiz, Hébergement & mise en ligne",
+  "description": "Options d'hébergement, ports et pare-feu, reverse proxy, sans état.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un reverse proxy placé devant ton application ?",
+      "justification": "Le reverse proxy termine le TLS, route vers la bonne app, équilibre la charge et sert le statique, comme le réceptionniste d'un immeuble.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Recevoir les requêtes, terminer le TLS et les router vers l'application",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Stocker la base de données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Compiler le code du backend",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle règle de sécurité appliquer aux ports exposés ?",
+      "justification": "On n'ouvre que le strict nécessaire (443 en façade) et surtout jamais la base de données au monde entier, cause d'incident très fréquente.",
+      "position": 1,
+      "options": [
+        {
+          "label": "N'ouvrir que le strict nécessaire et ne jamais exposer la base au public",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ouvrir tous les ports pour éviter les blocages",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Exposer la base pour un accès plus rapide",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour lancer plusieurs instances derrière un équilibreur, l'application doit être sans état.",
+      "justification": "Vrai : sinon une requête tombant sur une autre instance perd le contexte (ex. la session). On externalise l'état (base, cache, jetons stateless).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une appli garde la session en mémoire locale ; en 3 instances, des utilisateurs sont déconnectés au hasard. La correction de fond ?",
+      "justification": "Rendre l'app sans état en externalisant la session (store partagé type Redis) ou via des jetons stateless (JWT). Le sticky session n'est qu'un pansement.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Externaliser la session (store partagé ou jetons stateless)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Réduire à une seule instance pour toujours",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Augmenter la mémoire de chaque instance",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

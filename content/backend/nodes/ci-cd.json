@@ -1,0 +1,267 @@
+{
+  "node": "ci-cd",
+  "lessons": [
+    {
+      "slug": "integration-continue",
+      "title": "Intégration continue",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Intégrer souvent, en petit",
+          "body": "Quand plusieurs personnes (ou juste toi, sur plusieurs jours) travaillent sur un même projet, il faut régulièrement **réunir** tout le travail dans une version commune. Cette opération de mise en commun s'appelle l'**intégration**.\n\nL'**intégration continue** (en anglais *Continuous Integration*, abrégé **CI**) est une pratique où l'on intègre **très souvent** (plusieurs fois par jour), par **petites étapes**, plutôt que d'attendre des semaines pour tout fusionner d'un coup. Et surtout : à **chaque** changement envoyé sur le dépôt partagé (chaque `git push`, vu dans le parcours Git), une machine se met automatiquement au travail. Elle fait deux choses :\n- elle **construit** le projet (le *build* : compiler le code, assembler le programme, vérifier qu'il tient debout) ;\n- elle lance les **tests automatiques** (de petits programmes qui vérifient que le code fait bien ce qu'on attend de lui).\n\n👉 **Analogie** : imagine un repas préparé à plusieurs. Plutôt que chacun cuisine son plat trois semaines dans son coin et qu'on assemble le tout la veille (catastrophe assurée), on goûte et on assemble un peu **chaque jour**. Si un ingrédient ne va pas, on le repère aussitôt, tant que le problème est petit.\n\n**Bénéfice concret** : les problèmes (build cassé, test qui échoue) sont détectés **tôt**, sur le petit changement précis qui les a causés, donc faciles à corriger. L'objectif est de garder la branche principale, `main`, **toujours en bon état** (on dit « toujours au vert »)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Integrer souvent et en petit : on fusionne de petits changements plutot qu'un enorme bloc rare.",
+          "body": "/images/lessons/integration-continue-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Le pipeline d'intégration continue en un coup d'œil",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Tu pousses un commit (git push)\"] --> B[\"La CI demarre automatiquement\"]\n    B --> C[\"Build : compiler et assembler le projet\"]\n    C --> D{\"Compilation OK ?\"}\n    D -- Non --> X[\"Au rouge : la fusion dans main est bloquee\"]\n    D -- Oui --> E[\"Lancer les tests automatiques\"]\n    E --> F{\"Tests verts ?\"}\n    F -- Non --> X\n    F -- Oui --> G[\"Au vert : la fusion dans main est autorisee\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Un pipeline CI minimal",
+          "codeLanguage": "yaml",
+          "body": "# Avec GitHub Actions, on decrit la CI dans un fichier YAML\n# range dans le dossier  .github/workflows/  du depot.\n\nname: ci                     # nom affiche de la CI\n\non: [push, pull_request]     # QUAND la lancer : a chaque push et a chaque pull request\n\njobs:                        # un \"job\" = une tache executee sur une machine\n  build:\n    runs-on: ubuntu-latest   # la machine (le \"runner\") : ici un Linux Ubuntu fourni par GitHub\n    steps:                   # les etapes, executees dans l'ordre\n      - uses: actions/checkout@v4   # etape 1 : recuperer le code du depot\n      - run: mvn -q clean verify    # etape 2 : compiler ET lancer les tests (Maven)\n\n# Si  mvn ... verify  echoue, la CI passe au rouge et la fusion est bloquee."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La barrière de qualité",
+          "body": "La CI sert de **barrière de qualité** (en anglais *quality gate*) : un **point de contrôle** que le code doit franchir avant d'entrer dans `main`. La règle : on n'intègre dans `main` **que si** le build passe et les tests sont verts.\n\nEn pratique, ce contrôle est branché sur la **pull request** (la **PR**, vue dans le parcours Git : la demande de fusionner ta branche dans `main`). On configure la branche `main` comme **protégée** : tant que la CI n'est pas au vert, le bouton « fusionner » reste **bloqué**.\n\nAu-delà du build et des tests, on ajoute souvent d'autres vérifications automatiques :\n- le **lint** (un outil qui repère les erreurs probables et le code douteux) et le **format** (mise en forme homogène du code, pour que tout le monde écrive pareil) ;\n- l'**analyse de sécurité** (chercher des failles, ou des dépendances externes vulnérables déjà connues) ;\n- la **couverture de tests** (quel pourcentage du code est réellement exercé par les tests).\n\n👉 **Analogie** : c'est le **portique de sécurité à l'aéroport**. Tout le monde y passe, aucune exception, et ce qu'une machine peut vérifier est vérifié automatiquement. Ainsi les humains (les relecteurs) gardent leur énergie pour ce qui compte vraiment : la **logique** et la **conception** du code, pas la chasse aux virgules mal placées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La barriere de qualite (tests, lint, build) bloque ce qui ne passe pas avant d'aller plus loin.",
+          "body": "/images/lessons/integration-continue-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Pourquoi une CI qui bloque la fusion tant que les tests ne sont pas verts est-elle préférable à « on lancera les tests plus tard » ?",
+          "solution": "Elle empêche qu'un changement cassé n'atteigne main : les problèmes sont attrapés au plus tôt, sur le changement précis qui les cause, donc faciles à corriger. \"Plus tard\", les régressions s'accumulent, se mélangent, et le débogage devient coûteux. Un main toujours vert garde l'équipe productive."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Intégration continue",
+          "quizRef": "ci-cd-integration-check"
+        }
+      ]
+    },
+    {
+      "slug": "livraison-continue",
+      "title": "Livraison & déploiement continus",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "CD : de main à la production",
+          "body": "Une fois que la CI garde `main` toujours au vert, une question se pose : comment amener ce code **jusqu'aux utilisateurs** ? C'est le rôle du **CD**. Attention, deux notions proches mais distinctes se cachent derrière ces deux lettres.\n\nLa **livraison continue** (en anglais *Continuous Delivery*) garde le code **toujours prêt à être déployé**. Après la CI, le pipeline produit automatiquement un **artefact** : le résultat empaqueté et prêt à installer de ton projet. Selon la techno, cet artefact est par exemple un **jar** (un fichier unique qui regroupe une application Java) ou une **image Docker** (un colis autonome contenant l'application et tout ce dont elle a besoin pour tourner). La mise en **production** (la « prod » : le serveur réel qu'utilisent tes vrais utilisateurs) reste déclenchée par **un humain qui appuie sur le bouton**, mais elle peut se faire à tout moment.\n\nLe **déploiement continu** (en anglais *Continuous Deployment*) va un cran plus loin : chaque changement qui passe la CI part **automatiquement** en production, **sans** intervention humaine.\n\n👉 **Analogie** : la livraison continue, c'est avoir en permanence une valise **bouclée et posée près de la porte** ; tu pars quand tu veux, mais en une seconde. Le déploiement continu, c'est la porte **automatique** qui s'ouvre toute seule dès que la valise est prête.\n\n**Objectif commun** : livrer **souvent**, par petites étapes sûres, avec un retour rapide. C'est l'inverse des grosses mises en production trimestrielles, rares et angoissantes, où l'on empile des centaines de changements d'un coup (et où, quand ça casse, on ne sait plus lequel accuser)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La livraison continue amene chaque changement valide jusqu'a la production, de maniere automatisee.",
+          "body": "/images/lessons/livraison-continue-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Déployer sans coupure",
+          "body": "Déployer une nouvelle version ne doit pas **couper le service** pour les utilisateurs (on parle de déploiement **sans coupure**, en anglais *zero downtime*). Le souci : une application tourne souvent en plusieurs exemplaires en même temps, appelés **instances** (plusieurs copies du programme qui se répartissent les utilisateurs). Comment les remplacer par la nouvelle version sans que personne ne voie d'écran d'erreur ? Trois grandes stratégies :\n\n- **Rolling update** (mise à jour progressive) : on remplace les instances **une par une**. Pendant l'opération, les anciennes continuent de servir le temps que les nouvelles démarrent. Aucune interruption.\n- **Blue-green** (bleu-vert) : on prépare un **second environnement complet** (le « vert ») à côté de celui en service (le « bleu »). Quand le vert est prêt et vérifié, on **bascule tout le trafic** dessus d'un coup. En cas de problème, on rebascule sur le bleu instantanément.\n- **Canary** (déploiement « canari ») : on envoie d'abord la nouvelle version à une **toute petite part** des utilisateurs (par exemple 5 %), on **surveille**, et si tout va bien on **généralise** progressivement.\n\n👉 **Analogie du canari** : le nom vient des **canaris qu'on descendait dans les mines** de charbon. Plus sensible aux gaz, l'oiseau alertait du danger avant les mineurs. Ici, ces 5 % d'utilisateurs jouent ce rôle de détecteur précoce : si la nouvelle version a un défaut, seuls eux sont touchés, et on le voit tout de suite.\n\nDans tous les cas, on garde prêt un **rollback** : le **retour arrière** rapide à la version précédente. On surveille des **métriques** (taux d'erreurs, temps de réponse) et, si elles se dégradent, on revient en arrière immédiatement. Le principe clé : **déployer souvent n'est sûr que si revenir en arrière est trivial.**"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deployer sans coupure : blue-green ou canary basculent le trafic sans interrompre le service.",
+          "body": "/images/lessons/livraison-continue-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Feature flags & migrations (niveau expert)",
+          "body": "Deux techniques rendent le déploiement continu vraiment sûr. Elles sont marquées « niveau expert », mais l'idée est accessible.\n\n**Les feature flags** (littéralement « interrupteurs de fonctionnalité ») : on **déploie du code désactivé**, caché derrière un interrupteur qu'on peut allumer ou éteindre **sans redéployer**. Le code part en prod éteint ; on l'**allume** quand on veut (pour tout le monde, ou juste pour quelques testeurs) ; et au moindre souci, on l'**éteint** en une seconde, sans avoir à refaire un déploiement. 👉 **Analogie** : c'est un **interrupteur mural**. L'ampoule (le code) est déjà installée et câblée, mais elle n'éclaire que quand tu bascules l'interrupteur, et tu l'éteins aussi vite.\n\n**Les migrations rétrocompatibles** : une **migration** est un changement de la structure de la base de données (par exemple ajouter une **colonne** à une table). Elle est **rétrocompatible** si l'ancienne version du code continue de fonctionner avec la nouvelle base. Pourquoi est-ce crucial ? Souviens-toi du rolling update : pendant le remplacement, l'**ancien et le nouveau code tournent en même temps** (ils doivent **coexister**) et parlent à la **même** base. Donc on **ajoute** une colonne *avant* de s'en servir, et on ne **supprime** l'ancienne qu'*après* que plus personne ne l'utilise. Renommer ou supprimer une colonne d'un coup **casse** les instances encore sur l'ancien code, en plein milieu du déploiement.\n\n👉 **Retiens** : quand ancien et nouveau doivent cohabiter un moment, on ne change jamais la base de façon brutale ; on procède par petites étapes réversibles."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Feature flags et migrations decouplent 'deployer le code' de 'activer la fonctionnalite'.",
+          "body": "/images/lessons/livraison-continue-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Vous voulez tester une nouvelle fonctionnalité auprès de 5 % des utilisateurs avant de la généraliser. Quelle stratégie de déploiement et quel outil ?",
+          "solution": "Un déploiement canary (router 5 % du trafic vers la nouvelle version, surveiller erreurs/latence, puis augmenter), souvent combiné à un feature flag pour activer/désactiver la fonctionnalité indépendamment du déploiement. Si les métriques se dégradent, on coupe le flag ou on rollback : impact limité à 5 %."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : CI / CD",
+          "quizRef": "ci-cd-check"
+        }
+      ]
+    },
+    {
+      "slug": "concevoir-pipeline-robuste",
+      "title": "Concevoir un pipeline robuste",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Build once, deploy many",
+          "body": "Voici le **principe cardinal** d'un pipeline solide : on **construit l'artefact une seule fois**, puis on **réutilise exactement ce même artefact** partout. En anglais : *build once, deploy many* (« construire une fois, déployer plusieurs fois »).\n\nRappel : un **environnement** est un lieu où tourne l'application. On en a en général plusieurs, en escalier : **dev** (pour développer), **staging** (une copie fidèle de la prod, pour tester en conditions réelles), puis **prod** (les vrais utilisateurs). L'idée est de faire **avancer** le même artefact le long de cet escalier, dev vers staging vers prod. Faire passer un artefact validé d'un environnement au suivant s'appelle le **promouvoir**.\n\nPoint crucial : on ne **reconstruit jamais** l'artefact pour chaque environnement. Pourquoi ? Parce que deux builds lancés à deux moments différents peuvent produire des résultats **subtilement différents** (une dépendance mise à jour entre-temps, l'image de base qui a changé). Résultat : l'artefact de prod ne serait **pas** celui qu'on a testé en staging, et un bug pourrait surgir « alors que c'est le même code ».\n\nPour désigner sans ambiguïté « exactement cet artefact-là », on utilise son **digest** : une empreinte calculée à partir de son contenu (comme le *hash* d'un commit Git, vu précédemment). Deux artefacts au même digest sont **garantis identiques, bit pour bit**. On dit que l'artefact est **immuable** : une fois construit, il ne change plus.\n\n👉 **Analogie** : tu imprimes **un** exemplaire officiel d'un contrat, et c'est **cet** exemplaire précis qui circule et se fait signer partout. Tu ne réimprimes pas une « nouvelle copie » à chaque étape, car rien ne garantit qu'elle serait strictement identique (une virgule aurait pu bouger).\n\nEt la **configuration** dans tout ça ? Ce qui change d'un environnement à l'autre (adresses de base de données, **secrets**, réglages) est **injecté au moment du déploiement**, **par-dessus** l'artefact. Le **binaire ne change pas**, seule sa configuration varie. C'est ce qui rend vraie la promesse : « ce qui a été testé est exactement ce qui tourne en prod »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Build once, deploy many : on construit un artefact une fois, puis on le promeut d'un env a l'autre.",
+          "body": "/images/lessons/concevoir-pipeline-robuste-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Feedback rapide : cache, parallélisme, fail fast",
+          "body": "Un pipeline **lent** est un pipeline qu'on finit par **contourner** (« je fusionne sans attendre les tests… »). Pour que « intégrer souvent » reste tenable, il faut un **retour en minutes, pas en heures**. Quatre leviers :\n\n- **Le cache** : garder ce qui a déjà été calculé pour ne pas le refaire. En pratique, on met en cache les **dépendances** téléchargées (les bibliothèques externes, gérées par Maven ou npm) et les **couches Docker** (une image Docker est faite d'empilements réutilisables appelés couches). 👉 **Analogie** : au lieu de refaire les courses avant chaque recette, tu gardes le garde-manger déjà rempli.\n- **La parallélisation** : lancer **en même temps** les tâches indépendantes. Rappel : une tâche du pipeline s'appelle un **job**. Le lint, les tests unitaires et les tests d'intégration ne dépendent pas les uns des autres : on les fait tourner **en parallèle** au lieu de les enchaîner.\n- **Le fail fast** (« échouer vite ») : mettre les étapes **rapides et les plus susceptibles d'échouer en premier**. On compile et on lint (quelques secondes) **avant** les longs tests d'intégration : inutile de faire tourner dix minutes de tests si le code ne compile même pas.\n- **Le build de matrice** (*matrix build*) : rejouer automatiquement le pipeline pour **plusieurs combinaisons** (par exemple plusieurs versions de Java), afin de vérifier que ça marche partout, sans recopier le fichier à la main.\n\n👉 **Le principe** : chaque minute gagnée sur le pipeline, c'est une minute de moins entre l'erreur et sa correction. Un retour rapide, c'est ce qui maintient la boucle « intégrer souvent » en vie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Feedback rapide : cache, parallelisme et fail fast raccourcissent la boucle.",
+          "body": "/images/lessons/concevoir-pipeline-robuste-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Migrations rétrocompatibles : expand / contract",
+          "body": "On a vu (leçon précédente) qu'une **migration** de base de données doit être **rétrocompatible** pour permettre un déploiement sans coupure. Voici la méthode qui garantit ça, en trois temps : le pattern **expand / contract** (« étendre puis resserrer »).\n\nLe contexte à garder en tête : pendant un rolling update, l'**ancien et le nouveau code coexistent** et parlent à la **même** base. Le schéma (la structure des tables) doit donc satisfaire les **deux** en même temps. On procède ainsi :\n\n1. **Expand (étendre)** : on **ajoute** la nouvelle structure **sans rien casser** : une nouvelle colonne **nullable** (qui accepte l'absence de valeur), une nouvelle table. L'ancien code, qui l'ignore, continue de fonctionner.\n2. **Migrate (migrer)** : on déploie le nouveau code, qui écrit **à la fois** dans l'ancienne et la nouvelle structure ; et on **rétro-remplit** (on recopie les anciennes données vers la nouvelle colonne pour les lignes déjà existantes).\n3. **Contract (resserrer)** : **une fois tout le trafic passé** sur le nouveau code, et plus personne n'utilisant l'ancienne structure, on **retire** l'ancienne colonne.\n\n👉 **Analogie** : pour remplacer un pont sans couper la circulation, on **construit le nouveau pont à côté** (expand), on **fait passer les voitures sur les deux** le temps de la bascule (migrate), puis seulement **on démolit l'ancien** (contract). Jamais on ne démolit avant d'avoir le remplaçant.\n\n**Le piège à éviter** : renommer ou supprimer une colonne **en une seule migration**. Ça casse net les instances encore sur l'ancien code, en plein déploiement. Chaque étape (expand, puis plus tard contract) est une **migration Flyway** versionnée à part (`V1__...`, `V2__...`), déployée avec la version de code correspondante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Migrations retrocompatibles (expand/contract) : ajouter avant de retirer, pour deployer sans casse.",
+          "body": "/images/lessons/concevoir-pipeline-robuste-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Mesurer sa performance de livraison : DORA (niveau expert)",
+          "body": "Comment savoir si notre façon de livrer est **bonne**, sans se fier à de simples impressions ? On la **mesure**, avec quatre indicateurs devenus une référence : les **métriques DORA** (du nom de l'équipe de recherche *DevOps Research and Assessment*, à l'origine du rapport annuel *State of DevOps*). Les voici :\n\n- **La fréquence de déploiement** : à quelle **cadence** on met en production (plusieurs fois par jour ? une fois par mois ?).\n- **Le lead time** (« délai de livraison ») : le **temps** écoulé entre le moment où un développeur valide un commit et le moment où ce changement **tourne en production**.\n- **Le MTTR** (*Mean Time To Restore*, « temps moyen de rétablissement ») : quand un incident survient, combien de temps pour **remettre le service en état**.\n- **Le change failure rate** (« taux d'échec des changements ») : quelle **proportion** des déploiements provoquent un incident (nécessitant un correctif ou un rollback).\n\n👉 **Le résultat contre-intuitif** : les équipes qui déploient **plus souvent** échouent **moins**, pas plus. La raison est logique : de **petits** changements fréquents sont plus faciles à comprendre, à tester et à diagnostiquer que de **gros** paquets rares. Quand un petit déploiement casse, on sait tout de suite quoi accuser et on revient vite en arrière.\n\n👉 **À retenir** : ces quatre chiffres **guident l'amélioration** du pipeline sur des faits mesurables plutôt que sur des ressentis. On mesure, on repère le maillon faible, on l'améliore, on remesure."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les metriques DORA mesurent la performance de livraison : frequence, delai, taux d'echec, MTTR.",
+          "body": "/images/lessons/concevoir-pipeline-robuste-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe reconstruit son image Docker séparément pour staging puis pour la production. Un bug apparaît en prod, absent en staging, alors que « c'est le même code ». Quelle mauvaise pratique l'explique, et quelle règle appliquer ?",
+          "solution": "Reconstruire l'image par environnement : les deux builds ne sont pas garantis identiques (dépendances transitives qui ont changé entre-temps, cache différent, image de base mise à jour, horodatages). L'image de prod n'est donc PAS celle qui a été testée en staging. Règle : build once, deploy many : construire un unique artefact immuable (identifié par son digest), le promouvoir tel quel de staging à la prod, et ne faire varier que la configuration injectée au déploiement. Ce qui est testé est exactement ce qui tourne."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : Concevoir un pipeline robuste",
+          "quizRef": "ci-cd-pipeline-check"
+        }
+      ]
+    },
+    {
+      "slug": "securiser-chaine-cicd-gitops",
+      "title": "Sécuriser la chaîne CI/CD & GitOps",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le pipeline est une cible de choix",
+          "body": "On l'oublie souvent : la **CI/CD est une cible de choix pour les attaquants**. Réfléchis à ce à quoi elle a accès : le **code source**, les **secrets** (mots de passe, clés d'accès) et la **production** elle-même. La compromettre, c'est **tout** compromettre d'un coup. Ce n'est pas théorique : des attaques célèbres (SolarWinds, Codecov) ont visé exactement ce maillon, la **chaîne d'approvisionnement logicielle** (en anglais *supply chain* : tout ce qui va du code source jusqu'à l'artefact déployé). Deux règles majeures.\n\n**1. Ne pas stocker de clés cloud à longue durée dans la CI.** Une clé d'accès valable des mois, rangée dans les secrets de la CI, est un trésor pour un attaquant : volée une fois, elle donne un accès durable. La parade moderne est la **fédération OIDC** (*OpenID Connect*). Au lieu de détenir une clé permanente, la machine qui exécute le pipeline (le **runner**) **prouve son identité** au fournisseur cloud au moment où elle en a besoin, et reçoit en échange un **jeton** (un *token* : un laissez-passer temporaire) valable **quelques minutes** seulement. 👉 **Analogie** : plutôt qu'un **passe-partout** qui ouvre tout et qu'on garde dans sa poche (donc qu'on peut se faire voler), on demande à l'accueil un **badge visiteur** qui expire au bout d'une heure. Même volé, il ne sert bientôt plus à rien.\n\n**2. Se méfier de la *poisoned pipeline execution* (« exécution empoisonnée du pipeline »).** Le danger : une **pull request** envoyée par un contributeur **externe** contient du code qui, si le pipeline l'exécute avec accès aux secrets, peut les **exfiltrer** (les faire fuiter). La règle : le code d'une PR externe **ne doit jamais** tourner avec accès aux secrets ou à la prod.\n\n👉 **Le fil rouge** : le **moindre privilège**. Chaque runner ne reçoit **que** les droits strictement nécessaires à sa tâche, et les secrets sont **séparés par environnement** (les secrets de prod ne traînent pas dans les jobs de test)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le pipeline, qui a acces a tout, est une cible de choix : il faut le securiser comme la prod.",
+          "body": "/images/lessons/securiser-chaine-cicd-gitops-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Prouver ce qu'on livre : signature & provenance",
+          "body": "Nouvelle question de confiance : comment être **sûr** que l'image déployée en prod est bien celle produite par ton pipeline, et qu'elle n'a pas été **remplacée ou altérée** en cours de route (entre le build et le déploiement) ? La réponse tient en trois outils.\n\n- **Signer** l'artefact : on y appose une **signature** cryptographique, une sorte de **sceau infalsifiable** qui prouve « c'est bien mon pipeline qui a produit ça, et personne n'y a touché depuis ». L'outil de référence est **Sigstore** (et sa commande **cosign**).\n- Le **SBOM** (*Software Bill Of Materials*, « nomenclature logicielle ») : l'**inventaire détaillé** de tous les composants et dépendances contenus dans l'artefact. 👉 **Analogie** : c'est la **liste des ingrédients** au dos d'un produit alimentaire. En cas d'alerte sur un composant (une faille dans une bibliothèque), on sait immédiatement quels artefacts sont concernés.\n- La **provenance** : la **fiche d'origine** qui répond à « **qui** a construit **quoi**, à partir de **quelle** source, avec **quel** pipeline ». Le cadre de référence qui organise tout cela s'appelle **SLSA** (des niveaux de garantie sur la chaîne de construction).\n\nEt l'étape qui donne son sens à tout le reste : au **moment du déploiement**, on **vérifie** la signature et la provenance. Une image **non signée**, ou d'**origine inconnue**, est tout simplement **refusée**. 👉 **En clair** : c'est le **contrôle du sceau et de l'étiquette** avant d'ouvrir un colis. C'est la défense contre l'injection d'un artefact malveillant à la place du tien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Signer les artefacts et tracer leur provenance prouve qu'on deploie bien ce qu'on a construit.",
+          "body": "/images/lessons/securiser-chaine-cicd-gitops-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "GitOps : Git comme source de vérité du déploiement",
+          "body": "Dernière brique : **comment déployer de façon traçable et sûre ?** Une approche moderne s'appelle le **GitOps**. L'idée est élégante : **Git devient la source de vérité de ce qui doit tourner en production.**\n\nConcrètement, on **décrit** dans un dépôt Git l'**état désiré** du déploiement : quelles applications, en quelle version, avec quels réglages doivent tourner. C'est une description **déclarative** (on écrit *ce qu'on veut obtenir*, pas la suite d'étapes pour y arriver). Ensuite, un **agent** installé dans le **cluster** (l'ensemble des machines qui font tourner l'application, notion vue avec Kubernetes) **compare en permanence** l'état réel à ce qui est écrit dans Git, et **corrige tout écart** pour les faire correspondre. Cette mise en correspondance continue s'appelle **réconcilier**. Les outils les plus connus sont **ArgoCD** et **Flux**.\n\nDétail important : c'est un **modèle *pull*** (l'agent, depuis l'intérieur du cluster, **va chercher** l'état désiré dans Git) et non *push* (on ne pousse pas depuis l'extérieur vers le cluster). 👉 **Analogie** : au lieu de livreurs extérieurs à qui on confie les clés du cluster, c'est un **gardien à l'intérieur** qui consulte la liste officielle des consignes et met tout en conformité lui-même.\n\nLes avantages sont concrets :\n- **tout changement passe par une pull request** revue et auditée (rien ne se déploie « à la main » en douce) ;\n- le dépôt Git devient un **journal complet** et un **point de rollback** : revenir à l'état précédent, c'est simplement **`revert`** le commit (vu dans le parcours Git) ;\n- l'agent **corrige automatiquement les dérives**. Une **dérive** (*drift*) est l'écart entre l'état réel et l'état déclaré : si quelqu'un modifie le cluster à la main, l'écart avec Git est détecté et annulé.\n\nEn résumé du chapitre : la **CI** produit et **signe** l'artefact ; la **CD en mode GitOps** l'applique de façon **déclarative, traçable et auto-corrigée**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "GitOps : l'etat desire du deploiement vit dans Git, source de verite reconciliee automatiquement.",
+          "body": "/images/lessons/securiser-chaine-cicd-gitops-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Séparer intégration et déploiement (niveau expert)",
+          "body": "Un dernier principe de robustesse, dans l'esprit du moindre privilège vu plus haut : **le pipeline qui construit ne devrait pas avoir le pouvoir de déployer en prod.** On **découple** (on sépare) les deux responsabilités.\n\n- La **CI** produit un artefact **signé** et le dépose dans un **registre** (un entrepôt d'images / d'artefacts). Elle s'arrête là : elle n'a **pas** les clés de la prod.\n- Un **processus de déploiement séparé** prend le relais : soit le **GitOps** (l'agent qui réconcilie), soit un job dédié avec ses **propres permissions restreintes** et une **approbation humaine** obligatoire pour la production.\n\nPourquoi se compliquer ? Pour **limiter le rayon d'explosion** (en anglais *blast radius* : l'étendue des dégâts si quelque chose est compromis). Si la CI, qui exécute beaucoup de code externe (dépendances, PR…), venait à être piratée, l'attaquant se retrouverait **sans** les droits de déployer en prod : les dégâts restent **cantonnés**. 👉 **Analogie** : dans une banque, la personne qui **prépare** les fonds n'est pas celle qui **ouvre le coffre**, et il faut **deux clés** distinctes pour ce dernier. On ne concentre jamais tout le pouvoir en un seul point.\n\nEt l'**approbation humaine** avant la prod impose un **contrôle explicite** : un dernier « oui » conscient avant que les vrais utilisateurs ne reçoivent le changement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Separer qui integre de qui deploie limite le rayon d'action en cas de compromission.",
+          "body": "/images/lessons/securiser-chaine-cicd-gitops-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une CI stocke une clé d'accès cloud permanente (valable des mois) dans ses secrets pour déployer. En quoi est-ce risqué, et quelle approche moderne l'élimine ?",
+          "solution": "Une clé permanente est un secret à longue durée : si les logs de CI, un fork malveillant, une dépendance compromise ou une mauvaise config l'exfiltrent, l'attaquant a un accès cloud durable et difficile à révoquer sans tout casser. Approche moderne : la fédération OIDC : le runner de CI prouve son identité au fournisseur cloud (GitHub Actions vers AWS/GCP) et reçoit un jeton d'accès à courte durée, limité au job. Il n'y a plus de clé longue à stocker ni à voler ; le pouvoir est éphémère et scopé. On complète par des runners au moindre privilège et l'interdiction d'exécuter du code de PR externe avec les secrets."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Pour approfondir, quelques références solides :\n- *Accelerate* (Nicole Forsgren, Jez Humble, Gene Kim) : les métriques DORA et ce qui distingue les équipes performantes.\n- *Continuous Delivery* (Jez Humble, David Farley) : le livre fondateur du domaine.\n- Le cadre **SLSA** (slsa.dev) et **Sigstore / cosign** : sécuriser la chaîne d'approvisionnement logicielle (signature, provenance).\n- La documentation **ArgoCD** et **Flux** : le GitOps en pratique.\n- Les guides **GitHub Actions** sur la fédération **OIDC** et la sécurité des workflows (dont la *poisoned pipeline execution*).\n- Le rapport annuel *State of DevOps* : les grandes tendances de la livraison logicielle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le CI/CD.",
+          "body": "/images/lessons/securiser-chaine-cicd-gitops-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : CI/CD (niveau expert)",
+          "quizRef": "ci-cd-expert"
+        }
+      ]
+    }
+  ]
+}

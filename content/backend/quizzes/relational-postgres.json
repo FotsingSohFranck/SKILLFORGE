@@ -1,0 +1,74 @@
+{
+  "ref": "relational-postgres",
+  "node": "relational-databases",
+  "lesson": "sous-le-capot-postgresql",
+  "title": "Bases relationnelles & PostgreSQL",
+  "description": "Modèle relationnel, types, contraintes et internes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une clé étrangère ?",
+      "justification": "Elle relie une ligne à une ligne d'une autre table et garantit l'intégrité référentielle (pas de lien vers une ligne inexistante).",
+      "position": 0,
+      "options": [
+        { "label": "Relier une table à une autre en garantissant l'intégrité", "correct": true, "position": 0 },
+        { "label": "Chiffrer une colonne sensible", "correct": false, "position": 1 },
+        { "label": "Accélérer automatiquement toutes les requêtes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour stocker un montant monétaire, quel type PostgreSQL privilégier ?",
+      "justification": "numeric est décimal exact ; float/double introduisent des erreurs d'arrondi inacceptables pour de l'argent.",
+      "position": 1,
+      "options": [
+        { "label": "numeric", "correct": true, "position": 0 },
+        { "label": "double precision", "correct": false, "position": 1 },
+        { "label": "real", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit `UNIQUE (user_id, roadmap)` même sous requêtes concurrentes ?",
+      "justification": "La contrainte est appliquée par le moteur : une seconde insertion en doublon échoue, là où un SELECT-puis-INSERT applicatif laisserait passer.",
+      "position": 2,
+      "options": [
+        { "label": "Aucun doublon de la paire, garanti par la base", "correct": true, "position": 0 },
+        { "label": "Un tri automatique des lignes", "correct": false, "position": 1 },
+        { "label": "Un chiffrement des deux colonnes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Grâce au MVCC de PostgreSQL, que se passe-t-il entre lecteurs et écrivains ?",
+      "justification": "Une écriture crée une nouvelle version de la ligne ; les lecteurs ne bloquent pas les écrivains et inversement.",
+      "position": 3,
+      "options": [
+        { "label": "Ils ne se bloquent pas mutuellement", "correct": true, "position": 0 },
+        { "label": "Les lecteurs bloquent toujours les écrivains", "correct": false, "position": 1 },
+        { "label": "Toute la table est verrouillée à chaque écriture", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En production, on modifie le schéma via des migrations versionnées plutôt qu'à la main.",
+      "justification": "Les migrations (Flyway) sont reproductibles, auditées et jouées une seule fois ; modifier la base à la main n'est ni traçable ni reproductible.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi utilise-t-on un pool de connexions vers PostgreSQL ?",
+      "justification": "Chaque connexion est un processus coûteux ; réutiliser un petit nombre de connexions évite le coût d'ouverture et la saturation de la base.",
+      "position": 5,
+      "options": [
+        { "label": "Réutiliser des connexions coûteuses au lieu d'en rouvrir", "correct": true, "position": 0 },
+        { "label": "Chiffrer le trafic vers la base", "correct": false, "position": 1 },
+        { "label": "Éviter d'écrire du SQL", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

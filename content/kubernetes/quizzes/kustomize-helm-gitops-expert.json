@@ -1,0 +1,119 @@
+{
+  "ref": "kustomize-helm-gitops-expert",
+  "node": "helm-gitops",
+  "lesson": "kustomize-helm-gitops-avance",
+  "title": "Kustomize, Helm & GitOps de pro, expert",
+  "description": "Helm vs Kustomize, hooks/OCI, app-of-apps, secrets en GitOps.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence de philosophie entre Helm et Kustomize ?",
+      "justification": "Helm fait du templating paramétrable (distribuable) ; Kustomize patche du YAML réel sans template (lisible, diffable). Ils se combinent.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Helm = templating distribuable, Kustomize = patch de YAML sans template",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux noms du même outil",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Kustomize fait du templating, Helm patche",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les hooks Helm (pre-install, post-upgrade...) ?",
+      "justification": "À exécuter des ressources à des moments du cycle de vie de la release (ex. une migration de base avant une mise à jour).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Exécuter des actions à des moments du cycle de vie (ex. migration)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les values",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Router le trafic",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le pattern app-of-apps (Argo CD) ?",
+      "justification": "Une application racine qui déclare d'autres applications Argo CD, pour gérer des dizaines d'apps/environnements hiérarchiquement depuis Git.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une app racine qui déclare d'autres apps (gestion hiérarchique)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une application qui se réplique seule",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un type de Service",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment gérer des secrets en GitOps sans les mettre en clair dans Git ?",
+      "justification": "Sealed Secrets (chiffré pour Git), External Secrets Operator (référence vers Vault/Secrets Manager) ou SOPS : Git ne contient que du chiffré/une référence.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Sealed Secrets / External Secrets Operator / SOPS",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les committer en base64",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les mettre dans l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les charts Helm peuvent être distribués dans des registres OCI, comme des images de conteneurs.",
+      "justification": "Vrai : un chart devient un artefact OCI versionné, signable, poussé/tiré comme une image, packaging professionnel.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

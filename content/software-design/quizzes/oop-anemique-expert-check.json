@@ -1,0 +1,101 @@
+{
+  "ref": "oop-anemique-expert-check",
+  "node": "oop-principles",
+  "lesson": "modele-riche-vs-anemique",
+  "title": "Quiz, Modèle riche vs anémique (expert)",
+  "description": "Anemic Domain Model, Tell Don't Ask, Information Expert, place de la logique.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi Fowler qualifie le modèle anémique d'anti-pattern ?",
+      "justification": "Des objets réduits à des getters/setters avec la logique dans des services, c'est de la programmation procédurale déguisée : on paie le coût de la POO sans le bénéfice (comportement encapsulé avec les données), et les invariants ne sont pas protégés.",
+      "position": 0,
+      "options": [
+        {
+          "label": "C'est du procédural déguisé : coût de la POO sans le bénéfice, invariants non protégés",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce qu'il utilise trop d'héritage",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce qu'il n'a pas assez de setters",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel principe GRASP dit « la logique va là où sont les données nécessaires » ?",
+      "justification": "Information Expert : confier une responsabilité à la classe qui détient l'information pour l'assumer, fondement du modèle riche et de Tell, Don't Ask.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Information Expert",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Singleton",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Open/Closed",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un modèle riche, comment `Order` change-t-il d'état ?",
+      "justification": "Par des méthodes intentionnelles (order.ship()) qui vérifient les invariants, pas par des setters publics qui laisseraient n'importe qui produire un état incohérent.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Par des méthodes métier intentionnelles qui protègent les invariants (pas de setter public)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par setStatus() appelé depuis les services",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par accès direct aux champs publics",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un virement coordonne deux comptes et n'appartient en propre à aucun. Où placer cette logique ?",
+      "justification": "Débit/crédit (invariants d'un compte) vivent dans l'entité ; le virement, qui traverse deux agrégats, va dans un domain service (règle) orchestré par un service applicatif (transaction, persistance).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Dans un domain service (règle inter-comptes), orchestré par un service applicatif ; débit/crédit restent dans le compte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tout dans des setters publics de BankAccount",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans le contrôleur web",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

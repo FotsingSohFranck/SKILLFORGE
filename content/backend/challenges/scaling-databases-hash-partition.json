@@ -1,0 +1,10 @@
+{
+  "node": "scaling-databases",
+  "lesson": "sharding",
+  "title": "Répartir uniformément avec un partitionnement par hachage",
+  "statement": "Pour répartir les écritures de façon équilibrée sur une clé sans critère métier évident, écris le SQL PostgreSQL qui : (1) crée une table `accounts` (colonnes `user_id uuid`, `balance numeric`) partitionnée par hachage (`HASH`) sur `user_id` ; (2) crée les 4 partitions correspondantes (`MODULUS 4`, `REMAINDER` de 0 à 3).",
+  "skeleton": "-- 1) table parente partitionnée par HASH sur user_id\n\n-- 2) les 4 partitions : MODULUS 4, REMAINDER 0..3\n",
+  "solution": "CREATE TABLE accounts (\n  user_id uuid,\n  balance numeric\n) PARTITION BY HASH (user_id);\n\nCREATE TABLE accounts_0 PARTITION OF accounts\n  FOR VALUES WITH (MODULUS 4, REMAINDER 0);\nCREATE TABLE accounts_1 PARTITION OF accounts\n  FOR VALUES WITH (MODULUS 4, REMAINDER 1);\nCREATE TABLE accounts_2 PARTITION OF accounts\n  FOR VALUES WITH (MODULUS 4, REMAINDER 2);\nCREATE TABLE accounts_3 PARTITION OF accounts\n  FOR VALUES WITH (MODULUS 4, REMAINDER 3);",
+  "keyPoints": ["PARTITION BY HASH", "MODULUS 4", "REMAINDER 0", "REMAINDER 3"],
+  "language": "sql"
+}

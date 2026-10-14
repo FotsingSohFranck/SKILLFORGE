@@ -1,0 +1,96 @@
+{
+  "ref": "msg-kafka-expert-check",
+  "node": "messaging",
+  "lesson": "kafka-et-livraison",
+  "title": "Quiz, Kafka & sémantiques de livraison (expert)",
+  "description": "At-least/exactly-once, partitions/ordre, consumer lag, RabbitMQ vs Kafka.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Le mode « exactly-once » de Kafka dispense-t-il de rendre les consommateurs idempotents ?",
+      "justification": "Non : l'EOS ne vaut que dans le périmètre Kafka ; dès qu'un effet de bord externe existe, l'idempotence côté consommateur reste indispensable (effectively-once).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Non : l'idempotence reste indispensable pour les effets externes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, exactly-once règle tout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, plus besoin de gérer les doublons",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans Kafka, l'ordre des messages est garanti… ?",
+      "justification": "Seulement au sein d'une partition ; la clé de partition (ex. l'ID d'entité) garantit l'ordre par entité tout en permettant le parallélisme entre partitions.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Uniquement à l'intérieur d'une partition",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Globalement sur tout le topic",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la métrique de santé essentielle d'un système Kafka ?",
+      "justification": "Le consumer lag (retard des consommateurs sur les producteurs) : s'il croît, les consommateurs ne suivent plus.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le consumer lag",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le nombre de couleurs de l'UI",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La taille des noms de topics",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "RabbitMQ (smart broker) convient bien à une file de tâches ; Kafka (journal rejouable) à l'ingestion et au rejeu de flux d'événements.",
+      "justification": "Vrai : RabbitMQ route et distribue des tâches consommées une fois ; Kafka conserve et rejoue des flux pour plusieurs consommateurs, on choisit selon le besoin.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

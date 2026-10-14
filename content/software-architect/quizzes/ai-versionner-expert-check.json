@@ -1,0 +1,96 @@
+{
+  "ref": "ai-versionner-expert-check",
+  "node": "apis-integrations",
+  "lesson": "versionner-et-gouverner",
+  "title": "Quiz, Versionner & gouverner une API (expert)",
+  "description": "Compatibilité ascendante, dépréciation, contract-first, RFC 7807.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la règle d'or pour faire évoluer une API sans casser ses consommateurs ?",
+      "justification": "La compatibilité ascendante : ajouter (champs optionnels, endpoints) sans retirer ni changer le sens de l'existant ; un changement cassant = version majeure.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Ajouter sans retirer ni changer le sens de l'existant",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Changer les champs existants librement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer l'ancienne version immédiatement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment signaler proprement qu'une version d'API va disparaître ?",
+      "justification": "Via les en-têtes Deprecation et Sunset (date de fin de vie), en mesurant l'usage et en accompagnant la migration avant le retrait.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Les en-têtes Deprecation et Sunset + accompagnement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La couper sans prévenir",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un simple redémarrage du serveur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel standard normalise un format d'erreur HTTP uniforme (type/title/status/detail) ?",
+      "justification": "RFC 7807 (Problem Details), l'enveloppe d'erreur normalisée attendue par les conventions de ce projet.",
+      "position": 2,
+      "options": [
+        {
+          "label": "RFC 7807 (Problem Details)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "HTTP/3",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "OAuth 2.0",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les tests de contrat consumer-driven (Pact) détectent avant déploiement qu'un changement casserait un consommateur.",
+      "justification": "Vrai : le consommateur exprime ses attentes, le fournisseur prouve qu'il les honore, une rupture devient un échec de build, pas une surprise en prod.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

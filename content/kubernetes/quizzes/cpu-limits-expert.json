@@ -1,0 +1,96 @@
+{
+  "ref": "cpu-limits-expert",
+  "node": "resource-management",
+  "lesson": "debat-des-limites-cpu",
+  "title": "Le débat des limites CPU, expert",
+  "description": "Throttling CFS par période, compressibilité, faut-il poser des limites CPU.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment une limite CPU est-elle appliquée par le noyau ?",
+      "justification": "Par le CFS via un quota par période (100 ms) : quota épuisé = conteneur throttlé jusqu'à la période suivante, même si du CPU est libre.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par un quota CFS par période (throttling)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En tuant le conteneur (OOMKill)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En le déplaçant sur un autre nœud",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une app peut-elle être throttlée alors que le nœud a du CPU libre ?",
+      "justification": "Parce que la limite est un quota par période : une fois épuisé, le conteneur est en pause jusqu'à la période suivante, indépendamment du CPU libre.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le quota de sa période est épuisé (limite CPU)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le nœud est en panne",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La mémoire est pleine",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la recommandation d'expert nuancée sur les limites ?",
+      "justification": "Requests partout, limite mémoire toujours (non compressible), limite CPU avec parcimonie (le CPU est compressible, les requests garantissent l'équité).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Requests partout, limite mémoire toujours, limite CPU avec parcimonie",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Aucune request ni limite nulle part",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Limite CPU très basse partout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sans limite CPU (mais avec des requests), un conteneur peut utiliser le CPU libre du nœud, et les requests garantissent une part équitable sous contention.",
+      "justification": "Vrai : le CPU est compressible ; le CFS répartit proportionnellement aux requests quand le nœud est saturé, sans throttling artificiel.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

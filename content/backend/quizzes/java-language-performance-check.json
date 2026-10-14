@@ -1,0 +1,53 @@
+{
+  "ref": "java-language-performance-check",
+  "node": "java-language",
+  "lesson": "performance-jvm-gc-jit",
+  "title": "Quiz : performance JVM",
+  "description": "Heap, GC modernes, fuite mémoire, JIT et démarche d'optimisation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où vivent les objets créés par ton programme ?",
+      "justification": "Dans le heap (le tas), la zone gérée par le GC ; la stack, elle, contient les variables locales par thread.",
+      "position": 0,
+      "options": [
+        { "label": "Dans le heap, géré par le GC", "correct": true, "position": 0 },
+        { "label": "Dans la stack, une par processus", "correct": false, "position": 1 },
+        { "label": "Dans le metaspace, avec le code source", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que vise ZGC par rapport à G1 ?",
+      "justification": "ZGC vise des pauses inférieures à la milliseconde, même sur de très gros heaps, en travaillant quasi concurremment ; idéal pour la faible latence.",
+      "position": 1,
+      "options": [
+        { "label": "Des pauses inférieures à la milliseconde, même sur de très gros heaps", "correct": true, "position": 0 },
+        { "label": "Utiliser moins de mémoire mais des pauses plus longues", "correct": false, "position": 1 },
+        { "label": "Supprimer complètement le ramasse-miettes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signale une old generation qui monte sans jamais redescendre ?",
+      "justification": "C'est le symptôme classique d'une fuite mémoire (objets gardés par erreur), qui finit en OutOfMemoryError.",
+      "position": 2,
+      "options": [
+        { "label": "Une probable fuite mémoire, menant à OutOfMemoryError", "correct": true, "position": 0 },
+        { "label": "Un GC parfaitement réglé", "correct": false, "position": 1 },
+        { "label": "Un CPU sous-utilisé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la bonne démarche d'optimisation de performance ?",
+      "justification": "Profiler d'abord (JFR, async-profiler) pour trouver le vrai goulot, puis optimiser ce goulot prouvé, jamais au hasard.",
+      "position": 3,
+      "options": [
+        { "label": "Profiler d'abord, puis optimiser le goulot prouvé", "correct": true, "position": 0 },
+        { "label": "Optimiser tout le code au maximum dès le départ", "correct": false, "position": 1 },
+        { "label": "Deviner le point lent et le réécrire", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

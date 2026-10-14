@@ -1,0 +1,379 @@
+{
+  "node": "design-principles",
+  "lessons": [
+    {
+      "slug": "design-patterns-gof",
+      "title": "Design patterns (GOF)",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des solutions nommées",
+          "body": "Un **design pattern** (« patron de conception » en français) est une **solution type**, éprouvée et réutilisable, à un problème de conception qui revient souvent quand on écrit du code. Ce n'est pas une librairie qu'on installe, ni du code à copier tel quel : c'est une **recette**, une manière d'organiser des classes et des objets, que tu adaptes à ta situation.\n\n👉 **Analogie** : en cuisine, « faire une béchamel » est un patron. Personne ne réinvente la recette à chaque fois : on dit « je pars sur une béchamel » et tout le monde voit l'idée. Les design patterns jouent le même rôle pour le code.\n\nLe terme vient d'un livre de 1994 signé par quatre auteurs, le **Gang of Four** (« bande des quatre », souvent abrégé **GoF**), qui a recensé 23 patterns classiques.\n\nLeur premier intérêt est de donner un **vocabulaire partagé** : dire « ici une *Factory*, là une *Strategy* » communique une intention entière en deux mots, sans avoir à décrire tout le mécanisme. On les range en trois familles :\n- **créationnels** (comment **créer** des objets) : Factory, Builder, Singleton ;\n- **structurels** (comment **assembler** des objets entre eux) : Adapter, Decorator, Facade ;\n- **comportementaux** (comment faire **collaborer** les objets, qui fait quoi) : Strategy, Observer, Command.\n\nPar exemple, un `PaymentFactory` qui fabrique le bon moyen de paiement (carte, PayPal) est un pattern créationnel ; un `Checkout` qui reçoit une politique de prix interchangeable est un pattern comportemental (Strategy)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les design patterns sont des solutions nommees a des problemes recurrents : un vocabulaire commun.",
+          "body": "/images/lessons/design-patterns-gof-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Strategy : injecter le comportement",
+          "codeLanguage": "java",
+          "body": "// Le pattern Strategy : on place le \"comportement qui varie\" (ici le calcul du prix)\n// derrière une interface, et on l'INJECTE dans la classe qui s'en sert.\n\ninterface PricingStrategy {\n    long price(Cart cart); // chaque politique de prix implémentera cette méthode\n}\n\n// Une implémentation : prix standard.\nclass StandardPricing implements PricingStrategy {\n    public long price(Cart cart) { return cart.subtotal(); }\n}\n\n// Une autre : promo -20 %.\nclass PromoPricing implements PricingStrategy {\n    public long price(Cart cart) { return cart.subtotal() * 80 / 100; }\n}\n\nclass Checkout {\n    private final PricingStrategy pricing;              // Checkout ne connaît QUE l'interface\n    Checkout(PricingStrategy pricing) { this.pricing = pricing; } // on injecte la stratégie\n    long total(Cart cart) { return pricing.price(cart); }\n}\n\n// On change la stratégie (standard, promo, membre) sans TOUCHER au code de Checkout :\n//   new Checkout(new PromoPricing()).total(cart);"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Adapter : le pattern de l'hexagonal",
+          "body": "L'**Adapter** (« adaptateur ») convertit une interface en une autre, celle qu'attend le code client. Autrement dit, il fait **dialoguer deux choses qui ne parlent pas le même langage**, sans modifier ni l'une ni l'autre.\n\n👉 **Analogie** : l'adaptateur de prise électrique quand tu voyages. Ta prise française et la prise anglaise sont incompatibles ; l'adaptateur s'intercale et traduit l'une vers l'autre. Ton chargeur et la prise murale, eux, ne changent pas.\n\nC'est **exactement** le rôle des adaptateurs de l'**architecture hexagonale** (le style d'architecture de cette plateforme, détaillé dans le nœud dédié). Le **domaine** (le cœur métier, indépendant de toute technologie) définit un **port** : une interface qui décrit un besoin, par exemple `LessonRepository` (« je veux pouvoir charger et sauver une leçon »). L'**adaptateur** est la classe qui implémente ce port en s'appuyant sur une technologie concrète : une base de données via R2DBC, une API web.\n\nPar exemple, le port `LessonRepository` est défini dans le domaine ; un adaptateur `R2dbcLessonRepository` l'implémente côté base. Le domaine ignore tout de la base : il ne connaît que le port.\n\nBeaucoup de patterns ne sont donc pas des curiosités académiques : ils structurent le code réel, souvent sans même qu'on prononce leur nom."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'adapter convertit une interface en une autre : le pattern au coeur de l'architecture hexagonale.",
+          "body": "/images/lessons/design-patterns-gof-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Le piège du sur-usage (niveau expert)",
+          "body": "Les patterns résolvent des problèmes réels, mais **pas tous les problèmes**, et surtout pas ceux que tu n'as pas encore. Introduire un pattern « parce que ça fait propre » ajoute de la **complexité** (plus de classes, plus d'indirections) sans aucun bénéfice concret.\n\n👉 **Analogie** : tu n'installes pas un monte-charge industriel pour descendre un carton de la cave. L'outil surdimensionné coûte plus cher qu'il ne rapporte.\n\nLa bonne démarche : **reconnaître le problème d'abord, appliquer le pattern ensuite**, jamais l'inverse. Un simple `if` bat souvent une hiérarchie de classes savante. Par exemple, s'il n'existe que deux cas de calcul qui ne bougeront pas, un `if/else` est plus lisible qu'un Strategy avec ses interfaces et ses classes.\n\nLe meilleur design est **le plus simple qui résout le problème du moment** (on retrouvera ce principe sous les noms KISS et YAGNI dans la leçon SOLID)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le piege : sur-utiliser les patterns ajoute de la complexite inutile. Un pattern repond a un besoin reel.",
+          "body": "/images/lessons/design-patterns-gof-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Vous devez calculer le prix d'un panier selon plusieurs politiques (standard, promo, membre) interchangeables à l'exécution. Quel pattern est adapté et pourquoi ?",
+          "solution": "Le pattern Strategy : chaque politique de prix est une implémentation d'une interface PricingStrategy, injectée dans le Checkout. On change de politique à l'exécution sans modifier Checkout, et on ajoute une nouvelle politique sans toucher au reste : c'est extensible et testable isolément."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Design patterns (GOF)",
+          "quizRef": "design-principles-patterns-check"
+        }
+      ]
+    },
+    {
+      "slug": "domain-driven-design",
+      "title": "Domain-Driven Design",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le langage du métier dans le code",
+          "body": "Le **Domain-Driven Design** (« conception pilotée par le domaine », souvent abrégé **DDD**) est une manière de concevoir un logiciel en partant du **métier** (le *domaine* : le sujet réel que l'application traite, ici l'e-learning) plutôt que de la technique.\n\nSon idée centrale : le code doit **parler le langage du métier**. On appelle ce langage commun l'**ubiquitous language** (« langage omniprésent ») : le **même** vocabulaire est utilisé par les développeurs **et** par les experts métier, dans les discussions **comme** dans le code.\n\n👉 **Analogie** : si le comptable dit « écriture » et « grand livre », le code ne devrait pas parler de « ligne_table_42 » et de « blob_json ». Tout le monde emploie les mêmes mots, du café à la base de code, pour éviter les erreurs de traduction.\n\nConcrètement, les concepts métier deviennent des **types explicites** dans le code. Sur cette plateforme, l'inscription d'un apprenant à un parcours devient une classe `Enrollment` ; le fait qu'une leçon vienne d'être terminée devient un `LessonCompleted`. Le modèle n'est pas une base de données déguisée en objets : c'est une **traduction fidèle des règles du domaine**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "DDD met le langage du metier directement dans le code : on parle le meme langage que l'expert.",
+          "body": "/images/lessons/domain-driven-design-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Contextes bornés",
+          "body": "Un même mot peut avoir des **sens différents** selon la partie du métier où on se place. « Un produit » ne veut pas dire la même chose pour le service commercial et pour l'entrepôt. Forcer un modèle unique pour tout le monde crée des objets fourre-tout et ambigus.\n\nUn **contexte borné** (*bounded context*) est la réponse : c'est une **frontière** à l'intérieur de laquelle un modèle et son vocabulaire restent **cohérents et non ambigus**. Chaque contexte a ses propres termes, ses propres règles, ses propres classes.\n\n👉 **Analogie** : le mot « ticket » n'a pas le même sens au cinéma, au support informatique et au restaurant. Chaque lieu (chaque contexte) a son sens à lui ; on ne les mélange pas.\n\nSur cette plateforme, les contextes bornés sont par exemple `catalogue`, `apprentissage`, `evaluation`, `gamification`. Chacun communique avec les autres par des **ports** (des interfaces exposées) ou par des **événements**, **jamais** en allant lire ou écrire directement dans les tables du voisin. C'est précisément cette discipline qui garde les frontières nettes et permet de faire évoluer un contexte sans casser les autres."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un contexte borne delimite ou un modele et son vocabulaire font autorite.",
+          "body": "/images/lessons/domain-driven-design-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Entités, value objects, agrégats (niveau expert)",
+          "body": "DDD distingue trois types d'objets dans un domaine, selon leur nature.\n\nUne **entité** est un objet qui a une **identité** propre, persistante dans le temps, indépendante de ses valeurs. Un `User` reste le même utilisateur même s'il change de nom ou d'e-mail : c'est son identifiant qui le définit. 👉 **Analogie** : toi. Tu changes de coiffure, d'adresse, de téléphone, tu restes la même personne.\n\nUn **value object** (« objet-valeur ») n'a **pas** d'identité : il est **entièrement défini par ses valeurs** et on le rend **immuable** (une fois créé, il ne change plus). `Money` (un montant et une devise) ou `Email` en sont des exemples. 👉 **Analogie** : un billet de 10 euros. Peu importe *lequel* tu as en main, deux billets de 10 euros sont interchangeables : seule la valeur compte.\n\nUn **agrégat** est un **groupe d'objets cohérents** traité comme un tout, avec une **racine** (*aggregate root*) qui en est la **seule porte d'entrée** et qui garantit les **invariants** (les règles qui doivent toujours rester vraies, par exemple « le total d'une commande égale la somme de ses lignes »). On ne modifie jamais un objet interne directement : on passe par la racine. 👉 **Analogie** : une commande et ses lignes. Tu n'ajoutes pas une ligne en douce ; tu demandes à la commande « ajoute cet article », et c'est elle qui vérifie que tout reste cohérent.\n\nCes distinctions structurent un domaine riche sans le noyer sous la technique."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Entites (identite), value objects (valeur), agregats (coherence) : les briques tactiques du DDD.",
+          "body": "/images/lessons/domain-driven-design-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Faut-il modéliser une adresse email comme une entité ou un value object ? Justifiez.",
+          "solution": "Un value object : une adresse email n'a pas d'identité propre qui persiste dans le temps ; elle est définie entièrement par sa valeur (deux 'ada@dev' sont interchangeables). On la rend immuable et on y met la validation du format. Une entité aurait une identité (id) indépendante de ses attributs, ce qui n'a pas de sens ici."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Domain-Driven Design",
+          "quizRef": "design-principles-ddd-check"
+        }
+      ]
+    },
+    {
+      "slug": "cqrs",
+      "title": "CQRS",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Séparer lecture et écriture",
+          "body": "**CQRS** signifie *Command Query Responsibility Segregation*, soit « séparation des responsabilités entre commandes et requêtes ». Derrière ce nom intimidant, une idée simple : utiliser **deux modèles distincts**, un pour **écrire** et un pour **lire**, au lieu d'un seul modèle qui fait les deux.\n\nDéfinissons les deux mots :\n- une **command** (« commande ») est une opération qui **modifie l'état** : créer une inscription, terminer une leçon. Elle applique les règles métier et vérifie les invariants.\n- une **query** (« requête ») est une opération qui **lit** et **renvoie** des données pour l'affichage, sans rien changer.\n\n👉 **Analogie** : dans un restaurant, la **cuisine** (qui prépare, transforme, respecte des règles d'hygiène) et la **carte** posée sur la table (qui présente joliment ce qu'on peut lire) sont deux choses séparées. Optimiser la cuisine et optimiser la carte sont deux métiers différents.\n\nPourquoi séparer ? Parce que lire et écrire ont des **besoins opposés** : l'écriture veut de la **cohérence** et des règles strictes ; la lecture veut des vues **rapides** et souvent **dénormalisées** (pré-assemblées pour l'affichage, quitte à dupliquer des données). Par exemple, afficher un tableau de bord agrège des dizaines de tables : une vue de lecture dédiée le sert instantanément, sans imposer cette forme au modèle d'écriture. Les séparer permet d'optimiser chacun **indépendamment**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "CQRS separe le chemin de lecture et celui d'ecriture, qu'on peut optimiser independamment.",
+          "body": "/images/lessons/cqrs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Voir CQRS : deux chemins séparés",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    U([\"Utilisateur\"])\n    U -->|\"Command : écrit\"| W[\"Modèle d'écriture (règles, invariants)\"]\n    U -->|\"Query : lit\"| R[\"Modèle de lecture (vues rapides)\"]\n    W --> DB[(\"Données\")]\n    DB -.->|\"alimente\"| R"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Quand CQRS aide (et quand il nuit)",
+          "body": "CQRS **brille** quand lectures et écritures ont des profils **très différents** : beaucoup de lectures complexes d'un côté, des écritures riches en règles de l'autre ; ou quand on veut préparer des **vues matérialisées** (des vues pré-calculées, prêtes à afficher).\n\nMais il **coûte cher** : deux modèles à écrire et à maintenir, et souvent une **cohérence à terme** (*eventual consistency*) entre eux. La cohérence à terme veut dire que la vue de lecture n'est pas mise à jour à la microseconde près : après une écriture, il peut s'écouler un court instant avant que la lecture reflète le changement. 👉 **Analogie** : quand tu postes une photo, tes amis ne la voient pas tous exactement à la même seconde, mais tout le monde finit par la voir. C'est acceptable ici ; ça ne le serait pas pour un solde bancaire.\n\nPour un **CRUD simple** (Create, Read, Update, Delete : les quatre opérations de base sur des données, sans logique compliquée), CQRS est de la **sur-ingénierie** : tu paies la complexité de deux modèles sans en tirer aucun bénéfice. On l'applique donc à **un contexte qui le justifie**, pas à toute l'application par principe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "CQRS aide quand lectures et ecritures divergent fort ; sinon il ajoute surtout de la complexite.",
+          "body": "/images/lessons/cqrs-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une application de gestion basique fait surtout du CRUD sans logique complexe. Adopter CQRS partout est-il pertinent ?",
+          "solution": "Non : CQRS ajoute deux modèles, de la synchronisation et souvent de la cohérence à terme, sans bénéfice pour un CRUD simple. C'est de la sur-ingénierie. On garde un modèle unique et on réserve CQRS aux contextes où lectures et écritures divergent réellement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : CQRS",
+          "quizRef": "design-principles-cqrs-check"
+        }
+      ]
+    },
+    {
+      "slug": "event-sourcing",
+      "title": "Event Sourcing",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Stocker les faits, pas l'état",
+          "body": "D'habitude, une base de données stocke l'**état courant** : la valeur actuelle de chaque chose. Si un compte passe de 100 à 80 euros, on **écrase** 100 par 80, et l'ancienne valeur est perdue.\n\nL'**Event Sourcing** (« stockage par les événements ») fait l'inverse : il ne stocke pas l'état courant, mais la **suite des événements** qui l'ont produit. Un **événement** est un **fait passé, immuable**, nommé au participe passé : `InscriptionCréée`, `LeçonComplétée`, `MontantRetiré`. On n'écrase jamais rien, on **ajoute** un événement à la suite.\n\nL'état courant n'est plus stocké : il se **reconstruit** en **rejouant** les événements depuis le début. Le solde du compte égale le résultat obtenu en rejouant tous les dépôts et retraits.\n\n👉 **Analogie** : un compte bancaire. La banque ne se contente pas d'afficher « 80 euros » ; elle garde le **relevé** de toutes les opérations. Le solde est le **résultat** de la liste des mouvements, pas une valeur écrite dans le vide. En cas de doute, tu rejoues le relevé.\n\nOn obtient ainsi un **historique complet et immuable** (un audit parfait : on sait *pourquoi* l'état est ce qu'il est, mouvement par mouvement) et la liberté de reconstruire **de nouvelles vues** à partir du passé, même des vues auxquelles on n'avait pas pensé au départ."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'event sourcing stocke la suite des faits (les evenements), pas seulement l'etat final.",
+          "body": "/images/lessons/event-sourcing-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Puissant mais exigeant",
+          "body": "L'Event Sourcing se marie souvent avec **CQRS** : les événements alimentent des **vues de lecture** (le flux de faits d'un côté, des vues prêtes à afficher de l'autre).\n\nMais c'est **exigeant**, à réserver aux cas qui le méritent :\n- le **versionnage des événements** : le format d'un événement évolue avec le temps (on ajoute un champ), et il faut savoir rejouer d'anciens événements écrits dans l'ancien format. 👉 **Analogie** : lire aujourd'hui une lettre écrite il y a vingt ans, avec des abréviations qui ne se font plus.\n- les **snapshots** (« instantanés ») : rejouer des millions d'événements à chaque fois serait lent, alors on enregistre de temps en temps une photo de l'état à un instant donné, et on ne rejoue que les événements **depuis** cette photo. 👉 **Analogie** : un point de sauvegarde dans un jeu, pour ne pas tout recommencer depuis le début.\n- la **cohérence à terme** : les vues de lecture se mettent à jour avec un léger décalage après chaque événement.\n\nC'est pourquoi on le réserve aux domaines où **l'historique et l'auditabilité sont essentiels** (finance, logistique, santé), pas un choix à généraliser par défaut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Puissant (audit, rejouabilite) mais exigeant : versionnage, projections et montee en competence.",
+          "body": "/images/lessons/event-sourcing-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Événements intégrateurs (niveau expert)",
+          "body": "Bonne nouvelle : même **sans** faire de l'Event Sourcing complet, les **événements de domaine** (*domain events*) sont déjà un outil très utile. Un événement de domaine annonce simplement « quelque chose d'important vient de se produire dans le métier ».\n\nSur cette plateforme, le contexte `apprentissage` **publie** des événements comme `LessonCompletedEvent` ou `NodeCompletedEvent`. Le contexte `gamification` les **écoute** et **réagit** : il attribue des points d'XP, débloque des badges. L'apprentissage n'a pas besoin de connaître la gamification : il émet, point.\n\nC'est ce qu'on appelle le **découplage** : deux parties du système collaborent sans se connaître directement, ce qui permet de faire évoluer (ou d'ajouter) l'une sans toucher l'autre. 👉 **Analogie** : une station de radio émet ; elle ignore qui l'écoute. Tu peux ajouter un nouvel auditeur (un nouveau contexte réactif) sans rien changer à l'émetteur.\n\nOn récolte ainsi une **partie** des bénéfices (découplage, extensibilité) **sans** la complexité de tout reconstruire depuis les événements. L'événement sert ici de **moyen d'intégration** entre modules, pas seulement de mode de stockage."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les evenements integrateurs relient des contextes bornes sans les coupler directement.",
+          "body": "/images/lessons/event-sourcing-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un système de comptabilité exige de savoir exactement comment chaque solde a été atteint, avec un audit complet et immuable. En quoi l'Event Sourcing répond-il à ce besoin ?",
+          "solution": "L'Event Sourcing stocke chaque opération comme un événement immuable ; le solde n'est pas une valeur écrasée mais le résultat du rejeu de tous les mouvements. On dispose ainsi d'un historique complet et auditable (chaque changement est tracé, rien n'est perdu ni modifié a posteriori) : exactement ce qu'exige la comptabilité."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Principes de conception",
+          "quizRef": "design-principles-check"
+        }
+      ]
+    },
+    {
+      "slug": "solid-principes-fondateurs",
+      "title": "SOLID & principes fondateurs",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les cinq principes SOLID",
+          "body": "**SOLID** est un moyen mnémotechnique qui regroupe **cinq principes** de conception orientée objet. Ce ne sont pas des lois rigides mais des **forces** qui poussent vers un code souple, testable et facile à faire évoluer. Prenons-les une par une.\n\n- **S**, *Single Responsibility Principle* (SRP) : une classe ne devrait avoir **qu'une seule raison de changer**, donc une seule responsabilité. 👉 **Analogie** : un couteau suisse à trente fonctions est encombrant et fragile ; un bon couteau fait bien **une** chose. Exemple : ne pas mélanger « calculer une facture » et « l'envoyer par e-mail » dans la même classe.\n- **O**, *Open/Closed Principle* (OCP) : le code doit être **ouvert à l'extension mais fermé à la modification**, autrement dit on **ajoute** un comportement sans **réécrire** l'existant. Exemple : ajouter une nouvelle politique de prix en créant une classe, sans toucher au `Checkout` (c'est le pattern Strategy vu plus haut).\n- **L**, *Liskov Substitution Principle* (LSP) : partout où on attend un type, on doit pouvoir mettre un **sous-type** à la place **sans surprise**. 👉 **Analogie** : si une prise annonce « 220 volts », tout appareil branché doit s'y comporter normalement ; un faux « 220 V » qui grille l'appareil trahit le contrat. Exemple : un `Carré` qui hérite de `Rectangle` mais casse la règle « largeur et hauteur indépendantes » viole LSP.\n- **I**, *Interface Segregation Principle* (ISP) : mieux vaut **plusieurs petites interfaces ciblées** qu'une seule interface géante. 👉 **Analogie** : plutôt qu'une télécommande à quatre-vingts boutons dont tu n'en utilises que trois, des télécommandes simples et dédiées. Exemple : séparer `Lisible` et `Modifiable` plutôt qu'une interface `Fichier` qui force tout le monde à tout implémenter.\n- **D**, *Dependency Inversion Principle* (DIP) : dépendre d'**abstractions** (des interfaces), pas d'**implémentations** concrètes. C'est le principe le plus structurant ici : on le détaille juste après.\n\nRetiens l'esprit plus que la lettre : SOLID cherche à limiter l'onde de choc d'un changement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "SOLID : cinq principes pour un code plus modulaire, extensible et testable.",
+          "body": "/images/lessons/solid-principes-fondateurs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "DIP : le cœur de l'hexagonal",
+          "body": "Le **Dependency Inversion Principle** (le « D » de SOLID) est le pilier de l'architecture de cette plateforme. Il dit : les modules importants ne doivent pas dépendre de détails techniques, mais **d'abstractions** ; et les détails techniques doivent dépendre de ces abstractions, **pas l'inverse**.\n\nEn pratique, le **domaine** (le cœur métier) définit des **ports** (des interfaces qui décrivent un besoin, par exemple « sauver une inscription »). Les **adaptateurs** techniques (la base via R2DBC, le web) **dépendent** de ces ports et les implémentent. Les flèches de dépendance pointent donc toutes **vers l'intérieur**, vers le métier.\n\n👉 **Analogie** : une prise murale normalisée. Le mur (le domaine) impose la forme de la prise (le port) ; c'est à chaque appareil (l'adaptateur) de s'y conformer, jamais au mur de s'adapter à chaque appareil. Résultat : tu changes d'appareil sans refaire l'installation électrique.\n\nLes gains sont très concrets : on **teste le domaine sans base de données** (on branche une fausse implémentation du port), et on peut **changer de technologie de persistance** sans toucher une ligne du métier. SOLID n'est pas académique : DIP **est** littéralement ce qui rend l'architecture hexagonale possible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le DIP (inversion des dependances) est le coeur de l'hexagonal : dependre d'abstractions, pas de details.",
+          "body": "/images/lessons/solid-principes-fondateurs-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "DRY, KISS, YAGNI, composition",
+          "body": "Au-delà de SOLID, quelques principes reviennent tous les jours. Chacun tient en un acronyme.\n\n- **DRY**, *Don't Repeat Yourself* (« ne te répète pas ») : une **connaissance** (une règle, une formule) doit vivre à **un seul endroit**, pour ne la corriger qu'une fois. 👉 **Analogie** : un seul exemplaire de référence d'un document, pas dix photocopies qu'il faudrait toutes rééditer. Attention au piège : ne factorise pas deux bouts de code qui se **ressemblent par hasard** mais expriment des règles différentes ; ils finiront par diverger.\n- **KISS**, *Keep It Simple, Stupid* (« garde ça simple ») : choisis la solution **la plus simple qui marche**. 👉 **Analogie** : pour visser une vis, un tournevis, pas une perceuse à colonne.\n- **YAGNI**, *You Aren't Gonna Need It* (« tu n'en auras pas besoin ») : ne code **pas** pour un futur imaginé « au cas où ». Tu ajouteras la fonctionnalité **quand** le besoin sera réel. Exemple : inutile de prévoir cinq moyens de paiement si le produit n'en accepte qu'un aujourd'hui.\n- **Composition plutôt qu'héritage** : pour réutiliser du comportement, **assemble** des objets qui collaborent plutôt que de bâtir une grande **hiérarchie d'héritage** rigide. 👉 **Analogie** : construire avec des briques Lego qu'on recombine, au lieu d'une pièce moulée d'un bloc qu'on ne peut plus modifier. L'héritage crée un couplage fort et fragile entre parent et enfant ; la composition reste souple."
+        },
+        {
+          "type": "IMAGE",
+          "title": "DRY, KISS, YAGNI, composition : rester simple et ne coder que ce qui est necessaire.",
+          "body": "/images/lessons/solid-principes-fondateurs-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "La vraie mesure : couplage & cohésion (niveau expert)",
+          "body": "Derrière tous ces principes se cachent **deux forces** fondamentales, qui suffisent presque à juger un design.\n\nLe **couplage** mesure à quel point les modules **dépendent les uns des autres**. Moins deux modules se connaissent, plus on peut en modifier un **sans casser** l'autre. On veut un **faible couplage**. 👉 **Analogie** : des appareils sur des prises standard (faible couplage) se remplacent tout seuls ; des câbles soudés entre eux (fort couplage) obligent à tout démonter pour changer une pièce.\n\nLa **cohésion** mesure à quel point les éléments d'un **même** module servent **un même but**. On veut une **forte cohésion** : une classe dont tout concourt à une seule responsabilité, pas un fourre-tout. 👉 **Analogie** : un tiroir « couverts » où tout est de la même famille, plutôt qu'un tiroir fourre-tout où tu cherches dix minutes.\n\n**Un bon design a un faible couplage et une forte cohésion.** La **loi de Demeter** (« ne parle qu'à tes amis immédiats ») aide en pratique à réduire le couplage : évite les chaînes du genre `a.getB().getC().faire()`, qui font qu'un objet connaît la structure interne de trois autres. Demande plutôt directement à `a` de faire le travail. Juger un design revient très souvent à mesurer ces deux propriétés."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La vraie mesure d'un bon design : faible couplage et forte cohesion.",
+          "body": "/images/lessons/solid-principes-fondateurs-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une classe `RapportService` lit en base, calcule des statistiques, formate en PDF et envoie un email. Quel principe SOLID est violé, et quelle conséquence concrète cela a-t-il ?",
+          "solution": "Le Single Responsibility Principle (SRP) : la classe a plusieurs raisons de changer (schéma de la base, règles de calcul, mise en forme PDF, envoi d'email). Conséquences : un changement de format PDF risque de casser l'accès base ou l'envoi ; la classe est difficile à tester (il faut tout mocker), à réutiliser et à faire évoluer ; les responsabilités se contaminent. Correction : séparer en collaborateurs cohérents (accès données, calcul, rendu, notification), orchestrés ensemble, pour un faible couplage et une forte cohésion."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : SOLID & principes fondateurs",
+          "quizRef": "design-principles-solid-check"
+        }
+      ]
+    },
+    {
+      "slug": "mauvaises-odeurs-conception",
+      "title": "Reconnaître les mauvaises odeurs de conception",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les code smells : des signaux, pas des fautes",
+          "body": "Un **code smell** (« odeur de code ») n'est **pas un bug** : le programme marche. C'est un **signal** qu'un design se **dégrade** et mérite qu'on s'y arrête avant que ça pourrisse. 👉 **Analogie** : une odeur bizarre dans le frigo. Rien n'est encore avarié, mais c'est le moment de regarder.\n\nVoici les classiques, chacun avec son nom imagé :\n- **god object** (« objet-dieu ») : une classe qui **sait tout et fait tout**. Elle grossit sans fin et devient impossible à comprendre. Exemple : un `Manager` de trois mille lignes qui gère utilisateurs, paiements, e-mails et logs.\n- **feature envy** (« l'envie de fonctionnalité ») : une méthode qui manipule surtout les données d'une **autre** classe que la sienne ; elle serait mieux **dans** cette autre classe. Exemple : une méthode de `Facture` qui ne fait que lire et calculer des champs de `Client`.\n- **shotgun surgery** (« chirurgie au fusil à pompe ») : un **petit** changement t'oblige à toucher **dix fichiers** éparpillés, signe d'un couplage dispersé. Exemple : renommer un statut impose d'éditer douze endroits.\n- **primitive obsession** (« obsession des types primitifs ») : des `String` et des `int` partout au lieu de vrais concepts. Exemple : trimballer un e-mail comme un `String` (jamais validé, confondable avec n'importe quel texte) au lieu d'un value object `Email`.\n\nNommer une odeur, c'est déjà savoir vers quel **refactoring** (réécriture qui améliore la structure sans changer le comportement) se diriger."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les code smells sont des signaux d'alerte, pas des fautes : ils invitent a regarder de plus pres.",
+          "body": "/images/lessons/mauvaises-odeurs-conception-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'anemic domain model",
+          "body": "L'**anemic domain model** (« modèle de domaine anémique ») est l'anti-pattern le plus répandu en DDD. « Anémique » veut dire **sans force, sans vie** : les objets de domaine sont réduits à des **sacs de getters/setters** (juste des données, sans comportement), pendant que **toute** la logique métier vit ailleurs, dans des classes appelées « services ».\n\n👉 **Analogie** : une marionnette sans marionnettiste. L'objet `Compte` a un solde, mais il ne sait pas se débiter lui-même ni refuser un découvert ; c'est un `CompteService` extérieur qui tire toutes les ficelles.\n\nC'est de l'orienté-objet **de nom seulement** : les données d'un côté, les procédures de l'autre, exactement ce que l'objet était censé réunir. Le risque concret : n'importe quel service peut mettre l'objet dans un **état invalide**, car l'objet ne protège plus ses propres règles.\n\nUn domaine **riche** fait l'inverse : il met le **comportement avec les données** qu'il protège. C'est l'**agrégat** qui garantit ses invariants, le **value object** qui valide sa propre valeur. Quand on écrit un domaine hexagonal, on veille à ne **pas** retomber dans l'anémique : le cœur métier doit porter les règles, pas se contenter de stocker des champs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'anemic domain model : des objets qui ne portent que des donnees, la logique etant ailleurs.",
+          "body": "/images/lessons/mauvaises-odeurs-conception-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Une lentille sur le couplage : la connascence",
+          "body": "La **connascence** (terme de Meilir Page-Jones) est un **vocabulaire fin** pour parler du **couplage**. Deux éléments de code sont « connascents » si **changer l'un oblige à changer l'autre** pour que le programme reste correct. L'intérêt : au lieu de dire vaguement « c'est couplé », on nomme **quel type** de couplage, et donc à quel point il est grave.\n\nElle se **gradue**, du plus **faible** (le plus tolérable) au plus **fort** (le plus dangereux) :\n- **connascence de nom** (faible) : deux endroits utilisent le **même nom** (une variable, une méthode). Si tu renommes, tu changes les deux. C'est bénin. 👉 **Analogie** : deux personnes doivent employer le même mot pour se comprendre.\n- **connascence de position** (fort) : l'**ordre** des arguments compte. Appeler `creer(nom, email)` et se tromper d'ordre passe inaperçu du compilateur mais casse tout. 👉 **Analogie** : brancher une nappe de câbles où l'ordre des fils est vital ; un fil inversé et rien ne marche.\n- **connascence d'algorithme** (fort) : deux endroits doivent implémenter **exactement la même logique** (par exemple le même calcul de checksum des deux côtés d'un échange). Si l'un change, l'autre doit changer à l'identique.\n\nDeux règles pratiques : **réduire la force** de la connascence (transformer une dépendance de position en dépendance de nom, par exemple en passant un objet nommé plutôt qu'une liste d'arguments) et la **localiser** (un couplage fort **à l'intérieur** d'un même module est tolérable ; le même couplage **réparti entre modules** est toxique)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La connascence : une lentille pour mesurer a quel point deux morceaux de code sont lies.",
+          "body": "/images/lessons/mauvaises-odeurs-conception-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Refactorer vers, pas seulement selon (niveau expert)",
+          "body": "L'expertise n'est **pas** de connaître les patterns par cœur, mais de savoir **quand** une odeur justifie d'en introduire un, et **quand** il vaut mieux ne rien faire.\n\nOn **refactore vers un pattern** quand la **douleur est réelle et présente** : un `switch` qui grossit d'un cas à chaque nouvelle fonctionnalité appelle un Strategy ou du polymorphisme ; une création d'objet complexe dupliquée à cinq endroits appelle une Factory. 👉 **Analogie** : tu poses une étagère supplémentaire **quand** les livres débordent, pas « au cas où » dans une pièce vide.\n\nOn **résiste** au contraire quand l'abstraction ne sert qu'à anticiper un besoin **hypothétique** (c'est le principe YAGNI de la leçon SOLID) : elle ajoute de la complexité aujourd'hui pour un gain incertain demain.\n\nCe **jugement** (reconnaître l'odeur, évaluer son coût, choisir le remède **proportionné**) est ce qui sépare un designer confirmé d'un expert. Et l'outil qui rend tout cela possible dans la durée, c'est le **refactoring continu sous couverture de tests** : parce que les tests te disent si tu as cassé quelque chose, tu peux améliorer la structure **en confiance**, un petit pas à la fois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Refactorer VERS une cible de design, pas seulement selon des regles, pour garder le cap.",
+          "body": "/images/lessons/mauvaises-odeurs-conception-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Dans un projet, les objets `User`, `Enrollment` et `Lesson` ne contiennent que des getters/setters, et toute la logique (validation, règles de progression) est dans des classes `...Service`. Quel anti-pattern est-ce, et pourquoi est-ce problématique dans une architecture hexagonale ?",
+          "solution": "C'est l'anemic domain model : les objets de domaine sont des sacs de données sans comportement, la logique métier étant reléguée dans des services. Problème en hexagonal : le domaine est censé être le cœur riche qui porte et protège les règles métier (invariants dans les agrégats, validation dans les value objects). Un domaine anémique n'apporte plus cette valeur : c'est de la structure OO de façade, avec un couplage données/logique dispersé, des invariants non garantis (n'importe quel service peut mettre l'objet dans un état invalide) et une perte du ubiquitous language. Correction : ramener le comportement métier dans les objets de domaine, réserver les services applicatifs à l'orchestration."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références pour creuser : *Clean Architecture* et *Agile Software Development, Principles, Patterns, and Practices* (Robert C. Martin, à l'origine de SOLID) ; *Refactoring* (Martin Fowler, le catalogue des smells et des refactorings) ; *Domain-Driven Design* (Eric Evans) et *Implementing Domain-Driven Design* (Vaughn Vernon) ; *What Every Programmer Should Know About Connascence* (et les travaux de Meilir Page-Jones) ; *A Philosophy of Software Design* (John Ousterhout), sur la profondeur des modules et la maîtrise de la complexité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le design logiciel.",
+          "body": "/images/lessons/mauvaises-odeurs-conception-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : Principes de conception (niveau expert)",
+          "quizRef": "design-principles-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "node": "clean-code",
+  "lesson": "smells-refactoring-erreurs",
+  "title": "Refactorer une méthode qui sent mauvais",
+  "statement": "Voici une méthode Java qui cumule plusieurs odeurs. Réécris-la proprement, à comportement identique (elle calcule une TVA de 20 %). Applique trois refactorings : (1) Replace Primitive with Object, le montant et la devise forment un value object `Money`, un `record` qui refuse à la construction un montant négatif en levant une exception explicite ; (2) Replace Magic Number with Constant, le `0.20` devient une constante nommée (par ex. `TAUX_TVA`) ; (3) supprime le code de retour d'erreur `-1` : une entrée invalide doit lever une exception (fail fast), jamais renvoyer une valeur spéciale.",
+  "skeleton": "// A refactorer : primitive obsession, nombre magique, code de retour -1\ndouble calculerTva(double montant, String devise) {\n    if (montant < 0) {\n        return -1; // erreur ?!\n    }\n    return montant * 0.20;\n}\n",
+  "solution": "// La règle vit dans le type : un Money négatif est impossible à construire\nrecord Money(double montant, String devise) {\n    Money {\n        if (montant < 0) {\n            throw new IllegalArgumentException(\"montant negatif : \" + montant);\n        }\n    }\n}\n\nclass CalculateurTva {\n    private static final double TAUX_TVA = 0.20;\n\n    Money tva(Money base) {\n        return new Money(base.montant() * TAUX_TVA, base.devise());\n    }\n}",
+  "keyPoints": [
+    "record Money",
+    "throw",
+    "IllegalArgumentException",
+    "TAUX_TVA",
+    "0.20"
+  ],
+  "language": "java"
+}

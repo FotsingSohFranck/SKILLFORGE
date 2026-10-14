@@ -1,0 +1,119 @@
+{
+  "ref": "meta-arguments-check",
+  "node": "meta-arguments",
+  "lesson": "depends-on-lifecycle-provider",
+  "title": "Meta-arguments",
+  "description": "count vs for_each, depends_on, lifecycle (prevent_destroy, create_before_destroy).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer for_each à count dans la plupart des cas ?",
+      "justification": "for_each identifie chaque instance par une clé stable ; count utilise un index positionnel fragile (décalage lors d'ajout/retrait au milieu).",
+      "position": 0,
+      "options": [
+        {
+          "label": "for_each donne une identité stable (pas un index fragile)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "count est déprécié",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "for_each est plus rapide à écrire uniquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand utiliser depends_on ?",
+      "justification": "Pour une dépendance réelle qui n'apparaît pas dans les références/attributs ; la plupart des dépendances doivent rester implicites.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Pour une dépendance sans référence directe dans le code",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Systématiquement sur toutes les ressources",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour créer plusieurs copies",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `lifecycle { create_before_destroy = true }` ?",
+      "justification": "Lors d'un replace, il crée la nouvelle ressource avant de détruire l'ancienne, évitant une coupure.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Crée la nouvelle ressource avant de détruire l'ancienne",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Empêche toute modification",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime la ressource immédiatement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel réglage lifecycle protège une base critique d'un destroy accidentel ?",
+      "justification": "prevent_destroy = true : Terraform refuse toute opération qui détruirait la ressource (tant que le bloc existe).",
+      "position": 3,
+      "options": [
+        {
+          "label": "prevent_destroy = true",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "ignore_changes = all",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "count = 0",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "prevent_destroy protège même si quelqu'un supprime entièrement le bloc de la ressource du code.",
+      "justification": "Faux : si le bloc (et son lifecycle) disparaît du code, Terraform ne voit plus la protection ; on couple à des revues de PR et restrictions IAM.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

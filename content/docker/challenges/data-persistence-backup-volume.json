@@ -1,0 +1,10 @@
+{
+  "node": "data-persistence",
+  "lesson": "volumes-en-production",
+  "title": "Sauvegarder un volume dans une archive",
+  "statement": "Un volume n'est pas sauvegardé automatiquement. Écris la commande qui, via un conteneur jetable `alpine` supprimé à la fin (`--rm`), archive le contenu du volume `pgdata` (monté en lecture seule sur `/data`) dans un fichier `pgdata-backup.tar.gz` déposé dans le dossier courant de l'hôte (monté sur `/backup`). Utilise `tar czf`.",
+  "skeleton": "docker run --rm \\\n  -v pgdata:/data:ro \\\n  -v $(pwd):/backup \\\n  alpine ...",
+  "solution": "docker run --rm -v pgdata:/data:ro -v $(pwd):/backup alpine tar czf /backup/pgdata-backup.tar.gz -C /data .",
+  "keyPoints": ["docker run", "--rm", "pgdata:/data", "$(pwd):/backup", "tar czf", "/backup/pgdata-backup.tar.gz", "-C /data"],
+  "language": "bash"
+}

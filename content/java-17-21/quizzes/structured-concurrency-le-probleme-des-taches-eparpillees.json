@@ -1,0 +1,41 @@
+{
+  "ref": "structured-concurrency-le-probleme-des-taches-eparpillees",
+  "node": "structured-concurrency",
+  "lesson": "le-probleme-des-taches-eparpillees",
+  "title": "Quiz : le problème des tâches éparpillées",
+  "description": "Les douleurs des sous-tâches lancées sans structure.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème n'est PAS une conséquence de tâches concurrentes lancées sans structure ?",
+      "justification": "Les fuites de threads, les erreurs ignorées et l'annulation difficile sont les trois douleurs citées. Un code plus rapide n'en fait pas partie : la structure vise la sureté, pas la vitesse brute.",
+      "position": 0,
+      "options": [
+        { "label": "Un code automatiquement plus rapide", "correct": true, "position": 0 },
+        { "label": "Des fuites de threads", "correct": false, "position": 1 },
+        { "label": "Des erreurs ignorées", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une fuite de thread, c'est une sous-tâche qui continue de tourner alors que plus personne n'attend son résultat.",
+      "justification": "Une fuite est une ressource qu'on a oublié de libérer et qui reste occupée inutilement : ici un thread qui travaille pour rien.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ta méthode lance deux sous-tâches via submit(), puis appelle utilisateur.get() en premier. Cette première tâche échoue et lève une exception. Que risque la seconde sous-tâche sans structure ?",
+      "justification": "Sans portée, rien ne relie les deux départs : la seconde tâche n'est pas annulée automatiquement et peut continuer à tourner inutilement, c'est une fuite potentielle.",
+      "position": 2,
+      "options": [
+        { "label": "Elle continue de tourner inutilement, car rien ne l'annule automatiquement", "correct": true, "position": 0 },
+        { "label": "Elle est annulée automatiquement par Java", "correct": false, "position": 1 },
+        { "label": "Elle relance la même exception", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

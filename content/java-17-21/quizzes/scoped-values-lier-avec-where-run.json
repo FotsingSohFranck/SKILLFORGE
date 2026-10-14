@@ -1,0 +1,41 @@
+{
+  "ref": "scoped-values-lier-avec-where-run",
+  "node": "scoped-values",
+  "lesson": "lier-avec-where-run",
+  "title": "Quiz : lier avec where et run",
+  "description": "Liaison d'une valeur bornée au bloc run/call.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait ScopedValue.where(CLE, valeur).run(() -> ...) ?",
+      "justification": "where lie la valeur à la clé, et run exécute le bloc : la valeur est disponible via get() pendant toute l'exécution du bloc, puis déliée.",
+      "position": 0,
+      "options": [
+        { "label": "Lie la valeur à la clé pour la durée du bloc, puis la délie automatiquement", "correct": true, "position": 0 },
+        { "label": "Lie la valeur définitivement jusqu'à la fin du programme", "correct": false, "position": 1 },
+        { "label": "Modifie la valeur d'un ThreadLocal existant", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Une méthode appelle CLE.get() en dehors de tout bloc run(...), alors qu'aucune valeur n'a été liée. Que se passe-t-il ?",
+      "justification": "Hors du bloc, aucune valeur n'est liée : get() lève une exception. La valeur n'existe que pendant l'exécution du bloc.",
+      "position": 1,
+      "options": [
+        { "label": "get() lève une exception car aucune valeur n'est liée à cet endroit", "correct": true, "position": 0 },
+        { "label": "get() renvoie null sans erreur", "correct": false, "position": 1 },
+        { "label": "get() renvoie la dernière valeur liée précédemment", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Quand le bloc a besoin de renvoyer un résultat, on utilise call() plutôt que run().",
+      "justification": "Vrai : run() ne renvoie rien, call() exécute le bloc et rend son résultat (et peut propager une exception vérifiée).",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

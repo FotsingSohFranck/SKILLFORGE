@@ -1,0 +1,96 @@
+{
+  "ref": "hexagonal-interactor-expert-check",
+  "node": "layered-hexagonal",
+  "lesson": "interactor-presenter-acl",
+  "title": "Quiz, Interactor, presenter & ACL (expert)",
+  "description": "Interactor, output port/presenter, anti-corruption layer, service applicatif vs domaine.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un interactor renvoie-t-il un résultat sans dépendre de l'UI ?",
+      "justification": "Il pousse un response model vers un output port réalisé par un presenter (couche adapter) qui met en forme ; la vue reste un Humble Object passif.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il pousse un response model vers un output port (presenter)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il retourne directement un objet HTML formaté",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il écrit dans la base de la vue",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un Anti-Corruption Layer (ACL) ?",
+      "justification": "Traduire le modèle d'un système externe/tiers vers votre langage, pour que ses concepts et bizarreries ne contaminent pas votre domaine.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Traduire et isoler un modèle externe pour protéger votre domaine",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les données du domaine",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Accélérer la base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre service applicatif et service de domaine ?",
+      "justification": "Le service applicatif orchestre un use case (transactions, ports) sans règle métier ; le service de domaine porte une règle métier n'appartenant à aucune entité.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Applicatif = orchestration ; domaine = règle métier sans entité naturelle",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux noms pour la même chose",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le service applicatif contient tout le SQL",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un interactor idéal représente un seul scénario métier nommé par l'intention (EnrollLearner), pas un service fourre-tout.",
+      "justification": "Vrai : un use case = un interactor focalisé, ce qui donne des classes petites et claires, à l'opposé d'un Service géant.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

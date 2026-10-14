@@ -1,0 +1,135 @@
+{
+  "node": "data-persistence",
+  "lessons": [
+    {
+      "slug": "le-conteneur-est-ephemere",
+      "title": "Le conteneur est éphémère",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ce qui est écrit dans un conteneur disparaît",
+          "body": "Commençons par le mot qui revient sans cesse : le **conteneur**. Un **conteneur**, c'est un programme qui tourne dans sa propre bulle isolée, avec tout ce dont il a besoin pour fonctionner (le code, les outils, les réglages). On le fabrique à partir d'une **image**, c'est-à-dire un modèle figé en lecture seule, une sorte de moule.\n\n👉 **Analogie** : l'**image** est la recette écrite d'un gâteau (elle ne change pas) ; le **conteneur** est le gâteau que tu sors du four à partir de cette recette. Tu peux en cuire dix à partir du même texte, et en jeter un sans abîmer la recette.\n\nQuand un conteneur tourne, il a besoin d'écrire des choses (créer un fichier, modifier une donnée). Docker lui donne pour cela une fine **couche d'écriture** posée par-dessus l'image. Cette couche est **éphémère** : le mot veut dire *qui ne dure pas, temporaire*. Elle est attachée à la vie du conteneur, et à elle seule.\n\nLe mécanisme derrière porte un nom : le **copy-on-write** (en français *copie à l'écriture*). L'image en dessous n'est jamais modifiée ; dès que le conteneur veut changer un fichier, Docker en fait une copie dans la couche d'écriture, et c'est cette copie qui est modifiée.\n\nConséquence cruciale : quand tu **supprimes** le conteneur avec la commande `docker rm` (de l'anglais *remove* = enlever), ou quand un **orchestrateur** (un chef d'orchestre qui gère automatiquement les conteneurs, comme Kubernetes) le recrée, cette couche d'écriture, et donc **toutes les données écrites dedans**, **disparaît**.\n\nExemple concret : tu lances une **base de données** (un logiciel qui range des données de façon organisée, comme PostgreSQL) dans un conteneur, tu crées des tables, tu ajoutes des clients. Puis tu fais `docker rm`. Tout est perdu, tables et clients compris.\n\nEst-ce un bug ? Non, c'est **voulu** : le conteneur est **jetable** par conception, comme un gobelet en carton. Mais tes **données**, elles, doivent survivre. D'où la règle de tout ce chapitre : stocker les données **en dehors** du conteneur, dans un mécanisme de **persistance** (le fait de conserver les données durablement, même après la disparition du conteneur)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Deux mécanismes : volumes & bind mounts",
+          "body": "Pour faire vivre les données hors de la couche éphémère, Docker propose deux mécanismes. Avant de les décrire, un mot de vocabulaire : **monter** (en anglais *to mount*) veut dire *rendre un espace de stockage accessible à un endroit précis dans le conteneur*. On « branche » un stockage sur un chemin, un peu comme une clé USB qui apparaît dans un dossier une fois branchée.\n\n**1. Le volume nommé.** Un **volume** est un espace de stockage que **Docker gère lui-même**, dans une zone qui lui est réservée sur la machine (le dossier `/var/lib/docker/volumes`). On lui donne un nom (par exemple `pgdata`), d'où l'appellation *volume nommé*. Point clé : il est **indépendant du cycle de vie du conteneur** (le cycle de vie, c'est la suite création puis exécution puis suppression). Tu peux supprimer et recréer le conteneur autant de fois que tu veux, le volume et son contenu restent. C'est **la** solution pour les données de production : bases de données, fichiers envoyés par les utilisateurs (les *uploads*).\n\n👉 **Analogie** : le volume nommé, c'est un **garde-meuble** loué à part. Ta voiture (le conteneur) peut partir à la casse, tes meubles restent en sécurité dans le box.\n\n**2. Le bind mount.** Un **bind mount** (littéralement *montage par liaison*) consiste à **monter un dossier qui existe déjà sur ta machine** directement dans le conteneur. La machine qui fait tourner Docker s'appelle l'**hôte** ; un bind mount relie donc un dossier de l'hôte à un chemin du conteneur, avec la notation `/chemin/hote:/chemin/conteneur`. Le conteneur voit alors en direct les fichiers de ton disque. C'est parfait en **développement**, par exemple pour partager ton code source : tu modifies un fichier dans ton éditeur, le conteneur le voit aussitôt.\n\n👉 **Analogie** : le bind mount, c'est une **fenêtre ouverte** entre une pièce de ta maison (un dossier de l'hôte) et le conteneur : les deux regardent exactement le même contenu, en même temps.\n\nDans les deux cas, l'idée est la même : ce qu'on écrit à cet endroit vit **en dehors** de la couche éphémère, donc **survit** à la suppression du conteneur."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Vue d'ensemble : ce qui meurt, ce qui survit",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph HOTE[\"Hote : ta machine avec Docker\"]\n    subgraph CONT[\"Conteneur (jetable)\"]\n      APP[\"Application\"]\n      EPH[\"Couche d'ecriture ephemere<br/>DETRUITE au docker rm\"]\n    end\n    VOL[(\"Volume nomme<br/>gere par Docker<br/>SURVIT au docker rm\")]\n    BIND[(\"Bind mount<br/>dossier de l'hote<br/>SURVIT au docker rm\")]\n  end\n  APP -->|donnees jetables| EPH\n  APP -->|donnees a conserver| VOL\n  APP -->|code source / config| BIND"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un développeur lance PostgreSQL en conteneur, crée des tables et des données, puis supprime le conteneur pour le recréer avec une option différente. Toutes ses données ont disparu. Que s'est-il passé et comment l'éviter ?",
+          "solution": "Sans volume, PostgreSQL a écrit ses fichiers de données dans la couche d'écriture éphémère du conteneur. En supprimant le conteneur (docker rm), cette couche, et donc toutes les tables et données, a été détruite avec lui. Pour l'éviter : monter un volume nommé sur le répertoire de données de PostgreSQL, par exemple `docker run -v pgdata:/var/lib/postgresql/data postgres:18`. Les données vivent alors dans le volume, géré par Docker indépendamment du conteneur : on peut supprimer et recréer le conteneur autant qu'on veut, le volume (et les données) persiste. C'est la règle : toute donnée à conserver va dans un volume, jamais dans le conteneur lui-même."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Le conteneur est éphémère",
+          "quizRef": "data-persistence-ephemere-check"
+        }
+      ]
+    },
+    {
+      "slug": "volumes-vs-bind-mounts",
+      "title": "Volumes vs bind mounts en pratique",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CODE",
+          "position": 0,
+          "title": "Volumes nommés (production)",
+          "codeLanguage": "bash",
+          "body": "# Créer/utiliser un volume nommé : Docker le gère\ndocker volume create pgdata\ndocker run -d -v pgdata:/var/lib/postgresql/data postgres:18\n\ndocker volume ls                    # lister les volumes\ndocker volume inspect pgdata        # où et comment il est stocké\n# Le conteneur peut être supprimé/recréé, le volume (et les données) reste"
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Bind mounts (développement)",
+          "codeLanguage": "bash",
+          "body": "# Monter le code de l'hôte dans le conteneur -> hot reload en dev\ndocker run -d \\\n  -v $(pwd)/src:/app/src \\          # dossier hôte -> dossier conteneur\n  -p 3000:3000 \\\n  node:22 npm run dev\n\n# Monter un fichier de config en lecture seule (:ro)\ndocker run -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Lequel, quand ?",
+          "body": "Maintenant que tu connais les deux mécanismes, voici comment **choisir**. La règle tient en une phrase : **volume nommé pour les données, bind mount pour partager un dossier de l'hôte.**\n\n**Volume nommé pour les données.** Dès qu'il s'agit de **données à conserver** (le contenu d'une base, les fichiers envoyés par les utilisateurs, l'état de l'application), prends un volume nommé. C'est Docker qui gère l'emplacement, donc c'est **portable** (le mot veut dire *qui fonctionne pareil d'une machine à l'autre*, sans dépendre des chemins précis de ton disque) et adapté à la **production** (l'environnement réel où tournent les vrais utilisateurs, par opposition à ta machine de développement).\n\n👉 **Exemple** : la base PostgreSQL de ton site en ligne écrit dans un volume `pgdata`. Tu redéploies une nouvelle version de l'appli, le conteneur est recréé, mais `pgdata` reste : aucun client perdu.\n\n**Bind mount pour partager un dossier.** Le bind mount sert surtout en **développement**, pour deux usages typiques : monter ton **code source** afin de bénéficier du **hot reload** (littéralement *rechargement à chaud* : le programme prend en compte tes modifications instantanément, sans reconstruire l'image ni redémarrer), ou injecter un fichier de **configuration** (les réglages d'un logiciel, par exemple le fichier `nginx.conf` du serveur web Nginx).\n\nDeux mises en garde sur les bind mounts. D'abord, ils **dépendent des chemins et des permissions de l'hôte** (les *permissions* sont les droits d'accès qui disent qui peut lire ou écrire un fichier), donc ils sont **moins portables** : un chemin qui existe chez toi n'existe pas forcément chez ton collègue. Ensuite, un bind mount **écrase** le contenu du conteneur à l'emplacement monté : pratique en dev pour imposer ton code, mais risqué en production.\n\n👉 **En résumé** : en dev, le bind mount te fait gagner du temps ; en production, le volume nommé te garde en sécurité."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Pièges de permissions & sauvegarde (niveau expert)",
+          "body": "Deux réalités du terrain, à connaître avant de se faire surprendre.\n\n**Piège 1 : les permissions.** Sur les systèmes Linux, chaque fichier appartient à un utilisateur identifié par un numéro, l'**UID** (*User IDentifier*, le numéro d'un utilisateur) et à un groupe identifié par un **GID** (*Group IDentifier*, le numéro d'un groupe). Or l'utilisateur *à l'intérieur* du conteneur peut avoir un UID différent de celui qui possède les fichiers montés côté hôte. Résultat classique : une erreur **« permission denied »** (*accès refusé*), parce que l'utilisateur du conteneur n'a pas le droit de lire ou d'écrire ces fichiers.\n\n👉 **Analogie** : c'est comme deux immeubles qui numérotent leurs appartements chacun à leur façon. Le « numéro 5 » de l'hôte et le « numéro 5 » du conteneur ne désignent pas la même personne, du coup la clé ne rentre pas dans la serrure.\n\nPour régler cela, on **aligne les UID/GID** des deux côtés, avec par exemple l'option `--user` de `docker run` (qui force l'UID de l'utilisateur du conteneur) ou la commande `chown` (*change owner* = changer le propriétaire d'un fichier).\n\n**Piège 2 : la sauvegarde.** Attention, un volume **n'est pas sauvegardé automatiquement**. Une **sauvegarde** (*backup* en anglais) est une copie de sécurité rangée ailleurs, pour restaurer en cas de perte. Si tu supprimes un volume avec `docker volume rm`, ou avec `docker compose down -v` (l'option `-v` signifie *volumes* : elle efface aussi les volumes), les **données sont détruites** définitivement. Il faut donc mettre en place tes propres sauvegardes : pour une base de données, un **dump** (un export du contenu de la base dans un fichier, par exemple via l'outil `pg_dump` pour PostgreSQL) ; ou un conteneur jetable qui archive le contenu du volume (on verra le détail dans la leçon suivante).\n\n**Bonus : tmpfs.** Il existe un troisième type de montage, `tmpfs`, qui range les données **en mémoire vive** (la RAM) au lieu du disque : c'est très **rapide** mais totalement **éphémère** (tout disparaît à l'arrêt du conteneur). On l'utilise pour des données **temporaires** ou **sensibles** (par exemple un mot de passe déchiffré) qu'on ne veut jamais laisser traîner sur le disque."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "En développement, vous voulez modifier votre code sur votre machine et voir immédiatement le changement dans le conteneur sans reconstruire l'image. En production, vous voulez que les données de la base survivent aux redéploiements. Quel mécanisme pour chaque cas ?",
+          "solution": "Développement : un bind mount du dossier de code source de l'hôte dans le conteneur (`-v $(pwd)/src:/app/src`). Comme le conteneur lit directement les fichiers de l'hôte, toute modification locale est vue immédiatement (hot reload), sans reconstruire l'image. Production : un volume nommé sur le répertoire de données de la base (`-v pgdata:/var/lib/postgresql/data`). Géré par Docker indépendamment du conteneur, il fait survivre les données aux suppressions/recréations de conteneur (redéploiements). Règle générale : bind mount pour le code en dev, volume nommé pour les données persistantes en prod."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Persistance des données",
+          "quizRef": "data-persistence-check"
+        }
+      ]
+    },
+    {
+      "slug": "volumes-en-production",
+      "title": "Volumes en production : drivers, backup, perf",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les drivers de volume",
+          "body": "Par défaut, un volume nommé est stocké sur le **disque local** de l'hôte, c'est-à-dire le disque physique de la machine où tourne Docker. Cette gestion est assurée par un **driver** (un *pilote* : le petit module logiciel qui sait où et comment ranger les données) appelé `local`.\n\nMais on peut demander à un volume d'être servi par un **autre driver** ou par un **plugin** (une extension qu'on ajoute à Docker pour lui apprendre un nouveau type de stockage). Quelques exemples utiles :\n- **NFS** (*Network File System*, littéralement *système de fichiers en réseau*) : un dossier partagé sur le réseau, monté comme s'il était local. Les données survivent à la perte de l'hôte et sont accessibles depuis plusieurs machines.\n- les **volumes cloud** : des disques fournis par un hébergeur, comme **EBS** (le stockage disque d'Amazon Web Services) ou **Azure Disk** (celui de Microsoft Azure), branchés via un plugin.\n- des **systèmes de stockage distribués** (répartis sur plusieurs machines).\n\nPourquoi est-ce important ? Tant que tu es en **mono-hôte** (une *seule machine*), le disque local suffit. Mais dès que tu passes sur un **cluster** (un *groupe de plusieurs machines qui travaillent ensemble*, chaque machine étant appelée un **nœud**), un conteneur peut être arrêté sur un nœud et **redémarrer sur un autre**. S'il redémarre ailleurs, ses données doivent le **suivre**. Elles ne peuvent donc pas rester sur le disque local d'un seul nœud : elles doivent résider sur un stockage **réseau ou partagé**, accessible depuis n'importe quel nœud.\n\n👉 **Analogie** : le disque local, c'est un **casier personnel** dans un vestiaire précis ; si on te change de bâtiment, tu ne peux plus l'ouvrir. Le stockage réseau, c'est un **coffre à la banque** accessible depuis n'importe quelle agence : où que tu ailles, tu retrouves tes affaires.\n\nLe choix du driver de volume est donc une vraie **décision d'architecture** de la persistance, pas un simple détail."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Sauvegarder & restaurer un volume",
+          "codeLanguage": "bash",
+          "body": "# Un volume n'est PAS sauvegardé automatiquement. Pattern classique :\n# Sauvegarde -> archiver le contenu du volume via un conteneur jetable\ndocker run --rm \\\n  -v pgdata:/data:ro \\\n  -v $(pwd):/backup \\\n  alpine tar czf /backup/pgdata-backup.tar.gz -C /data .\n\n# Restauration -> extraire l'archive dans un volume (neuf ou vidé)\ndocker run --rm \\\n  -v pgdata:/data \\\n  -v $(pwd):/backup \\\n  alpine sh -c \"rm -rf /data/* && tar xzf /backup/pgdata-backup.tar.gz -C /data\"\n\n# Pour une base, préférer un dump applicatif (pg_dump) à l'archive brute des fichiers"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La performance des bind mounts sur Mac/Windows",
+          "body": "Voici un piège de **performance** (la *rapidité* d'exécution) qui déroute beaucoup de monde. Sur **Linux**, un bind mount est **natif** (géré directement par le système) et donc rapide. Mais sur **macOS** et **Windows**, Docker ne tourne pas directement sur le système : il s'appuie sur une petite **machine virtuelle Linux** (une **VM**, c'est-à-dire un ordinateur Linux simulé à l'intérieur de ton Mac ou de ton PC).\n\nDu coup, quand ton conteneur lit le code monté depuis l'hôte, les fichiers doivent **traverser la frontière** entre ton système (macOS/Windows) et cette VM Linux. Historiquement, cette traversée était **très lente** pour les projets qui ont beaucoup de fichiers (par exemple le dossier `node_modules` d'un projet JavaScript, ou un gros dépôt de code).\n\nDocker a beaucoup amélioré la situation avec des technologies dédiées : **virtiofs** (un système de partage de fichiers rapide entre l'hôte et la VM, côté Mac) et **WSL2** (*Windows Subsystem for Linux 2*, la couche Linux intégrée à Windows). Il existe aussi des options dites de **consistance**, comme `cached` et `delegated`, qui autorisent un léger décalage de synchronisation entre l'hôte et le conteneur en échange de plus de vitesse.\n\n👉 **Analogie** : sur Linux, l'hôte et le conteneur parlent la même langue, la conversation est directe. Sur Mac/Windows, il y a un **traducteur** au milieu (la VM) : ça marche, mais chaque phrase prend un peu plus de temps, surtout quand il y en a des milliers.\n\nRéflexe d'expert sur Mac/Windows : garder le code **dans le système de fichiers de la VM** (côté distribution Linux/WSL2 sur Windows), activer **virtiofs**, et éviter de bind-monter d'énormes arborescences de fichiers quand la performance compte vraiment."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Le piège de l'instruction VOLUME (niveau expert)",
+          "body": "Une subtilité méconnue, qui pique un jour ou l'autre. Dans un **Dockerfile** (le fichier recette qui décrit, ligne par ligne, comment construire une image), il existe une instruction **`VOLUME /data`**. Elle déclare que le chemin `/data` sera **automatiquement** un volume au lancement du conteneur, plus précisément un **volume anonyme** (un volume sans nom, créé à la volée par Docker) si l'utilisateur n'en monte pas un explicitement.\n\nDeux conséquences fâcheuses.\n\n**Problème 1 : elle casse le cache de build.** Le **cache de build** est ce qui permet à Docker de réutiliser les étapes déjà construites au lieu de tout refaire (pour aller plus vite). Or, toute instruction qui **écrit** dans ce chemin **après** le `VOLUME` est perdue : les écritures dans un volume déclaré ne sont pas enregistrées dans l'image finale. D'où la fameuse question « pourquoi les fichiers que j'ai copiés dans `/data` ont disparu ? ».\n\n**Problème 2 : elle fabrique des orphelins.** Chaque `docker run` sans `-v` crée un nouveau **volume anonyme** rattaché à rien, un *orphelin*. Ils **s'accumulent silencieusement** et finissent par remplir le disque (une fuite d'espace).\n\n👉 **Analogie** : c'est comme un supermarché qui, à chaque passage, te colle un caddie que tu ne peux plus détacher et que personne ne range : au bout d'un moment, le parking déborde de caddies abandonnés.\n\nLe réflexe d'expert : **éviter `VOLUME`** dans les images d'applications, et laisser l'**utilisateur** décider de ce qu'il monte au lancement (avec `-v`). L'instruction ne se justifie que pour des images très spécifiques, dédiées à des données."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une application doit tourner sur un cluster où les conteneurs peuvent redémarrer sur n'importe quel nœud. Un développeur utilise un volume local nommé pour la base de données. Pourquoi est-ce un problème, et quelle est la solution ?",
+          "solution": "Un volume avec le driver 'local' réside sur le disque de l'hôte où il a été créé. Sur un cluster, si le conteneur de base de données redémarre (ou est reprogrammé) sur un AUTRE nœud, il ne retrouve pas son volume, les données sont restées sur le nœud d'origine, inaccessibles depuis le nouveau. Résultat : perte apparente de données, ou conteneur qui repart sur un volume vide. Solution : utiliser un stockage RÉSEAU/PARTAGÉ via un driver de volume adapté, NFS, ou un plugin de volume cloud (EBS, Azure Disk, etc.), ou une solution de stockage de cluster (CSI en Kubernetes). Les données vivent alors sur un stockage accessible depuis n'importe quel nœud, et suivent le conteneur où qu'il redémarre. Règle : sur mono-hôte, volume local ; dès qu'on a plusieurs nœuds, stockage réseau/partagé pour les données à conserver. (En pratique, on externalise souvent carrément la base vers un service géré plutôt que de gérer soi-même la persistance distribuée.)"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Volumes en production (expert)",
+          "quizRef": "volumes-production-expert"
+        }
+      ]
+    }
+  ]
+}

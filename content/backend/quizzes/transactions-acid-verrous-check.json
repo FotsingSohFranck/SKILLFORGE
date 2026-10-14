@@ -1,0 +1,52 @@
+{
+  "ref": "transactions-acid-verrous-check",
+  "node": "transactions-acid",
+  "lesson": "verrous-et-strategies",
+  "title": "Verrous & stratégies",
+  "description": "Verrouillage pessimiste vs optimiste, deadlock, transactions courtes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quel pari repose le verrouillage optimiste ?",
+      "justification": "Il parie que les conflits sont rares : on ne verrouille rien, on vérifie seulement à l'écriture que la donnée n'a pas changé (colonne version), et on rejoue sinon.",
+      "position": 0,
+      "options": [
+        { "label": "Les conflits sont rares : on ne verrouille pas et on vérifie à l'écriture", "correct": true, "position": 0 },
+        { "label": "Les conflits sont fréquents : on verrouille dès la lecture", "correct": false, "position": 1 },
+        { "label": "On chiffre chaque ligne pour éviter les conflits", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un deadlock (interblocage) ?",
+      "justification": "Deux transactions se bloquent mutuellement : chacune tient un verrou que l'autre attend, donc plus rien n'avance.",
+      "position": 1,
+      "options": [
+        { "label": "Deux transactions s'attendent mutuellement sur des verrous croisés", "correct": true, "position": 0 },
+        { "label": "Une transaction qui s'exécute trop vite", "correct": false, "position": 1 },
+        { "label": "Une base de données pleine", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un développeur ouvre une transaction, écrit en base, puis appelle un service de paiement externe (2 s) avant de committer. Pourquoi est-ce risqué ?",
+      "justification": "La transaction garde ses verrous pendant les 2 s de l'appel externe : elle bloque les autres, augmente deadlocks et bloat. On sort l'I/O externe de la transaction.",
+      "position": 2,
+      "options": [
+        { "label": "La transaction tient ses verrous pendant l'appel externe et bloque les autres", "correct": true, "position": 0 },
+        { "label": "L'appel externe rend la transaction plus rapide", "correct": false, "position": 1 },
+        { "label": "Rien de grave, c'est même recommandé", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le verrouillage pessimiste (SELECT ... FOR UPDATE) est idéal quand il y a énormément de lectures et très peu de conflits réels.",
+      "justification": "Faux : dans ce cas (faible contention), c'est le verrouillage optimiste qui est idéal. Le pessimiste se réserve aux points critiques où le conflit est probable.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

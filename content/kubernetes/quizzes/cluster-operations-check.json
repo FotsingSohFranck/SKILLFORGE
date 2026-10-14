@@ -1,0 +1,119 @@
+{
+  "ref": "cluster-operations-check",
+  "node": "cluster-operations",
+  "lesson": "upgrades-etcd-multicluster",
+  "title": "Opérer un cluster",
+  "description": "Managé vs auto-géré, kubeadm, upgrades/skew, sauvegarde etcd, multi-cluster.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour une petite équipe sans expert Kubernetes, que privilégier ?",
+      "justification": "Un cluster managé (EKS/GKE/AKS) : le fournisseur gère le plan de contrôle critique ; l'auto-géré demande une équipe d'exploitation dédiée.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un cluster managé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un cluster auto-géré avec kubeadm",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun cluster",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment met-on à jour un nœud sans casser la disponibilité ?",
+      "justification": "On draine le nœud (évince ses pods ailleurs en respectant les PodDisruptionBudgets), on le met à jour, puis on le remet en service.",
+      "position": 1,
+      "options": [
+        {
+          "label": "On le draine (kubectl drain) avant de le mettre à jour",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "On l'éteint brutalement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On supprime tous ses pods définitivement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Peut-on mettre à jour Kubernetes de 1.30 directement à 1.33 ?",
+      "justification": "Non : on ne saute pas de versions mineures (skew policy) ; on monte une mineure à la fois (1.30 → 1.31 → 1.32 → 1.33).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Non, une version mineure à la fois",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, sans aucun risque",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, si le cluster est managé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle opération est critique avant toute upgrade d'un cluster auto-géré ?",
+      "justification": "Sauvegarder (et tester) etcd : il contient tout l'état du cluster ; sans snapshot, pas de restauration possible en cas de désastre.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Prendre et vérifier un snapshot etcd",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer les anciens pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Changer le tag des images en latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Gérer plusieurs clusters (multi-cluster) ajoute résilience et conformité, au prix d'une complexité opérationnelle qu'on ne prend que pour un besoin justifié.",
+      "justification": "Vrai : le multi-cluster (régions, isolation, résilience) exige gestion de flotte et outillage (Cluster API, GitOps multi-cluster), justifié par le besoin.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "ref": "sql-modeling-avancees-check",
+  "node": "sql-modeling",
+  "lesson": "requetes-avancees",
+  "title": "Requêtes avancées",
+  "description": "Sous-requêtes, CTE et fonctions fenêtre.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une CTE (`WITH nom AS (...)`) ?",
+      "justification": "Une CTE nomme une étape intermédiaire réutilisable ensuite, ce qui rend une requête complexe lisible et composable.",
+      "position": 0,
+      "options": [
+        { "label": "Nommer une étape intermédiaire, réutilisée ensuite comme une table", "correct": true, "position": 0 },
+        { "label": "Créer un index automatiquement", "correct": false, "position": 1 },
+        { "label": "Supprimer les doublons d'un résultat", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte une fonction fenêtre (`OVER (...)`) par rapport à `GROUP BY` ?",
+      "justification": "La fonction fenêtre calcule sur un ensemble de lignes tout en gardant chaque ligne, là où GROUP BY réduit à une ligne par groupe.",
+      "position": 1,
+      "options": [
+        { "label": "Calculer sur un groupe tout en gardant chaque ligne individuelle", "correct": true, "position": 0 },
+        { "label": "Réduire chaque groupe à une seule ligne", "correct": false, "position": 1 },
+        { "label": "Chiffrer les résultats", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu veux un classement (un rang) des apprenants par XP, sans regrouper les lignes. Quoi utiliser ?",
+      "justification": "rank() ou row_number() avec OVER (ORDER BY xp DESC) attribue un rang tout en conservant chaque ligne.",
+      "position": 2,
+      "options": [
+        { "label": "rank() OVER (ORDER BY xp DESC)", "correct": true, "position": 0 },
+        { "label": "GROUP BY xp", "correct": false, "position": 1 },
+        { "label": "COUNT(*)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Pour CHAQUE parcours, tu veux uniquement l'apprenant le plus avancé (top-1 par groupe). Quelle approche ?",
+      "justification": "row_number() OVER (PARTITION BY roadmap ORDER BY progress DESC) numérote dans chaque parcours ; on garde ensuite les lignes de rang 1.",
+      "position": 3,
+      "options": [
+        { "label": "row_number() OVER (PARTITION BY roadmap ORDER BY progress DESC), puis garder le rang 1", "correct": true, "position": 0 },
+        { "label": "Un simple GROUP BY roadmap avec MAX(progress)", "correct": false, "position": 1 },
+        { "label": "Un DISTINCT sur roadmap", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

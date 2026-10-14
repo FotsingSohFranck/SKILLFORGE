@@ -1,0 +1,96 @@
+{
+  "ref": "messaging-check",
+  "node": "messaging",
+  "lesson": "decoupler-par-les-messages",
+  "title": "Quiz, Messaging & files",
+  "description": "Découplage temporel, file/pub-sub, défis de l'asynchrone.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte principalement la messagerie par rapport à un appel synchrone ?",
+      "justification": "Un découplage temporel et structurel : l'émetteur ne connaît pas le consommateur, qui traite à son rythme ; résilience et lissage de charge.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un découplage temporel et structurel (résilience, lissage)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une exécution toujours synchrone et immédiate",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La suppression de toute base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Puisque les brokers livrent souvent « au moins une fois », que doit garantir chaque consommateur ?",
+      "justification": "L'idempotence : traiter deux fois le même message produit le même effet (dédup par identifiant, upsert), pas de double facturation.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'idempotence (un doublon ne double pas l'effet)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "De publier chaque message deux fois",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "De refuser tout message répété en erreur fatale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel pattern garantit qu'écrire en base ET publier un événement soit fiable ?",
+      "justification": "Le Transactional Outbox : écrire l'événement dans une table outbox dans la même transaction, puis le relayer au broker, résout le dual write.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le pattern Outbox",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le partage de base de données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le tag latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Adopter la messagerie supprime tout compromis : on gagne le découplage sans nouveau défi.",
+      "justification": "Faux : on doit gérer la cohérence à terme, l'idempotence, l'ordre, l'Outbox, les dead-letter queues et un flux implicite à observer.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

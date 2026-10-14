@@ -1,0 +1,10 @@
+{
+  "node": "meta-arguments",
+  "lesson": "count-et-for-each",
+  "title": "Créer des instances avec for_each",
+  "statement": "Écris une ressource `aws_instance` nommée `app` qui crée une instance par élément de l'ensemble `[\"api\", \"web\", \"cron\"]`. Chaque instance doit avoir un `instance_type` de `\"t3.micro\"` et un tag `Name` égal à sa clé. Utilise `for_each` (et non `count`) pour obtenir une identité stable par clé.",
+  "skeleton": "resource \"aws_instance\" \"app\" {\n  # complete ici avec for_each, instance_type et le tag Name\n}",
+  "solution": "resource \"aws_instance\" \"app\" {\n  for_each      = toset([\"api\", \"web\", \"cron\"])\n  instance_type = \"t3.micro\"\n  tags = { Name = each.key }\n}",
+  "keyPoints": ["for_each", "toset", "each.key", "instance_type", "tags"],
+  "language": "hcl"
+}

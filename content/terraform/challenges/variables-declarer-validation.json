@@ -1,0 +1,10 @@
+{
+  "node": "variables",
+  "lesson": "variables-dentree",
+  "title": "Déclarer une variable validée",
+  "statement": "Déclare une variable Terraform nommée `environment`, de type `string`, avec une `description`, SANS valeur par défaut (donc obligatoire), et un bloc `validation` qui n'autorise QUE les valeurs `dev`, `staging` ou `prod`, avec un `error_message` clair. Astuce : la fonction `contains([...], var.environment)` vérifie qu'une valeur fait partie d'une liste.",
+  "skeleton": "variable \"environment\" {\n  # type, description, et un bloc validation à compléter\n}",
+  "solution": "variable \"environment\" {\n  description = \"Environnement cible (dev, staging ou prod)\"\n  type        = string\n\n  validation {\n    condition     = contains([\"dev\", \"staging\", \"prod\"], var.environment)\n    error_message = \"environment doit être dev, staging ou prod.\"\n  }\n}",
+  "keyPoints": ["variable \"environment\"", "type", "string", "description", "validation", "condition", "contains(", "dev", "staging", "prod", "error_message"],
+  "language": "hcl"
+}

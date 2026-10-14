@@ -1,0 +1,41 @@
+{
+  "ref": "enhanced-instanceof-en-pratique-equals",
+  "node": "enhanced-instanceof",
+  "lesson": "en-pratique-equals",
+  "title": "Quiz : en pratique equals",
+  "description": "Écrire un equals propre avec le pattern de type.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle écriture de equals est la plus propre en Java moderne ?",
+      "justification": "Le pattern de type combine le test et la variable, et le && court circuite si le type ne correspond pas : plus de cast redondant ni de risque de ClassCastException.",
+      "position": 0,
+      "options": [
+        { "label": "return o instanceof Point p && x == p.x && y == p.y;", "correct": true, "position": 0 },
+        { "label": "if (!(o instanceof Point)) return false; Point p = (Point) o; return x == p.x && y == p.y;", "correct": false, "position": 1 },
+        { "label": "return x == ((Point) o).x && y == ((Point) o).y;", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans return o instanceof Point p && ..., que se passe t il si o n'est pas un Point ?",
+      "justification": "Le test vaut faux, le && court circuite et la méthode renvoie false sans jamais accéder aux champs : aucun risque de ClassCastException.",
+      "position": 1,
+      "options": [
+        { "label": "Le && court circuite et equals renvoie false, sans toucher aux champs", "correct": true, "position": 0 },
+        { "label": "Une ClassCastException est levée", "correct": false, "position": 1 },
+        { "label": "La variable p prend la valeur null et on continue", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour un record, il faut écrire soi même ce equals avec un pattern de type.",
+      "justification": "Faux : un record génère automatiquement son equals. Le pattern de type est utile pour un equals écrit à la main dans une classe classique.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "solid",
+  "lesson": "dip-di-ioc",
+  "title": "Inverser la dépendance : introduire un port",
+  "statement": "Ce use case est soudé à un détail technique : il fait `new PostgresOrderRepository()` en dur, donc impossible à tester sans une vraie base. Applique le DIP : (1) définis une interface `OrderRepository` (le port) avec une méthode `findById(UUID id)` qui renvoie une commande ; (2) fais dépendre `GetOrder` de cette interface, fournie par **injection au constructeur** (champ `final`, pas de `new` à l'intérieur) ; (3) fais réaliser le port par une classe `PostgresOrderRepository` côté adaptateur ; (4) montre le câblage à la main, sans conteneur. Écris le code Java.",
+  "skeleton": "// AVANT (à corriger) : le use case fabrique lui-même sa dépendance concrète\nclass GetOrder {\n    Order findOrder(UUID id) {\n        var repo = new PostgresOrderRepository();\n        return repo.findById(id);\n    }\n}\n",
+  "solution": "// 1. Le port, défini côté métier : une abstraction, pas un détail\ninterface OrderRepository {\n    Order findById(UUID id);\n}\n\n// 2. Le use case dépend de l'abstraction, injectée au constructeur (final)\nclass GetOrder {\n    private final OrderRepository repo;\n    GetOrder(OrderRepository repo) {   // injection par constructeur\n        this.repo = repo;\n    }\n    Order findOrder(UUID id) {\n        return repo.findById(id);       // aucun new ici : plus de dépendance concrète\n    }\n}\n\n// 3. Le détail technique réalise le port, côté adaptateur\nclass PostgresOrderRepository implements OrderRepository {\n    public Order findById(UUID id) { /* accès base Postgres */ return null; }\n}\n\n// 4. Câblage à la main (sans conteneur IoC) : on FOURNIT l'implémentation\nvar useCase = new GetOrder(new PostgresOrderRepository());\n// La dépendance de code pointe désormais du détail (Postgres) vers l'abstraction (le port).\n// En test, on passe un faux repository : new GetOrder(fakeRepo).",
+  "keyPoints": ["interface OrderRepository", "private final OrderRepository", "GetOrder(OrderRepository", "implements OrderRepository", "new GetOrder(new PostgresOrderRepository"],
+  "language": "java"
+}

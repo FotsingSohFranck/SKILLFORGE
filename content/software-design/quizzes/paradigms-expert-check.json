@@ -1,0 +1,96 @@
+{
+  "ref": "paradigms-expert-check",
+  "node": "programming-paradigms",
+  "lesson": "reactif-et-fonctionnel-concret",
+  "title": "Quiz, Réactif & fonctionnel (expert)",
+  "description": "Impératif/déclaratif, concepts FP, paradigme réactif, non-blocage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre style impératif et déclaratif ?",
+      "justification": "L'impératif décrit comment faire (étapes), le déclaratif décrit quoi obtenir (le comment est délégué), ex. streams, SQL, réactif.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Impératif = comment (étapes) ; déclaratif = quoi (intention)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Déclaratif = plus lent par nature",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Impératif = sans variables",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Optional, Stream et Mono exposent tous map/flatMap : de quel concept s'agit-il ?",
+      "justification": "Ce sont des « monades » : des boîtes qui encapsulent un contexte (absence, séquence, futur) et se chaînent via map/flatMap sans dérouler le contenu à la main.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des monades (boîtes composables via map/flatMap)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Des singletons",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Des variables globales",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que la back-pressure en programmation réactive ?",
+      "justification": "Le mécanisme par lequel le consommateur régule le producteur (demande N éléments) pour ne pas être submergé, une garantie de stabilité des flux réactifs.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le consommateur régule le débit du producteur pour ne pas être submergé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le producteur bloque tous les threads",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une compression réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un pipeline WebFlux, appeler .block() sur un Mono va à l'encontre du non-blocage et peut figer l'event loop.",
+      "justification": "Vrai : block() immobilise le thread comme du code bloquant ; on compose et renvoie le Mono/Flux, le framework s'abonne. block() est réservé aux frontières non réactives.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

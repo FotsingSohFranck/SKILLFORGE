@@ -1,0 +1,96 @@
+{
+  "ref": "key-concepts-plan-check",
+  "node": "key-concepts",
+  "lesson": "plan-de-controle-et-noeuds",
+  "title": "Quiz, Plan de contrôle & nœuds",
+  "description": "Cluster, plan de contrôle vs nœuds, apiserver, etcd, scheduler, kubelet, kube-proxy.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans un cluster, qui décide (le « cerveau ») et qui fait tourner réellement les conteneurs (les « muscles ») ?",
+      "justification": "Le plan de contrôle décide et maintient l'état désiré ; les nœuds de travail exécutent les conteneurs. Le cerveau ne pose pas de briques, les ouvriers ne dessinent pas les plans.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le plan de contrôle décide ; les nœuds de travail exécutent les conteneurs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les nœuds décident ; le plan de contrôle exécute les conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcd décide ; le kube-proxy exécute les conteneurs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Par quel composant passe obligatoirement toute action sur le cluster (kubectl, contrôleurs, kubelets) ?",
+      "justification": "Le kube-apiserver est la porte d'entrée unique : il expose l'API REST par laquelle tout le monde communique.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le kube-apiserver",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le kube-scheduler",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le container runtime",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur un nœud, quel composant démarre et arrête réellement les conteneurs, sur ordre du kubelet ?",
+      "justification": "Le container runtime (containerd, CRI-O) exécute les conteneurs. Le kubelet est le conducteur, le runtime est le moteur.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le container runtime (ex. containerd)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le kube-proxy",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "etcd",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En Kubernetes managé (EKS, GKE, AKS), c'est le fournisseur cloud qui gère le plan de contrôle à ta place.",
+      "justification": "Vrai : le fournisseur exploite l'apiserver, etcd, le scheduler et le controller-manager ; tu ne gères, au plus, que les nœuds de travail.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

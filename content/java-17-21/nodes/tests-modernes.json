@@ -1,0 +1,245 @@
+{
+  "node": "tests-modernes",
+  "lessons": [
+    {
+      "slug": "pourquoi-tester",
+      "title": "Pourquoi tester",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Qu'est-ce qu'un test automatique",
+          "position": 0,
+          "body": "Un **test automatique** est un petit bout de code dont le seul rôle est de vérifier qu'un autre bout de code se comporte comme prévu. Tu l'écris une fois, puis la machine le rejoue autant de fois que tu veux, en une fraction de seconde, et te dit \"tout va bien\" ou \"quelque chose ne va pas\".\n\nQuand ce test vérifie **une seule petite partie** du programme (par exemple une seule méthode, isolée du reste), on parle de **test unitaire** (en anglais *unit test*). \"Unitaire\" veut dire : il teste une unité, un morceau précis, pas le programme entier.\n\n👉 Pense à la dégustation d'une sauce pendant la cuisson : au lieu d'attendre la fin du repas pour savoir si c'est raté, tu goutes une cuillère tout de suite. Un test unitaire, c'est cette cuillère que tu peux regouter automatiquement à chaque modification."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Une régression, et le filet de sécurité",
+          "position": 1,
+          "body": "Une **régression** est le fait de casser quelque chose qui marchait déjà. Tu ajoutes une nouvelle fonctionnalité, et sans le vouloir tu brises un comportement qui fonctionnait hier. C'est l'un des cauchemars les plus courants quand un programme grandit.\n\nUn ensemble de tests automatiques forme un **filet de sécurité** : si une modification casse un comportement, un test vire au rouge immédiatement et te prévient, avant même que le code parte chez les utilisateurs.\n\n👉 Comme le filet sous un trapéziste : il ne t'empêche pas de faire des figures risquées, mais si tu tombes, il te rattrape tout de suite au lieu de te laisser découvrir le problème trop tard. Exemple concret : tu modifies une méthode `additionner`, et un test qui vérifiait `additionner(2, 3) == 5` passe au rouge si tu as introduit un bug."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le cycle rouge puis vert",
+          "position": 2,
+          "body": "En pratique, un test ne connait que deux états : **vert** (il passe, le comportement est correct) ou **rouge** (il échoue, quelque chose ne correspond pas à ce qu'on attendait).\n\nLe réflexe sain est simple : on veut que tous les tests soient **verts**. Dès qu'un test devient rouge, on sait exactement où regarder, parce que chaque test cible un comportement précis. On corrige, on relance, et on vérifie que tout est redevenu vert.\n\n👉 C'est le même langage qu'un feu de circulation : vert, tu avances tranquille ; rouge, tu t'arrêtes et tu règles le problème avant de continuer."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Le cycle rouge puis vert",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    A[\"J'écris ou je modifie du code\"] --> B[\"Je lance les tests\"]\n    B --> C{\"Tous verts ?\"}\n    C -- \"Non (rouge)\" --> D[\"Je corrige le code\"]\n    D --> B\n    C -- \"Oui (vert)\" --> E[\"Je continue sereinement\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Reconnais une régression",
+          "position": 4,
+          "body": "Hier, la méthode `prixTTC(100)` renvoyait `120` et un test le vérifiait (il était vert). Aujourd'hui tu changes le calcul de la taxe et le même test devient rouge car `prixTTC(100)` renvoie maintenant `100`. Comment s'appelle ce genre de problème, et à quoi sert le test ici ?",
+          "solution": "C'est une régression : un comportement qui marchait (prixTTC(100) donnait 120) a été cassé par une modification. Le test joue son rôle de filet de sécurité : il passe au rouge immédiatement et te prévient que ton changement a brisé le calcul, avant que le bug n'arrive chez les utilisateurs. Tu corriges, tu relances, et le test redevient vert."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : pourquoi tester",
+          "position": 5,
+          "quizRef": "tests-modernes-pourquoi-tester"
+        }
+      ]
+    },
+    {
+      "slug": "junit5-les-bases",
+      "title": "JUnit 5, les bases",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Qu'est-ce que JUnit 5",
+          "position": 0,
+          "body": "**JUnit 5** est le **framework** de test le plus utilisé en Java. Un **framework** (en français un cadriciel) est une boite à outils toute prête : ici, elle sait trouver tes tests, les lancer, et t'afficher lesquels sont verts ou rouges, sans que tu aies à écrire cette mécanique toi même.\n\nPour que JUnit sache quelles méthodes sont des tests, on pose dessus une **annotation**. Une **annotation** est une étiquette que l'on colle sur une méthode ou une classe, écrite avec un `@` devant un nom. Elle ne fait rien toute seule : elle donne une information à un outil. L'annotation clé s'appelle `@Test`.\n\n👉 Une annotation, c'est comme un post-it collé sur une porte : `@Test` dit à JUnit \"cette méthode est un test, ouvre la et lance la\". En Java, les classes de JUnit 5 se trouvent dans le paquet `org.junit.jupiter.api`."
+        },
+        {
+          "type": "CODE",
+          "title": "Une première classe de test",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Les imports viennent de org.junit.jupiter : c'est JUnit 5.\nimport org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\n// La classe à tester : une simple calculatrice.\nclass Calculatrice {\n    int additionner(int a, int b) {\n        return a + b;\n    }\n}\n\n// Une classe de test : par convention, on la nomme <ClasseTestee>Test.\nclass CalculatriceTest {\n\n    // @Test marque cette méthode comme un test que JUnit doit lancer.\n    @Test\n    void additionner_deuxNombres_renvoieLaSomme() {\n        Calculatrice calc = new Calculatrice();\n        int resultat = calc.additionner(2, 3);\n        // On vérifie que le résultat vaut bien 5.\n        assertEquals(5, resultat);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Comment une classe de test est faite",
+          "position": 2,
+          "body": "Quelques règles simples pour une classe de test JUnit 5 :\n\n- Une méthode de test porte l'annotation `@Test` et ne renvoie rien (type de retour `void`).\n- Elle n'a pas besoin d'être `public` : en JUnit 5, une visibilité de paquet (sans mot clé) suffit.\n- On peut mettre autant de méthodes `@Test` que l'on veut dans une même classe ; chacune est un test indépendant.\n\n👉 Vois la classe de test comme un carnet de contrôles : chaque méthode `@Test` est une case à cocher qui vérifie un comportement précis. Si une case échoue, les autres sont quand même vérifiées."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Lancer les tests",
+          "position": 3,
+          "body": "Tu ne lances presque jamais les tests \"à la main\". C'est l'outil qui s'en charge :\n\n- Dans un **IDE** (l'éditeur de code comme IntelliJ IDEA ou VS Code), une petite flèche verte apparait à coté de chaque test et de chaque classe de test ; tu cliques, ça se lance.\n- En ligne de commande, l'outil de build lance tous les tests d'un coup : `mvn test` avec Maven, `./gradlew test` avec Gradle.\n\nÀ la fin, l'outil affiche un bilan : combien de tests, combien de verts, combien de rouges.\n\n👉 C'est comme un contrôle technique de voiture : tu ne vérifies pas chaque pièce toi même, tu confies la liste des contrôles à la machine, qui te rend un rapport clair à la fin."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Écris ta première méthode de test",
+          "position": 4,
+          "body": "Soit une classe `Doubleur` avec une méthode `int doubler(int n)` qui renvoie `n * 2`. Écris une classe de test JUnit 5 avec une méthode `@Test` qui vérifie que `doubler(4)` renvoie `8`. N'oublie pas les imports de JUnit 5.",
+          "solution": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nclass DoubleurTest {\n\n    @Test\n    void doubler_quatre_renvoieHuit() {\n        Doubleur d = new Doubleur();\n        int resultat = d.doubler(4);\n        assertEquals(8, resultat);\n    }\n}\n\nLes imports viennent bien de org.junit.jupiter (JUnit 5). L'annotation @Test marque la méthode, et assertEquals vérifie que le résultat attendu (8) correspond au résultat obtenu."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : JUnit 5, les bases",
+          "position": 5,
+          "quizRef": "tests-modernes-junit5-les-bases"
+        }
+      ]
+    },
+    {
+      "slug": "assertions-lisibles",
+      "title": "Assertions lisibles",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Qu'est-ce qu'une assertion",
+          "position": 0,
+          "body": "Une **assertion** est une affirmation que le test vérifie : elle dit \"je m'attends à ce que cette condition soit vraie\". Si la condition est vraie, le test continue ; si elle est fausse, le test échoue (il passe au rouge) et JUnit explique ce qui était attendu et ce qui a été obtenu.\n\nSans assertion, un test ne vérifie rien : il exécute du code mais ne juge jamais le résultat. L'assertion est donc le coeur du test, l'endroit où l'on décide vert ou rouge.\n\n👉 Une assertion, c'est comme la réponse d'un corrigé : \"la bonne réponse est 5\". Si ta copie dit 5, c'est juste ; sinon, l'erreur est signalée. En JUnit 5, les assertions sont des méthodes de la classe `org.junit.jupiter.api.Assertions`."
+        },
+        {
+          "type": "CODE",
+          "title": "assertEquals et assertTrue",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import org.junit.jupiter.api.Test;\n// On importe les assertions en static pour les appeler sans préfixe.\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nimport static org.junit.jupiter.api.Assertions.assertTrue;\nimport static org.junit.jupiter.api.Assertions.assertFalse;\n\nclass AssertionsDemoTest {\n\n    @Test\n    void exemples() {\n        // assertEquals(attendu, obtenu) : vérifie l'égalité. L'attendu vient TOUJOURS en premier.\n        assertEquals(5, 2 + 3);\n\n        // assertTrue(condition) : vérifie qu'une condition est vraie.\n        assertTrue(10 > 3);\n\n        // assertFalse(condition) : vérifie qu'une condition est fausse.\n        assertFalse(\"\".length() > 0);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Vérifier qu'une exception est levée : assertThrows",
+          "position": 2,
+          "body": "Parfois, le comportement correct est justement de **lever une exception**. Une **exception** est la façon dont Java signale une erreur : au lieu de renvoyer une valeur, la méthode interrompt son déroulement pour dire \"ce que tu me demandes est impossible ou invalide\".\n\n`assertThrows` vérifie qu'un morceau de code lève bien l'exception attendue. Si l'exception est levée, le test est vert ; si aucune exception n'arrive (ou pas la bonne), il est rouge.\n\n👉 C'est comme tester un disjoncteur électrique : tu veux vérifier qu'il **saute** bien en cas de surcharge. Ne pas sauter serait le vrai défaut. Exemple : diviser par zéro doit lever une exception, et on veut s'en assurer."
+        },
+        {
+          "type": "CODE",
+          "title": "assertThrows en action",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertThrows;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nclass DivisionTest {\n\n    int diviser(int a, int b) {\n        if (b == 0) {\n            throw new IllegalArgumentException(\"division par zero interdite\");\n        }\n        return a / b;\n    }\n\n    @Test\n    void diviser_parZero_leveUneException() {\n        // assertThrows(TypeAttendu.class, () -> codeQuiDoitEchouer)\n        // Le code à tester est passé sous forme de lambda () -> ...\n        IllegalArgumentException ex = assertThrows(\n            IllegalArgumentException.class,\n            () -> diviser(10, 0)\n        );\n        // Bonus : on peut vérifier le message de l'exception.\n        assertEquals(\"division par zero interdite\", ex.getMessage());\n    }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Choisis la bonne assertion",
+          "position": 4,
+          "body": "Pour chaque vérification, quelle assertion JUnit 5 utiliser ? 1) La méthode `estMajeur(20)` doit renvoyer `true`. 2) La méthode `nomComplet(\"Ana\", \"Doe\")` doit renvoyer la chaine `\"Ana Doe\"`. 3) La méthode `racine(-1)` doit lever une `IllegalArgumentException`.",
+          "solution": "1) assertTrue(personne.estMajeur(20)) : on vérifie qu'une condition booléenne est vraie.\n2) assertEquals(\"Ana Doe\", service.nomComplet(\"Ana\", \"Doe\")) : on compare la valeur attendue (en premier) à la valeur obtenue.\n3) assertThrows(IllegalArgumentException.class, () -> calc.racine(-1)) : on vérifie que le code lève bien l'exception attendue."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : assertions lisibles",
+          "position": 5,
+          "quizRef": "tests-modernes-assertions-lisibles"
+        }
+      ]
+    },
+    {
+      "slug": "tester-records-et-patterns",
+      "title": "Tester records et patterns",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Comparer deux records avec equals",
+          "position": 0,
+          "body": "Tu as vu qu'un **record** compare par **valeur** : deux records aux mêmes composants sont considérés égaux par leur méthode `equals`, même s'il s'agit de deux objets distincts en mémoire. Cette propriété rend les records très agréables à tester.\n\nPourquoi ? Parce que `assertEquals` s'appuie justement sur `equals` pour juger l'égalité. Tu peux donc comparer d'un seul coup l'objet attendu et l'objet obtenu, sans vérifier chaque composant un par un.\n\n👉 Au lieu de contrôler séparément \"le x est bon, le y est bon\", tu présentes directement la fiche complète attendue et tu dis \"ça doit être exactement ça\". Le record s'occupe de comparer tout le contenu."
+        },
+        {
+          "type": "CODE",
+          "title": "Tester une méthode qui renvoie un record",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nrecord Point(int x, int y) { }\n\nclass Geometrie {\n    // Déplace un point d'un certain décalage et renvoie un NOUVEAU point.\n    Point deplacer(Point p, int dx, int dy) {\n        return new Point(p.x() + dx, p.y() + dy);\n    }\n}\n\nclass GeometrieTest {\n\n    @Test\n    void deplacer_ajouteLeDecalage() {\n        Geometrie g = new Geometrie();\n        Point obtenu = g.deplacer(new Point(1, 1), 2, 3);\n        // Grâce à l'égalité par valeur des records, une seule assertion suffit.\n        assertEquals(new Point(3, 4), obtenu);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Tester une méthode qui utilise un switch de patterns",
+          "position": 2,
+          "body": "Un **switch de patterns** (pattern matching) est un `switch` qui choisit une branche selon le **type** de l'objet reçu, et pas seulement selon une valeur. C'est très utilisé avec des hiérarchies de types `sealed` (fermées) pour décrire, par exemple, différentes formes géométriques.\n\nUne telle méthode n'a rien de spécial à tester : tu lui passes une valeur de chaque type possible, et tu vérifies le résultat avec une assertion. L'objectif est de **couvrir chaque branche** du switch au moins une fois, pour s'assurer qu'aucun cas n'a été oublié ou mal calculé.\n\n👉 C'est comme tester un distributeur qui réagit différemment selon la pièce insérée : tu essaies chaque type de pièce et tu vérifies à chaque fois que la bonne chose sort."
+        },
+        {
+          "type": "CODE",
+          "title": "Tester chaque branche d'un switch de patterns",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\n// Une petite hiérarchie fermée de formes.\nsealed interface Forme permits Cercle, Carre { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Carre(double cote) implements Forme { }\n\nclass CalculAire {\n    // Le switch branche selon le TYPE et déconstruit le record au passage.\n    double aire(Forme f) {\n        return switch (f) {\n            case Cercle(double r) -> Math.PI * r * r;\n            case Carre(double c)  -> c * c;\n        };\n    }\n}\n\nclass CalculAireTest {\n\n    @Test\n    void aire_duCarre() {\n        assertEquals(9.0, new CalculAire().aire(new Carre(3)));\n    }\n\n    @Test\n    void aire_duCercle() {\n        // Pour des nombres à virgule, on tolère un petit écart (delta).\n        assertEquals(Math.PI, new CalculAire().aire(new Cercle(1)), 0.0001);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un détail sur les nombres à virgule",
+          "position": 4,
+          "body": "Dans le test du cercle, `assertEquals` reçoit un troisième argument : `0.0001`. C'est le **delta**, c'est à dire l'écart toléré.\n\nPourquoi ? Les nombres à virgule (`double`) sont stockés de façon approchée par l'ordinateur ; deux calculs censés donner le même résultat peuvent différer d'un chouia. On vérifie donc \"égal à peu près\", à `delta` près, plutot qu'une égalité parfaite qui échouerait pour rien.\n\n👉 C'est comme peser un ingrédient : on accepte \"100 grammes à 1 gramme près\". Exiger exactement 100,000000 grammes serait absurde. Pour les entiers (`int`), ce souci n'existe pas : l'égalité y est exacte."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Teste une égalité de records",
+          "position": 5,
+          "body": "Soit record Intervalle(int debut, int fin) { } et une méthode Intervalle fusionner(Intervalle a, Intervalle b) qui renvoie l'intervalle allant du plus petit début au plus grand fin. Écris une méthode @Test qui vérifie que fusionner(new Intervalle(1, 4), new Intervalle(2, 7)) donne Intervalle(1, 7). Combien d'assertions sont nécessaires ?",
+          "solution": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nclass FusionTest {\n    @Test\n    void fusionner_prendLesBornesExtremes() {\n        Intervalle obtenu = service.fusionner(new Intervalle(1, 4), new Intervalle(2, 7));\n        assertEquals(new Intervalle(1, 7), obtenu);\n    }\n}\n\nUne seule assertion suffit : comme Intervalle est un record, assertEquals compare par valeur debut ET fin en une fois. Pas besoin de tester debut() et fin() séparément."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : tester records et patterns",
+          "position": 6,
+          "quizRef": "tests-modernes-tester-records-et-patterns"
+        }
+      ]
+    },
+    {
+      "slug": "organiser-ses-tests",
+      "title": "Organiser ses tests",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "La structure arrange, act, assert",
+          "position": 0,
+          "body": "Un bon test se lit en trois temps, souvent appelés **arrange, act, assert** (préparer, agir, vérifier) :\n\n1. **Arrange** (préparer) : tu mets en place ce dont le test a besoin (créer les objets, préparer les données d'entrée).\n2. **Act** (agir) : tu exécutes **l'unique action** que tu veux tester (appeler la méthode).\n3. **Assert** (vérifier) : tu contrôles le résultat avec une ou plusieurs assertions.\n\nSéparer visuellement ces trois blocs rend le test facile à lire : on voit d'un coup d'oeil ce qui est préparé, ce qui est testé, et ce qui est attendu.\n\n👉 C'est la logique d'une recette : d'abord on sort et on dose les ingrédients (arrange), ensuite on fait l'opération (act), enfin on gouté pour vérifier (assert)."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Les trois temps d'un test",
+          "position": 1,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"ARRANGE\\nPréparer les objets et les données\"] --> B[\"ACT\\nAppeler la méthode à tester\"]\n    B --> C[\"ASSERT\\nVérifier le résultat avec des assertions\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Éviter la répétition avec @BeforeEach",
+          "position": 2,
+          "body": "Souvent, plusieurs tests d'une même classe ont besoin de la même préparation (créer le même objet, par exemple). Plutot que de recopier ce code dans chaque test, JUnit 5 propose l'annotation `@BeforeEach`.\n\nUne méthode marquée `@BeforeEach` est exécutée **automatiquement avant chaque test** de la classe. Elle sert à remettre en place un état propre et neuf pour chaque test, de sorte qu'aucun test n'influence les autres.\n\n👉 C'est comme nettoyer et redresser la table de travail avant chaque nouveau client : chaque test démarre sur un plan de travail impeccable, sans traces du test précédent."
+        },
+        {
+          "type": "CODE",
+          "title": "@BeforeEach et @DisplayName",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import org.junit.jupiter.api.BeforeEach;\nimport org.junit.jupiter.api.Test;\nimport org.junit.jupiter.api.DisplayName;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\nclass Panier {\n    private int total = 0;\n    void ajouter(int prix) { total += prix; }\n    int total() { return total; }\n}\n\n@DisplayName(\"Le panier d'achat\")\nclass PanierTest {\n\n    private Panier panier;\n\n    // Exécuté avant CHAQUE test : chaque test part d'un panier neuf et vide.\n    @BeforeEach\n    void preparer() {\n        panier = new Panier();\n    }\n\n    @Test\n    @DisplayName(\"commence vide avec un total de 0\")\n    void panierNeuf_totalZero() {\n        assertEquals(0, panier.total());\n    }\n\n    @Test\n    @DisplayName(\"additionne le prix des articles ajoutés\")\n    void ajouter_deuxArticles_cumuleLesPrix() {\n        panier.ajouter(10); // arrange + act\n        panier.ajouter(5);\n        assertEquals(15, panier.total()); // assert\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Bien nommer ses tests",
+          "position": 4,
+          "body": "Le nom d'un test doit raconter ce qu'il vérifie. Un nom clair transforme un rapport d'échec en diagnostic immédiat.\n\nDeux leviers :\n\n- Le **nom de la méthode** : une convention répandue est `methode_situation_resultatAttendu`, par exemple `ajouter_deuxArticles_cumuleLesPrix`.\n- L'annotation `@DisplayName(\"...\")` : elle donne un libellé en français, lisible, affiché à la place du nom technique dans les rapports. Idéal pour décrire le comportement en langage courant.\n\n👉 Compare \"test1 a échoué\" et \"Le panier : additionne le prix des articles ajoutés (échec)\". Le second te dit tout de suite quoi aller regarder, sans ouvrir le code."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Refactore un test brouillon",
+          "position": 5,
+          "body": "Deux tests créent chacun au début la ligne Compte compte = new Compte(). Les noms sont test1 et test2. Comment améliorer l'organisation de cette classe de test ? Cite au moins deux changements concrets avec les annotations JUnit 5 adaptées.",
+          "solution": "1) Factoriser la création dans une méthode @BeforeEach : private Compte compte; puis @BeforeEach void preparer() { compte = new Compte(); }. Ainsi chaque test part d'un compte neuf sans répétition.\n2) Renommer les tests selon leur intention, par exemple depot_augmenteLeSolde et retrait_superieurAuSolde_leveException, au lieu de test1 et test2.\n3) Ajouter des @DisplayName en français, par exemple @DisplayName(\"un dépôt augmente le solde\"), pour des rapports lisibles.\n4) Organiser chaque test en arrange / act / assert pour la lisibilité."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : organiser ses tests",
+          "position": 6,
+          "quizRef": "tests-modernes-organiser-ses-tests"
+        }
+      ]
+    }
+  ]
+}

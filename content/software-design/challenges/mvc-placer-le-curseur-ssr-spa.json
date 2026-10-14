@@ -1,0 +1,10 @@
+{
+  "node": "mvc",
+  "lesson": "ssr-spa-hypermedia",
+  "title": "SSR, SPA ou hybride : place le curseur pour deux écrans",
+  "statement": "Un site a deux écrans très différents. Pour chacun, recommande une approche (**SSR**, **SPA** ou **hybride/hypermédia**) et justifie par l'interactivité, le SEO et le premier affichage. Dis aussi où doivent vivre les règles métier.\n\n(1) Une **page produit** publique de boutique en ligne : doit être indexée par Google, chargée vite, peu interactive.\n(2) Un **éditeur de dessin collaboratif** derrière authentification : glisser-déposer, mises à jour temps réel, état d'UI très riche.",
+  "skeleton": "(1) Page produit publique : \n(2) Éditeur collaboratif : \nRègles métier : \n",
+  "solution": "(1) Page produit publique → SSR (voire génération statique/SSG), éventuellement enrichie d'hypermédia ou d'îlots pour les petits éléments interactifs. Raisons : le SEO est essentiel (Google doit voir le contenu immédiatement, ce qu'offre un HTML rendu côté serveur) et le premier affichage doit être rapide ; l'interactivité est faible, donc une SPA n'apporterait rien et pénaliserait le référencement et le time-to-first-byte. (2) Éditeur collaboratif derrière auth → SPA, structurée en flux unidirectionnel (MVI/Redux) vu la richesse de l'état (positions, sélections, undo, temps réel). Le SEO n'est pas pertinent (derrière authentification) ; on veut une expérience application fluide sans aller-retour serveur à chaque geste. Un SSR pur donnerait une UX médiocre (chaque glisser-déposer en aller-retour). Règles métier : dans les DEUX cas, elles font autorité côté serveur (le serveur fait foi). Le client ne porte qu'un modèle de présentation (état d'UI) et, au plus, une validation ergonomique pour le confort, jamais pour la sécurité. On refuse l'uniformité dogmatique : on place la frontière de présentation écran par écran.",
+  "keyPoints": ["SSR", "SPA", "SEO", "serveur fait foi", "unidirectionnel"],
+  "language": "text"
+}

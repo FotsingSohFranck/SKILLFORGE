@@ -1,0 +1,41 @@
+{
+  "ref": "sealed-classes-sealed-et-interfaces",
+  "node": "sealed-classes",
+  "lesson": "sealed-et-interfaces",
+  "title": "Quiz : interfaces scellées",
+  "description": "Sceller une interface et ses sous-types typiques.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le mot clé sealed peut s'appliquer à une interface, pas seulement à une classe.",
+      "justification": "Une interface scellée fixe la liste des types autorisés à l'implémenter ou à l'étendre, c'est même le cas le plus courant.",
+      "position": 0,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les records sont ils des sous-types particulièrement pratiques d'une interface scellée ?",
+      "justification": "Les records sont implicitement final (ils ferment la hiérarchie) et portent leurs données sans code répétitif.",
+      "position": 1,
+      "options": [
+        { "label": "Ils sont implicitement final et décrivent clairement les données de chaque cas", "correct": true, "position": 0 },
+        { "label": "Ils permettent à d'autres classes d'hériter d'eux facilement", "correct": false, "position": 1 },
+        { "label": "Ils rendent l'interface modifiable après coup", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu modélises les évènements d'une application avec sealed interface Evenement permits Connexion, Deconnexion, Achat. Un développeur veut ajouter un record Suppression qui implémente Evenement, sans toucher au permits. Que va t il se passer ?",
+      "justification": "Suppression n'est pas dans la liste permits, donc le compilateur refuse de compiler tant qu'on ne l'ajoute pas explicitement.",
+      "position": 2,
+      "options": [
+        { "label": "Le code ne compile pas tant que Suppression n'est pas ajouté au permits", "correct": true, "position": 0 },
+        { "label": "Suppression est accepté silencieusement comme 4e évènement", "correct": false, "position": 1 },
+        { "label": "L'interface Evenement perd automatiquement son caractère scellé", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

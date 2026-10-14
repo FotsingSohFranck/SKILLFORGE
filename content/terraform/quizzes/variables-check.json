@@ -1,0 +1,119 @@
+{
+  "ref": "variables-check",
+  "node": "variables",
+  "lesson": "fournir-les-valeurs",
+  "title": "Variables d'entrée",
+  "description": "Variables, types, validation, tfvars, précédence, TF_VAR_ en CI.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les variables d'entrée ?",
+      "justification": "À paramétrer le code pour décliner un même code par environnement, sans coder les valeurs en dur ni dupliquer.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Paramétrer le code (un même code, plusieurs environnements)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Stocker l'état",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Installer les providers",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permet une règle de validation sur une variable ?",
+      "justification": "Rejeter une valeur non conforme au plan, avec un message clair (fail fast), ex. environnement ∈ {dev, staging, prod}.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Rejeter une valeur invalide au plan, avec un message clair",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer la variable",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Créer plusieurs ressources",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment fournir les valeurs d'un environnement précis ?",
+      "justification": "Un fichier .tfvars (ex. prod.tfvars) appliqué avec -var-file : la logique reste commune, les valeurs varient par environnement.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un fichier .tfvars par environnement (-var-file)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En dupliquant tout le code",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans le fichier d'état",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment fournir un secret à Terraform en CI sans fichier versionné ?",
+      "justification": "Via une variable d'environnement TF_VAR_<nom> injectée depuis le gestionnaire de secrets du CI, jamais dans un fichier committé.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Une variable d'environnement TF_VAR_<nom>",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Dans terraform.tfvars committé",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En dur dans main.tf",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le fichier terraform.tfvars est chargé automatiquement, donc il ne faut pas y mettre de secret committé.",
+      "justification": "Vrai : il est auto-chargé et versionné ; les secrets passent par l'environnement (TF_VAR_) et la variable est marquée sensitive.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

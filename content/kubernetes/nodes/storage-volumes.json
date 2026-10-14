@@ -1,0 +1,171 @@
+{
+  "node": "storage-volumes",
+  "lessons": [
+    {
+      "slug": "volumes-pv-pvc",
+      "title": "Volumes, PV & PVC",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème : les données d'un pod s'effacent",
+          "body": "Avant de parler stockage, remettons deux mots en place.\n\nUn **conteneur** (*container*) est un programme empaqueté avec tout ce qu'il lui faut pour tourner (son code, ses librairies), isolé du reste de la machine. Un **pod** est la plus petite unité que Kubernetes sait lancer : c'est une **boîte qui contient un ou plusieurs conteneurs** qui travaillent ensemble. 👉 **Analogie** : le conteneur est un plat cuisiné sous vide (autonome, réchauffable partout), et le pod est le **plateau-repas** sur lequel on pose un ou deux de ces plats pour les servir ensemble.\n\nProblème : par défaut, ce qu'un pod **écrit sur son disque disparaît quand le pod meurt**. On dit que son système de fichiers est **éphémère** (*ephemeral* = qui ne dure pas). 👉 **Analogie** : c'est un **tableau blanc** : pratique pour griffonner, mais tout s'efface dès qu'on quitte la salle. **Exemple concret** : une base de données qui tourne dans un pod perdrait **toutes ses données** au premier redémarrage du pod. Inacceptable. Il nous faut un moyen de **garder** les données au-delà de la vie du pod."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "La solution : un volume, éphémère ou persistant",
+          "body": "La réponse s'appelle un **volume** : un espace de stockage qu'on **monte** dans le pod (c'est-à-dire qu'on lui rend accessible comme un dossier). 👉 **Analogie** : *monter* un volume, c'est comme **brancher une clé USB** sur ton ordinateur : elle apparaît comme un dossier où tu peux lire et écrire. Il existe deux grandes familles de volumes.\n\n**1. Le volume éphémère** : le plus simple s'appelle **emptyDir** (« dossier vide »). Kubernetes crée un dossier vide au démarrage du pod, et **plusieurs conteneurs du même pod peuvent y écrire pour se partager des fichiers**. Mais il **dure seulement le temps du pod** : quand le pod meurt, le dossier s'efface. **Exemple concret** : un conteneur télécharge une image, un autre conteneur du même pod la lit dans le `emptyDir` partagé.\n\n**2. Le volume persistant** : pour que les données **survivent au pod** (et puissent être réattachées à un autre pod ailleurs), Kubernetes utilise un duo d'objets : le **PersistentVolume** et le **PersistentVolumeClaim**. C'est le cœur de cette leçon, et on les détaille juste après. Retiens l'idée : *persistant* = **qui reste** même quand le pod disparaît. 👉 **Analogie** : l'`emptyDir` est un **brouillon** qu'on jette en sortant ; le volume persistant est un **coffre-fort** qui garde son contenu même après ton départ."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "PV, PVC & StorageClass : demander, fournir, automatiser",
+          "body": "Trois objets s'articulent pour offrir du stockage persistant. Prenons-les un par un.\n\n**Le PersistentVolume (PV)** représente **un morceau de stockage réel** déjà existant : un disque dans le cloud, un partage réseau, etc. C'est **l'offre** : « voici 10 Go de disque disponibles ». 👉 **Analogie** : un **appartement libre** dans un immeuble.\n\n**Le PersistentVolumeClaim (PVC)** est une **demande** faite par l'application : « j'ai besoin de 10 Go accessibles en lecture-écriture ». Le mot *claim* signifie **réclamation, demande**. Point important : **le pod monte le PVC, jamais le PV directement**. 👉 **Analogie** : le PVC est ta **demande de location** (« je cherche un 2-pièces »), et Kubernetes se charge de te **trouver et t'attribuer** un appartement (le PV) qui correspond.\n\n**La StorageClass** automatise tout ça grâce au **provisionnement dynamique**. *Provisionner* veut dire **fabriquer/allouer** le stockage ; *dynamique* veut dire **automatiquement, à la demande**. Au lieu de préparer les PV à la main, tu déclares une **classe** de stockage (par exemple `ssd-cloud`), et dès qu'un PVC la réclame, Kubernetes **crée tout seul le disque et le PV** correspondant. 👉 **Analogie** : au lieu de visiter des appartements existants, tu commandes ton logement **sur catalogue** (« un 2-pièces classe SSD ») et il est **construit à la demande** rien que pour toi.\n\n**En résumé** : le PVC **demande**, la StorageClass **fabrique** le disque, le PV **représente** ce disque. Ce découplage rend le stockage **portable** : l'application se contente de demander, l'infrastructure fournit, et le même PVC marche sur n'importe quel cluster équipé d'une StorageClass équivalente."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Qui demande, qui fournit : le chemin d'un volume",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  POD[\"Pod (l'application)\"] -->|monte| PVC[\"PVC : la demande\\n« 10Gi en lecture-écriture »\"]\n  PVC -->|réclame la classe| SC[\"StorageClass ssd-cloud\\n(provisionnement dynamique)\"]\n  SC -->|crée automatiquement| PV[\"PersistentVolume (PV)\\nle stockage, côté Kubernetes\"]\n  PV -->|pointe vers| DISK[(\"Disque réel\\ndans le cloud\")]\n  PVC -. lié à .-> PV"
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un PVC provisionné dynamiquement",
+          "codeLanguage": "yaml",
+          "body": "# Ce fichier décrit une DEMANDE de stockage (un PVC).\n# On ne cree aucun disque a la main : la StorageClass s'en charge.\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata: { name: data }\nspec:\n  accessModes: [\"ReadWriteOnce\"]     # monte en lecture-ecriture par UN seul noeud\n  storageClassName: ssd-cloud        # -> declenche le provisionnement dynamique du PV\n  resources:\n    requests:\n      storage: 10Gi                  # 10 Gio demandes (Gi = gibioctet, ~1,07 Go)\n---\n# Cote pod, on MONTE le PVC (et non le PV directement) :\n#   volumes:\n#     - name: data\n#       persistentVolumeClaim: { claimName: data }\n#   # ... puis le conteneur reference ce volume 'data' via volumeMounts."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une équipe crée manuellement des PersistentVolumes pour chaque nouvelle application qui a besoin de stockage, ce qui est fastidieux et source d'erreurs. Comment automatiser cela ?",
+          "solution": "En utilisant le provisionnement dynamique via une StorageClass. Au lieu de créer un PersistentVolume (PV) à la main pour chaque besoin, on définit une (ou plusieurs) StorageClass qui décrit un TYPE de stockage et le provisionneur associé (ex. le disque SSD du cloud via son driver CSI). Ensuite, chaque application déclare simplement un PersistentVolumeClaim (PVC) demandant une taille et un mode d'accès, en référençant la StorageClass voulue (storageClassName). Kubernetes crée alors AUTOMATIQUEMENT le PV correspondant (il provisionne réellement le disque cloud) et le lie au PVC, sans intervention manuelle. L'équipe n'a plus qu'à écrire des PVC (une demande), l'infrastructure fournit le stockage à la demande. Avantages : plus de création manuelle de PV (moins de fastidieux et d'erreurs), stockage portable (le même PVC fonctionne sur tout cluster ayant une StorageClass équivalente), et cycle de vie géré (selon la reclaimPolicy, le disque peut être supprimé ou conservé quand le PVC disparaît). C'est le pattern standard : PVC + StorageClass = stockage à la demande, automatisé."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Volumes, PV & PVC",
+          "quizRef": "storage-volumes-pv-check"
+        }
+      ]
+    },
+    {
+      "slug": "csi-et-stateful",
+      "title": "CSI & applications avec état",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "CSI : la prise standard pour brancher n'importe quel stockage",
+          "body": "Il existe des dizaines de systèmes de stockage dans le monde (disques Amazon, disques Google, Ceph, NetApp...). Kubernetes ne peut pas connaître le langage de chacun. Sa solution : **déléguer** à une **interface standard** appelée le **CSI**.\n\n**CSI** veut dire **Container Storage Interface** (« interface de stockage pour conteneurs »). Une *interface*, ici, c'est un **contrat** : une liste d'opérations que tout fournisseur doit savoir faire (créer un volume, l'attacher à une machine, le monter dans le pod). 👉 **Analogie** : le CSI est comme la **prise électrique murale**. La prise a une forme standard ; du coup n'importe quel appareil (grille-pain, lampe, chargeur) s'y branche sans que le mur ait à connaître l'appareil. Le stockage, c'est pareil : tant qu'il parle « CSI », Kubernetes sait s'en servir.\n\nConcrètement, chaque fournisseur écrit un **driver CSI**. Un **driver** (*pilote* en français) est le **petit logiciel qui fait le lien** entre Kubernetes et un matériel/service précis. **Exemple concret** : le driver CSI d'AWS EBS sait provisionner un disque Amazon ; celui de Ceph sait parler à un cluster Ceph. **Installer le bon driver CSI, c'est brancher le cluster sur un backend de stockage.**\n\nBon à savoir : le CSI a deux cousins bâtis sur la même idée d'interface standard. Le **CNI** (*Container Network Interface*) fait la même chose pour le **réseau**, et le **CRI** (*Container Runtime Interface*) pour le **moteur qui exécute les conteneurs**. Trois prises standards qui rendent Kubernetes **extensible** sans le coller à un fournisseur unique."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Modes d'accès & applications « avec état »",
+          "body": "Un PVC déclare un **mode d'accès** (*accessMode*) : il dit **comment le volume peut être partagé**. Un mot de vocabulaire d'abord : un **nœud** (*node*) est une **machine** du cluster (physique ou virtuelle) sur laquelle tournent les pods. Il y a trois modes.\n\n- **ReadWriteOnce (RWO)** : lecture-écriture par **un seul nœud** à la fois. C'est le cas des disques blocs du cloud : un disque Amazon EBS **ne peut être branché que sur une seule machine**. 👉 **Analogie** : une **clé USB** : on ne la branche que sur un ordinateur à la fois. Parfait pour une base de données.\n- **ReadOnlyMany (ROX)** : **lecture seule**, par **plusieurs** nœuds en même temps. 👉 comme un **DVD** que plusieurs lecteurs consultent sans pouvoir le modifier.\n- **ReadWriteMany (RWX)** : lecture-écriture par **plusieurs** nœuds à la fois. Cela exige un **stockage réseau** (comme **NFS**, un système de partage de fichiers sur le réseau, ou CephFS). 👉 comme un **Google Drive partagé** où plusieurs personnes écrivent ensemble.\n\nDeuxième notion : les **applications avec état** (*stateful*). Une application est **sans état** (*stateless*) si on peut la tuer et la relancer n'importe où sans rien perdre (par exemple un serveur web qui ne stocke rien). Elle est **avec état** si elle **garde des données précieuses** (une base, une file de messages). 👉 **Analogie** : un *stateless* est un **guichet interchangeable** (n'importe quel agent fait l'affaire) ; un *stateful* est un **coffre nominatif** dont le contenu doit toujours suivre son propriétaire.\n\nPour ces applications avec état, on combine un **StatefulSet** (un contrôleur qui donne à chaque pod une **identité stable** : `db-0`, `db-1`...) avec un **`volumeClaimTemplate`** : un **modèle de PVC** qui fait que **chaque pod obtient son propre volume**, lequel le suit partout. **Exemple concret** : si `db-0` est déplacé sur une autre machine, il **retrouve exactement son disque** et donc ses données."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Faut-il héberger sa base dans Kubernetes ? (niveau expert)",
+          "body": "Question mûre à se poser une fois les bases acquises. Kubernetes **peut** faire tourner des bases de données : on combine un StatefulSet, des PVC, et souvent un **opérateur** dédié. Un **opérateur** (*operator*) est un **logiciel qui automatise l'exploitation** d'une application précise dans le cluster (il gère la réplication, les sauvegardes, la bascule en cas de panne). 👉 **Analogie** : c'est un **pilote automatique spécialisé** qui connaît par cœur *ce* type de base et sait réagir à sa place.\n\nMais héberger une base est **exigeant** : la persistance répartie sur plusieurs machines, les sauvegardes **cohérentes** (prises pendant que l'application écrit), la **haute disponibilité** (*HA* : rester debout malgré une panne) sont des problèmes difficiles, et une erreur coûte des **données** perdues.\n\nD'où une alternative très répandue : **externaliser** la base vers un **service managé**. Un *service managé* est un stockage/une base **exploité par le fournisseur cloud à ta place** (il gère sauvegardes, mises à jour, HA). **Exemples concrets** : **Amazon RDS** ou **Google Cloud SQL** pour PostgreSQL/MySQL. Beaucoup d'équipes ne gardent alors dans le cluster que les charges **sans état**, plus faciles à orchestrer, et confient les données au service managé. 👉 **Analogie** : plutôt que d'entretenir toi-même ta chaudière (risqué si tu n'es pas chauffagiste), tu prends un **abonnement avec entretien inclus**. Faire tourner sa base dans Kubernetes reste un choix **légitime avec un opérateur mûr et l'expertise associée**, pas un réflexe à généraliser."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe veut faire tourner une base de données PostgreSQL répliquée dans Kubernetes. Quels objets et quelle réflexion doivent guider cette décision ?",
+          "solution": "Objets nécessaires : (1) un StatefulSet (pas un Deployment) pour donner à chaque pod de base une identité stable (postgres-0, postgres-1...) et un stockage dédié qui le suit ; (2) un volumeClaimTemplate dans le StatefulSet, pour que chaque pod obtienne son PROPRE PVC (donc son propre volume persistant), postgres-0 retrouve toujours ses données ; (3) une StorageClass adaptée (SSD, mode RWO puisqu'un disque bloc s'attache à un seul nœud) avec le driver CSI du fournisseur ; (4) un headless Service pour les adresses DNS stables des pods ; (5) très fortement recommandé, un OPÉRATEUR PostgreSQL dédié (ex. CloudNativePG, Zalando, Crunchy) qui gère la réplication, la bascule (failover), les sauvegardes et les mises à jour au-dessus du StatefulSet, car StatefulSet seul ne gère PAS la logique de réplication d'une base. Réflexion de fond avant de se lancer : faut-il vraiment héberger la base dans Kubernetes ? La persistance distribuée, les sauvegardes cohérentes et la HA d'une base sont des problèmes difficiles où une erreur coûte des DONNÉES. Beaucoup d'équipes préfèrent externaliser la base vers un service managé (RDS, Cloud SQL) et ne garder dans le cluster que les charges sans état. Faire tourner PostgreSQL dans Kubernetes est légitime AVEC un opérateur mûr et l'expertise d'exploitation correspondante ; sinon, le managé est souvent le choix le plus sage."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Stockage & volumes",
+          "quizRef": "storage-volumes-check"
+        }
+      ]
+    },
+    {
+      "slug": "volume-binding-mode-topologie",
+      "title": "volumeBindingMode & topologie",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le piège du volume créé dans la mauvaise zone",
+          "body": "Deux mots de contexte cloud, d'abord.\n\nUne **zone** (*availability zone*) est un **centre de données** au sein d'une région (par exemple la région Paris peut avoir les zones A, B, C). On répartit les machines sur plusieurs zones pour survivre à la panne de l'une d'elles. Point crucial : un **disque** (Amazon EBS, Google PD) **appartient à une seule zone** et **ne peut être branché qu'à un nœud de cette même zone**. On ne déplace pas un disque d'une zone à l'autre. 👉 **Analogie** : un disque est un **casier physique** dans le bâtiment A ; impossible de l'utiliser depuis le bâtiment B, il ne bouge pas.\n\nDeuxième mot : le **scheduler** (*planificateur*) est le composant de Kubernetes qui **décide sur quel nœud placer chaque pod**, selon la place disponible et les contraintes. 👉 **Analogie** : le **maître d'hôtel** qui attribue les tables selon les places libres.\n\nMaintenant le piège. Un PVC/PV a un réglage nommé **`volumeBindingMode`** (« mode de liaison du volume »), qui dit **quand** créer le disque. Le mode par défaut, **`Immediate`** (« immédiatement »), provisionne le PV (le disque) **dès la création du PVC**, donc **avant** que le scheduler n'ait choisi où mettre le pod. **Exemple concret du bug** : le disque est créé en zone A ; puis, faute de place en A, le scheduler place le pod en zone B ; le pod tente de monter un disque de la zone A depuis la zone B, c'est impossible, et le pod reste **bloqué** indéfiniment. Le volume et le pod se retrouvent dans des zones incompatibles."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "WaitForFirstConsumer : décider où d'abord, créer ensuite",
+          "body": "La parade tient en un réglage de la StorageClass : **`volumeBindingMode: WaitForFirstConsumer`** (littéralement « attendre le premier consommateur », le consommateur étant le pod).\n\nAvec ce mode, Kubernetes **inverse l'ordre des opérations** : il **ne crée pas** le disque tout de suite. Il **attend** que le scheduler ait **placé le pod** sur un nœud, **puis** il crée le disque **dans la même zone que ce nœud**. Résultat : le volume est **toujours au bon endroit**, plus jamais de conflit de zone. 👉 **Analogie** : au lieu de commander un **casier au hasard** avant de savoir dans quel bâtiment tu seras (`Immediate`), tu **choisis d'abord ton bureau, puis tu prends le casier de ce bâtiment-là** (`WaitForFirstConsumer`).\n\nC'est le réglage **recommandé** pour tout stockage soumis à une contrainte de **topologie** (le fait que l'emplacement compte, comme les disques blocs cloud, liés à leur zone). **Réflexe d'expert** : vérifier systématiquement le `volumeBindingMode` de ses StorageClasses. `WaitForFirstConsumer` est le défaut sain en multi-zones ; `Immediate` est une cause fréquente de pods « mystérieusement » bloqués sur le montage de leur volume."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "reclaimPolicy : que devient le disque quand on supprime le PVC ?",
+          "body": "Quand on supprime un PVC, faut-il détruire le **disque réel** (et ses données) ou le garder ? La réponse dépend de la **`reclaimPolicy`** (« politique de récupération ») du PV, qu'il hérite de la StorageClass. Deux valeurs.\n\n- **`Delete`** (« supprimer ») : souvent le **défaut** du provisionnement dynamique. Supprimer le PVC **supprime aussi le disque et efface les données**. Pratique pour du **jetable** (un cache, un environnement de test), mais **catastrophique** pour une base si on supprime le PVC par erreur. 👉 **Analogie** : une **chambre d'hôtel** : à ton départ, tout ce que tu y as laissé est jeté.\n- **`Retain`** (« conserver ») : le disque est **gardé** même après suppression du PVC. Le PV passe alors à l'état **`Released`** (« libéré » : plus lié à personne, mais toujours là), et un humain devra le récupérer ou le nettoyer à la main. 👉 **Analogie** : un **garde-meuble** : tu résilies l'accès, mais tes affaires restent stockées, à toi d'aller les rechercher.\n\n**Règle d'expert** : pour des **données critiques**, on met la reclaimPolicy à **`Retain`** (ou on s'appuie sur des sauvegardes/snapshots), afin qu'une suppression accidentelle de PVC ne détruise **jamais** les données précieuses."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Sur un cluster multi-zones, un pod avec un PVC reste bloqué : son volume a été provisionné en zone A, mais le pod est planifié en zone B et ne peut pas monter le disque. Quel réglage de la StorageClass aurait évité ce problème, et comment fonctionne-t-il ?",
+          "solution": "Le réglage qui l'évite est volumeBindingMode: WaitForFirstConsumer dans la StorageClass. Le problème vient du mode par défaut Immediate : le PV (le disque cloud) est provisionné dès la création du PVC, AVANT que le pod ne soit planifié. Le disque est alors créé dans une zone (A) choisie sans connaître le futur emplacement du pod ; quand le scheduler place ensuite le pod en zone B (par ex. faute de capacité en A), le pod ne peut pas monter un disque qui vit en zone A, un disque bloc cloud est attaché à une seule zone et ne peut pas être déplacé, d'où le blocage. Avec WaitForFirstConsumer, Kubernetes INVERSE l'ordre : il ne provisionne pas le volume immédiatement, il ATTEND que le pod soit planifié sur un nœud, puis crée le disque dans la MÊME zone que ce nœud. Le scheduler tient aussi compte des contraintes de topologie du volume lors du placement. Résultat : le volume est toujours co-localisé avec le pod, plus jamais de conflit de zone. C'est le réglage recommandé (et souvent le défaut des StorageClasses cloud modernes) pour tout stockage à contrainte topologique. Un expert vérifie systématiquement le volumeBindingMode de ses StorageClasses en multi-zones : Immediate est une cause fréquente de pods bloqués « inexplicablement » sur un montage de volume."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, volumeBindingMode & topologie (expert)",
+          "quizRef": "volume-binding-expert"
+        }
+      ]
+    },
+    {
+      "slug": "expansion-snapshots-cycle-de-vie",
+      "title": "Expansion, snapshots & cycle de vie",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Agrandir un volume sans tout recréer",
+          "body": "Un volume se remplit avec le temps (une base qui grossit). Faut-il tout recréer et migrer les données ? **Non**, à une condition : que la StorageClass ait **`allowVolumeExpansion: true`** (« autoriser l'agrandissement du volume »).\n\nSi c'est le cas, il suffit d'**augmenter la taille demandée** dans le PVC (le champ `spec.resources.requests.storage`, par exemple de `50Gi` à `100Gi`). Le **driver CSI** agrandit alors le disque **en place** (sans en créer un nouveau), puis étend le **système de fichiers** pour utiliser l'espace ajouté, **souvent à chaud**, c'est-à-dire **sans redémarrer le pod** (cela dépend du driver et du système de fichiers). 👉 **Analogie** : plutôt que de **déménager dans un plus grand appartement** (recréer + migrer), tu **abats une cloison** pour agrandir la pièce sans bouger tes meubles.\n\nDeux limites à retenir : l'expansion ne va que **vers le haut** (on **ne réduit jamais** un volume) et elle exige que la StorageClass l'**autorise au préalable**. **Réflexe d'expert** : activer `allowVolumeExpansion` sur ses StorageClasses de données **dès le départ**, pour pouvoir agrandir sereinement le jour où le besoin arrive (et prendre un snapshot avant l'opération, par sécurité)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Snapshots & clones : photographier et dupliquer un volume",
+          "body": "Le **CSI** standardise aussi les **snapshots**. Un **snapshot** (*instantané*) est une **photo de l'état d'un volume à un instant T**, prise au niveau du stockage. L'objet Kubernetes correspondant s'appelle un **VolumeSnapshot**. 👉 **Analogie** : c'est le **« point de sauvegarde »** d'un jeu vidéo pour tes données : tu figes l'état actuel, et tu pourras y revenir.\n\nÀ quoi ça sert ? Deux usages principaux. **(1) Sauvegarder vite** avant une opération risquée (une mise à jour, une migration) : si ça tourne mal, tu restaures le snapshot. **(2) Repartir d'un état** : on peut **créer un nouveau PVC à partir d'un snapshot** (restauration), ou **cloner** un PVC existant. **Cloner**, c'est en faire une **copie indépendante**. **Exemple concret** : dupliquer les données de production vers un environnement de test en quelques secondes, sans copie manuelle fichier par fichier.\n\nDeux nuances importantes. D'abord, ces capacités **dépendent du driver CSI** : tous ne les supportent pas. Ensuite, un snapshot **ne remplace pas** une vraie stratégie de sauvegarde applicative : une photo prise **pendant qu'une base écrit** peut être **incohérente** (à moitié écrite). D'où l'usage de **hooks** (petits scripts déclenchés **avant/après** le snapshot pour mettre la base au repos un instant). Les snapshots **complètent** l'arsenal de gestion des données, ils ne le remplacent pas."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "PVC orphelins & rétention StatefulSet (niveau expert)",
+          "body": "Le **cycle de vie** des PVC (leur naissance et surtout leur mort) réserve un piège coûteux. Rappel : un StatefulSet crée **un PVC par pod** via son `volumeClaimTemplate`. Or, **supprimer le StatefulSet ne supprime PAS ces PVC** par défaut (ni les disques, ni les données).\n\nC'est **voulu** (on protège les données précieuses d'une suppression trop facile), mais cela laisse des **PVC orphelins** : des volumes qui ne sont plus rattachés à aucun pod et que plus personne ne surveille. Problème : **les disques sont facturés tant qu'ils existent**. 👉 **Analogie** : tu résilies ton abonnement à la salle de sport (le StatefulSet), mais ton **casier loué** (le PVC) continue d'être **prélevé chaque mois** tant que tu ne le rends pas explicitement.\n\nKubernetes offre depuis peu un réglage pour choisir : **`persistentVolumeClaimRetentionPolicy`**. Il permet de décider, quand un pod est supprimé ou quand le StatefulSet entier est supprimé, entre **`Retain`** (garder les PVC) et **`Delete`** (les supprimer avec le workload). **Réflexe d'expert** : **auditer régulièrement** les PVC non attachés (`kubectl get pvc` en regardant statut et âge) pour traquer les orphelins qui coûtent inutilement, et **régler explicitement** la politique de rétention selon que les données doivent survivre ou non au workload."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une base de données déployée en StatefulSet arrive à saturation de son volume de 50Gi. L'équipe s'apprête à recréer toute la base sur un volume plus grand, avec migration des données. Existe-t-il une solution plus simple, et à quelle condition ?",
+          "solution": "Oui : agrandir le volume existant en place, sans recréer la base ni migrer les données, à condition que la StorageClass utilisée ait allowVolumeExpansion: true (et que le driver CSI supporte l'expansion, ce qui est le cas de la plupart des drivers cloud modernes). La procédure : on augmente la taille demandée dans le PVC concerné (spec.resources.requests.storage passe de 50Gi à, par exemple, 100Gi). Kubernetes transmet la demande au driver CSI, qui agrandit le disque sous-jacent en place, puis étend le système de fichiers, souvent à chaud, sans redémarrer le pod (selon le driver et le FS ; certains cas nécessitent un redémarrage du pod pour la partie système de fichiers). Pour un StatefulSet, on met à jour le PVC de chaque pod (le champ storage du volumeClaimTemplate n'est pas modifiable directement une fois créé, mais on peut éditer chaque PVC existant). Conditions/limites : l'expansion ne va que VERS LE HAUT (on ne réduit jamais un volume) ; il faut allowVolumeExpansion activé sur la StorageClass AVANT (sinon la demande d'agrandissement est refusée). Résultat : on résout la saturation en quelques instants, sans coupure ni migration, là où recréer la base + migrer serait long, risqué et générerait une indisponibilité. C'est pourquoi un expert active allowVolumeExpansion sur ses StorageClasses de données dès le départ, pour pouvoir agrandir sereinement quand le besoin arrive. (En complément, un snapshot du volume avant l'opération offre un filet de sécurité.)"
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Expansion, snapshots & cycle de vie (expert)",
+          "quizRef": "volume-expansion-expert"
+        }
+      ]
+    }
+  ]
+}

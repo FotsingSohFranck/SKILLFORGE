@@ -1,0 +1,96 @@
+{
+  "ref": "config-reload-expert",
+  "node": "config-secrets",
+  "lesson": "propager-un-changement-de-config",
+  "title": "Propager un changement de config, expert",
+  "description": "Env lu une fois, subPath, objets immuables, checksum/Reloader.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il quand on modifie un ConfigMap injecté en variables d'environnement ?",
+      "justification": "Rien pour les pods en cours : les variables sont lues une seule fois au démarrage ; il faut recréer les pods pour prendre la nouvelle valeur.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les pods en cours gardent l'ancienne valeur (env lu au démarrage)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les pods redémarrent automatiquement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les variables changent instantanément",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle limitation a un volume monté avec subPath ?",
+      "justification": "Un montage subPath ne reçoit pas les mises à jour du ConfigMap ; pour l'auto-reload d'un fichier, on monte le volume entier.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il ne reçoit pas les mises à jour du ConfigMap",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il chiffre le fichier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il double la mémoire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment forcer un rolling update quand la config change (de façon déclarative) ?",
+      "justification": "Le pattern checksum/annotation : un hash du ConfigMap dans le template de pod change → le Deployment redéploie (Helm le fait couramment).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une annotation checksum du ConfigMap dans le template de pod",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ne rien faire, ça se propage seul",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le namespace",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Déclarer un ConfigMap/Secret immutable améliore les performances (le kubelet ne le surveille plus) et évite les changements accidentels.",
+      "justification": "Vrai : un objet immuable n'est plus modifiable en place (on en crée un nouveau) et n'est plus surveillé, réduisant la charge.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

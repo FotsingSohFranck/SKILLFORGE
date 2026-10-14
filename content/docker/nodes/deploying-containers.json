@@ -1,0 +1,166 @@
+{
+  "node": "deploying-containers",
+  "lessons": [
+    {
+      "slug": "de-limage-a-la-production",
+      "title": "De l'image à la production : CI/CD",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le pipeline conteneurisé",
+          "body": "Tu sais maintenant construire une **image** (le paquet figé qui contient ton application et tout ce qu'il lui faut pour tourner) et lancer un **conteneur** (une image en cours d'exécution). Reste la grande question : comment amener cette image jusqu'aux **utilisateurs**, de façon fiable et répétable ? Réponse : un **pipeline**.\n\nUn **pipeline** est une **suite d'étapes automatiques** déclenchées à chaque modification du code. 👉 **Analogie** : c'est une **chaîne de montage** en usine. La matière première (ton code) entre d'un côté, passe de poste en poste (construire, tester, vérifier, livrer) sans intervention manuelle, et ressort de l'autre côté sous forme de produit prêt à l'emploi.\n\nCe pipeline se coupe en deux moitiés, souvent réunies sous le sigle **CI/CD** :\n- **CI** = *Continuous Integration* (intégration continue). À chaque fois que tu enregistres du code, la CI **construit l'image**, lance les **tests** (des vérifications automatiques que le code fait bien ce qu'on attend) et **scanne les vulnérabilités** (elle cherche des failles de sécurité connues dans l'image). Si une étape échoue, tout s'arrête : le code fautif n'ira pas plus loin.\n- **CD** = *Continuous Delivery / Deployment* (livraison / déploiement continu). Elle prend l'image validée et la **déploie** sur la machine cible.\n\nEntre les deux, l'image validée est **poussée** dans un **registre** (un entrepôt d'images en ligne comme Docker Hub ou GHCR, vu au nœud Registres). On lui colle une **étiquette** (un *tag*) unique, par exemple le numéro du commit, pour la **désigner sans ambiguïté**.\n\nUn principe cardinal gouverne tout ça : **build once, deploy many** (« construire une fois, déployer plusieurs fois »). On construit **une seule** image, on la teste, et c'est **exactement cette image-là** qu'on promeut de la **préproduction** (*staging*, un environnement de répétition qui imite la prod) jusqu'à la **production** (l'environnement réel, celui des vrais utilisateurs). 👉 **Analogie** : après avoir testé une voiture à l'usine, on ne re-fabrique pas une nouvelle voiture pour le concessionnaire, on livre **la voiture testée**. Reconstruire une image par environnement, ce serait risquer de livrer un objet différent de celui qu'on a validé."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Le trajet d'une image : du code à la production",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    A[Code modifie] --> B[CI : build de l'image]\n    B --> C[Tests automatiques]\n    C --> D[Scan des vulnerabilites]\n    D --> E[Push dans le registre<br/>tag = numero de commit]\n    E --> F[CD : deploiement en staging]\n    F --> G[Deploiement en production]\n    style E fill:#8b5cf6,color:#fff\n    style G fill:#3b82f6,color:#fff"
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un pipeline CI qui build & push",
+          "codeLanguage": "yaml",
+          "body": "# .github/workflows/deploy.yml (extrait)\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: docker build -t ghcr.io/org/api:${{ github.sha }} .\n      - run: trivy image --severity CRITICAL --exit-code 1 ghcr.io/org/api:${{ github.sha }}\n      - run: echo \"${{ secrets.TOKEN }}\" | docker login ghcr.io -u org --password-stdin\n      - run: docker push ghcr.io/org/api:${{ github.sha }}\n      # -> puis un job de deploiement recupere CETTE image (tag = sha du commit)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Déployer sans coupure",
+          "body": "Quand tu mets à jour un service déjà en ligne, tu veux éviter que les utilisateurs voient une **coupure** (le site indisponible, ne serait-ce que quelques secondes). On parle de déploiement **sans coupure** (en anglais *zero downtime*). Plusieurs stratégies le permettent.\n\n- **Rolling update** (mise à jour progressive) : on remplace les **instances** (les copies de ton conteneur qui tournent) **quelques-unes à la fois**, pas toutes d'un coup. Pendant qu'on met à jour les unes, les autres continuent de servir. 👉 **Analogie** : remplacer les ampoules d'un couloir **une par une**, sans jamais éteindre tout le couloir.\n- **Blue-green** : on prépare **deux environnements complets**, l'ancien (« bleu ») et le nouveau (« vert »). On bascule tout le trafic du bleu vers le vert **d'un coup**. Si ça tourne mal, on rebascule vers le bleu **instantanément**. 👉 **Analogie** : deux scènes de théâtre montées côte à côte ; on allume l'une, on éteint l'autre, et on peut inverser en une seconde.\n- **Canary** (« canari ») : on envoie d'abord une **petite part** du trafic (disons 5 %) vers la nouvelle version, on **surveille**, et si tout va bien on **généralise** progressivement. 👉 **Analogie** : le nom vient des canaris qu'on descendait dans les mines pour détecter le gaz ; on expose un petit échantillon au risque avant d'y aller en grand.\n\nCes trois stratégies exigent trois choses. Des conteneurs **sans état** (*stateless*) : ils ne gardent aucune donnée importante en mémoire locale (tout ce qui doit durer va dans une base ou un volume), sinon les remplacer perdrait des données. Un **healthcheck** (« test de santé ») fiable : une petite vérification automatique et régulière qui répond « cette instance est-elle prête à recevoir du trafic ? » ; on ne route que vers celles qui répondent oui. Et un **rollback** (retour arrière) rapide : la capacité de **revenir** en un instant à la version précédente. 👉 **La règle d'or** : déployer souvent n'est sûr **que si** revenir en arrière est trivial. Le filet de sécurité rend l'audace raisonnable."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une équipe reconstruit son image dans le pipeline de déploiement, séparément de la CI qui l'avait déjà construite et testée. Un bug apparaît en production, absent des tests. Quel principe est violé ?",
+          "solution": "Le principe « build once, deploy many » est violé. En reconstruisant l'image au moment du déploiement, on obtient un artefact potentiellement DIFFÉRENT de celui testé en CI (dépendances transitives qui ont bougé, base mise à jour, cache différent) : l'image déployée n'est donc pas celle qui a passé les tests. Le bug vient de cet écart. Correction : construire l'image UNE fois en CI, la tester/scanner, la pousser dans le registre avec un tag immuable (ex. le sha du commit), et faire en sorte que le déploiement récupère et lance EXACTEMENT cette image, jamais une reconstruction. Ce qui est testé est ce qui tourne."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, De l'image à la production",
+          "quizRef": "deploying-containers-cicd-check"
+        }
+      ]
+    },
+    {
+      "slug": "ou-deployer",
+      "title": "Où déployer : PaaS vs orchestrateurs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le spectre des options",
+          "body": "Une fois ton image prête, où la faire tourner pour de vrai ? Il n'y a pas une seule réponse, mais un **spectre** d'options, du plus simple au plus puissant. Chaque marche ajoute de la puissance, mais aussi de la complexité à gérer.\n\n**1. Un seul hôte.** Tu lances tes conteneurs avec `docker run` ou `docker compose` sur **un seul serveur**. Simple, direct, parfait pour de petits projets. Limite : pas de **haute disponibilité** (si ce serveur tombe, tout tombe) ni de **scaling automatique** (la capacité à multiplier les copies quand le trafic monte). 👉 **Analogie** : un food-truck. Une seule cuisine, un seul cuisinier : léger à monter, mais s'il tombe malade, le service s'arrête.\n\n**2. Une PaaS conteneur.** **PaaS** veut dire *Platform as a Service* (« la plateforme fournie comme un service ») : tu **pousses ton image**, et la plateforme s'occupe de tout le reste à ta place, à savoir l'exécution, le **scaling**, le **TLS** (le chiffrement `https://` de ton site) et les déploiements. Des exemples : Railway, Render, Fly.io, Google Cloud Run, AWS App Runner. 👉 **Analogie** : un restaurant en franchise clé en main. Tu apportes ta recette (l'image) ; les murs, la cuisine et le personnel sont déjà là. C'est un excellent compromis simplicité / puissance.\n\n**3. Un orchestrateur.** Kubernetes, Nomad, Swarm : un logiciel qui pilote **des centaines de conteneurs sur plusieurs machines** (on le détaille à la leçon suivante). Contrôle total et fonctionnalités avancées, au prix d'une **complexité d'exploitation** bien réelle. 👉 **Analogie** : ta propre chaîne de restaurants avec logistique centrale. Toute la puissance, mais il faut une équipe pour la faire tourner."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Ne pas sur-dimensionner",
+          "body": "L'erreur la plus fréquente des équipes qui débutent : adopter **Kubernetes** parce que « c'est le standard », pour une application qui n'en a pas le besoin. Ce réflexe a même un surnom en anglais, *resume-driven development* (choisir une techno pour l'ajouter à son CV plutôt que pour le projet).\n\nKubernetes est puissant, mais **complexe** à exploiter : il faut gérer un **cluster** (un groupe de serveurs coordonnés), le réseau entre les conteneurs, les mises à jour du cluster lui-même, l'observabilité, la sécurité, des dizaines de fichiers de configuration. C'est un **coût humain considérable**, du temps que tu ne passes pas sur ton produit. 👉 **Analogie** : acheter un semi-remorque pour aller chercher le pain. Il transporte des tonnes, mais pour une baguette, un vélo est plus rapide, moins cher et sans permis spécial.\n\nPour beaucoup de projets, un serveur avec **Docker Compose** ou une **PaaS** suffit largement et libère de l'énergie pour ce qui compte vraiment. La règle : **choisir l'option la plus simple qui répond au besoin réel** (échelle, disponibilité, autonomie des équipes), et monter en puissance **quand** le besoin le justifie, pas par mode. 👉 **À retenir** : choisir simple n'est pas un manque d'ambition, c'est une décision d'ingénierie mature. On complexifie parce qu'un vrai besoin l'exige, jamais par anticipation."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Une petite équipe lance un nouveau produit avec un backend, une base et un front, un trafic modeste et incertain. Un développeur veut « faire les choses bien » avec un cluster Kubernetes. Est-ce le bon choix à ce stade ?",
+          "solution": "Probablement pas à ce stade. Kubernetes apporte auto-scaling, haute disponibilité multi-nœuds et déploiements avancés, mais au prix d'une lourde complexité d'exploitation (gérer un cluster, le réseau CNI, les mises à jour, l'observabilité, la sécurité, les manifestes...), un investissement humain disproportionné pour un trafic modeste et un produit encore incertain. Un choix plus adapté : un serveur unique avec Docker Compose, ou mieux une PaaS conteneur (Render, Railway, Fly.io, Cloud Run) qui gère l'exécution, le TLS, le scaling et les déploiements sans administrer de cluster. On garde ainsi l'énergie pour le produit, et on migrera vers un orchestrateur QUAND un besoin réel apparaîtra (échelle, HA, autonomie d'équipes). Choisir le plus simple qui marche est une décision d'ingénierie mature, pas un manque d'ambition."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Où déployer",
+          "quizRef": "deploying-containers-ou-deployer-check"
+        }
+      ]
+    },
+    {
+      "slug": "orchestrateurs",
+      "title": "Orchestrateurs : Swarm, Nomad, Kubernetes",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ce qu'un orchestrateur résout",
+          "body": "Faire tourner **un** conteneur sur ta machine, tu sais faire. Mais imagine devoir en faire tourner **des centaines**, répartis sur **plusieurs machines**, qui doivent redémarrer tout seuls quand ils plantent, se multiplier quand le trafic monte, se mettre à jour sans coupure et se trouver les uns les autres sur le réseau. À la main, c'est ingérable. C'est le métier de l'**orchestrateur**.\n\nUn **orchestrateur** est un logiciel qui **gère une flotte de conteneurs à ta place**. 👉 **Analogie** : c'est le **chef d'orchestre**. Toi, tu écris la partition (« je veux 5 copies de ce service qui tournent en permanence ») ; lui fait jouer chaque musicien au bon moment et remplace aussitôt celui qui s'arrête.\n\nSon principe de fonctionnement tient en deux mots : **état désiré** contre **état réel**.\n- L'**état désiré**, c'est ce que **tu déclares** vouloir : par exemple « 5 **répliques** (5 copies identiques) de mon service tournent ».\n- L'**état réel**, c'est ce qui tourne **effectivement** à l'instant présent.\n\nL'orchestrateur **compare les deux en boucle** et corrige tout écart. Une réplique plante ? Il en relance une pour revenir à 5 : c'est l'**auto-réparation** (*self-healing*). 👉 **Analogie** : un thermostat. Tu règles 20°C (état désiré) ; s'il fait 18°C (état réel), il chauffe tout seul jusqu'à revenir à 20°C. Tu ne surveilles rien, le système se corrige.\n\nIl rend aussi trois autres services essentiels. Le **scheduling** (« placement ») : décider **sur quelle machine** (quel **nœud**, c'est-à-dire un serveur du groupe) lancer chaque conteneur selon les ressources libres. La **découverte de services** : permettre à un conteneur d'en **trouver** un autre par son nom, même s'il change d'adresse. Et la **répartition de charge** (*load balancing*) : distribuer les requêtes entrantes entre les répliques pour qu'aucune ne soit surchargée. En résumé, l'orchestrateur est l'infrastructure qui fait tenir des systèmes conteneurisés **à grande échelle**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Trois options, trois compromis",
+          "body": "Il existe plusieurs orchestrateurs. Trois reviennent souvent, chacun avec son compromis.\n\n- **Docker Swarm** : l'orchestrateur **intégré à Docker**. Sa grande force est la **simplicité** : si tu sais écrire un fichier `compose.yaml`, tu sais presque déjà t'en servir. Idéal pour de **petits groupes de machines**. Son défaut : son écosystème et son élan sont aujourd'hui **limités** (peu de nouveautés, communauté réduite).\n- **Nomad** (édité par HashiCorp) : simple et **flexible**. Particularité : il orchestre les conteneurs **mais aussi** d'autres types de charges (de simples programmes, des machines virtuelles). Léger à faire tourner, c'est un bon compromis quand on veut de la souplesse sans trop de complexité.\n- **Kubernetes** (souvent abrégé **K8s**, le « 8 » remplaçant les huit lettres entre le K et le s) : le **standard de facto**, c'est-à-dire celui que l'industrie a adopté par défaut, même sans règle officielle. Extrêmement **puissant** et extensible (mise à l'échelle automatique, énorme écosystème d'outils, support de tous les clouds), mais **complexe** à exploiter.\n\n👉 **Comment choisir ?** Cela dépend de l'**échelle** visée, de l'**expertise** dont tu disposes et de l'**écosystème** que tu veux (outils, offres cloud, recrutement). Kubernetes s'impose dès qu'on veut le standard de l'industrie et un large support des fournisseurs cloud ; pour rester simple, Swarm ou une PaaS suffisent souvent. 👉 **Analogie** : Swarm est une berline automatique (facile, va à l'essentiel), Nomad un véhicule polyvalent, Kubernetes un camion articulé (puissance maximale, mais permis exigeant)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Docker jusqu'au bout de la chaîne (niveau expert)",
+          "body": "Une clarification d'expert qui rassure beaucoup de débutants : **l'orchestrateur exécute tes images, il ne les remplace pas**.\n\nQue tu déploies sur Swarm, Nomad ou Kubernetes, ce sont **les mêmes images** que tu construis déjà avec Docker. Ces images respectent un format standard appelé **OCI** (*Open Container Initiative*, l'organisme qui a normalisé le format d'image et d'exécution des conteneurs pour que tous les outils parlent la même langue). Toutes les bonnes pratiques apprises restent valables : construction en plusieurs étapes (*multi-stage*), exécution en utilisateur non-root, scan des vulnérabilités, versions épinglées.\n\nUn détail technique souvent mal compris : Kubernetes **n'utilise pas le daemon Docker** pour lancer les conteneurs. (Le **daemon** est le programme d'arrière-plan de Docker qui construit et exécute les conteneurs sur ta machine.) À la place, Kubernetes passe par un **runtime** plus léger comme **containerd** ou **CRI-O**, via une interface standard nommée **CRI** (*Container Runtime Interface*). 👉 **Analogie** : peu importe la marque du lecteur, il lit le **même DVD**. Tes images OCI sont ce DVD ; containerd est juste un autre lecteur que le daemon Docker, mais il lit exactement le même disque, **sans que tu changes quoi que ce soit**.\n\nConclusion : tout ce que tu as appris sur les images et leur exécution **reste vrai**. L'orchestrateur ajoute simplement, par-dessus, une couche de **gestion de flotte**. Bien maîtriser Docker est donc le **prérequis** pour bien utiliser un orchestrateur, pas une compétence à jeter."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un architecte affirme : « Puisqu'on passe à Kubernetes, on va devoir abandonner nos Dockerfiles et notre façon de construire les images. » A-t-il raison ?",
+          "solution": "Non. Kubernetes est un orchestrateur : il gère le déploiement, la réplication, le réseau et la résilience de conteneurs, mais il EXÉCUTE les mêmes images OCI standard que vous construisez déjà avec vos Dockerfiles. Rien ne change dans la façon de construire les images (multi-stage, non-root, scan, tags immuables restent d'actualité et même essentiels). La seule nuance technique : Kubernetes n'exécute pas les images via le daemon Docker mais via un runtime CRI (containerd/CRI-O), ce qui est transparent pour vos images puisqu'elles respectent le standard OCI. On continue donc de construire « à la Docker » ; Kubernetes ajoute par-dessus la gestion de flotte (état désiré, auto-réparation, scaling). Maîtriser Docker et les images reste le socle indispensable pour utiliser efficacement Kubernetes."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Déployer des conteneurs",
+          "quizRef": "deploying-containers-check"
+        }
+      ]
+    },
+    {
+      "slug": "swarm-gitops-observabilite",
+      "title": "Swarm, GitOps & observabilité en prod",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Docker Swarm concrètement",
+          "body": "Pour qui veut de l'orchestration **simple** sans la lourdeur de Kubernetes, **Docker Swarm** reste un excellent terrain d'apprentissage, et il est utilisable en vrai.\n\nD'abord, on assemble plusieurs machines en **cluster** (un groupe de serveurs qui travaillent ensemble comme s'ils n'en formaient qu'un). Chaque machine du groupe est un **nœud**. Deux commandes suffisent : `docker swarm init` sur la première machine, puis `docker swarm join` sur les autres pour les rattacher.\n\nEnsuite, on déploie une **stack** : c'est un `compose.yaml` habituel, enrichi d'une section `deploy:`, lancé avec `docker stack deploy`. 👉 **Analogie** : si `docker compose` sur ta machine est une **maquette de train sur ta table**, une stack Swarm est le **vrai réseau ferroviaire** qui roule à travers plusieurs villes (les nœuds).\n\nLe concept central est le **service** : la définition d'un conteneur dont Swarm maintient N **répliques** (N copies identiques) réparties sur les nœuds. Swarm t'offre alors, sans effort supplémentaire :\n- le **rolling update** (mise à jour progressive, réglable via `--update-parallelism` et `--update-delay`) et le **rollback** (retour arrière) ;\n- un réseau **overlay** : un réseau virtuel qui relie les conteneurs **à travers plusieurs machines** comme s'ils étaient branchés sur le même câble ;\n- la **répartition de charge** interne via une **VIP** (*Virtual IP*, une adresse unique et stable derrière laquelle Swarm cache et équilibre toutes les répliques) ;\n- les **secrets** natifs (mots de passe, clés) montés en **tmpfs**, c'est-à-dire en mémoire vive plutôt que sur le disque, pour ne pas laisser traîner de fichier sensible.\n\nSwarm illustre donc tous les grands concepts d'orchestration (état désiré, répliques, mises à jour progressives) avec une **courbe d'apprentissage douce**, même si l'élan de l'industrie penche aujourd'hui vers Kubernetes."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Un service Swarm avec rolling update",
+          "codeLanguage": "yaml",
+          "body": "# compose.yaml (deploye via: docker stack deploy -c compose.yaml monapp)\nservices:\n  api:\n    image: monorg/api:1.4.0\n    deploy:\n      replicas: 4\n      update_config:\n        parallelism: 1          # remplacer 1 replique a la fois\n        delay: 10s              # attendre entre chaque\n        order: start-first      # demarrer la nouvelle avant d'arreter l'ancienne\n      restart_policy:\n        condition: on-failure\n      resources:\n        limits: { cpus: \"1\", memory: 512M }\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-qO-\", \"http://localhost:8080/health\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "GitOps : le déploiement piloté par Git",
+          "body": "À grande échelle, la façon moderne de déployer s'appelle le **GitOps**. L'idée : faire de **Git** (ton dépôt de code versionné) la **source unique de vérité** de ton infrastructure.\n\nConcrètement, l'**état désiré** de tes déploiements (« telle version de tel service, en tant de répliques ») n'est plus tapé à la main sur le cluster : il est **écrit dans des fichiers, dans un dépôt Git**. Un **agent** installé dans le cluster (les deux plus connus sont **Argo CD** et **Flux**) lit ce dépôt en permanence et **réconcilie** : il compare ce que décrit Git avec ce qui tourne vraiment, et ajuste le cluster pour qu'il colle à Git. On appelle ça le **modèle pull** : c'est le cluster qui **va chercher** sa configuration, au lieu qu'on la lui **pousse** de l'extérieur.\n\n👉 **Analogie** : Git devient la **partition officielle**, et l'agent est le musicien qui la relit sans cesse pour jouer exactement ce qui est écrit. Tu changes la partition (un commit), la musique suit toute seule.\n\nLes avantages sont énormes :\n- tout changement passe par une **pull request** (une proposition de modification relue par un collègue avant d'être acceptée) : traçabilité et contrôle ;\n- Git devient le **journal** de tout ce qui a été déployé, et le point de **rollback** idéal : revenir à l'état d'avant, c'est simplement **annuler un commit** (`git revert`) ;\n- le cluster **corrige les dérives** tout seul : si quelqu'un bricole une ressource à la main, l'agent la ramène à ce que dit Git.\n\nOn sépare ainsi proprement deux métiers : la **CI construit** l'image (et la signe), la **CD en mode GitOps déploie** de façon déclarative. Résultat : un déploiement contrôlé et **auditable** de bout en bout."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Observer les conteneurs en production (niveau expert)",
+          "body": "Déployer ne suffit pas : encore faut-il **voir** ce que font tes conteneurs une fois en production. C'est l'**observabilité** : la capacité à comprendre l'état interne d'un système d'après ce qu'il émet vers l'extérieur. Elle repose sur **trois piliers**.\n\n**1. Les logs** (les journaux). Un conteneur écrit ses messages sur deux sorties standard : **stdout** (la sortie normale) et **stderr** (la sortie d'erreur). Problème : ces messages **disparaissent avec le conteneur** quand il est supprimé. La parade est de les **centraliser** en temps réel via un **log driver** (le mécanisme de Docker qui redirige les sorties) ou un collecteur comme **Fluent Bit**, vers un entrepôt durable comme **Loki**. 👉 **Analogie** : sans centralisation, c'est un magnétophone qu'on efface à chaque fin de scène ; avec, on garde tout l'enregistrement au chaud, même après.\n\n**2. Les métriques** (les mesures chiffrées). **cAdvisor** est un outil qui expose l'usage **CPU, mémoire et réseau par conteneur** ; **Prometheus** les **récolte** à intervalles réguliers et les stocke ; **Grafana** les affiche en **graphiques** lisibles. C'est indispensable pour bien régler les limites de ressources et repérer un **OOM** (*Out Of Memory*, le cas où un conteneur dépasse la mémoire autorisée et se fait tuer). 👉 **Analogie** : c'est le **tableau de bord** de ta voiture (vitesse, température, jauge d'essence) ; sans lui, tu roules à l'aveugle.\n\n**3. Les traces**. Le **tracing distribué** (avec le standard **OpenTelemetry**) suit **une même requête** pas à pas à travers tous les services qu'elle traverse, pour repérer lequel est lent ou fautif. 👉 **Analogie** : c'est le **suivi de colis** qui montre chaque entrepôt par lequel passe ton paquet.\n\nUn déploiement de production **sans** cette observabilité est **aveugle** : on apprend les incidents par les utilisateurs mécontents, trop tard. Un expert livre donc le déploiement **et** son observabilité : les deux sont indissociables."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Après un déploiement, un conteneur a planté et a été recréé automatiquement, mais l'équipe ne peut plus consulter les logs de l'instance qui a échoué pour comprendre la cause. Quel principe d'observabilité manquait, et comment l'appliquer aux conteneurs ?",
+          "solution": "Il manquait la centralisation des logs. Les logs d'un conteneur (sa sortie stdout/stderr, capturée par Docker) ne sont conservés que tant que le conteneur existe : quand un conteneur défaillant est supprimé et recréé (par la restart policy ou l'orchestrateur), ses logs disparaissent avec lui, on perd précisément la trace de l'incident. Application aux conteneurs : mettre en place une collecte/centralisation des logs qui les EXPORTE en dehors du conteneur en temps réel, vers un système de stockage durable et interrogeable. Concrètement, on configure un log driver adapté (ou un agent collecteur comme Fluent Bit) qui envoie les flux stdout/stderr de tous les conteneurs vers une plateforme centralisée (Loki, Elasticsearch, un service cloud...). Ainsi, même après la destruction du conteneur fautif, ses logs restent consultables et corrélables (par timestamp, par service) pour l'analyse post-incident. On complète idéalement par les métriques (cAdvisor + Prometheus, pour voir un éventuel OOM avant le crash) et le tracing. La règle : l'observabilité (logs centralisés + métriques + traces) fait partie intégrante du déploiement, pas d'une étape ultérieure, sinon on est aveugle dès qu'un conteneur éphémère disparaît."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Swarm, GitOps & observabilité (expert)",
+          "quizRef": "deploy-swarm-gitops-expert"
+        }
+      ]
+    }
+  ]
+}

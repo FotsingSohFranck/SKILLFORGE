@@ -1,0 +1,96 @@
+{
+  "ref": "boundaries-check",
+  "node": "boundaries-policy-detail",
+  "lesson": "tracer-des-frontieres",
+  "title": "Quiz, Frontières : policy vs détail",
+  "description": "Policy, detail, règle des dépendances, décisions différées.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans la distinction policy/detail, la base de données est… ?",
+      "justification": "Un détail : subordonné au métier, remplaçable ; il ne devrait pas contraindre la policy (les règles métier de haut niveau).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un détail, subordonné et remplaçable",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le cœur de l'application",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La policy de haut niveau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel sens pointent les dépendances de code d'une bonne architecture ?",
+      "justification": "Vers l'intérieur : du détail vers la policy. La base implémente une abstraction définie par le métier, jamais l'inverse.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Du détail vers la policy (vers l'intérieur)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "De la policy vers le détail",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Dans les deux sens indifféremment",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme permet à la base de dépendre du métier à une frontière ?",
+      "justification": "L'inversion de dépendance (DIP) : une interface (port) possédée par le métier, que l'adaptateur de base implémente.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un port (interface) possédé par le métier, implémenté par le détail",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un import direct du package base dans le métier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une variable globale partagée",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une bonne architecture cherche à différer les décisions sur les détails (base, framework) le plus longtemps possible.",
+      "justification": "Vrai : garder des frontières nettes permet de trancher tard, avec plus d'information, voire de changer sans douleur.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "ss-couches-expert-check",
+  "node": "structural-styles",
+  "lesson": "couches-strictes-relachees-sinkhole",
+  "title": "Quiz, Couches strictes/relâchées & sinkhole (expert)",
+  "description": "Couches fermées vs ouvertes, architecture sinkhole, règle 80/20.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'autorise une couche « ouverte » (relaxed) par rapport à une couche « fermée » ?",
+      "justification": "Une couche ouverte permet de court-circuiter et d'appeler directement une couche plus basse ; une couche fermée n'appelle que la couche immédiatement en dessous (isolation maximale).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Court-circuiter et appeler directement une couche plus basse",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Modifier les couches supérieures",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer toute dépendance",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que l'architecture « sinkhole » ?",
+      "justification": "Des requêtes qui traversent les couches sans qu'aucune n'ajoute de logique (pur pass-through) : indirection et mapping pour rien.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des requêtes qui traversent les couches en pur pass-through, sans logique ajoutée",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une base de données trop lente",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un excès de logique dans une seule couche",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit la règle 80/20 appliquée au layering ?",
+      "justification": "Si plus de ~20 % des requêtes sont de simples pass-through, l'architecture en couches coûte plus qu'elle ne rapporte pour ces cas, signal pour ouvrir des couches ou aplatir (CQRS).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Si >20 % des requêtes sont du pur pass-through, les couches coûtent plus qu'elles ne rapportent",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "80 % du code doit être dans la couche métier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il faut 5 couches minimum",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Face à 70 % d'endpoints CRUD triviaux et 30 % à logique riche, la bonne réponse est soit « supprimer les couches » soit « strict partout ».",
+      "justification": "Faux : on module cas par cas, garder le layering (fermé) pour les 30 % à logique riche, alléger/ouvrir (ou CQRS) pour les 70 % pass-through. L'architecture en couches n'est pas tout-ou-rien.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

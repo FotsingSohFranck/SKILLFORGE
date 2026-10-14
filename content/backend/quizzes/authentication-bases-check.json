@@ -1,0 +1,52 @@
+{
+  "ref": "authentication-bases-check",
+  "node": "authentication",
+  "lesson": "authentifier-vs-autoriser",
+  "title": "Authentifier vs autoriser",
+  "description": "Différence authN/authZ et stockage sûr des mots de passe.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait précisément l'authentification (par opposition à l'autorisation) ?",
+      "justification": "Authentifier = établir qui appelle (prouver l'identité). Autoriser = décider ce que cette identité a le droit de faire.",
+      "position": 0,
+      "options": [
+        { "label": "Établir QUI est l'appelant (prouver l'identité)", "correct": true, "position": 0 },
+        { "label": "Décider ce que l'appelant a le droit de faire", "correct": false, "position": 1 },
+        { "label": "Chiffrer les données échangées", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment stocke-t-on un mot de passe en base de données ?",
+      "justification": "On stocke un hachage produit par un algorithme lent et salé (BCrypt, Argon2). Jamais le mot de passe en clair ni chiffré réversiblement.",
+      "position": 1,
+      "options": [
+        { "label": "Un hachage lent et salé (BCrypt, Argon2)", "correct": true, "position": 0 },
+        { "label": "En clair, mais dans une table protégée", "correct": false, "position": 1 },
+        { "label": "Chiffré avec une clé qu'on peut déchiffrer au besoin", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le « sel » (salt) ajouté avant de hacher un mot de passe ?",
+      "justification": "Le sel est aléatoire et propre à chaque utilisateur : deux mots de passe identiques donnent des empreintes différentes, ce qui casse les rainbow tables.",
+      "position": 2,
+      "options": [
+        { "label": "Faire que deux mots de passe identiques donnent des empreintes différentes", "correct": true, "position": 0 },
+        { "label": "Rendre le hachage réversible en cas de besoin", "correct": false, "position": 1 },
+        { "label": "Accélérer le calcul de l'empreinte", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "MD5 et SHA-256 « simple » sont de bons choix pour stocker des mots de passe car ils sont rapides.",
+      "justification": "Faux : leur rapidité est justement le problème, elle facilite le brute force. Pour les mots de passe on veut un algorithme LENT et salé (BCrypt, Argon2).",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "concurrence-rappels-executors-et-pools",
+  "node": "concurrence-rappels",
+  "lesson": "executors-et-pools",
+  "title": "Quiz : executors et pools",
+  "description": "ExecutorService, pool de threads et réutilisation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi utiliser un pool de threads plutôt que créer un thread par tâche ?",
+      "justification": "Le pool réutilise un petit groupe de threads déjà prêts : on évite le coût de création répété et on fixe une limite nette au nombre de tâches exécutées en même temps.",
+      "position": 0,
+      "options": [
+        { "label": "Pour réutiliser des threads existants et limiter leur nombre, au lieu d'en recréer sans cesse.", "correct": true, "position": 0 },
+        { "label": "Pour empêcher le programme de renvoyer le moindre résultat.", "correct": false, "position": 1 },
+        { "label": "Pour forcer toutes les tâches à s'exécuter l'une après l'autre.", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu crées un pool avec Executors.newFixedThreadPool(3) et tu soumets 9 tâches. Combien s'exécutent au maximum en même temps ?",
+      "justification": "Le pool ne contient que 3 threads : au plus 3 tâches tournent simultanément, les 6 autres attendent dans la file jusqu'à ce qu'un thread se libère.",
+      "position": 1,
+      "options": [
+        { "label": "3", "correct": true, "position": 0 },
+        { "label": "9", "correct": false, "position": 1 },
+        { "label": "1", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On soumet une tâche à un ExecutorService avec la méthode submit(...).",
+      "justification": "Vrai : submit(...) dépose la tâche auprès de l'ExecutorService, qui la confie ensuite à un thread disponible du pool.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "node": "what-are-containers",
+  "lessons": [
+    {
+      "slug": "le-probleme-a-resoudre",
+      "title": "Le problème que résolvent les conteneurs",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "« Ça marche sur ma machine »",
+          "body": "C'est sans doute la phrase la plus coûteuse du développement logiciel. Pour comprendre pourquoi, définissons d'abord un mot clé : l'**environnement**.\n\nL'**environnement** d'une application, c'est **tout ce dont elle a besoin autour d'elle pour fonctionner** : une version précise du langage (par exemple Java 21), des **bibliothèques** (des morceaux de code déjà écrits que ton application réutilise, comme une boîte à outils partagée), des **variables système** (des réglages rangés dans le système, par exemple l'emplacement d'un dossier ou une clé de configuration), et des outils installés sur la machine.\n\n👉 **Analogie** : ton application est un plat cuisiné. Le **code**, c'est la recette. Mais une recette ne suffit pas : il te faut aussi la bonne cuisine, les bons ustensiles et les bons ingrédients (l'environnement). Donne la même recette à deux cuisines différentes, et le résultat peut changer du tout au tout.\n\n**Exemple concret** : sur le poste du développeur, l'application tourne avec Java 21 et une bibliothèque bien installée. En **production** (le serveur réel qui sert les vrais utilisateurs), la machine n'a que Java 17 et il manque cette bibliothèque. Résultat : ce qui marchait sur le poste **plante** sur le serveur. Reproduire à l'identique un environnement d'une machine à l'autre (poste du développeur, **CI** c'est-à-dire la machine qui récupère ton code et le teste automatiquement à chaque changement, puis serveur de production) est un problème récurrent et franchement frustrant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le « dependency hell » (l'enfer des dépendances)",
+          "body": "**Dependency hell**, en français « l'enfer des dépendances », est le nom d'une situation classique et pénible. Définissons d'abord **dépendance** : c'est un composant externe dont ton application a besoin pour fonctionner (une bibliothèque, un **runtime**, un autre logiciel). Ton application **dépend** de lui, d'où le nom.\n\nLe problème : sur un même serveur, deux applications peuvent exiger des versions **incompatibles** de la même dépendance. L'une réclame Python 3.9, l'autre Python 3.12. Les installer côte à côte sur la même machine devient un casse-tête, car satisfaire l'une casse l'autre.\n\n👉 **Analogie** : imagine une seule cuisine partagée où un cuisinier a besoin du four à 180°C et l'autre à 250°C **en même temps**. Un seul four, deux réglages contradictoires : impossible de contenter les deux.\n\n**Exemple concret** : ton serveur héberge une vieille application qui ne tourne qu'avec Python 3.9, et une nouvelle qui exige Python 3.12. Historiquement, on s'en sortait en dédiant **une machine entière (ou une VM) par application** « pour être tranquille ». Une **VM** (machine virtuelle) est un ordinateur simulé par logiciel à l'intérieur d'un autre (on la détaille plus loin). Mais multiplier les machines est lourd et coûteux. Il manque un moyen d'**isoler** chaque application avec ses propres dépendances, sans multiplier les machines : c'est exactement ce que les conteneurs vont apporter."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À toi de jouer",
+          "body": "Une équipe déploie une application testée avec succès sur les postes des développeurs, mais elle plante en production avec une erreur de bibliothèque manquante. Quelle est la cause profonde, et qu'est-ce qui l'éliminerait ?",
+          "solution": "La cause profonde est la dérive d'environnement : l'application n'embarque pas ses dépendances, elle compte sur celles installées sur la machine. Le poste des développeurs avait la bonne bibliothèque, pas le serveur de production. Ce qui l'éliminerait : empaqueter l'application AVEC toutes ses dépendances dans une unité qui tourne à l'identique partout, c'est exactement ce que fait un conteneur. On ne dépend plus de ce qui est (ou non) installé sur l'hôte."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Le problème à résoudre",
+          "quizRef": "what-are-containers-probleme-check"
+        }
+      ]
+    },
+    {
+      "slug": "quest-ce-quun-conteneur",
+      "title": "Qu'est-ce qu'un conteneur",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Empaqueter l'application ET son environnement",
+          "body": "Voici la grande idée. Un **conteneur** empaquète une application **et tout son environnement** (bibliothèques, **runtime**, fichiers, configuration) dans une seule unité **isolée** et **portable**.\n\nDéfinissons les deux mots importants. **Isolée** veut dire que le conteneur tourne dans sa propre bulle : il ne voit pas les autres applications de la machine et n'est pas gêné par elles. **Portable** veut dire qu'on peut le déplacer tel quel d'une machine à une autre et qu'il s'y exécute **à l'identique**, du moment que la machine dispose d'un **moteur de conteneurs** (le logiciel qui sait faire tourner des conteneurs, par exemple Docker). Au passage, un **runtime** désigne l'environnement d'exécution d'un langage, la brique qui fait tourner ton programme une fois compilé (par exemple la machine virtuelle Java, ou l'interpréteur Python).\n\n👉 **Analogie** : le conteneur, c'est le **conteneur maritime** de l'informatique. Avant lui, on chargeait chaque marchandise en vrac, différemment sur chaque bateau. Depuis, tout voyage dans des boîtes métalliques **standard** : le même conteneur passe du camion au bateau au train sans être rouvert. Peu importe ce qu'il y a dedans, l'extérieur est standard. Pareil ici : peu importe l'application, le moteur de conteneurs sait la transporter et l'exécuter partout de la même façon.\n\n**Exemple concret** : tu ranges ton application, sa version de Java et ses bibliothèques dans un conteneur sur ton poste. Tu envoies ce conteneur sur le serveur de production. Il y tourne **exactement** comme chez toi, car il apporte son environnement avec lui. Fini le « ça marche chez moi » : ce qui tourne dans le conteneur sur ton poste est ce qui tourne en production. On **versionne** l'environnement (on en garde des versions numérotées) comme on versionne le code."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Image vs conteneur",
+          "body": "Deux notions à ne surtout pas confondre, car on les emploie sans arrêt.\n\nUne **image** est un **modèle figé, en lecture seule** : le paquet complet et immuable qui contient l'application, ses dépendances et son système de fichiers. On ne l'exécute pas directement, c'est un gabarit.\n\nUn **conteneur** est une **instance en cours d'exécution** d'une image : un processus vivant, lancé à partir de l'image, auquel on ajoute une fine **couche d'écriture** (un espace où il peut créer et modifier des fichiers pendant qu'il tourne, sans jamais toucher à l'image d'origine).\n\n👉 **Analogie** : l'image est le **plan d'une maison** ; le conteneur est la **maison construite** à partir de ce plan. Avec un seul plan, tu bâtis autant de maisons identiques que tu veux, et chacune vit ensuite sa vie (on peut repeindre l'une en bleu sans changer le plan). Autre formulation pour les développeurs : l'image est la **classe**, le conteneur est l'**objet** (l'instance).\n\n**Exemple concret** : à partir de l'image officielle `nginx` (un serveur web), tu peux lancer trois conteneurs en même temps. Les trois partagent la même image en lecture seule, mais chacun est indépendant : son propre processus, sa propre couche d'écriture, ses propres logs. D'une même image, on lance donc **autant de conteneurs identiques qu'on veut**."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Un conteneur est un processus, pas une machine",
+          "body": "Idée fausse très répandue chez les débutants : « un conteneur, c'est une petite machine virtuelle ». C'est faux, et bien comprendre pourquoi change tout.\n\nRappel utile : un **processus** est simplement **un programme en train de s'exécuter** sur ta machine (ton navigateur ouvert est un processus, ton éditeur de texte en est un autre). Un conteneur n'est rien d'autre qu'un **processus normal** de la machine hôte (l'**hôte** est la machine physique qui fait tourner les conteneurs), mais **isolé** : on l'enferme dans une bulle pour qu'il se croie seul au monde, avec sa propre vue du système de fichiers, du réseau et de la liste des processus.\n\nSurtout, le conteneur **partage le noyau** de l'hôte. Le **noyau** (en anglais *kernel*) est le cœur du système d'exploitation : la couche qui parle directement au matériel (processeur, mémoire, disque) et distribue les ressources aux programmes. Contrairement à une VM, le conteneur n'embarque **pas** son propre noyau ni son propre système d'exploitation complet : il utilise celui qui tourne déjà sur l'hôte.\n\n👉 **Analogie** : une VM, c'est **construire une maison indépendante** avec ses propres fondations, sa plomberie et son électricité (son OS complet). Un conteneur, c'est **louer un appartement dans un immeuble existant** : tu as ta porte qui ferme à clé (l'isolation), mais tu partages les fondations et les canalisations de l'immeuble (le noyau de l'hôte). Bien plus rapide et léger à mettre en place.\n\n**Conséquence concrète** : comme il n'y a aucun système d'exploitation à démarrer, un conteneur se lance en **millisecondes**, pèse peu (des Mo, pas des Go), et on peut en faire tourner des **centaines** sur une seule machine. Le détail technique de cette isolation (les **namespaces** et les **cgroups**) est vu plus loin ; retiens pour l'instant : conteneur = processus isolé qui partage le noyau."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Une image, plusieurs conteneurs",
+          "diagramFormat": "MERMAID",
+          "body": "graph TD\n    IMG[\"Image nginx (modèle en lecture seule)\"] --> C1[\"Conteneur 1 (couche d'écriture propre)\"]\n    IMG --> C2[\"Conteneur 2 (couche d'écriture propre)\"]\n    IMG --> C3[\"Conteneur 3 (couche d'écriture propre)\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi de jouer",
+          "body": "Un collègue dit : « J'ai lancé trois conteneurs à partir de la même image nginx, ils vont forcément se marcher dessus puisque c'est la même image. » A-t-il raison ?",
+          "solution": "Non. L'image est un modèle en lecture seule partagé ; chaque conteneur lancé à partir d'elle est une instance indépendante avec sa propre couche d'écriture, son propre processus, son propre réseau isolé et son propre cycle de vie. Les trois conteneurs nginx tournent en parallèle sans interférence (on leur donne des ports/noms différents). C'est le principe image = modèle, conteneur = instance : une image, plusieurs conteneurs indépendants."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Qu'est-ce qu'un conteneur",
+          "quizRef": "what-are-containers-conteneur-check"
+        }
+      ]
+    },
+    {
+      "slug": "bare-metal-vm-conteneurs",
+      "title": "Bare Metal vs VM vs conteneurs",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Trois façons de faire tourner une application",
+          "body": "Il existe trois grandes manières de faire tourner une application. Comprendre leurs différences, c'est comprendre l'intérêt des conteneurs.\n\n**Bare metal** (littéralement « métal nu ») : l'application tourne **directement** sur le système d'exploitation de la machine physique, sans aucune couche intermédiaire. Avantage : performances maximales, rien ne s'interpose. Inconvénient : aucune isolation, et un environnement partagé par toutes les applications, donc le retour du *dependency hell* vu plus tôt.\n\n**Machine virtuelle (VM)** : un logiciel spécial appelé **hyperviseur** simule des ordinateurs complets sur une seule machine physique. Chaque VM ainsi créée a son propre **OS invité** (le système d'exploitation installé *dans* la VM, par opposition à l'**OS hôte** qui tourne sur la machine réelle). L'isolation est forte (chaque VM est comme une vraie machine séparée), mais c'est lourd : chaque VM démarre un OS entier, ce qui pèse plusieurs Go et prend des secondes, voire des minutes.\n\n**Conteneur** : l'isolation se fait au niveau du processus, en **partageant le noyau** de l'hôte plutôt qu'en simulant une machine complète. Résultat : léger, démarrage en millisecondes, et forte **densité** (beaucoup d'applications sur une même machine).\n\n👉 **Analogie** : le bare metal, c'est **posséder une maison entière pour toi seul** (rapide et tout à toi, mais tu ne peux pas y loger d'autres foyers proprement). La VM, c'est un **lotissement de maisons individuelles** : chacun chez soi avec ses propres murs et fondations (isolation forte, mais on reconstruit tout à chaque fois). Le conteneur, c'est un **immeuble d'appartements** : des logements bien séparés qui partagent la même structure (léger, on en case beaucoup)."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Les piles comparées",
+          "diagramFormat": "MERMAID",
+          "body": "graph TD\n    subgraph VM[\"Machines virtuelles\"]\n        HW1[\"Matériel\"] --> HOST1[\"OS hôte\"]\n        HOST1 --> HV[\"Hyperviseur\"]\n        HV --> G1[\"OS invité + App A\"]\n        HV --> G2[\"OS invité + App B\"]\n    end\n    subgraph CT[\"Conteneurs\"]\n        HW2[\"Matériel\"] --> HOST2[\"OS hôte (noyau partagé)\"]\n        HOST2 --> ENG[\"Moteur de conteneurs\"]\n        ENG --> C1[\"App A + deps\"]\n        ENG --> C2[\"App B + deps\"]\n    end"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le compromis : isolation vs légèreté",
+          "body": "La différence clé tient en une phrase : une **VM embarque un OS invité complet** (noyau compris), alors qu'un **conteneur partage le noyau** de l'hôte et n'embarque que l'application et ses dépendances.\n\nDe là découlent tous les compromis :\n- Le conteneur est bien plus **léger** (des Mo contre des Go pour une VM), démarre **quasi instantanément** et offre une **densité** supérieure (plus d'applications par machine).\n- La VM offre une **isolation plus forte** : la frontière est presque matérielle et les noyaux sont séparés, donc un problème dans une VM reste bien mieux confiné. Elle peut aussi faire tourner un OS **différent** de l'hôte (par exemple une VM Windows sur un hôte Linux), ce qu'un conteneur ne peut pas faire puisqu'il réutilise le noyau de l'hôte.\n\n👉 **Analogie** : la VM, c'est un **appartement aux murs en béton armé** : très bien isolé du voisin, mais cher et long à construire. Le conteneur, c'est une **cloison légère** : on monte et démonte les pièces en un instant, au prix d'une isolation moins absolue.\n\n**À retenir** : ce ne sont pas des rivaux qui s'excluent. En pratique, on exécute très souvent des conteneurs **à l'intérieur** de VMs pour cumuler les deux avantages (l'isolation matérielle de la VM plus la souplesse des conteneurs). C'est même ainsi que fonctionne l'essentiel du cloud."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi de jouer",
+          "body": "Pourquoi un conteneur démarre-t-il en quelques millisecondes là où une VM met plusieurs secondes, voire minutes ?",
+          "solution": "Une VM doit démarrer un système d'exploitation invité complet : initialisation de l'hyperviseur, boot du noyau invité, des services système, etc., un processus lourd. Un conteneur ne boote aucun OS : il partage le noyau déjà démarré de l'hôte et ne lance que le processus applicatif isolé (via namespaces/cgroups). Il n'y a donc rien à « démarrer » au sens d'un OS, d'où un lancement quasi instantané et une empreinte mémoire bien plus faible."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Bare metal, VM et conteneurs",
+          "quizRef": "what-are-containers-vm-check"
+        }
+      ]
+    },
+    {
+      "slug": "quand-conteneuriser",
+      "title": "Quand (et quand ne pas) conteneuriser",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les vrais gains",
+          "body": "Récapitulons ce que conteneuriser (c'est-à-dire mettre une application dans un conteneur) apporte vraiment :\n- La **portabilité** : la même image tourne du poste du développeur à la production, sans surprise.\n- La **reproductibilité** : l'environnement est **décrit dans un fichier** et **versionné**, donc n'importe qui peut recréer exactement le même à l'identique. 👉 Comme une recette écrite au gramme près : deux personnes obtiennent le même plat.\n- L'**isolation** : des applications aux dépendances conflictuelles (le *dependency hell*) cohabitent enfin sans se gêner sur une même machine.\n- La **densité** : on fait tourner beaucoup plus d'applications par machine qu'avec des VMs, car les conteneurs sont légers.\n- L'**élasticité** : on lance ou arrête des instances en un instant. C'est le socle de l'**auto-scaling** (ajouter automatiquement des conteneurs quand le trafic monte, en retirer quand il baisse) et des **microservices** (découper une grosse application en petits services indépendants, chacun dans son conteneur).\n\n**Exemple concret** : un site de vente subit un pic pendant les soldes. Grâce à l'élasticité, on passe de 3 à 30 conteneurs identiques en quelques secondes pour absorber la charge, puis on redescend. C'est aussi la fondation de tout l'écosystème moderne : **CI/CD** (la chaîne qui construit, teste et déploie le code automatiquement), **Kubernetes** (l'orchestrateur qui pilote des milliers de conteneurs à ta place) et le cloud."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Ce que les conteneurs ne sont pas (niveau expert)",
+          "body": "Un bon réflexe : savoir aussi ce qu'un conteneur **n'est pas**, pour ne pas s'en servir à contresens.\n\nUn conteneur **n'est pas** une frontière de sécurité aussi solide qu'une VM. Puisque le **noyau est partagé** avec l'hôte et les autres conteneurs, une faille dans ce noyau peut, en théorie, permettre à un conteneur de **s'échapper** de sa bulle (on parle d'*évasion*, en anglais *container escape*). 👉 **Analogie** : les appartements d'un immeuble ont chacun leur porte, mais ils partagent les mêmes fondations ; un défaut dans les fondations met tout l'immeuble en danger. Pour héberger du code hostile venu de plusieurs clients (**multi-tenant**, plusieurs locataires sur la même infrastructure), on ajoute donc des couches (VMs, gVisor, Kata Containers, détaillés plus loin).\n\nUn conteneur **n'est pas** fait pour garder un état durable par nature : il est **éphémère** (on le jette et on le recrée à volonté). Les données qui doivent survivre (une base de données, des fichiers envoyés par les utilisateurs) ne vivent donc pas *dans* le conteneur mais dans des **volumes** (des espaces de stockage externes attachés au conteneur) ou des services dédiés.\n\nEnfin, conteneuriser une application **monolithique mal conçue** (un seul gros bloc de code rigide) ne la rend pas magiquement scalable. Le conteneur est un outil d'**empaquetage et d'exécution**, pas une architecture : il transporte ton application, il ne la réorganise pas à ta place."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le principe directeur : immuabilité & éphémère",
+          "body": "Retiens **le** principe qui guide tout usage professionnel des conteneurs : un conteneur doit être **immuable** et **jetable**.\n\n**Immuable** veut dire « qui ne se modifie pas » : on ne se connecte pas à un conteneur qui tourne pour y bricoler des fichiers à la main. Si quelque chose doit changer, on modifie l'**image**, on la reconstruit, et on redéploie. **Jetable** (ou éphémère) veut dire qu'on doit pouvoir **tuer et recréer** un conteneur à tout moment sans rien perdre.\n\n👉 **Analogie** : pense au conteneur comme à un **gobelet jetable**, pas à ta tasse préférée. On ne répare pas un gobelet jetable et on ne s'y attache pas : s'il est abîmé, on en prend un neuf, identique. À l'inverse, bricoler un conteneur qui tourne, c'est comme rafistoler un gobelet en carton : ça ne tient pas, et tout part à la poubelle au prochain redémarrage.\n\n**Pourquoi c'est crucial** : c'est précisément cette discipline qui rend possibles le **rolling update** (remplacer les conteneurs un à un par une nouvelle version, sans coupure de service), l'**auto-réparation** (si un conteneur meurt, l'orchestrateur en relance automatiquement un neuf) et le **scaling** (multiplier les conteneurs à l'identique). Concevoir « **stateless** (sans état interne) et jetable » est le réflexe qui distingue un usage naïf d'un usage professionnel des conteneurs."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi de jouer",
+          "body": "Une équipe se connecte régulièrement à ses conteneurs en production (docker exec) pour modifier des fichiers de configuration à chaud et installer des correctifs. Pourquoi est-ce un anti-pattern, et quelle est la bonne approche ?",
+          "solution": "C'est un anti-pattern car il rend le conteneur mutable et non reproductible : les modifications à chaud sont perdues au prochain redémarrage/redéploiement (le conteneur est recréé depuis l'image d'origine), et surtout l'état réel du conteneur diverge de l'image, plus personne ne sait ce qui tourne vraiment (« configuration drift »). La bonne approche respecte l'immuabilité : on modifie le Dockerfile ou la configuration (variables d'environnement, fichiers montés), on reconstruit l'image, on la versionne et on redéploie. Un conteneur doit rester jetable et recréable à l'identique, la config vient de l'extérieur (env/volumes), jamais d'un bricolage manuel interne."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Qu'est-ce qu'un conteneur",
+          "quizRef": "what-are-containers-check"
+        }
+      ]
+    },
+    {
+      "slug": "aux-frontieres-du-conteneur",
+      "title": "Aux frontières : histoire, Windows, WASM",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une longue généalogie",
+          "body": "Docker n'a pas surgi de nulle part, et le croire mène à des confusions. Voici la lignée des conteneurs, tout simplement.\n\n- **chroot** (1979) : une première commande Unix qui **enferme un processus dans un sous-dossier** en lui faisant croire que c'est la racine du disque. Il isole donc déjà le système de fichiers. 👉 C'est comme donner à quelqu'un une seule pièce en lui faisant croire que c'est toute la maison.\n- **FreeBSD jails** (2000) et **Solaris Zones** : vont plus loin en isolant aussi les processus les uns des autres.\n- Le noyau **Linux** gagne ensuite deux briques fondamentales : les **cgroups** (2007), qui **limitent les ressources** qu'un groupe de processus peut consommer (processeur, mémoire), et les **namespaces**, qui **cloisonnent la vue** qu'un processus a du système (ses propres processus, son propre réseau, son propre système de fichiers). Ces deux briques sont le vrai moteur de l'isolation.\n- **LXC** (2008) combine cgroups et namespaces en « conteneurs système ».\n- **Docker** (2013) apporte enfin la pièce qui manquait : un **format d'image portable**, un outillage simple et agréable, et un **registre** partagé (un entrepôt en ligne où l'on publie et télécharge des images, comme Docker Hub). C'est ça qui a **démocratisé** les conteneurs.\n- L'**OCI** (Open Container Initiative, 2015) **standardise** le tout pour que les images et les moteurs de différents fournisseurs restent compatibles.\n\n**À retenir** : Docker n'a pas *inventé* les conteneurs, il les a rendus **utilisables par tous**. Situer Docker dans cette histoire évite de le confondre avec « l'invention des conteneurs » : il en est la démocratisation."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Les conteneurs Windows existent aussi",
+          "body": "On associe presque toujours conteneurs et Linux, mais **Windows** a aussi ses propres conteneurs (images hébergées sur `mcr.microsoft.com`, bâties à partir de bases comme `nanoserver` ou `servercore`).\n\nWindows propose deux modes d'isolation :\n- Mode **process** : comme sous Linux, le conteneur **partage le noyau** Windows de l'hôte. C'est léger, mais l'hôte et le conteneur doivent avoir des versions de Windows **compatibles**.\n- Mode **Hyper-V** : chaque conteneur tourne dans une **micro-VM** (une toute petite machine virtuelle). C'est plus lourd, mais l'isolation est plus forte et cela permet de faire tourner une version de noyau différente de celle de l'hôte.\n\nPoint essentiel, qui découle du noyau partagé : un conteneur Windows **ne tourne pas** sur un noyau Linux, et inversement. 👉 **Analogie** : un conteneur, c'est un **appartement bâti sur les fondations de l'hôte** ; tu ne peux pas poser un appartement conçu pour des fondations Windows sur des fondations Linux. La parenté d'OS est imposée.\n\n**À retenir** : « conteneur » n'implique pas « Linux », même si Linux reste de très loin le cas dominant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "WebAssembly : la vague suivante ?",
+          "body": "Une technologie plus récente complète, et parfois concurrence, les conteneurs pour certains usages : **WebAssembly**, abrégé **WASM**.\n\nUn module WASM est un **binaire** (un programme déjà compilé) à la fois **portable** (il tourne partout de la même façon) et **sandboxé** (exécuté dans un bac à sable très restreint, coupé du système par défaut). Il s'exécute dans un **runtime** dédié (Wasmtime, WasmEdge) avec un démarrage **quasi instantané** (aucun OS, aucune couche à monter) et une empreinte minuscule. Cela le rend très attirant pour le **serverless** (du code lancé à la demande, facturé à la milliseconde) et l'**edge** (des serveurs proches de l'utilisateur, aux ressources limitées).\n\n👉 **Analogie** : si le conteneur est un **appartement meublé** (déjà léger comparé à une maison-VM), le module WASM est une **tente** : encore plus rapide à monter et à replier, mais avec moins d'équipements disponibles.\n\nDocker s'y intègre déjà (projet runwasi, option `--runtime`) : on peut lancer un module WASM comme s'il s'agissait d'un conteneur. WASM ne remplace pas les conteneurs (écosystème plus jeune, et accès au système volontairement limité par la norme **WASI**), mais un professionnel suit cette évolution : c'est un nouveau modèle d'exécution qui partage la même promesse « portable et isolé »."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "La vraie frontière de sécurité (niveau expert)",
+          "body": "Un point de maturité à bien intégrer : un conteneur standard **n'est pas** une frontière de sécurité aussi forte qu'une VM, parce que le **noyau est partagé** entre l'hôte et tous les conteneurs. Une faille du noyau (par exemple une **escalade** obtenue via un appel système malveillant, un *syscall* étant la façon dont un programme demande un service au noyau) peut permettre à un attaquant de **s'évader** du conteneur vers l'hôte.\n\nPour du code **non fiable** (que tu n'as pas écrit et en qui tu n'as pas confiance) ou du **multi-tenant hostile** (plusieurs clients potentiellement malveillants sur la même machine), on renforce donc l'isolation :\n- **gVisor** : intercepte les appels système du conteneur dans un noyau applicatif intermédiaire, au lieu de les laisser atteindre directement le vrai noyau.\n- **Kata Containers** : place chaque conteneur dans une **micro-VM** avec son propre noyau, pour retrouver une frontière quasi matérielle.\n- À l'extrême, les **confidential containers** : la mémoire est **chiffrée par le matériel** (technologies TEE, SEV, TDX), de sorte que même l'hôte ne peut pas lire ce qui s'exécute.\n\n👉 **Le principe d'expert** : calibrer l'isolation selon le **modèle de menace** (qui cherche à m'attaquer, et avec quels moyens). On ne **surestime** pas l'isolation par défaut d'un conteneur (elle suffit pour du code de confiance, pas pour de l'hostile), et on ne la **sous-estime** pas non plus au point d'empiler des couches inutiles pour du code parfaitement sûr."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi de jouer",
+          "body": "Un fournisseur SaaS veut exécuter du code arbitraire soumis par ses clients (fonctions utilisateur) sur une infrastructure partagée. Un ingénieur propose « un conteneur Docker par client, ça isole ». Pourquoi est-ce insuffisant, et quelles options renforcent la frontière ?",
+          "solution": "Insuffisant car un conteneur Docker standard partage le noyau de l'hôte avec tous les autres : du code arbitraire (donc potentiellement hostile) peut tenter d'exploiter une vulnérabilité du noyau pour s'échapper du conteneur et compromettre l'hôte et les autres tenants (container escape). L'isolation par namespaces/cgroups n'est pas une frontière de sécurité forte face à un adversaire déterminé. Options de renforcement : (1) un runtime isolant comme gVisor (noyau applicatif en espace utilisateur qui filtre les syscalls) ou Kata Containers (chaque conteneur dans une micro-VM avec son propre noyau) ; (2) durcir chaque conteneur (non-root, seccomp strict, cap-drop, read-only, pas de socket) ; (3) pour le plus sensible, des micro-VM (Firecracker) voire des confidential containers (mémoire chiffrée matériellement). Le choix dépend du modèle de menace : pour du code non fiable multi-tenant, on ne se repose jamais sur l'isolation conteneur seule."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Frontières du conteneur (expert)",
+          "quizRef": "what-are-containers-expert"
+        }
+      ]
+    }
+  ]
+}

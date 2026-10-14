@@ -1,0 +1,119 @@
+{
+  "ref": "caching-expert",
+  "node": "caching",
+  "lesson": "pathologies-redis-production",
+  "title": "Caching, niveau expert",
+  "description": "Ordre d'invalidation, races, stampede, penetration, avalanche, Redis.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En cache-aside, dans quel ordre écrire pour minimiser le risque de re-cacher du périmé ?",
+      "justification": "Écrire d'abord la base, puis supprimer la clé : l'ordre inverse laisse une lecture concurrente recharger l'ancienne valeur.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Écrire la base d'abord, puis supprimer la clé du cache",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Supprimer la clé d'abord, puis écrire la base",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "L'ordre n'a aucune importance",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une clé très demandée expire et des milliers de requêtes rechargent la base en même temps. Comment nomme-t-on cela ?",
+      "justification": "C'est un cache stampede (thundering herd) ; on l'atténue par verrou/coalescing ou expiration probabiliste anticipée.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un cache stampede (thundering herd)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un cache hit",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un write-through",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment étaler les expirations pour éviter qu'un lot de clés au même TTL expire simultanément (avalanche) ?",
+      "justification": "Ajouter du jitter (un aléa) au TTL disperse les expirations dans le temps et lisse la charge.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Ajouter du jitter (aléa) au TTL",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Mettre le même TTL exact partout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver l'expiration",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment limiter le cache penetration (requêtes répétées sur des clés inexistantes qui frappent la base) ?",
+      "justification": "Cacher aussi l'absence (valeur null avec TTL court) et/ou un filtre de Bloom pour écarter les clés impossibles.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Cacher l'absence (null) et/ou un filtre de Bloom",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Augmenter le TTL des clés existantes",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le cache",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Cacher des données sous une clé versionnée/immuable supprime le besoin d'invalidation, car une modification produit une nouvelle clé.",
+      "justification": "Vrai : l'ancienne clé n'est plus référencée et expire par LRU/TTL ; c'est le principe du cache busting appliqué aux données.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

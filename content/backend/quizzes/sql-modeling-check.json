@@ -1,0 +1,74 @@
+{
+  "ref": "sql-modeling-check",
+  "node": "sql-modeling",
+  "lesson": "modelisation-et-normalisation",
+  "title": "SQL & modélisation",
+  "description": "Requêtes, jointures, agrégation, normalisation.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment tester qu'une colonne est nulle en SQL ?",
+      "justification": "NULL n'est égal à rien ; on utilise IS NULL / IS NOT NULL, jamais = NULL.",
+      "position": 0,
+      "options": [
+        { "label": "WHERE colonne IS NULL", "correct": true, "position": 0 },
+        { "label": "WHERE colonne = NULL", "correct": false, "position": 1 },
+        { "label": "WHERE colonne == NULL", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Vous voulez tous les parcours, même ceux sans inscription, avec leur nombre d'inscrits. Quel JOIN ?",
+      "justification": "LEFT JOIN avec les parcours à gauche garde ceux sans correspondance ; un INNER JOIN les exclurait.",
+      "position": 1,
+      "options": [
+        { "label": "LEFT JOIN (parcours à gauche)", "correct": true, "position": 0 },
+        { "label": "INNER JOIN", "correct": false, "position": 1 },
+        { "label": "Aucune jointure n'est possible ici", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle clause filtre les GROUPES après agrégation ?",
+      "justification": "HAVING filtre après GROUP BY ; WHERE filtre les lignes avant le regroupement.",
+      "position": 2,
+      "options": [
+        { "label": "HAVING", "correct": true, "position": 0 },
+        { "label": "WHERE", "correct": false, "position": 1 },
+        { "label": "ORDER BY", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour compter des utilisateurs uniques parmi des lignes en double, on utilise…",
+      "justification": "COUNT(DISTINCT user_id) dédoublonne ; COUNT(*) compterait chaque ligne.",
+      "position": 3,
+      "options": [
+        { "label": "COUNT(DISTINCT user_id)", "correct": true, "position": 0 },
+        { "label": "COUNT(*)", "correct": false, "position": 1 },
+        { "label": "SUM(user_id)", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte une fonction fenêtre (`OVER (...)`) par rapport à `GROUP BY` ?",
+      "justification": "La fonction fenêtre calcule sur un ensemble de lignes tout en conservant chaque ligne (rangs, totaux courants…), là où GROUP BY réduit.",
+      "position": 4,
+      "options": [
+        { "label": "Calculer sur un groupe tout en gardant chaque ligne", "correct": true, "position": 0 },
+        { "label": "Chiffrer les résultats", "correct": false, "position": 1 },
+        { "label": "Créer automatiquement un index", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Recopier le titre d'un parcours dans chaque ligne d'inscription est une bonne pratique de modélisation.",
+      "justification": "C'est de la redondance : à chaque changement du titre, les copies deviennent périmées. On référence par clé étrangère (normalisation).",
+      "position": 5,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

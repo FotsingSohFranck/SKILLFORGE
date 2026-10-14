@@ -1,0 +1,347 @@
+{
+  "node": "indexes-performance",
+  "lessons": [
+    {
+      "slug": "les-index",
+      "title": "Les index",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'index, table des matières de la base",
+          "body": "Imagine une **table** `users` (une table, c'est un grand tableau de données : des **lignes**, une par utilisateur, et des **colonnes**, une par information comme `email` ou `nom`). Elle contient 10 millions de lignes, et tu cherches la personne dont l'`email` vaut `ada@dev`.\n\nSans aide, la base n'a pas le choix : elle lit **les lignes une par une**, du début à la fin, jusqu'à trouver la bonne. On appelle ça un **parcours séquentiel** (en anglais *sequential scan*, souvent raccourci *seq scan*). Sur 100 lignes, c'est instantané. Sur 10 millions, c'est très lent.\n\nUn **index** est une structure de données que la base construit **à côté** de la table pour retrouver une valeur **directement**, sans tout relire. Le type le plus courant s'appelle un **B-tree** (un « arbre équilibré » : une arborescence triée qui permet de descendre vers la valeur cherchée en quelques sauts au lieu de tout parcourir).\n\n👉 **Analogie** : c'est **l'index à la fin d'un livre**. Pour trouver toutes les pages qui parlent de « PostgreSQL », tu ne relis pas le livre entier : tu vas à l'index alphabétique, tu lis « PostgreSQL, pages 42, 87, 210 », et tu sautes directement aux bonnes pages. L'index de la base fait pareil : d'une valeur, il te donne l'emplacement exact des lignes.\n\n**Exemple concret** : avec un index sur `email`, la requête `WHERE email = 'ada@dev'` passe de « lire 10 millions de lignes » à « descendre l'arbre en 3 ou 4 sauts, puis lire la seule ligne trouvée ». C'est le levier de performance le plus fréquent et le plus rentable côté base de données."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un index est la table des matieres de la base : il evite de tout parcourir pour trouver une ligne.",
+          "body": "/images/lessons/les-index-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Créer et cibler un index",
+          "codeLanguage": "sql",
+          "body": "-- On indexe les colonnes filtrées, jointes ou triées fréquemment\nCREATE INDEX idx_enrollments_user ON enrollments(user_id);\n\n-- Index composite : l'ordre des colonnes compte (préfixe utilisable)\nCREATE INDEX idx_enr_user_roadmap ON enrollments(user_id, roadmap_id);"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Le coût d'un index",
+          "body": "Un index n'est pas gratuit. Il accélère les **lectures** (les requêtes qui cherchent des données), mais il **ralentit les écritures**. Pourquoi ? Parce qu'à chaque fois que tu ajoutes (`INSERT`), modifies (`UPDATE`) ou supprimes (`DELETE`) une ligne, la base doit aussi **mettre à jour l'index** pour qu'il reste correct. Et chaque index occupe de l'espace disque en plus.\n\n👉 **Analogie** : reprends l'index du livre. Chaque fois que tu ajoutes ou déplaces une page, tu dois aussi **corriger l'index** (sinon il pointe vers les mauvaises pages). Plus tu as d'index à la fin du livre, plus chaque modification devient laborieuse.\n\nConclusion : **on n'indexe pas tout**. On indexe ce que les **requêtes réelles** de l'application sollicitent vraiment :\n- les **clés étrangères** (une clé étrangère est une colonne qui référence la ligne d'une autre table, par exemple `user_id` dans `enrollments` qui pointe vers `users`) ;\n- les colonnes qui reviennent souvent dans un `WHERE` (le filtre d'une requête), un `JOIN` (qui relie deux tables) ou un `ORDER BY` (le tri du résultat).\n\n**Exemple concret** : indexer `enrollments(user_id)` est utile car on cherche sans arrêt « les inscriptions de tel utilisateur ». En revanche, indexer une colonne `commentaire` que personne ne filtre jamais serait un pur coût : de l'espace et des écritures ralenties, pour zéro gain en lecture. Un index jamais utilisé est un poids mort à supprimer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un index a un cout : il occupe de l'espace et ralentit les ecritures ; on ne les multiplie pas a l'aveugle.",
+          "body": "/images/lessons/les-index-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une requête filtre souvent par `email` sur une table `users` de 5 M de lignes, et c'est lent. Quelle est la cause probable et le correctif ?",
+          "solution": "La colonne email n'est probablement pas indexée : la base fait un sequential scan de 5 M de lignes. Correctif : CREATE INDEX (ou UNIQUE si l'email est unique) sur email, ce qui fait passer la requête en index scan (accès direct)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : les index",
+          "quizRef": "indexes-performance-index-check"
+        }
+      ]
+    },
+    {
+      "slug": "lire-un-plan",
+      "title": "Lire un plan d'exécution",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "EXPLAIN : demander le plan",
+          "body": "Quand tu envoies une requête SQL, tu décris **ce que** tu veux (« donne-moi les inscriptions de cet utilisateur »), pas **comment** l'obtenir. C'est le **moteur** de la base qui décide de la marche à suivre : lire la table entière ? passer par un index ? dans quel ordre joindre les tables ? Cette marche à suivre s'appelle le **plan d'exécution** (ou simplement le **plan**).\n\nLa commande **`EXPLAIN`** te **montre ce plan sans exécuter** la requête. Sa variante **`EXPLAIN ANALYZE`** va plus loin : elle **exécute vraiment** la requête et te donne les **temps réels** mesurés, pas seulement des estimations.\n\n👉 **Analogie** : c'est comme un **GPS**. Avant de partir, tu lui demandes l'itinéraire (`EXPLAIN`) : il te montre les routes qu'il compte prendre et une durée estimée. `EXPLAIN ANALYZE`, c'est faire le trajet pour de vrai et noter le temps réellement mis à chaque étape.\n\nDans un plan, tu lis les **opérations** (les étapes : parcours de table, utilisation d'un index, jointures), leur **coût** estimé (un nombre abstrait qui sert à comparer les plans entre eux) et le **nombre de lignes** manipulé à chaque étape.\n\n**Exemple concret** : au lieu de deviner pourquoi une page est lente, tu tapes `EXPLAIN ANALYZE` devant ta requête et tu **vois** noir sur blanc qu'elle parcourt 2 millions de lignes au lieu d'en viser 3 via un index. C'est l'outil numéro un pour comprendre *pourquoi* une requête est lente, au lieu de deviner."
+        },
+        {
+          "type": "IMAGE",
+          "title": "EXPLAIN demande a la base son plan d'execution : le chemin qu'elle compte emprunter.",
+          "body": "/images/lessons/lire-un-plan-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Seq Scan vs Index Scan",
+          "codeLanguage": "sql",
+          "body": "EXPLAIN ANALYZE\nSELECT * FROM enrollments WHERE user_id = :id;\n\n-- \"Seq Scan on enrollments\"  -> pas d'index utilisé (à corriger)\n-- \"Index Scan using idx_enrollments_user\" -> l'index est exploité"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Pourquoi l'index n'est parfois pas utilisé (niveau expert)",
+          "body": "Tu as créé un index, mais le plan montre quand même un parcours complet ? Un index existant peut être **ignoré** par le moteur, et c'est parfois **normal**. Les cas les plus fréquents :\n\n- **La requête ramène une grande partie de la table.** Si tu demandes 80 % des lignes, passer par l'index puis revenir chercher chaque ligne coûte plus cher que tout lire d'un coup. Le moteur choisit alors, à raison, le parcours complet. 👉 **Analogie** : pour trouver 3 mots dans un livre, l'index est parfait ; mais si tu dois lire 8 chapitres sur 10, autant lire le livre en entier plutôt que faire des allers-retours incessants avec l'index.\n- **Une fonction est appliquée à la colonne.** `WHERE lower(email) = 'ada@dev'` n'utilise **pas** un index posé sur `email` : l'index connaît les valeurs brutes de `email`, pas le résultat de `lower(email)`. Il faut alors un **index d'expression**, c'est-à-dire un index construit sur le résultat de la fonction (un index sur `lower(email)`).\n- **Les statistiques sont périmées.** La base garde des **statistiques** (des mesures approximatives sur le contenu des tables) pour estimer les coûts. Après un gros import, elles peuvent être fausses ; on les rafraîchit avec la commande `ANALYZE`.\n- **Les types ne correspondent pas** (comparer un texte avec un nombre, par exemple).\n\n**Exemple concret** : `EXPLAIN` affiche `Seq Scan` sur ta requête `WHERE lower(email) = …` malgré ton index sur `email`. Le plan te révèle le problème et la solution : il faut un index sur `lower(email)`. Lire le plan, c'est diagnostiquer au lieu de tâtonner."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Parfois l'index n'est pas utilise : peu selectif, statistiques perimees, ou fonction sur la colonne.",
+          "body": "/images/lessons/lire-un-plan-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Vous avez un index sur `email`, mais `WHERE lower(email) = 'ada@dev'` reste en Seq Scan. Pourquoi, et comment corriger ?",
+          "solution": "Appliquer lower() à la colonne empêche l'utilisation de l'index sur email brut (l'index porte sur email, pas sur lower(email)). Correctif : créer un index d'expression CREATE INDEX ON users(lower(email)), ou normaliser l'email en minuscules à l'insertion et indexer la colonne directement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : lire un plan d'exécution",
+          "quizRef": "indexes-performance-plan-check"
+        }
+      ]
+    },
+    {
+      "slug": "probleme-n-plus-un",
+      "title": "Le problème N+1",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "1 + N requêtes",
+          "body": "Le **problème N+1** est un piège de performance très répandu. Le scénario : tu charges une **liste** avec **1** requête (par exemple « les 200 dernières commandes »), puis, pour **chaque** élément de la liste, tu refais **une** requête (« les détails de la commande n°1 », « ceux de la n°2 »...). Total : **1 + N** requêtes, d'où le nom. Pour 200 commandes, cela fait 201 allers-retours vers la base.\n\n👉 **Analogie** : tu prépares 200 colis. Au lieu d'appeler l'entrepôt **une seule fois** pour demander « l'adresse de mes 200 clients », tu passes **201 coups de fil** : un pour la liste des clients, puis un par client pour son adresse. Chaque appel prend du temps (décrocher, attendre, raccrocher) : la lenteur vient du **nombre d'appels**, pas de la quantité de données.\n\nLe piège, c'est que le N+1 est **invisible en développement** : avec 5 éléments de test, 6 requêtes passent inaperçues. En production avec 5000 éléments, c'est 5001 requêtes et la page s'écroule. **Symptôme typique** : une page dont la lenteur **augmente avec la quantité de données** affichées.\n\nUn mot sur l'origine du piège : le terme **ORM** (*Object-Relational Mapping*, un outil qui traduit automatiquement des objets de ton code en requêtes SQL) reviendra souvent ici. Le N+1 est souvent **masqué par un ORM** trop automatique, qui déclenche une requête cachée chaque fois que tu lis une propriété liée, sans que tu t'en aperçoives."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le probleme N+1 : une requete, puis une par resultat ; des centaines d'allers-retours inutiles.",
+          "body": "/images/lessons/probleme-n-plus-un-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une requête au lieu de N",
+          "codeLanguage": "sql",
+          "body": "-- Au lieu de : 1 requête \"nœuds\" + N requêtes \"leçons par nœud\"\nSELECT n.id AS node_id, l.id AS lesson_id, l.title\nFROM nodes n\nJOIN lessons l ON l.node_id = n.id\nWHERE n.roadmap_id = :roadmapId\nORDER BY n.position, l.position;"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Détecter et corriger",
+          "body": "**Détecter** un N+1 est simple une fois qu'on y pense : on **compte le nombre de requêtes** déclenchées par une seule action. Les **logs SQL** (le journal des requêtes envoyées à la base) ou des **métriques** applicatives le révèlent immédiatement : si afficher une page lance 201 requêtes, tu tiens ton coupable.\n\nTrois façons de **corriger** :\n- **La jointure** (`JOIN`) : au lieu de N requêtes, on demande la liste **et** ses détails en **une seule** requête qui relie les deux tables. C'est la solution la plus fréquente. 👉 **Analogie** : un seul coup de fil à l'entrepôt, qui répond avec la liste des clients **et** leurs adresses d'un coup.\n- **Le chargement par lots** (en anglais *batching*) : on récupère d'abord la liste, puis on charge tous les détails manquants en **une** requête groupée avec `WHERE id IN (1, 2, 3, …)`, au lieu d'une par identifiant.\n- **La dénormalisation prudente** : recopier une donnée pour éviter une jointure répétée (à manier avec précaution, car il faut ensuite maintenir la copie à jour).\n\n**Exemple concret** : une page produit lance 1 requête pour le produit + 1 par avis client, soit 1 + 50 requêtes. En chargeant les avis via un `JOIN` ou un `WHERE produit_id IN (...)`, on retombe à 1 ou 2 requêtes.\n\n👉 **Règle d'ordre** : régler un N+1 rapporte souvent **plus** que d'ajouter un **cache** (une mémoire rapide qui garde les résultats déjà calculés). Et il faut le faire **avant** de poser un cache par-dessus le problème, sinon on ne fait que cacher la poussière sous le tapis."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Detecter et corriger : charger en une requete (jointure ou fetch groupe) plutot qu'une par entite.",
+          "body": "/images/lessons/probleme-n-plus-un-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une page affichant 200 commandes fait 201 requêtes SQL. Que se passe-t-il et comment le confirmer, puis le corriger ?",
+          "solution": "N+1 : 1 requête pour la liste des commandes + 1 requête par commande (pour ses détails). Confirmer : compter les requêtes dans les logs SQL. Corriger : charger les détails en une seule requête avec une jointure (ou un WHERE ... IN sur les ids), ramenant 201 requêtes à 1 ou 2."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : le problème N+1",
+          "quizRef": "indexes-performance-nplus1-check"
+        }
+      ]
+    },
+    {
+      "slug": "defaillances-et-profiling",
+      "title": "Modes de défaillance & profiling",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Repérer les requêtes lentes",
+          "body": "En **production** (l'environnement réel où de vrais utilisateurs se servent de l'application), on ne **devine** pas ce qui est lent : on **mesure**. L'intuition se trompe souvent, les chiffres jamais.\n\nL'outil de référence sur PostgreSQL s'appelle **`pg_stat_statements`**. C'est une **extension** (un module optionnel qu'on active dans la base) qui **agrège** les requêtes : pour chaque type de requête, elle cumule le **temps total** passé et le **nombre d'appels**. On y trouve les vraies coupables.\n\n👉 **Analogie** : c'est le **relevé de compteur** de la base. Plutôt que de regarder une facture au hasard, tu consultes le total mensuel par poste de dépense : tu vois tout de suite lequel te coûte le plus.\n\nPoint clé, souvent contre-intuitif : la requête la plus coûteuse **au total** n'est pas forcément la plus lente **prise une fois**. Une requête qui met 20 ms mais qui s'exécute **100 000 fois** coûte bien plus qu'une requête à 2 secondes lancée trois fois par jour.\n\n**Exemple concret** : `pg_stat_statements` te montre qu'une petite requête de tableau de bord, banale en apparence, représente 40 % du temps total de la base parce qu'elle tourne à chaque rafraîchissement de page. On y ajoute souvent un **slow query log** (un journal qui enregistre automatiquement toute requête dépassant un **seuil** de durée, par exemple 500 ms) pour attraper les cas ponctuels."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Reperer les requetes lentes avec le slow query log, pour cibler ce qui coute vraiment.",
+          "body": "/images/lessons/defaillances-et-profiling-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les défaillances typiques",
+          "body": "Au-delà des requêtes lentes prises isolément, une base peut se dégrader de plusieurs façons typiques. Les connaître, c'est reconnaître un problème à sa **signature** dans les métriques.\n\n- **L'épuisement du pool de connexions.** Le **pool** est un stock limité de connexions à la base que l'application partage et réutilise. Si trop de requêtes lentes **retiennent** ces connexions en même temps, il n'en reste plus de libre et les nouvelles demandes attendent. 👉 **Analogie** : un restaurant de 20 tables ; si chaque client reste 3 heures, plus aucune table ne se libère et une file se forme à l'entrée, même si la cuisine est rapide.\n- **Les verrous** (en anglais *locks*). Pour éviter que deux opérations n'abîment la même donnée en même temps, la base **verrouille** temporairement les lignes qu'une **transaction** (un groupe d'opérations tout-ou-rien) est en train de modifier. Une transaction **longue** garde ses verrous longtemps et bloque les autres.\n- **Le bloat MVCC.** PostgreSQL ne modifie pas une ligne sur place : il en crée une nouvelle version et laisse l'ancienne, qu'un nettoyage de fond (**autovacuum**) doit recycler. Si ce nettoyage prend du retard, les anciennes versions s'accumulent (le *bloat*, littéralement le « gonflement ») et tout ralentit.\n- **Les timeouts en cascade.** Un **timeout** est un délai maximal au-delà duquel on abandonne une opération. Quand une dépendance ralentit, les attentes s'accumulent et font tomber les appels les uns après les autres, en **cascade**.\n\n**Exemple concret** : une transaction oubliée, ouverte pendant 10 minutes, bloque une ligne très demandée ; des dizaines de requêtes s'empilent derrière, saturent le pool, et toute l'API devient lente alors qu'une **seule** transaction est en cause."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les defaillances typiques : SELECT *, absence d'index, fonctions sur colonnes indexees, N+1.",
+          "body": "/images/lessons/defaillances-et-profiling-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "L'ordre des optimisations (niveau expert)",
+          "body": "Optimiser, ça se fait **dans un ordre**, du geste le plus rentable au plus lourd :\n\n1. **Supprimer le travail inutile.** Régler les N+1, arrêter de charger des données dont on ne se sert pas (le *sur-fetch*), éviter le `SELECT *` (qui ramène **toutes** les colonnes, y compris celles dont on n'a pas besoin) au profit de la liste précise des colonnes utiles.\n2. **Indexer** ce qui est filtré, joint ou trié (ce qu'on a vu dans les leçons précédentes).\n3. **Cacher** (mettre en cache) ce qui est **chaud** (très demandé) et **stable** (qui change peu) : on garde le résultat sous la main pour ne pas le recalculer à chaque fois.\n4. **Paralléliser, streamer**, et envisager la **réplication en lecture** (des copies de la base dédiées aux lectures, pour répartir la charge).\n\n👉 **Analogie** : face à un seau qui fuit, on **bouche le trou** (travail inutile, N+1) avant d'**acheter un seau plus gros** (plus de serveurs, du cache partout). Ajouter de la puissance par-dessus un gaspillage, c'est payer pour transporter du vide.\n\nLe principe qui commande tout : on optimise le **goulot d'étranglement prouvé**, pas celui qu'on imagine. Un **goulot d'étranglement** (en anglais *bottleneck*) est l'endroit précis qui limite toute la chaîne, comme le col étroit d'une bouteille qui décide seul de la vitesse à laquelle elle se vide.\n\n**Exemple concret** : avant de monter un cluster Redis, tu mesures et tu découvres qu'un simple index manquant explique 70 % de la lenteur. Un index manquant ou un N+1 est la cause de la majorité des lenteurs, **bien avant** toute réécriture exotique."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'ordre des optimisations : mesurer, indexer, reecrire la requete, puis seulement cacher ou denormaliser.",
+          "body": "/images/lessons/defaillances-et-profiling-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Une API est lente. Vous avez le choix : ajouter un cache Redis, ou d'abord analyser les requêtes avec pg_stat_statements et EXPLAIN. Par quoi commencer et pourquoi ?",
+          "solution": "D'abord mesurer (pg_stat_statements, EXPLAIN) : on identifie souvent un index manquant ou un N+1, dont la correction est simple et durable. Ajouter un cache par-dessus une requête mal fichue masque le problème, complexifie (invalidation) et ne règle pas la cause. On cache après avoir assaini la base."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Index & performance",
+          "quizRef": "indexes-perf-check"
+        }
+      ]
+    },
+    {
+      "slug": "choisir-le-bon-type-index",
+      "title": "Choisir le bon type d'index",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le B-tree n'est pas le seul",
+          "body": "Le **B-tree** (l'index par défaut, vu au début) est excellent pour l'**égalité** (`=`), les **plages** (`<`, `>`, `BETWEEN`) et le **tri**. Il couvre environ 90 % des besoins. Mais il ne sait pas tout indexer, et PostgreSQL propose d'autres **familles** d'index pour les cas qu'il ne gère pas.\n\n👉 **Analogie** : le B-tree est le **tournevis** de la caisse à outils, celui qu'on prend 9 fois sur 10. Mais pour certaines vis il faut la **clé à molette** ou la **pince** : chaque type d'index est l'outil adapté à un problème que les autres ne savent pas résoudre.\n\n- **GIN** : pour le contenu **multi-valué**, c'est-à-dire une cellule qui contient plusieurs éléments. Exemples : les colonnes **`jsonb`** (du JSON stocké et interrogeable, testé avec l'opérateur `@>` qui veut dire « contient »), les **tableaux**, la **recherche plein-texte** (indexée via un `tsvector`), et les **trigrammes** (extension **`pg_trgm`**) qui rendent efficace un `LIKE '%mot%'` (recherche d'un fragment n'importe où dans le texte).\n- **GiST** : pour le **géométrique/spatial** (points, zones sur une carte) et les **plages qui se chevauchent** (par exemple des créneaux de réservation).\n- **BRIN** : pour les **très grandes tables naturellement ordonnées** (typiquement des journaux rangés par date). Il est minuscule et étonnamment efficace quand les données arrivent déjà dans l'ordre.\n- **Hash** : pour l'**égalité pure** (`=` uniquement, jamais de plage ni de tri).\n\n**Exemple concret** : une recherche `LIKE '%docker%'` (le fragment peut être n'importe où) est condamnée au parcours complet avec un B-tree, mais devient rapide avec un index **GIN + pg_trgm**. Choisir le bon type, c'est rendre indexable ce qui semblait perdu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le B-tree n'est pas le seul : GIN, GiST, BRIN, hash repondent a des besoins differents.",
+          "body": "/images/lessons/choisir-le-bon-type-index-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Index partiels & d'expression",
+          "body": "Deux variantes d'index règlent des lenteurs que le B-tree brut ne sait pas adresser.\n\n**L'index partiel** n'indexe qu'un **sous-ensemble** des lignes, choisi par une condition `WHERE`. Par exemple `CREATE INDEX ... WHERE status = 'ACTIVE'` n'indexe que les lignes actives. Résultat : un index **plus petit** (donc plus rapide et moins coûteux) quand les requêtes ne visent de toute façon qu'un seul état.\n\n👉 **Analogie** : plutôt que de mettre un marque-page à **chaque** page du livre, tu n'en poses qu'aux chapitres que tu consultes vraiment. L'index reste léger et pertinent.\n\n**L'index d'expression** indexe le **résultat d'une fonction** appliquée à la colonne, et non la valeur brute. `CREATE INDEX ON users(lower(email))` rend la requête `WHERE lower(email) = …` indexable (souviens-toi : sans lui, appliquer `lower()` empêchait l'usage de l'index sur `email` brut).\n\n**Exemple concret** : une table `commandes` de 50 millions de lignes, dont seulement 2 % au statut `EN_ATTENTE` qu'on interroge sans cesse. Un index partiel `WHERE status = 'EN_ATTENTE'` n'indexe que ces 2 %, tient dans un mouchoir de poche et répond instantanément, là où un index complet serait 50 fois plus gros pour rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Index partiels (sur un sous-ensemble) et d'expression (sur un calcul) : plus petits, plus cibles.",
+          "body": "/images/lessons/choisir-le-bon-type-index-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Index couvrant & index-only scan",
+          "codeLanguage": "sql",
+          "body": "-- INCLUDE ajoute des colonnes \"payload\" à l'index sans les indexer.\n-- Si la requête ne lit QUE ces colonnes, PostgreSQL fait un\n-- \"Index Only Scan\" : il n'ouvre même pas la table (heap).\nCREATE INDEX idx_enr_cover\n  ON enrollments (user_id)\n  INCLUDE (roadmap_id, last_activity_at);\n\nEXPLAIN ANALYZE\nSELECT roadmap_id, last_activity_at\nFROM enrollments WHERE user_id = :id;   -- => Index Only Scan"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une recherche `WHERE titre ILIKE '%docker%'` reste lente malgré un B-tree sur `titre`. Pourquoi le B-tree n'aide pas, et quel index conviendrait ?",
+          "solution": "Un B-tree n'accélère que les préfixes (LIKE 'docker%'), pas une recherche avec joker en tête (%docker%) qui casse l'ordre lexicographique. Solution : un index GIN avec l'extension pg_trgm (CREATE EXTENSION pg_trgm; CREATE INDEX ON ... USING gin (titre gin_trgm_ops)), qui indexe les trigrammes et rend les recherches par sous-chaîne efficaces. Pour du vrai plein-texte, un index GIN sur tsvector."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : choisir le bon type d'index",
+          "quizRef": "indexes-performance-types-check"
+        }
+      ]
+    },
+    {
+      "slug": "comprendre-le-planner",
+      "title": "Comprendre le planner",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le planner raisonne sur des statistiques",
+          "body": "Contrairement à ce qu'on pourrait croire, PostgreSQL ne suit **pas** une liste de règles figées du genre « s'il y a un index, l'utiliser ». Son **planner** (le composant qui choisit le plan d'exécution) est un **estimateur de coûts** : il imagine plusieurs plans possibles pour ta requête, **estime le coût** de chacun, et retient le **moins cher**.\n\nPour estimer ces coûts, il s'appuie sur des **statistiques** : des mesures approximatives sur le contenu de chaque table, collectées automatiquement par la commande `ANALYZE` (et par le nettoyage de fond **autovacuum**). Elles comprennent le **nombre de lignes**, le nombre de **valeurs distinctes** d'une colonne, les **valeurs les plus fréquentes**, ou encore la **corrélation** entre l'ordre des valeurs et leur rangement physique sur le disque.\n\n👉 **Analogie** : le planner est un **GPS qui estime le trafic**. Il ne connaît pas l'état exact des routes en temps réel ; il se fie à des **statistiques** (« à cette heure, cette route est souvent chargée ») pour choisir l'itinéraire le plus rapide. Si ses données de trafic sont **périmées**, il t'envoie dans un bouchon en croyant la route dégagée.\n\n**Exemple concret** : juste après un gros import, les statistiques disent encore « cette table est presque vide ». Le planner choisit un plan adapté à une petite table, catastrophique sur les millions de lignes réellement présentes. Un simple `ANALYZE` remet les compteurs à jour et le bon plan revient. Comprendre cela explique la quasi-totalité des « pourquoi il n'utilise pas mon index ? »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le planner raisonne sur des statistiques : des stats a jour = de bons plans.",
+          "body": "/images/lessons/comprendre-le-planner-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Comment le planner choisit un plan",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[Requête SQL reçue] --> B[Le planner imagine plusieurs plans possibles]\n    B --> C[Il estime le coût de chaque plan à partir des statistiques]\n    C --> D{Statistiques à jour ?}\n    D -->|Non| E[Estimation faussée, plan sous-optimal, lancer ANALYZE]\n    D -->|Oui| F[Le planner retient le plan le moins cher]\n    E --> F\n    F --> G[Exécution du plan retenu]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Seq Scan, Index Scan, Bitmap, Index-Only",
+          "body": "Dans un plan (`EXPLAIN`), chaque étape porte un nom. Voici les quatre façons de lire des lignes qu'il faut savoir reconnaître.\n\n- **Seq Scan** (*sequential scan*) : lire **toute** la table, ligne par ligne. Ce n'est pas toujours un défaut : si la requête ramène une grosse fraction de la table, c'est même le **bon** choix.\n- **Index Scan** : suivre l'index pour trouver les lignes qui correspondent, puis aller lire **chacune** de ces lignes dans la table (le **heap**, c'est le nom de la zone où sont stockées les lignes réelles). Idéal quand on ne vise que **quelques** lignes.\n- **Bitmap Heap Scan** : quand il y a **beaucoup** de lignes à récupérer (une sélectivité « moyenne »), le moteur construit d'abord une **carte** (un *bitmap*) de toutes les positions à lire, puis lit le heap dans l'ordre du disque, en une passe efficace. Il combine même parfois plusieurs index.\n- **Index Only Scan** : le cas idéal où **toutes** les colonnes demandées sont déjà dans l'index. Le moteur répond **sans jamais ouvrir la table**.\n\n(La **sélectivité** mesure quelle **fraction** de la table une condition laisse passer : très sélectif = peu de lignes ramenées.)\n\n👉 **Analogie** : chercher dans une bibliothèque. **Seq Scan** = parcourir tous les rayons. **Index Scan** = consulter le fichier, noter 3 cotes, aller chercher 3 livres. **Bitmap** = noter 200 cotes, les trier par rayon, puis faire **une** tournée ordonnée plutôt que 200 allers-retours. **Index Only** = le fichier contient déjà la réponse, inutile d'aller chercher le livre.\n\n**Exemple concret** : voir un `Bitmap Heap Scan` au lieu d'un `Index Scan` t'apprend que ta condition n'est pas très sélective ; savoir lire lequel apparaît oriente directement l'optimisation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Seq Scan, Index Scan, Bitmap, Index-Only : la base choisit selon le cout estime.",
+          "body": "/images/lessons/comprendre-le-planner-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Stratégies de jointure",
+          "body": "Pour **joindre** deux tables (les relier sur une colonne commune), le planner choisit entre trois stratégies, chacune adaptée à une situation.\n\n- **Nested Loop** (boucle imbriquée) : pour **chaque** ligne de la première table, chercher les correspondances dans la seconde (idéalement via un index). Parfait quand **un** des deux côtés ne ramène que **peu** de lignes.\n- **Hash Join** (jointure par hachage) : construire une **table de hachage** (un annuaire qui retrouve une valeur en un accès direct) à partir d'un côté, puis y chercher chaque ligne de l'autre. Efficace pour **deux gros ensembles** sans tri utile.\n- **Merge Join** (jointure par fusion) : si les deux entrées sont **déjà triées** sur la colonne de jonction, on les parcourt en parallèle et on les fusionne, comme on rapproche deux listes ordonnées. Idéal quand les données arrivent déjà dans l'ordre.\n\n👉 **Analogie** : placer les invités d'un mariage à leur table. **Nested Loop** = pour chaque invité, tu parcours le plan de salle (bien si peu d'invités). **Hash Join** = tu montes d'abord un répertoire « invité vers table » et tu réponds à chacun instantanément (bien pour de grosses listes). **Merge Join** = les deux listes sont déjà triées par nom, tu les remontes en parallèle.\n\n**Exemple concret** : un plan lent est **souvent** un Nested Loop appliqué à des volumes que le planner a **sous-estimés** faute de statistiques à jour. Il croit boucler sur 10 lignes, il en boucle sur 100 000. Le réflexe n'est pas de bricoler au hasard : c'est de revenir aux **statistiques** (`ANALYZE`)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Nested loop, hash join, merge join : le planner choisit la strategie de jointure adaptee.",
+          "body": "/images/lessons/comprendre-le-planner-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Créer un index sans bloquer la production",
+          "codeLanguage": "sql",
+          "body": "-- CREATE INDEX pose un verrou qui bloque les écritures.\n-- CONCURRENTLY construit l'index sans bloquer (plus lent, hors transaction).\nCREATE INDEX CONCURRENTLY idx_enr_activity\n  ON enrollments (last_activity_at DESC);\n\n-- Rafraîchir les stats après un gros chargement :\nANALYZE enrollments;"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Après avoir importé 10 M de lignes d'un coup, une requête auparavant rapide devient très lente et le plan montre un Nested Loop estimant « 1 ligne » alors qu'il y en a des milliers. Que s'est-il passé ?",
+          "solution": "Les statistiques du planner sont périmées : après l'import massif, il croit encore la table quasi vide (estimation « 1 ligne ») et choisit un Nested Loop catastrophique sur le volume réel. Correctif : lancer ANALYZE (ou VACUUM ANALYZE) sur la table pour rafraîchir les stats ; le planner re-estimera correctement et basculera vers un Hash Join adapté. L'autovacuum le fait ensuite, mais après un gros import on ne l'attend pas."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Pour approfondir, quelques ressources de référence :\n\n- ***SQL Performance Explained*** de Markus Winand (et son site **use-the-index-luke.com**) : la meilleure porte d'entrée, très pédagogique, sur les index et les plans d'exécution.\n- La **documentation PostgreSQL**, en particulier les chapitres *Indexes*, *Using EXPLAIN* et *Statistics Used by the Planner*.\n- L'extension **`pg_stat_statements`** (vue à la leçon profiling) pour repérer les requêtes coûteuses, et le site **explain.dalibo.com** qui **visualise** un plan sous forme d'arbre lisible plutôt que de texte brut.\n\n👉 **Commande à retenir** : `EXPLAIN (ANALYZE, BUFFERS)`. L'option **`BUFFERS`** ajoute au plan le détail des lectures : combien de blocs ont été trouvés en **cache** (déjà en mémoire, donc rapides) et combien ont dû être lus sur le **disque** (plus lents). C'est précieux pour distinguer une requête lente parce que mal indexée d'une requête lente parce qu'elle lit trop de données froides.\n\n**Exemple concret** : deux exécutions de la même requête peuvent afficher des temps très différents ; `BUFFERS` révèle que la première a tout lu sur disque (froid) et la seconde depuis le cache (chaud), ce qui explique l'écart sans changer une ligne de SQL."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les index et la performance.",
+          "body": "/images/lessons/comprendre-le-planner-4.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Index & planner (niveau expert)",
+          "quizRef": "indexes-expert"
+        }
+      ]
+    }
+  ]
+}

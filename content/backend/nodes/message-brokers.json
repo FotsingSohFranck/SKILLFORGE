@@ -1,0 +1,304 @@
+{
+  "node": "message-brokers",
+  "lessons": [
+    {
+      "slug": "asynchrone-et-decouplage",
+      "title": "Asynchrone & découplage",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ne pas tout faire en synchrone",
+          "body": "Quand ton programme doit faire quelque chose, il peut le faire de deux façons.\n\n**En synchrone**, l'appelant **attend** que le traitement soit fini avant de continuer. Le mot *synchrone* veut dire « en même temps » : celui qui demande et celui qui exécute sont synchronisés, l'un patiente pendant que l'autre travaille. C'est parfait pour une lecture rapide (afficher une page), mais coûteux pour une tâche lourde : envoyer un email, générer un PDF, prévenir dix autres services.\n\n**En asynchrone** (*a-synchrone* = « pas en même temps »), on ne bloque personne : on **dépose un message** décrivant le travail à faire, et on rend la main tout de suite. Quelqu'un d'autre le traitera plus tard. Un **message** est simplement un petit paquet de données (par exemple : « l'utilisateur 42 vient de s'inscrire »).\n\n👉 **Analogie** : au restaurant, le serveur ne reste pas planté en cuisine à attendre que ton plat cuise (synchrone). Il **note ta commande sur un ticket**, le passe en cuisine, et va servir d'autres tables (asynchrone). Le ticket, c'est le message.\n\n**Exemple concret** : à l'inscription, au lieu d'envoyer l'email de bienvenue pendant que l'utilisateur attend, tu déposes un message « envoyer l'email de bienvenue à l'utilisateur 42 » et tu réponds tout de suite « inscription réussie ». L'email part quelques instants après, sans faire patienter l'utilisateur.\n\nCe qui transporte ces messages entre celui qui les émet et celui qui les traite, c'est un **message broker** (Kafka, RabbitMQ, etc.). Le mot *broker* signifie « courtier, intermédiaire » : il reçoit les messages d'un côté et les remet de l'autre. Celui qui dépose un message est le **producteur** (*producer*), celui qui le récupère et le traite est le **consommateur** (*consumer*)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'asynchrone : deposer un message et continuer, sans attendre la reponse immediate.",
+          "body": "/images/lessons/asynchrone-et-decouplage-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Découpler dans le temps et l'espace",
+          "body": "Le vrai super-pouvoir d'un broker, c'est de **découpler** le producteur et le consommateur. **Découpler**, c'est « détacher » : faire en sorte que deux choses ne dépendent plus étroitement l'une de l'autre, que chacune puisse changer, ralentir ou tomber en panne sans entraîner l'autre.\n\nCe découplage a deux dimensions :\n- **Découplage temporel** (dans le temps) : le producteur et le consommateur n'ont pas besoin d'être disponibles **en même temps**. Le producteur dépose son message et part ; le consommateur le traitera quand il sera prêt, même dans dix secondes ou après un redémarrage.\n- **Découplage spatial** (dans l'espace) : le producteur n'a pas besoin de **connaître** le consommateur (son adresse, combien ils sont). Il parle au broker, un point c'est tout. On peut ajouter ou retirer des consommateurs sans rien changer côté producteur.\n\nEntre les deux, le broker range les messages en attente dans une **file** (*queue*) : une liste d'attente où les messages patientent jusqu'à leur traitement, en général dans l'ordre d'arrivée.\n\n👉 **Analogie** : une **boîte aux lettres**. L'expéditeur y dépose son courrier et s'en va (il n'attend ni le facteur, ni le destinataire). Le destinataire relève sa boîte quand ça l'arrange. Les deux ne se croisent jamais, et pourtant le message passe.\n\n**Exemple concret** : un vendredi soir, 10 000 commandes arrivent d'un coup. Sans broker, le service qui les traite s'effondre sous la charge. Avec un broker, les 10 000 messages **s'accumulent tranquillement dans la file** (le pic est *absorbé*), et les consommateurs les traitent à leur rythme. Un consommateur lent ne bloque plus le producteur, et si ça traîne, on **ajoute des consommateurs** pour vider la file plus vite. C'est pour cela que le broker est la colonne vertébrale des systèmes **réactifs** (qui restent réactifs sous la charge) et **distribués** (répartis sur plusieurs machines qui coopèrent)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un broker decouple dans le temps et l'espace : emetteur et recepteur n'ont pas a etre la en meme temps.",
+          "body": "/images/lessons/asynchrone-et-decouplage-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Le broker au milieu : producteurs, file, consommateurs",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    P1[\"Producteur : inscription\"] -->|dépose| B[(\"Message broker (file)\")]\n    P2[\"Producteur : commande\"] -->|dépose| B\n    B -->|livre| C1[\"Consommateur : email\"]\n    B -->|livre| C2[\"Consommateur : facturation\"]\n    B -->|livre| C3[\"Consommateur : analytique\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "À l'inscription, on doit envoyer un email de bienvenue (service externe, parfois lent). Pourquoi le faire de façon asynchrone via un broker plutôt que dans la requête d'inscription ?",
+          "solution": "L'envoi d'email est lent et faillible (service externe) : le faire dans la requête ralentit la réponse et fait échouer l'inscription si l'email échoue. En asynchrone, l'inscription publie un événement \"UtilisateurInscrit\" et répond immédiatement ; un consommateur envoie l'email, avec retries, sans impacter l'expérience d'inscription."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Asynchrone & découplage",
+          "quizRef": "message-brokers-async-check"
+        }
+      ]
+    },
+    {
+      "slug": "files-vs-evenements",
+      "title": "Files vs événements : Kafka & RabbitMQ",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux modèles",
+          "body": "Un broker peut servir à deux usages très différents ; les distinguer évite bien des confusions.\n\n**La file de travail** (*work queue*) : un message représente **une tâche à faire**, et il est consommé par **un seul** worker. Un **worker** (« ouvrier » en anglais) est un consommateur qui exécute la tâche. Si trois workers écoutent la même file, chaque tâche n'est prise **que par un seul** d'entre eux : c'est de la **répartition du travail** (on partage la charge).\n👉 **Analogie** : une **pile de tickets de commande** en cuisine. Chaque cuisinier attrape un ticket ; un ticket n'est préparé qu'une fois, par un seul cuisinier. Plus il y a de cuisiniers, plus vite la pile diminue.\n\n**La publication/abonnement** (*publish/subscribe*, ou **pub/sub**) : un message représente **un fait qui s'est produit** (un **événement**), et il est diffusé à **tous** les abonnés intéressés. Un **abonné** (*subscriber*) est un service qui a dit « préviens-moi quand cet événement arrive ». Ici, le même message est reçu par **plusieurs** consommateurs, chacun réagissant à sa façon.\n👉 **Analogie** : une **annonce au haut-parleur** dans une gare. Tout le monde l'entend en même temps ; chacun en fait ce qu'il veut.\n\n**Exemple concret** : « redimensionner cette image » est une **tâche** (un seul worker doit le faire, sinon on le fait deux fois pour rien), donc file de travail. « L'utilisateur 42 s'est inscrit » est un **événement** : le service email veut envoyer un mot de bienvenue, le service analytique veut compter, le service CRM veut créer une fiche, tous réagissent, donc pub/sub. Beaucoup de systèmes **combinent les deux** selon le besoin."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deux modeles : la file (un consommateur traite chaque message) et le log d'evenements (plusieurs relisent).",
+          "body": "/images/lessons/files-vs-evenements-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "RabbitMQ vs Kafka",
+          "body": "Les deux brokers les plus courants incarnent chacun un de ces mondes.\n\n**RabbitMQ** est un **broker de messages** classique. Il excelle au **routage** (aiguiller finement chaque message vers la bonne file selon des règles), gère les **files**, les **priorités**, et sait confirmer à un producteur qu'un message a bien été traité. Une fois un message consommé, il **disparaît** de la file. C'est l'outil idéal pour **distribuer des tâches** et faire des appels asynchrones entre services (des *RPC asynchrones*, c'est-à-dire « appeler un service sans attendre sa réponse tout de suite »).\n👉 **Analogie** : un **centre de tri postal**. Il aiguille chaque colis vers le bon destinataire, et une fois livré, le colis n'est plus dans le centre.\n\n**Kafka** est d'une autre nature : c'est un **log distribué**. Un **log** (« journal ») est une suite de messages écrits les uns après les autres et **conservés** un certain temps au lieu d'être effacés après lecture. « Distribué » veut dire réparti sur plusieurs machines pour tenir un très gros volume. Comme les messages restent, plusieurs consommateurs peuvent les **rejouer** (les relire depuis le début, autant de fois qu'ils veulent), et Kafka encaisse un **débit** (nombre de messages par seconde) énorme. Parfait pour des **flux d'événements**, l'**event sourcing** (reconstruire l'état d'un système en rejouant tous ses événements) et l'analytique.\n👉 **Analogie** : un **registre relié**, ou l'historique d'un fil de discussion : tout est écrit et conservé dans l'ordre ; n'importe qui peut remonter et relire depuis n'importe quel point.\n\n**En résumé** : RabbitMQ pour des **files de tâches** fines avec du routage riche ; Kafka pour des **flux d'événements** massifs, conservés et rejouables."
+        },
+        {
+          "type": "IMAGE",
+          "title": "RabbitMQ route des messages a traiter ; Kafka conserve un flux d'evenements rejouable.",
+          "body": "/images/lessons/files-vs-evenements-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Tu veux un flux d'événements conservé et rejouable, à très haut débit, que plusieurs consommateurs peuvent relire depuis le début. RabbitMQ ou Kafka ?",
+          "solution": "Kafka : c'est un log distribué qui conserve les messages (rejouables), gère un très haut débit et permet à plusieurs consommateurs de lire indépendamment, y compris depuis le début. RabbitMQ, orienté files de tâches, ne conserve pas les messages de la même façon ni ne vise ce cas de flux rejouable."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Files vs événements",
+          "quizRef": "message-brokers-modeles-check"
+        }
+      ]
+    },
+    {
+      "slug": "garanties-de-livraison",
+      "title": "Garanties de livraison & idempotence",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "At-most-once, at-least-once, exactly-once",
+          "body": "Quand un broker livre un message, il offre une **garantie de livraison** (aussi appelée *sémantique* de livraison) : une promesse sur le nombre de fois où un message peut arriver. Il en existe trois.\n\n- **At-most-once** (« au plus une fois ») : chaque message est livré **zéro ou une fois**. On ne verra jamais de doublon, mais on peut **perdre** un message (s'il se perd, on ne le renvoie pas).\n- **At-least-once** (« au moins une fois ») : chaque message est livré **une ou plusieurs fois**. On ne perd **jamais** rien, mais un message peut être **livré en double** (si le broker n'est pas sûr qu'on l'a bien reçu, il le renvoie).\n- **Exactly-once** (« exactement une fois ») : chaque message est livré **une fois pile**, ni perte ni doublon. C'est l'idéal, mais c'est **coûteux et limité** (très difficile à garantir vraiment en distribué).\n\nUn **doublon**, c'est simplement le même message reçu deux fois.\n\n👉 **Analogie** : un **recommandé avec accusé de réception**. Si le facteur n'a pas ton accusé, il **repasse** (at-least-once : tu risques de recevoir deux fois le pli). À l'inverse, une **pub jetée dans la boîte sans suivi** peut se perdre et personne ne la renverra (at-most-once).\n\n**En pratique**, on vit surtout avec **at-least-once** : c'est le meilleur compromis (on préfère un doublon à une perte). Conséquence directe : le consommateur doit être **prêt à recevoir des doublons**, c'est l'objet de la section suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "At-most-once, at-least-once, exactly-once : trois niveaux de garantie, trois compromis.",
+          "body": "/images/lessons/garanties-de-livraison-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Consommateurs idempotents (niveau expert)",
+          "body": "Puisqu'un message peut arriver deux fois (at-least-once), le consommateur doit être **idempotent**. **Idempotent** vient des maths : une opération est idempotente si l'**appliquer deux fois donne le même résultat que l'appliquer une fois**. Traiter le même message une ou dix fois doit produire **exactement le même état final**.\n👉 **Analogie** : le bouton d'**appel d'ascenseur**. Que tu appuies une fois ou cinq fois, l'ascenseur vient une seule fois ; appuyer encore ne change rien. À l'inverse, « ajouter 10 € » n'est pas idempotent : le refaire ajoute encore 10 €.\n\nComment rendre un consommateur idempotent ? Trois techniques courantes :\n- une **clé d'idempotence** : chaque message porte un identifiant unique (ex. l'id de la transaction) ; le consommateur **mémorise les ids déjà traités** et **ignore** un id déjà vu.\n- un **upsert** plutôt qu'un *insert* : *upsert* = « update or insert », une écriture qui **crée la ligne si elle n'existe pas, sinon la met à jour ». Rejouée, elle réécrit la même valeur au lieu de créer un doublon.\n- une **vérification d'état** : avant d'agir, on regarde si le travail n'est pas déjà fait (« cette commande est-elle déjà payée ? »).\n\n**Exemple concret** : sans idempotence, un simple *retry* (nouvelle tentative) du broker sur un message « débiter 50 € » débite **deux fois**. Avec une clé d'idempotence (l'id du paiement), le second passage est reconnu comme déjà traité et **ignoré** : un seul débit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un consommateur idempotent traite un doublon sans effet de bord : indispensable en at-least-once.",
+          "body": "/images/lessons/garanties-de-livraison-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Dead-letter & ordre",
+          "body": "Deux pièges classiques quand on exploite un broker.\n\n**Le message qui échoue en boucle.** Certains messages font systématiquement planter le consommateur (donnée corrompue, cas non prévu). S'il est **relivré** sans fin, il **bloque** toute la file derrière lui. La parade : après **N tentatives**, on le déplace dans une **dead-letter queue** (DLQ, littéralement « file des lettres mortes ») : une file à part où l'on **isole** les messages problématiques pour les inspecter ou les rejouer plus tard, sans figer le flux normal.\n👉 **Analogie** : au tri postal, un colis à l'adresse illisible est mis **de côté** dans un bac « à traiter manuellement » au lieu de bloquer tout le tapis.\n\n**L'ordre des messages.** On croit souvent que les messages arrivent dans l'ordre exact où ils ont été envoyés. C'est **faux en général** : l'ordre n'est garanti que dans certaines limites (par **partition** chez Kafka, une partition étant un sous-canal ordonné du flux ; par **file** chez RabbitMQ). Concevoir un système en supposant un **ordre global strict** (tous les messages du système dans un ordre parfait) est une **erreur fréquente**.\n\n**Exemple concret** : deux événements `PanierVidé` et `ArticleAjouté` partis presque en même temps peuvent être traités dans le désordre s'ils passent par des partitions différentes. Il faut soit les router vers la **même** partition (via une clé commune), soit concevoir le traitement pour qu'il **tolère** un ordre imparfait."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La dead-letter queue recueille les messages non traitables ; l'ordre se gere par partition.",
+          "body": "/images/lessons/garanties-de-livraison-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Un broker at-least-once relivre parfois un message « DébiterCompte ». Sans précaution, quel est le risque, et comment rendre le consommateur sûr ?",
+          "solution": "Risque : double débit (le message traité deux fois débite deux fois). Rendre le consommateur idempotent : associer une clé d'idempotence à chaque message (ex. id de transaction), mémoriser les ids déjà traités et ignorer un rejeu, ou concevoir l'opération comme idempotente. Le même message rejoué n'a alors aucun effet supplémentaire."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz, Message brokers",
+          "quizRef": "message-brokers-check"
+        }
+      ]
+    },
+    {
+      "slug": "kafka-en-profondeur",
+      "title": "Kafka en profondeur : partitions, groupes, offsets",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Partitions : l'unité de parallélisme et d'ordre",
+          "body": "Pour comprendre Kafka, il faut un seul concept central : la **partition**.\n\nUn **topic** (« sujet ») est un flux nommé de messages, par exemple `commandes`. Kafka découpe chaque topic en **partitions** : des **sous-canaux parallèles**, chacun étant une suite ordonnée de messages. C'est la clé de tout, pour deux raisons.\n\n1. **Le parallélisme** (traiter plusieurs choses à la fois) est **borné par le nombre de partitions** : plus il y a de partitions, plus on peut mettre de consommateurs à lire en parallèle. Avec 4 partitions, au plus 4 consommateurs travaillent en même temps sur ce topic.\n2. **L'ordre** n'est garanti **qu'au sein d'une partition**, jamais sur le topic entier. Deux messages de partitions différentes peuvent être traités dans n'importe quel ordre.\n\nComment Kafka choisit la partition d'un message ? Par sa **clé**. Le producteur attache une **clé** au message (ex. `user_id`), et Kafka calcule `hash(clé) % nombre_de_partitions`. Le **hash** est une fonction qui transforme la clé en un nombre ; le `%` (modulo) ramène ce nombre dans l'intervalle des partitions. Résultat : **tous les messages d'une même clé tombent dans la même partition**, donc restent **ordonnés entre eux**.\n👉 **Analogie** : un supermarché avec plusieurs caisses (les partitions) et une règle « les clients dont le nom va de A à F passent à la caisse 1 ». Une même personne passe toujours à la même caisse (ses achats sont donc traités dans l'ordre), mais globalement plusieurs caisses avancent en parallèle.\n\n**Bien choisir la clé, c'est décider ce qui doit rester ordonné.** Clé = `user_id` : les actions d'un même utilisateur restent ordonnées, les utilisateurs différents sont traités en parallèle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La partition est l'unite de parallelisme ET d'ordre : l'ordre n'est garanti qu'au sein d'une partition.",
+          "body": "/images/lessons/kafka-en-profondeur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Consumer groups & rebalancing",
+          "body": "Comment répartir le travail entre plusieurs consommateurs sans doublon ? Avec un **consumer group** (« groupe de consommateurs »).\n\nUn **consumer group** est un ensemble de consommateurs qui se **partagent** les partitions d'un topic. Règle d'or : **chaque partition est lue par un seul membre du groupe** à un instant donné. Conséquence : s'il y a **plus de consommateurs que de partitions**, les consommateurs en trop restent **oisifs** (rien à lire). D'où l'importance du nombre de partitions vu juste avant.\n👉 **Analogie** : une équipe de serveurs qui se répartissent les tables d'un restaurant. Chaque table (partition) est servie par **un seul** serveur, pour éviter que deux prennent la même commande. S'il y a plus de serveurs que de tables, certains attendent.\n\nPoint important : **plusieurs groupes** peuvent lire le **même** topic **indépendamment**. Le groupe « email » et le groupe « analytique » reçoivent chacun **tous** les messages, chacun de son côté : c'est ainsi que Kafka fait du **pub/sub**.\n\nQuand un membre **entre** ou **sort** du groupe (démarrage, panne, mise à l'échelle), Kafka déclenche un **rebalancing** (« rééquilibrage ») : il **redistribue** les partitions entre les membres restants. C'est un moment **délicat** (courte pause de consommation le temps de réattribuer) qu'on cherche à minimiser (*rebalancing coopératif*, ou *static membership* qui donne une identité stable aux consommateurs pour éviter des rééquilibrages inutiles)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un consumer group se partage les partitions ; le rebalancing redistribue quand un membre arrive ou part.",
+          "body": "/images/lessons/kafka-en-profondeur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Offsets : le moment du commit décide de la sémantique",
+          "body": "Comment un consommateur sait-il où il en est dans une partition ? Grâce à l'**offset**.\n\nL'**offset** est le **numéro de position** d'un message dans sa partition (0, 1, 2, 3...). Le consommateur avance et **commite** son offset, c'est-à-dire qu'il **enregistre** « j'ai traité jusqu'ici ». Ainsi, après un redémarrage, il reprend au bon endroit au lieu de tout relire.\n👉 **Analogie** : le **marque-page** dans un livre. L'offset dit à quelle page tu en es ; committer, c'est **déplacer le marque-page** pour retrouver ta place plus tard.\n\nDétail d'expert capital : **le moment où l'on commite décide de la sémantique de livraison**.\n- Commiter **après** avoir traité le message donne **at-least-once** : si le consommateur crashe entre le traitement et le commit, il **rejouera** le message au redémarrage (marque-page pas encore avancé), d'où un possible doublon, mais aucune perte.\n- Commiter **avant** de traiter donne **at-most-once** : un crash après le commit mais avant le traitement **perd** le message (le marque-page a avancé sur un message jamais traité).\n\nIl n'existe pas de moment magique « juste au bon instant » : on **choisit** sa sémantique par sa **stratégie de commit**, et on rend le consommateur **idempotent** pour vivre sereinement avec l'at-least-once."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'offset marque jusqu'ou on a lu ; le moment du commit decide de la semantique de livraison.",
+          "body": "/images/lessons/kafka-en-profondeur-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Rétention, compaction & schémas (niveau expert)",
+          "body": "Trois notions qui distinguent Kafka d'une simple file.\n\n**La rétention.** Kafka **conserve** les messages pendant une durée ou jusqu'à une taille configurée (ex. 7 jours), même après leur lecture. Les consommateurs peuvent donc **rejouer** l'historique : relire d'anciens messages, repartir de zéro, ou rattraper un retard. Une file classique, elle, **efface** le message dès qu'il est consommé.\n👉 **Analogie** : un enregistreur qui garde les 7 derniers jours de programmes : tu peux revenir en arrière et re-regarder, contrairement au direct qui ne se rembobine pas.\n\n**La log compaction.** C'est un mode où Kafka ne conserve, pour chaque clé, que la **dernière** valeur (les versions plus anciennes d'une même clé sont nettoyées). Le topic devient alors un **instantané de l'état courant** : « pour chaque `user_id`, voici sa dernière adresse ». Très pratique pour **reconstruire un cache** ou une vue à partir du topic.\n\n**Le schema registry.** À grande échelle, on n'envoie pas du JSON libre : si un producteur change le format d'un message sans prévenir, il **casse** tous ses consommateurs. Un **schema registry** (« registre de schémas ») **impose** le format des messages et gère son **évolution** de façon compatible. Les formats **Avro** et **Protobuf** sont des façons compactes de décrire et d'encoder ces messages avec un schéma explicite.\n👉 **Analogie** : un **formulaire officiel** aux cases figées. Tant que tout le monde remplit le même formulaire, personne n'est surpris ; pour ajouter une case, on suit des règles qui n'invalident pas les anciens formulaires."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Retention, compaction et schemas (registry) gerent la duree de vie et la forme des messages.",
+          "body": "/images/lessons/kafka-en-profondeur-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un topic de commandes doit garantir que tous les événements d'une même commande (`Créée`, `Payée`, `Expédiée`) soient traités dans l'ordre, tout en permettant un fort parallélisme entre commandes différentes. Comment configurer partitions et clé ?",
+          "solution": "Utiliser plusieurs partitions (pour le parallélisme entre commandes) et choisir comme CLÉ de message l'identifiant de la commande (order_id). Ainsi tous les événements d'une même commande sont hachés vers la MÊME partition et donc consommés dans l'ordre par le même consommateur, tandis que des commandes différentes se répartissent sur des partitions distinctes traitées en parallèle. L'ordre n'étant garanti qu'au sein d'une partition, c'est la clé qui définit le périmètre d'ordre, ici par commande."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz, Kafka en profondeur",
+          "quizRef": "message-brokers-kafka-check"
+        }
+      ]
+    },
+    {
+      "slug": "messagerie-fiable-outbox",
+      "title": "Messagerie fiable : outbox, exactly-once, lag",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème du double-write",
+          "body": "Voici un piège fondamental des systèmes qui utilisent un broker. Un service doit souvent faire **deux choses liées** : **écrire en base** (enregistrer la commande) **et publier un message** décrivant ce changement (« CommandeCréée »).\n\nLe problème : la base de données et le broker sont **deux systèmes distincts**, et **aucune transaction** ne les couvre **ensemble**. Une **transaction** est un groupe d'opérations **atomique** : soit tout réussit, soit tout est annulé, jamais à moitié. Or une transaction de base de données ne protège **que** la base, pas la publication vers le broker.\n👉 **Analogie** : tu dois **encaisser un chèque** (banque A) **et noter la vente dans ton cahier** (banque B). Aucune règle ne garantit que les deux se font d'un bloc : si tu es interrompu entre les deux, l'un est fait sans l'autre.\n\n**Exemple concret** : la base réussit mais la publication échoue (crash, réseau) : la commande existe mais **personne n'est notifié**. Ou l'inverse : le message part mais la base a échoué : un message parle d'une commande **qui n'existe pas**. Faire les deux « à la suite » dans le code **ne résout rien** : un crash **entre** les deux lignes reste toujours possible. C'est le **dual-write problem** (le problème de la double écriture)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le double-write : ecrire en base ET publier un message peut echouer a moitie, incoherent.",
+          "body": "/images/lessons/messagerie-fiable-outbox-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le pattern outbox (+ CDC)",
+          "body": "La solution éprouvée : le **pattern outbox** (« boîte d'envoi »).\n\nL'idée : au lieu d'écrire en base **puis** de publier (deux actions séparables), on écrit, **dans la même transaction** que la donnée métier, une ligne dans une table nommée **`outbox`** qui contient le message à envoyer. Comme c'est **une seule transaction atomique**, la donnée **et** le message-à-envoyer réussissent ou échouent **ensemble** : plus de trou entre les deux.\n👉 **Analogie** : au lieu de poster ta lettre en sortant (tu peux l'oublier), tu la déposes **dans ta boîte d'envoi sur ton bureau au moment même où tu classes le dossier**. Le geste est unique. Un coursier passera ensuite prendre ce qu'il y a dans la boîte.\n\nCe « coursier », c'est un **processus séparé** qui lit la table `outbox` et **publie** chaque message vers le broker de façon fiable (avec *retries*), puis **marque la ligne comme envoyée**. Deux façons de l'alimenter :\n- par **polling** : interroger régulièrement la table (« y a-t-il du nouveau ? »). Simple, mais génère des requêtes répétées.\n- par **CDC** (*Change Data Capture*, « capture des changements ») : un outil comme **Debezium** lit directement le **WAL** de la base (*Write-Ahead Log*, le journal interne où PostgreSQL écrit toute modification avant de l'appliquer) et transforme chaque changement en événement, **sans polling**.\n\n**Exemple concret** : un `INSERT` de la commande et un `INSERT` dans `outbox`, dans la **même** transaction SQL. Debezium repère la nouvelle ligne d'outbox dans le WAL et publie « CommandeCréée » sur Kafka. Résultat : aucune commande sans événement, aucun événement sans commande."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le pattern outbox ecrit l'evenement dans la meme transaction que la donnee, puis le publie (CDC).",
+          "body": "/images/lessons/messagerie-fiable-outbox-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "« Exactly-once » : ce que ça veut vraiment dire",
+          "body": "On entend beaucoup parler d'**exactly-once** (« exactement une fois »). Précisons ce que ça veut **vraiment** dire, car c'est une grande source de malentendus. L'exactly-once **absolu**, de bout en bout dans un système distribué, est un **idéal difficile**.\n\nKafka offre deux briques réelles :\n- un **producteur idempotent** : il évite les **doublons** créés par ses propres *retries* (si le producteur renvoie un message par sécurité, Kafka ne l'écrit qu'une fois).\n- des **transactions Kafka** : écrire dans plusieurs partitions **et** commiter l'offset de lecture de façon **atomique**. Cela donne un exactly-once **au sein de Kafka** (de topic à topic).\n\nMais attention : dès qu'un **effet de bord externe** entre en jeu (un effet qui sort de Kafka : envoyer un email, appeler une API de paiement), ces garanties **ne s'étendent pas**. On ne peut pas « annuler » un email déjà parti. La seule garantie robuste redevient alors **at-least-once + consommateur idempotent**.\n👉 **Analogie** : tu peux garantir « une seule écriture » **dans ton propre cahier**, mais pas « un seul appel téléphonique déjà passé » : une fois la sonnerie partie chez l'autre, c'est hors de ton cahier.\n\nÀ retenir : « exactly-once » est vrai **dans un périmètre** (à l'intérieur de Kafka), pas magiquement de bout en bout. L'expert le sait et conçoit ses consommateurs pour tolérer un rejeu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "'Exactly-once' veut surtout dire : effet unique cote consommateur, grace a l'idempotence.",
+          "body": "/images/lessons/messagerie-fiable-outbox-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Surveiller le lag & les poison messages (niveau expert)",
+          "body": "Deux réflexes d'exploitation (quand le système tourne en production).\n\n**Le consumer lag** est **la** métrique reine. Le **lag** (« retard ») est l'**écart** entre le dernier message **produit** et le dernier message **consommé** dans une partition : combien de messages attendent encore d'être traités. Un lag **stable** est sain ; un lag qui **croît** signale des consommateurs **trop lents** ou **en panne**. On le **surveille**, on **alerte** dessus, puis on **scale** (ajouter des consommateurs, dans la limite du nombre de partitions).\n👉 **Analogie** : la **longueur de la file d'attente** à une caisse. Si elle s'allonge sans arrêt, c'est qu'il faut ouvrir une caisse de plus ou que le caissier est bloqué.\n\n**Le poison message** (« message empoisonné ») est un message qui fait **échouer le consommateur à chaque tentative** (donnée invalide, bug non prévu). Relivré sans fin, il **bloque la partition** derrière lui, surtout si l'ordre est requis (rien ne peut passer tant qu'il n'est pas traité).\n👉 **Analogie** : une **voiture en panne au milieu d'une voie unique**. Tant qu'on ne la pousse pas sur le bas-côté, tout le monde est coincé derrière.\n\nParade : un nombre de *retries* **borné**, puis un envoi en **dead-letter queue** pour libérer le flux, plus de l'**observabilité** (logs, métriques) pour analyser ensuite ce qui n'allait pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Surveiller le lag (retard de consommation) et isoler les poison messages qui bloquent.",
+          "body": "/images/lessons/messagerie-fiable-outbox-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Un service enregistre une commande en base puis publie « CommandeCréée » sur Kafka, dans deux appels successifs. En cas de crash entre les deux, on perd des événements. Quel pattern garantit qu'aucun événement n'est perdu ni émis sans commande ?",
+          "solution": "Le pattern outbox : au lieu de deux écritures indépendantes (base puis broker), on écrit la commande ET une ligne dans une table outbox DANS LA MÊME transaction SQL, atomique, donc soit les deux réussissent, soit aucun. Un processus séparé (relais, ou CDC type Debezium lisant le WAL) lit ensuite l'outbox et publie l'événement sur Kafka de façon fiable avec retries, puis marque la ligne comme envoyée. Ainsi il ne peut y avoir de commande sans événement (l'événement est écrit dans la même transaction) ni d'événement sans commande (il provient de l'outbox committée). On accepte at-least-once côté publication, compensé par des consommateurs idempotents."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Références : documentation **Apache Kafka** (partitions, consumer groups, offsets, transactions, log compaction) ; *Kafka: The Definitive Guide* (Narkhede, Shapira, Palino) ; *Designing Data-Intensive Applications* (Kleppmann, ch. 11 « Stream Processing ») ; le pattern **outbox** et **CDC** sur microservices.io (Chris Richardson) et la doc **Debezium** ; *Enterprise Integration Patterns* (Hohpe & Woolf) pour le vocabulaire des échanges de messages."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les brokers de messages.",
+          "body": "/images/lessons/messagerie-fiable-outbox-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz, Message brokers (niveau expert)",
+          "quizRef": "message-brokers-expert"
+        }
+      ]
+    }
+  ]
+}

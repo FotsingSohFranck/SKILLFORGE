@@ -1,0 +1,96 @@
+{
+  "ref": "data-timing-check-expert",
+  "node": "data-sources",
+  "lesson": "timing-check-blocks",
+  "title": "Timing & check blocks, expert",
+  "description": "Lecture data au plan vs apply, depends_on sur data, check blocks (non bloquants).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand une data source est-elle lue à l'apply plutôt qu'au plan ?",
+      "justification": "Quand un de ses arguments dépend d'une valeur known-after-apply (ressource pas encore créée) : Terraform diffère sa lecture.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Quand un argument dépend d'une ressource pas encore créée",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours à l'apply",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais, seulement au plan",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment forcer la lecture d'une data source après une ressource ?",
+      "justification": "Avec depends_on sur la data source, pour qu'elle soit lue après la création de la ressource dont elle dépend implicitement.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Un depends_on sur la data source",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un provisioner",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un bloc backend",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre un check block et une postcondition ?",
+      "justification": "Le check avertit (warning) sans bloquer l'apply ; la postcondition fait échouer l'apply si l'invariant n'est pas satisfait.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le check avertit sans bloquer ; la postcondition bloque",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ils sont identiques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le check bloque, la postcondition avertit",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un check block permet de surveiller en continu la santé de l'infrastructure (ex. endpoint qui répond 200) à chaque run, sans faire échouer l'apply.",
+      "justification": "Vrai : c'est de la validation continue non bloquante, complémentaire des pre/postconditions qui, elles, bloquent à la création.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

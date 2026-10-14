@@ -1,0 +1,52 @@
+{
+  "ref": "storage-volumes-pv-check",
+  "node": "storage-volumes",
+  "lesson": "volumes-pv-pvc",
+  "title": "Volumes, PV & PVC",
+  "description": "Stockage éphémère vs persistant, emptyDir, le rôle du PV, du PVC et de la StorageClass.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que devient, par défaut, ce qu'un pod écrit sur son disque quand le pod est supprimé ?",
+      "justification": "Le système de fichiers d'un pod est éphémère : les données écrites disparaissent à sa suppression. Pour les garder, il faut un volume persistant.",
+      "position": 0,
+      "options": [
+        { "label": "Les données disparaissent : le stockage du pod est éphémère", "correct": true, "position": 0 },
+        { "label": "Les données sont sauvegardées automatiquement pour toujours", "correct": false, "position": 1 },
+        { "label": "Les données passent dans un ConfigMap", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans le duo PV / PVC, lequel le pod monte-t-il directement ?",
+      "justification": "Le pod monte le PersistentVolumeClaim (la demande) ; Kubernetes se charge de le lier au PersistentVolume (le stockage réel).",
+      "position": 1,
+      "options": [
+        { "label": "Le PersistentVolumeClaim (PVC), la demande de stockage", "correct": true, "position": 0 },
+        { "label": "Le PersistentVolume (PV), directement", "correct": false, "position": 1 },
+        { "label": "Le disque physique, sans passer par Kubernetes", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une StorageClass ?",
+      "justification": "Elle permet le provisionnement dynamique : quand un PVC la réclame, Kubernetes crée automatiquement le disque et le PV correspondant.",
+      "position": 2,
+      "options": [
+        { "label": "Créer automatiquement le PV (le disque) quand un PVC le réclame", "correct": true, "position": 0 },
+        { "label": "Chiffrer le trafic réseau entre les pods", "correct": false, "position": 1 },
+        { "label": "Limiter le CPU consommé par un conteneur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un volume emptyDir conserve ses données même après la disparition du pod.",
+      "justification": "Faux : emptyDir ne dure que le temps du pod (utile pour partager des fichiers entre conteneurs d'un même pod). Pour survivre au pod, il faut un PV/PVC.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

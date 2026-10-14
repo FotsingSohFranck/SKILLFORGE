@@ -1,0 +1,273 @@
+{
+  "node": "optional-moderne",
+  "lessons": [
+    {
+      "slug": "le-probleme-du-null",
+      "title": "Le problème du null",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "null : l'absence de valeur",
+          "position": 0,
+          "body": "En Java, une variable qui désigne un objet peut ne désigner **aucun** objet. Dans ce cas, elle vaut `null`. Le mot **null** veut dire \"rien\", \"pas de valeur\" : la variable existe, mais elle ne pointe vers aucun objet.\n\n👉 Imagine une boite aux lettres avec une étiquette à ton nom, mais vide. La boite existe (la variable), seulement il n'y a aucune lettre dedans (`null`). Si tu essaies de lire une lettre qui n'existe pas, tu es bloqué.\n\nExemple concret : une méthode `chercherUtilisateur(\"ana\")` qui ne trouve personne doit bien renvoyer quelque chose. Historiquement, elle renvoyait `null` pour dire \"je n'ai trouvé personne\"."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le NullPointerException (NPE)",
+          "position": 1,
+          "body": "Le problème arrive quand on utilise un objet qui vaut `null` comme s'il existait. Si tu appelles une méthode sur `null`, Java lève une erreur : le **NullPointerException** (souvent abrégé **NPE**), c'est à dire \"exception de pointeur nul\". Une **exception** est un signal d'erreur qui interrompt le programme quand quelque chose d'anormal se produit.\n\n👉 C'est comme demander à la boite aux lettres vide \"donne moi la première ligne de la lettre\". Il n'y a pas de lettre, donc l'opération échoue brutalement.\n\nLe NPE est l'une des erreurs les plus fréquentes en Java. Son créateur l'a même surnommée \"mon erreur à un milliard de dollars\", tant elle a couté cher en bugs."
+        },
+        {
+          "type": "CODE",
+          "title": "Un NPE en action",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// Une méthode qui renvoie null quand elle ne trouve rien.\nstatic String chercherEmail(String nom) {\n    if (nom.equals(\"ana\")) {\n        return \"ana@example.com\";\n    }\n    return null; // personne trouvé : on renvoie null\n}\n\npublic class Demo {\n    public static void main(String[] args) {\n        String email = chercherEmail(\"bob\"); // email vaut null\n\n        // On croit avoir un email, on appelle une méthode dessus...\n        System.out.println(email.toUpperCase());\n        // BOUM : NullPointerException, car email est null.\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi exprimer l'absence autrement",
+          "position": 3,
+          "body": "Le vrai souci avec `null`, c'est qu'il est **invisible dans le type**. Quand une méthode annonce qu'elle renvoie un `String`, rien ne dit si elle peut renvoyer `null` ou non. Le compilateur ne te prévient pas. Tu découvres l'absence seulement au moment du crash, à l'exécution.\n\n👉 C'est comme un contrat qui promet \"une lettre\" sans préciser qu'il peut arriver qu'il n'y ait rien. Tu ne le sais qu'une fois la boite ouverte.\n\nLa solution moderne, introduite en Java 8, est de rendre l'absence **visible et obligatoire à traiter**. C'est le rôle d'`Optional`, que l'on découvre dans la leçon suivante : un type qui dit clairement \"il y a peut être une valeur, peut être rien\"."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : le problème du null",
+          "position": 4,
+          "quizRef": "optional-moderne-le-probleme-du-null"
+        }
+      ]
+    },
+    {
+      "slug": "creer-un-optional",
+      "title": "Créer un Optional",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Optional : une boite qui contient zéro ou une valeur",
+          "position": 0,
+          "body": "Un **Optional** (en français \"optionnel\") est un objet qui enveloppe une valeur **qui pourrait être absente**. C'est une petite boite : soit elle contient exactement une valeur, soit elle est vide.\n\n👉 Reprends la boite aux lettres. Au lieu de te donner directement une lettre (qui pourrait manquer et te surprendre), on te donne toujours la boite. Tu l'ouvres, et tu vois tout de suite s'il y a une lettre dedans ou pas. Tu ne peux plus être pris au dépourvu.\n\nLe type s'écrit `Optional<String>` : une boite qui contient peut être un `String`. Les chevrons `< >` précisent le type de ce qu'il y a dans la boite. Une méthode qui renvoie `Optional<String>` t'annonce honnêtement, dès sa signature, que la valeur peut manquer."
+        },
+        {
+          "type": "CODE",
+          "title": "Les trois façons de créer un Optional",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        // 1) Optional.of : une valeur présente, garantie NON nulle.\n        Optional<String> plein = Optional.of(\"ana@example.com\");\n\n        // 2) Optional.empty : une boite volontairement vide.\n        Optional<String> vide = Optional.empty();\n\n        // 3) Optional.ofNullable : valeur peut-être nulle.\n        //    Si l'argument est null -> boite vide ; sinon -> boite pleine.\n        String peutEtreNull = trouverNom(); // peut renvoyer null\n        Optional<String> prudent = Optional.ofNullable(peutEtreNull);\n    }\n\n    static String trouverNom() { return null; }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "of, empty, ofNullable : lequel choisir ?",
+          "position": 2,
+          "body": "Les trois fabriques ont chacune leur rôle :\n\n- `Optional.of(valeur)` : tu es **certain** que la valeur n'est pas `null`. Attention, si tu lui passes `null`, elle lève un NullPointerException immédiatement.\n- `Optional.empty()` : tu veux explicitement une boite vide, pour dire \"il n'y a rien\".\n- `Optional.ofNullable(valeur)` : tu ne sais pas si la valeur est `null`. C'est le pont idéal entre du vieux code qui renvoie `null` et le monde `Optional`. Si la valeur est `null`, tu obtiens une boite vide, sinon une boite pleine.\n\n👉 Règle simple : `ofNullable` dès qu'un `null` est possible, `of` quand tu es sur, `empty` pour fabriquer le vide à la main."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Quelle fabrique selon la valeur de départ",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Valeur de départ\"] --> B{\"Peut-elle être null ?\"}\n    B -->|\"Jamais null\"| C[\"Optional.of(valeur)\\nboite pleine garantie\"]\n    B -->|\"Peut-être null\"| D[\"Optional.ofNullable(valeur)\"]\n    D --> E[\"valeur null\\n= boite vide\"]\n    D --> F[\"valeur non nulle\\n= boite pleine\"]\n    A -->|\"Je veux du vide\"| G[\"Optional.empty()\\nboite vide\"]"
+        },
+        {
+          "type": "CODE",
+          "title": "Transformer une méthode qui renvoyait null",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\n// AVANT : renvoie null quand on ne trouve rien (dangereux).\nstatic String chercherEmailAncien(String nom) {\n    if (nom.equals(\"ana\")) return \"ana@example.com\";\n    return null;\n}\n\n// APRÈS : renvoie un Optional, l'absence est visible dans le type.\nstatic Optional<String> chercherEmail(String nom) {\n    if (nom.equals(\"ana\")) {\n        return Optional.of(\"ana@example.com\");\n    }\n    return Optional.empty(); // on dit clairement \"rien trouvé\"\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Choisis la bonne fabrique",
+          "position": 5,
+          "body": "Pour chaque cas, écris la ligne qui crée l'Optional. 1) Tu as un String `titre` dont tu es sur qu'il n'est pas null. 2) Tu reçois un String `valeur` d'une vieille méthode qui peut renvoyer null. 3) Tu veux représenter \"aucun résultat\" pour un Optional<String>.",
+          "solution": "1) Optional<String> o1 = Optional.of(titre); car la valeur est garantie non nulle.\n2) Optional<String> o2 = Optional.ofNullable(valeur); car un null est possible, et ofNullable le transforme en boite vide au lieu de crasher.\n3) Optional<String> o3 = Optional.empty(); la boite vide explicite."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : créer un Optional",
+          "position": 6,
+          "quizRef": "optional-moderne-creer-un-optional"
+        }
+      ]
+    },
+    {
+      "slug": "transformer-map-flatmap-filter",
+      "title": "Transformer : map, flatMap, filter",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "map : transformer ce qu'il y a dans la boite",
+          "position": 0,
+          "body": "La méthode **map** applique une transformation à la valeur **si elle est présente**, et te rend une nouvelle boite avec le résultat. Si la boite est vide, `map` ne fait rien et te rend une boite vide : aucun risque de NullPointerException.\n\n👉 Pense à une chaine de montage. La boite passe sur le tapis. S'il y a une pièce dedans, la machine la transforme (par exemple elle met le texte en majuscules) et la remet dans une boite. Si la boite est vide, elle passe sans rien faire. Tu n'as jamais à vérifier \"y a-t-il une pièce ?\" toi même.\n\nAinsi `Optional<String>` devient `Optional<Integer>` si tu transformes un texte en sa longueur, le tout sans jamais sortir de la boite."
+        },
+        {
+          "type": "CODE",
+          "title": "map en pratique",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> email = Optional.of(\"Ana@Example.com\");\n\n        // On transforme la valeur SI elle est présente : minuscules puis longueur.\n        Optional<String> minuscule = email.map(e -> e.toLowerCase());\n        Optional<Integer> longueur = email.map(e -> e.length());\n\n        System.out.println(minuscule); // Optional[ana@example.com]\n        System.out.println(longueur);  // Optional[15]\n\n        // Sur une boite vide, map ne fait rien et ne plante pas.\n        Optional<String> rien = Optional.empty();\n        System.out.println(rien.map(e -> e.toUpperCase())); // Optional.empty\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "flatMap : enchainer sans emboiter les boites",
+          "position": 2,
+          "body": "Parfois, la transformation renvoie **elle même un Optional**. Si tu utilises `map`, tu obtiens une boite dans une boite : `Optional<Optional<String>>`, ce qui est pénible à manipuler.\n\n**flatMap** (de l'anglais \"aplatir et transformer\") sert exactement à ça : il applique la transformation et **aplatit** le résultat pour que tu gardes une seule boite, `Optional<String>`.\n\n👉 Imagine recevoir un colis, et dedans un autre colis qui contient l'objet. `map` te laisse les deux emballages ; `flatMap` enlève l'emballage superflu pour te donner directement l'objet dans une seule boite. On utilise `flatMap` dès qu'on enchaine des méthodes qui renvoient déjà un `Optional`."
+        },
+        {
+          "type": "CODE",
+          "title": "map contre flatMap",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\n// Cette méthode renvoie DÉJÀ un Optional.\nstatic Optional<String> domaine(String email) {\n    int i = email.indexOf('@');\n    if (i < 0) return Optional.empty();\n    return Optional.of(email.substring(i + 1));\n}\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> email = Optional.of(\"ana@example.com\");\n\n        // Avec map : boite dans une boite, difficile à utiliser.\n        Optional<Optional<String>> emboite = email.map(e -> domaine(e));\n\n        // Avec flatMap : une seule boite, propre.\n        Optional<String> aplati = email.flatMap(e -> domaine(e));\n        System.out.println(aplati); // Optional[example.com]\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "filter : garder la valeur sous condition",
+          "position": 4,
+          "body": "La méthode **filter** garde la valeur seulement si elle respecte une condition. Tu lui donnes un test (vrai ou faux). Si la boite est pleine et que la valeur passe le test, tu gardes la boite pleine. Sinon, tu obtiens une boite vide.\n\n👉 C'est un contrôle qualité sur le tapis roulant. La pièce passe devant un inspecteur : si elle respecte le critère (par exemple \"l'email contient un @\"), elle continue ; sinon, l'inspecteur la retire et la boite ressort vide.\n\nUn **prédicat** (le test que tu passes à `filter`) est simplement une fonction qui répond par oui ou non à propos de la valeur."
+        },
+        {
+          "type": "CODE",
+          "title": "filter en pratique",
+          "position": 5,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> email = Optional.of(\"ana@example.com\");\n\n        // On garde l'email seulement s'il contient un @.\n        Optional<String> valide = email.filter(e -> e.contains(\"@\"));\n        System.out.println(valide); // Optional[ana@example.com]\n\n        // Une valeur qui échoue au test donne une boite vide.\n        Optional<String> sansArobase = Optional.of(\"ana.example.com\");\n        System.out.println(sansArobase.filter(e -> e.contains(\"@\"))); // Optional.empty\n\n        // On enchaine : filtrer puis transformer, toujours sans NPE.\n        Optional<Integer> longueur = email\n            .filter(e -> e.contains(\"@\"))\n            .map(e -> e.length());\n        System.out.println(longueur); // Optional[15]\n    }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Enchaine les transformations",
+          "position": 6,
+          "body": "Tu as un Optional<String> `nom`. Écris une chaine qui : garde le nom seulement s'il n'est pas vide, puis le met en majuscules. Quel type obtiens tu au bout ? Que se passe t il si le nom de départ est une chaine vide ?",
+          "solution": "Optional<String> resultat = nom\n    .filter(n -> !n.isEmpty())\n    .map(n -> n.toUpperCase());\n\nLe type obtenu est Optional<String>. Si le nom de départ est une chaine vide, le filter échoue (la condition !n.isEmpty() est fausse), donc on obtient une boite vide ; le map qui suit ne fait rien. Aucun NullPointerException, jamais."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : transformer map, flatMap, filter",
+          "position": 7,
+          "quizRef": "optional-moderne-transformer-map-flatmap-filter"
+        }
+      ]
+    },
+    {
+      "slug": "extraire-la-valeur",
+      "title": "Extraire la valeur",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Sortir la valeur de la boite, en toute sécurité",
+          "position": 0,
+          "body": "À un moment, il faut bien **récupérer** la valeur pour l'utiliser, ou décider quoi faire quand elle est absente. `Optional` offre plusieurs méthodes pour ça, et le bon réflexe est de **toujours fournir un plan B** pour le cas vide.\n\n👉 Tu ouvres la boite aux lettres. Trois attitudes saines : prendre la lettre si elle existe sinon en prendre une par défaut, ou bien dire clairement \"s'il n'y a rien, voici l'erreur à signaler\", ou encore \"s'il y a une lettre, fais ceci avec\". Ce qu'on évite, c'est de supposer aveuglément qu'il y a une lettre.\n\nVoyons les méthodes une par une."
+        },
+        {
+          "type": "CODE",
+          "title": "orElse et orElseGet : une valeur par défaut",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> trouve = Optional.of(\"ana@example.com\");\n        Optional<String> vide = Optional.empty();\n\n        // orElse : renvoie la valeur, ou l'argument par défaut si vide.\n        System.out.println(trouve.orElse(\"inconnu\")); // ana@example.com\n        System.out.println(vide.orElse(\"inconnu\"));   // inconnu\n\n        // orElseGet : pareil, mais le défaut est calculé SEULEMENT si vide.\n        // Utile quand produire le défaut coute cher (appel, calcul).\n        String valeur = vide.orElseGet(() -> genererDefautCouteux());\n        System.out.println(valeur); // defaut-calcule\n    }\n\n    static String genererDefautCouteux() {\n        return \"defaut-calcule\";\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "orElse contre orElseGet : une nuance importante",
+          "position": 2,
+          "body": "`orElse(x)` et `orElseGet(() -> x)` donnent le même résultat, mais pas au même cout. Avec `orElse(x)`, la valeur par défaut `x` est **toujours évaluée**, même quand la boite est pleine et qu'on n'en a pas besoin. Avec `orElseGet`, tu passes une **fonction** qui n'est appelée **que** si la boite est vide.\n\n👉 `orElse` prépare toujours le plat de secours, même si le plat principal arrive. `orElseGet` ne cuisine le plat de secours que si le principal manque.\n\nQuand le défaut est une simple constante, `orElse` convient très bien. Quand le produire est couteux (une requête, un gros calcul), préfère `orElseGet` pour ne pas travailler pour rien."
+        },
+        {
+          "type": "CODE",
+          "title": "orElseThrow : exiger une valeur",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> vide = Optional.empty();\n\n        // orElseThrow : si présent, renvoie la valeur ;\n        // si vide, lève une exception que TU choisis, avec un message clair.\n        try {\n            String email = vide.orElseThrow(\n                () -> new IllegalStateException(\"email introuvable\"));\n            System.out.println(email);\n        } catch (IllegalStateException e) {\n            System.out.println(\"Erreur : \" + e.getMessage());\n        }\n\n        // Sans argument, orElseThrow() lève NoSuchElementException.\n        // Mieux que get() car le nom dit clairement \"ça peut échouer\".\n    }\n}"
+        },
+        {
+          "type": "CODE",
+          "title": "ifPresent et ifPresentOrElse : agir sans extraire",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> trouve = Optional.of(\"ana@example.com\");\n        Optional<String> vide = Optional.empty();\n\n        // ifPresent : exécute l'action SEULEMENT si une valeur est là.\n        trouve.ifPresent(e -> System.out.println(\"Envoi vers \" + e));\n        vide.ifPresent(e -> System.out.println(\"jamais affiché\"));\n\n        // ifPresentOrElse : une action si présent, une autre si vide.\n        vide.ifPresentOrElse(\n            e -> System.out.println(\"Envoi vers \" + e),\n            () -> System.out.println(\"Aucun email : rien à envoyer\"));\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Quelle méthode choisir",
+          "position": 5,
+          "body": "Un repère rapide pour choisir :\n\n- Tu veux une **valeur de repli simple** : `orElse(defaut)`.\n- Le repli est **couteux à produire** : `orElseGet(() -> ...)`.\n- L'absence est une **erreur** qui doit arrêter le flux : `orElseThrow(() -> ...)`.\n- Tu veux juste **faire quelque chose** quand c'est présent : `ifPresent(...)`.\n- Tu veux **deux comportements** selon présent ou absent : `ifPresentOrElse(..., ...)`.\n\n👉 Le point commun de toutes ces méthodes : elles te forcent à prévoir le cas vide. C'est tout l'intérêt d'`Optional` par rapport à `null`, qui te laissait l'oublier."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Extrais proprement",
+          "position": 6,
+          "body": "Tu as Optional<String> `pseudo`. Écris le code pour : 1) obtenir le pseudo ou \"anonyme\" par défaut ; 2) lever une IllegalStateException avec le message \"pseudo requis\" si absent ; 3) afficher \"Bonjour <pseudo>\" uniquement s'il est présent.",
+          "solution": "1) String p = pseudo.orElse(\"anonyme\");\n2) String p2 = pseudo.orElseThrow(() -> new IllegalStateException(\"pseudo requis\"));\n3) pseudo.ifPresent(x -> System.out.println(\"Bonjour \" + x));\n\nAucune de ces lignes n'utilise get() sans vérification, et chacune traite explicitement le cas où la boite est vide."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : extraire la valeur",
+          "position": 7,
+          "quizRef": "optional-moderne-extraire-la-valeur"
+        }
+      ]
+    },
+    {
+      "slug": "pieges-a-eviter",
+      "title": "Pièges à éviter",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Piège 1 : get() sans vérifier",
+          "position": 0,
+          "body": "La méthode `get()` sort la valeur de la boite. Mais si la boite est vide, elle lève une `NoSuchElementException` (\"aucun élément\"). Appeler `get()` sans avoir vérifié la présence, c'est recréer exactement le problème du `null` qu'on cherchait à fuir.\n\n👉 C'est ouvrir la boite aux lettres en arrachant la lettre sans regarder : s'il n'y a rien, tu te blesses. Autant garder le `null` et ses NullPointerException.\n\nLe bon réflexe : ne jamais appeler `get()` nu. Utilise plutôt `orElse`, `orElseGet`, `orElseThrow`, `map` ou `ifPresent`, qui traitent le cas vide pour toi. Si tu veux vraiment exiger la valeur, `orElseThrow()` dit clairement ton intention et donne une meilleure erreur."
+        },
+        {
+          "type": "CODE",
+          "title": "Le mauvais et le bon réflexe",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class Demo {\n    public static void main(String[] args) {\n        Optional<String> email = Optional.empty();\n\n        // MAUVAIS : get() sur une boite potentiellement vide -> exception.\n        // String e = email.get(); // NoSuchElementException\n\n        // BON : on fournit toujours un plan B.\n        String avecDefaut = email.orElse(\"inconnu\");\n        String ouErreur = email.orElseThrow(\n            () -> new IllegalStateException(\"email manquant\"));\n\n        // Encore mieux souvent : rester dans la boite avec map / ifPresent.\n        email.map(String::toUpperCase)\n             .ifPresent(System.out::println);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Piège 2 : Optional comme champ ou comme paramètre",
+          "position": 2,
+          "body": "`Optional` a été conçu pour **un seul usage** : être le **type de retour** d'une méthode qui peut ne rien renvoyer. Ce n'est pas un conteneur à usage général.\n\nÉvite de l'utiliser comme **champ** d'une classe (un champ est une variable qui appartient à l'objet) : ça alourdit l'objet et complique la sérialisation. Évite le aussi comme **paramètre** de méthode (une valeur passée à l'appel) : l'appelant devrait alors emballer son argument dans un Optional, ce qui est pénible, et il peut en plus te passer `null` à la place de la boite. On gagne en clarté avec deux méthodes, ou un simple test de nullité à l'entrée.\n\n👉 Optional est une étiquette \"colis fragile, peut être vide\" collée sur ce qui **sort** d'une méthode, pas une boite dans laquelle on range tout, partout."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Où Optional a sa place, et où il ne l'a pas",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Optional&lt;T&gt;\"] --> B[\"Retour de méthode\\nUSAGE RECOMMANDÉ\"]\n    A --> C[\"Champ de classe\\nà éviter\"]\n    A --> D[\"Paramètre de méthode\\nà éviter\"]\n    B --> E[\"findUser(id)\\nrenvoie Optional&lt;User&gt;\"]\n    C --> F[\"préférer un champ\\nnormal + test de null\"]\n    D --> G[\"préférer une surcharge\\nou un argument simple\"]"
+        },
+        {
+          "type": "CODE",
+          "title": "Utiliser Optional là où il brille",
+          "position": 4,
+          "codeLanguage": "java",
+          "body": "import java.util.Optional;\n\npublic class DepotUtilisateur {\n    // BIEN : Optional en TYPE DE RETOUR, l'absence est explicite.\n    public Optional<String> emailDe(String id) {\n        if (id.equals(\"ana\")) return Optional.of(\"ana@example.com\");\n        return Optional.empty();\n    }\n\n    // ÉVITER (montré pour contraste) : Optional en paramètre.\n    // public void traiter(Optional<String> email) { ... }\n    // Préfère plutôt un paramètre simple :\n    public void traiter(String email) {\n        if (email == null) return; // test de nullité au bord\n        System.out.println(\"Traitement de \" + email);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Piège 3 : réintroduire null dans un Optional",
+          "position": 5,
+          "body": "Dernier piège, sournois : un Optional n'est utile que si tu ne lui réinjectes pas de `null`. Ne renvoie **jamais** `null` à la place d'un `Optional` (renvoie `Optional.empty()`), et ne mets pas de `null` dans la boite avec `Optional.of(null)` (qui plante de toute façon). Quand la valeur peut être nulle, passe par `Optional.ofNullable`.\n\n👉 Fournir une boite aux lettres, c'est promettre qu'on regardera toujours dedans avant de lire. Y glisser un `null` ou renvoyer `null` au lieu de la boite, c'est casser cette promesse et ramener tous les pièges du départ.\n\nEn résumé : `Optional` pour les retours, jamais de `null` autour de lui, et jamais de `get()` sans filet."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Corrige le code",
+          "position": 6,
+          "body": "Un collègue écrit : public Optional<String> nomDe(String id) { String n = chercher(id); return Optional.of(n); } où chercher peut renvoyer null. Quels problèmes vois tu ? Corrige la méthode.",
+          "solution": "Deux problèmes. 1) Si chercher renvoie null, Optional.of(null) lève immédiatement un NullPointerException. 2) L'intention est justement de représenter l'absence proprement. Correction : utiliser ofNullable.\n\npublic Optional<String> nomDe(String id) {\n    String n = chercher(id);\n    return Optional.ofNullable(n); // null devient une boite vide\n}\n\nAinsi un résultat absent donne Optional.empty() au lieu de planter."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : pièges à éviter",
+          "position": 7,
+          "quizRef": "optional-moderne-pieges-a-eviter"
+        }
+      ]
+    }
+  ]
+}

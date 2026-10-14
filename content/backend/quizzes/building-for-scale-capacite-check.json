@@ -1,0 +1,101 @@
+{
+  "ref": "building-for-scale-capacite-check",
+  "node": "building-for-scale",
+  "lesson": "ingenierie-capacite-latence",
+  "title": "Quiz, Capacité & latence",
+  "description": "Percentiles vs moyenne, loi de Little, queue-based load leveling.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi la latence moyenne est-elle trompeuse pour juger l'expérience utilisateur ?",
+      "justification": "Elle est écrasée par la masse des requêtes rapides et cache la traîne lente (tail latency) ; on regarde les percentiles hauts comme le P99.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Elle cache la traîne lente ; il faut regarder le P99",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle est toujours plus grande que le maximum",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle ne se calcule pas sur un serveur web",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie un P99 de 2 secondes ?",
+      "justification": "Le P99 décrit le seuil sous lequel passent 99 % des requêtes ; autrement dit, 1 % des requêtes sont plus lentes que 2 s.",
+      "position": 1,
+      "options": [
+        {
+          "label": "99 % des requêtes sont plus rapides que 2 s (1 % plus lentes)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La requête moyenne dure 2 s",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il y a 99 requêtes de 2 s par seconde",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que relie la loi de Little (L = λ × W) ?",
+      "justification": "Le nombre de requêtes en cours (L) = débit d'arrivée (λ) × temps passé dans le système (W) ; utile pour dimensionner pools et files.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Requêtes en cours = débit d'arrivée × temps passé dans le système",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Latence = CPU × mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Coût = nombre d'index × taille du cache",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un envoi de newsletter provoque un pic massif de tâches d'e-mails qui submerge le backend. Quelle approche lisse ce pic sans sur-dimensionner en permanence ?",
+      "justification": "Le queue-based load leveling : une file encaisse le pic, des workers consomment à un rythme soutenable (on échange un peu de latence contre de la stabilité).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le queue-based load leveling (file tampon + workers)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Traiter chaque e-mail de façon synchrone dans la requête",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer les timeouts pour aller plus vite",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

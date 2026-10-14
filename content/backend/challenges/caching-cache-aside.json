@@ -1,0 +1,10 @@
+{
+  "node": "caching",
+  "lesson": "redis-et-invalidation",
+  "title": "Implémenter une lecture cache-aside",
+  "statement": "Complète la méthode `getUser` en suivant le pattern **cache-aside** : (1) chercher l'utilisateur dans le cache sous la clé `user:<id>` ; (2) si c'est un **hit** (trouvé), le renvoyer directement ; (3) si c'est un **miss** (absent), le charger depuis `repository`, le **ranger dans le cache**, puis le renvoyer. On dispose d'un `cache` avec `get(key)` / `put(key, value)` et d'un `repository` avec `findById(id)`.",
+  "skeleton": "public User getUser(String id) {\n    String key = \"user:\" + id;\n    // 1. chercher dans le cache\n    // 2. hit -> renvoyer la valeur du cache\n    // 3. miss -> charger en base, remplir le cache, renvoyer\n}",
+  "solution": "public User getUser(String id) {\n    String key = \"user:\" + id;\n    User cached = cache.get(key);\n    if (cached != null) {\n        return cached; // hit : on renvoie la valeur du cache\n    }\n    User user = repository.findById(id); // miss : on charge la source\n    cache.put(key, user);                // on remplit le cache au passage\n    return user;\n}",
+  "keyPoints": ["cache.get", "repository.findById", "cache.put", "return"],
+  "language": "java"
+}

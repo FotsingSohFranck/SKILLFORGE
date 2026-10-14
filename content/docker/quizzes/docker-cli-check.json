@@ -1,0 +1,119 @@
+{
+  "ref": "docker-cli-check",
+  "node": "docker-cli",
+  "lesson": "nettoyage-et-hygiene",
+  "title": "La CLI Docker",
+  "description": "Objets + verbes, format/filtres, nettoyage, prune et ses dangers.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment est organisée la CLI Docker moderne ?",
+      "justification": "Par groupes d'objets (image, container, volume, network) avec des verbes communs (ls, inspect, rm, prune).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par objets (image/container/volume/network) et verbes communs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par ordre alphabétique aléatoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une seule commande fait tout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment extraire proprement une seule valeur (ex. l'IP) de `docker inspect` dans un script ?",
+      "justification": "Avec --format et un template Go, qui renvoie directement le champ voulu sans parser tout le JSON.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Avec l'option --format (template Go)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En lisant le JSON à l'œil",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Avec docker logs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande diagnostique ce que Docker consomme sur le disque ?",
+      "justification": "docker system df montre la répartition de l'espace (images, conteneurs, volumes, cache de build).",
+      "position": 2,
+      "options": [
+        {
+          "label": "docker system df",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker run df",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "docker version",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `docker volume prune` demande-t-il de la prudence ?",
+      "justification": "Il supprime les volumes non attachés, qui peuvent contenir des données (base momentanément détachée), perte possible.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Il peut supprimer des volumes contenant des données",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il redémarre le daemon",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il ne fait rien d'utile",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sur un serveur de production, lancer `docker system prune -a --volumes` à l'aveugle est une opération sûre.",
+      "justification": "Faux : cela supprime toutes les images non utilisées et les volumes non attachés (données possibles) ; en prod, on cible précisément et on sauvegarde avant.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

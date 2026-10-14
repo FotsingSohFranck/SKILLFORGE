@@ -1,0 +1,96 @@
+{
+  "ref": "running-containers-compose-check",
+  "node": "running-containers",
+  "lesson": "docker-compose",
+  "title": "Quiz, Docker Compose",
+  "description": "Stack multi-services, résolution par nom, depends_on/healthcheck, volumes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un fichier `compose.yaml` (Docker Compose) ?",
+      "justification": "Il décrit tout un stack multi-services (images, ports, variables, volumes, dépendances) dans un seul fichier, lancé relié en une commande `docker compose up`, de façon reproductible.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Décrire un stack multi-services et le démarrer relié en une commande",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Construire une image sans écrire de Dockerfile",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Compresser les images pour gagner de la place",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un stack Compose, comment le service `api` joint-il la base de données ?",
+      "justification": "Compose crée un réseau où chaque service est joignable par son NOM : l'api écrit simplement `db` comme adresse, sans connaître d'adresse IP (qui changerait à chaque redémarrage).",
+      "position": 1,
+      "options": [
+        {
+          "label": "En utilisant le nom du service (`db`) comme adresse",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En codant l'adresse IP du conteneur en dur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En passant par Internet et un nom de domaine public",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ton API démarre mais échoue avec « connection refused » vers la base, alors que `db` est déclaré dans `depends_on`. Pourquoi, et comment corriger ?",
+      "justification": "depends_on garantit seulement l'ORDRE de démarrage, pas que la base soit PRÊTE. Il faut un healthcheck sur db + `condition: service_healthy` pour que Compose attende qu'elle accepte réellement les connexions.",
+      "position": 2,
+      "options": [
+        {
+          "label": "depends_on assure l'ordre, pas la disponibilité : ajouter un healthcheck + condition service_healthy",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "depends_on ne marche qu'avec MySQL : changer de base",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le réseau est désactivé par défaut : il faut l'activer à la main",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Déclarer un volume nommé pour la base (par ex. `pgdata:/var/lib/postgresql/data`) permet de conserver les données même après un `docker compose down` puis une recréation des conteneurs.",
+      "justification": "Vrai : un volume nommé vit en dehors du conteneur ; les données y survivent à la suppression et à la recréation du conteneur. Sans volume, les données seraient perdues.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

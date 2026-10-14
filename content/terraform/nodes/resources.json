@@ -1,0 +1,168 @@
+{
+  "node": "resources",
+  "lessons": [
+    {
+      "slug": "la-ressource-brique-de-base",
+      "title": "La ressource, brique de base",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une ressource = un objet d'infrastructure",
+          "body": "Terraform sert à **créer et gérer ton infrastructure** (tes serveurs, tes réseaux, tes bases de données) en l'**écrivant sous forme de texte** au lieu de cliquer dans une interface web. On appelle ça l'**infrastructure as code**, souvent abrégé **IaC**, littéralement « l'infrastructure décrite comme du code ».\n\nLa brique de base de ce code, c'est la **ressource**. Une ressource décrit **un objet réel** que tu veux voir exister : une machine virtuelle, un espace de stockage (un *bucket*), un réseau, une entrée DNS...\n\n👉 **Analogie** : une ressource, c'est comme une **ligne sur ta liste de courses**. Tu écris « 1 serveur, taille moyenne » comme tu écrirais « 1 litre de lait » ; Terraform se charge ensuite d'aller « faire les courses », c'est-à-dire de créer réellement l'objet chez le fournisseur cloud.\n\nLa syntaxe d'une ressource est **toujours la même** :\n\n`resource \"TYPE\" \"NOM\" { arguments }`\n\nDécryptons chaque partie sur l'exemple `resource \"aws_instance\" \"web\" { ... }` :\n- **`resource`** : le mot-clé qui annonce « je décris un objet à gérer ».\n- **le TYPE** (`aws_instance`) : *quel genre* d'objet. Ici, une *instance*, c'est-à-dire une machine virtuelle, chez AWS. Ce type est fourni par le **provider** (le composant qui sait parler à un fournisseur précis : AWS, Google Cloud, Azure...). Le type décide quels **arguments** tu as le droit d'écrire.\n- **le NOM** (`web`) : une **étiquette interne** à ton code, que *toi* tu choisis, pour pouvoir désigner cette ressource ailleurs (par exemple `aws_instance.web.id`). Ce nom n'existe que dans Terraform ; il n'apparaît pas chez le fournisseur cloud.\n\nChaque **argument** entre les accolades règle un paramètre de l'objet réel (sa taille, sa région, son image de départ...).\n\nEnfin, Terraform note tout ce qu'il a créé dans un fichier appelé l'**état** (en anglais *state*) : une sorte de **carnet** où il écrit « voici les objets qui existent vraiment et à quelle ligne de code ils correspondent ». C'est grâce à ce carnet qu'il saura, la prochaine fois, ce qu'il faut créer, modifier ou laisser tel quel."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Déclarer et référencer des ressources",
+          "codeLanguage": "hcl",
+          "body": "resource \"aws_vpc\" \"main\" {\n  cidr_block = \"10.0.0.0/16\"\n}\n\nresource \"aws_subnet\" \"app\" {\n  vpc_id     = aws_vpc.main.id      # référence -> dépendance implicite\n  cidr_block = \"10.0.1.0/24\"\n}\n\n# Attributs calculés : disponibles APRÈS création (id, arn, adresse IP...)\n# On les référence ; Terraform ordonne la création en conséquence."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Arguments vs attributs",
+          "body": "Voici une distinction qui revient tout le temps et qu'il vaut mieux comprendre dès maintenant : la différence entre **arguments** et **attributs**.\n\nLes **arguments**, ce sont les valeurs que *toi* tu écris en entrée, pour décrire l'objet voulu : la taille de la machine, le bloc d'adresses d'un réseau (`cidr_block`), la région... Ils expriment ton **intention**, l'état que tu **souhaites**.\n\nLes **attributs**, ce sont les valeurs **calculées par le fournisseur cloud** une fois l'objet réellement créé : son identifiant unique (`id`), son **ARN** (de l'anglais *Amazon Resource Name*, une sorte de code-barres unique qu'AWS colle sur chaque objet), l'adresse IP qui lui a été attribuée... Tu ne les choisis pas : tu les **lis** après coup (`aws_vpc.main.id`).\n\n👉 **Analogie** : c'est comme commander une pizza. Les **arguments**, c'est ce que tu dis au comptoir (« une grande, chèvre-miel, à emporter »). L'**attribut**, c'est le **numéro de commande** que la caisse t'imprime *une fois* la commande passée : tu ne l'inventes pas, c'est la pizzeria qui te le donne, et tu ne le connais **qu'après** avoir commandé.\n\nConséquence très concrète : beaucoup d'attributs ne sont **connus qu'après** la création. Dans l'aperçu de Terraform (le **plan**, c'est-à-dire la prévisualisation de ce qui va se passer), tu verras alors la mention **`(known after apply)`** (« connu seulement après l'application »). C'est parfaitement normal : la valeur n'existe pas encore. Et si une ressource a besoin de l'attribut d'une autre (par exemple un sous-réseau qui référence l'`id` de son réseau parent), Terraform comprend qu'il doit créer la première **avant** la seconde."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Dans un plan Terraform, vous voyez qu'un attribut d'une nouvelle ressource affiche `(known after apply)`. Qu'est-ce que cela signifie, et pourquoi Terraform ne peut-il pas afficher la valeur avant l'apply ?",
+          "solution": "`(known after apply)` signifie que la valeur de cet attribut n'est pas connue au moment du plan et ne le sera qu'APRÈS l'application (apply), c'est-à-dire après la création réelle de la ressource. Cela concerne les ATTRIBUTS CALCULÉS par le provider/la plateforme lors de la création : un id de ressource, un ARN, une adresse IP attribuée dynamiquement, un endpoint généré, etc. Terraform ne peut pas les afficher avant l'apply parce que ces valeurs sont DÉCIDÉES par la plateforme cloud au moment de la création, elles n'existent pas encore lors du plan, qui n'est qu'une prévisualisation sans rien créer. Terraform sait qu'il y AURA une valeur, mais pas laquelle. Conséquences pratiques : (1) c'est parfaitement normal pour tout ce qui est généré à la création ; (2) si un tel attribut est référencé par une autre ressource, Terraform ordonne la création dans le bon ordre (créer la ressource source d'abord pour connaître la valeur, puis celle qui l'utilise), ce qui peut faire apparaître d'autres champs dépendants aussi en (known after apply) ; (3) c'est pourquoi certains plans ne peuvent pas tout détailler à l'avance quand des ressources en dépendent en chaîne. En résumé : arguments (que vous fixez en entrée) = connus au plan ; attributs calculés (id, arn, IP...) = connus seulement après apply, d'où le marqueur (known after apply)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, La ressource, brique de base",
+          "quizRef": "resources-brique-check"
+        }
+      ]
+    },
+    {
+      "slug": "comportement-et-cycle-de-vie",
+      "title": "Comportement & cycle de vie",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Create, Update, Replace, Destroy",
+          "body": "Une fois tes ressources créées, tu vas forcément **modifier ton code** un jour (changer une taille, ajouter un tag, mettre à jour une image). À chaque fois, Terraform compare **ce que tu décris** (le code) avec **ce qui existe déjà** (son état), et choisit tout seul l'**action** à mener. Il y en a quatre :\n\n- **Create** (créer) : la ressource est nouvelle dans le code, Terraform la fabrique. Symbole dans le plan : **`+`**.\n- **Update in place** (modifier sur place) : tu as changé un paramètre qui peut être ajusté **sans tout refaire** (par exemple ajouter un tag). Terraform modifie l'objet existant sans le détruire. Symbole : **`~`**.\n- **Destroy** (détruire) : tu as **retiré** la ressource du code, donc Terraform la supprime. Symbole : **`-`**.\n- **Replace** (remplacer) : tu as changé un paramètre **immuable**, c'est-à-dire un paramètre qu'on **ne peut pas** modifier à chaud (souvent l'image de départ d'une machine, ou le nom d'un objet). Terraform est alors obligé de **détruire l'objet, puis d'en recréer un neuf**. Symbole : **`-/+`**.\n\n👉 **Analogie** : imagine que tu personnalises une voiture. Repeindre un pare-chocs, c'est un *update in place* (on garde la voiture, on ajuste un détail). Mais changer la **taille du moteur** ne se fait pas sur place : il faut mettre la voiture à la casse et en reprendre une neuve, c'est un *replace*.\n\nLe **replace** (`-/+`) est de loin le plus **dangereux** : détruire puis recréer un objet, c'est une **interruption de service** et parfois une **perte de données** (imagine une base de données recréée à vide !). D'où un réflexe vital : **lire attentivement le plan** avant d'appliquer, et **traquer les `-/+`**. Le plan est justement là pour te prévenir *avant* que quoi que ce soit ne soit touché."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Lire les actions dans un plan",
+          "codeLanguage": "bash",
+          "body": "terraform plan\n#  + aws_subnet.app          -> sera créé\n#  ~ aws_instance.web        -> modifié en place (ex. tags)\n#  -/+ aws_instance.db       -> DÉTRUIT puis RECRÉÉ (attention !)\n#      ~ ami: \"ami-old\" -> \"ami-new\" (forces replacement)\n#  - aws_s3_bucket.old       -> sera détruit\n#\n# Plan: 1 to add, 1 to change, 1 to destroy, 1 to replace."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Comment Terraform choisit l'action",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Tu modifies le code, puis terraform plan\"] --> B{\"La ressource est-elle encore dans le code ?\"}\n  B -->|\"Non, retirée du code\"| D[\"Destroy : -\"]\n  B -->|\"Oui, et elle est nouvelle\"| C[\"Create : +\"]\n  B -->|\"Oui, elle existe et a changé\"| E{\"Le paramètre modifié est-il changeable a chaud ?\"}\n  E -->|\"Oui, modifiable\"| F[\"Update in place : ~\"]\n  E -->|\"Non, il est immuable\"| G[\"Replace : -/+ (DÉTRUIT puis RECRÉÉ)\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Terraform ne connaît que ce qu'il gère (niveau expert)",
+          "body": "Un principe à graver dans le marbre : Terraform ne gère **que les ressources décrites dans son code** et notées dans son **état**. Tout ce qui existe **à côté** (un serveur créé à la main dans la console web, ou par un autre outil) lui est totalement **invisible** : il ne le touchera pas, mais ne le protégera pas non plus.\n\nDe ce principe découlent deux conséquences importantes.\n\n**La dérive** (en anglais *drift*, « dérive, écart ») : c'est quand le monde réel ne correspond plus à ce que dit le code. Par exemple, quelqu'un modifie **à la main**, dans la console cloud, une ressource que Terraform gère. Au prochain `plan`, Terraform **rafraîchit** l'état réel, **repère l'écart**, et **propose de le corriger** en ramenant le réel vers le code. Pour lui, le code fait foi : c'est la vérité, et le réel doit s'y conformer.\n\n👉 **Analogie** : Terraform, c'est un **jardinier maniaque** avec un plan précis de son jardin. Si tu déplaces une plante en douce pendant la nuit, la prochaine fois qu'il passe il la **remet exactement là où son plan l'indique**, sans état d'âme.\n\n**La suppression** : retirer une ressource du code, ce n'est pas « arrêter de la surveiller », c'est dire « **je ne veux plus cet objet** ». Au prochain apply, Terraform le **détruit** purement et simplement.\n\nD'où **la règle d'or** : on ne modifie **jamais à la main** une ressource gérée par Terraform (sinon dérive, corrections surprises et incidents), et on **relit toujours le plan** avant d'appliquer, en particulier les suppressions (`-`) et les remplacements (`-/+`)."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un administrateur modifie manuellement (dans la console cloud) la taille d'une instance qui est gérée par Terraform. Une semaine plus tard, un collègue lance `terraform apply` pour un changement sans rapport. Que va faire Terraform vis-à-vis de la taille de l'instance, et quelle bonne pratique cela impose-t-il ?",
+          "solution": "Terraform va détecter une DÉRIVE (drift) et vouloir la CORRIGER en ramenant le réel à ce que décrit le code. Concrètement : Terraform gère cette instance et suit sa configuration désirée dans son état/son code (où la taille d'origine est déclarée). Au `plan`/`apply`, il rafraîchit l'état réel, constate que la taille actuelle (modifiée à la main) ne correspond plus au code, et propose donc de la RÉTABLIR à la valeur du code, potentiellement en modifiant l'instance, voire en la recréant si le changement de taille impose un replace selon le type de ressource. Le collègue, qui voulait juste appliquer un changement sans rapport, verra donc dans le plan une modification INATTENDUE de l'instance : Terraform annule silencieusement la modification manuelle. C'est le comportement voulu (Terraform maintient le réel conforme au code), mais c'est une source de surprises et d'incidents si on n'y prend pas garde. Bonnes pratiques que cela impose : (1) NE JAMAIS modifier à la main une ressource gérée par Terraform, toute modification doit passer par le code (édition + revue + apply), sinon elle sera perdue et créera de la confusion. (2) TOUJOURS lire le plan avant d'appliquer, surtout pour repérer des changements inattendus (comme ici) ou des remplacements (-/+) : le plan aurait révélé la correction de dérive avant qu'elle ne soit appliquée. (3) Si un changement manuel devait vraiment être conservé, il faut le reporter dans le code (ou l'importer/ajuster), pas le laisser en dérive. En résumé : les ressources gérées par Terraform ne se modifient que via Terraform ; sinon, la prochaine exécution écrase le changement manuel, d'où l'importance de relire systématiquement le plan."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Ressources",
+          "quizRef": "resources-check"
+        }
+      ]
+    },
+    {
+      "slug": "refactoring-declaratif",
+      "title": "Refactoring déclaratif : moved & removed",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Renommer sans détruire : le bloc moved",
+          "body": "Un jour, tu voudras **réorganiser ton code** sans changer ce qui tourne réellement : renommer une ressource pour un nom plus clair (`aws_instance.web` devient `aws_instance.frontend`), ou la ranger dans un **module** (un dossier de code réutilisable). C'est ce qu'on appelle du **refactoring** : améliorer la *forme* du code sans changer son *effet*.\n\nLe piège : dans l'état de Terraform, chaque ressource est repérée par son **adresse** (son type + son nom, par exemple `aws_instance.web`). Renommer la ressource **change son adresse**. Or, naïvement, Terraform voit l'ancienne adresse **disparaître** (donc « à détruire ») et une nouvelle **apparaître** (donc « à créer »). Résultat : il proposerait de **détruire puis recréer** ta ressource... une catastrophe pour un serveur de production !\n\nAvant, on réglait ça avec la commande `terraform state mv`. Le souci : c'est une commande **impérative** (un ordre qu'on tape à la main) que **chaque** personne de l'équipe et la **CI** (l'automatisation qui déroule Terraform toute seule) devaient penser à jouer, chacune sur son poste. Facile à oublier, source d'erreurs.\n\nLa solution moderne est **déclarative** : le bloc **`moved`**. Au lieu de taper une commande, tu **écris dans ton code** : `moved { from = ancienne_adresse, to = nouvelle_adresse }`. Terraform comprend alors « ce n'est pas une destruction, c'est juste un **renommage** » et met à jour l'état **sans rien toucher** à l'infrastructure réelle.\n\n👉 **Analogie** : tu ne **jettes pas** un dossier pour en refaire un identique juste parce que tu changes son étiquette. Le bloc `moved`, c'est **coller une nouvelle étiquette** sur le même dossier ; le contenu, lui, ne bouge pas.\n\nComme ce bloc vit **dans le code** (versionné, relu en revue), il s'applique **automatiquement** pour toute l'équipe et la CI : plus personne n'a de commande manuelle à ne pas oublier.\n\n(Petit rappel : **déclaratif** = tu décris *l'état voulu* et l'outil se débrouille pour l'atteindre ; **impératif** = tu donnes *les étapes une par une* toi-même. Terraform est déclaratif par nature, et les blocs `moved`/`removed` étendent cette philosophie au refactoring.)"
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "moved & removed",
+          "codeLanguage": "hcl",
+          "body": "# Renommer/déplacer une ressource sans la détruire\nmoved {\n  from = aws_instance.web\n  to   = aws_instance.frontend\n}\nresource \"aws_instance\" \"frontend\" { /* ... */ }\n\n# Retirer une ressource de Terraform SANS la détruire (déclaratif)\nremoved {\n  from = aws_s3_bucket.legacy\n  lifecycle { destroy = false }   # on cesse de la gérer, l'objet reste\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le bloc removed : cesser de gérer sans détruire",
+          "body": "Le bloc **`removed`** (disponible depuis Terraform 1.7) est le **symétrique** du `moved`, et la version **déclarative** de l'ancienne commande `terraform state rm`.\n\nLe besoin : parfois tu veux que Terraform **arrête de gérer** une ressource, **sans pour autant la détruire** dans le cloud. Par exemple, un vieux bucket que tu préfères désormais gérer autrement, mais que tu ne veux surtout pas supprimer.\n\nLe piège (déjà vu) : si tu te contentes de **retirer** le bloc `resource` du code, Terraform comprend « on n'en veut plus » et le **détruit**. Ce n'est pas ce que tu veux ici.\n\nLa solution : tu retires le bloc `resource`, **et** tu ajoutes un bloc `removed { from = adresse  lifecycle { destroy = false } }`. Le `destroy = false` est la clé : il dit à Terraform « **oublie** cet objet (retire-le de ton état), mais **ne le supprime pas** réellement ».\n\n👉 **Analogie** : c'est comme **rendre à la bibliothèque un livre que tu avais emprunté**. Le livre continue d'exister ; simplement, ce n'est plus toi qui en es responsable. Tu cesses de le gérer sans le détruire.\n\nEnsemble, les blocs `moved` et `removed` rendent le remaniement de l'état **déclaratif, versionné et sûr** : tout se passe dans le code (relu, historisé), et le `plan` te montre à l'avance qu'il n'y a **ni création ni destruction**, juste un déplacement ou un retrait de gestion. Fini les commandes `state mv` / `state rm` impératives que chacun devait penser à jouer : c'est un vrai changement dans la façon d'opérer Terraform au quotidien."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe veut réorganiser son code en déplaçant plusieurs ressources de production dans un nouveau module. Elle craint que ce refactoring ne détruise/recrée les ressources. Comment le faire de façon sûre, déclarative et automatique pour toute l'équipe ?",
+          "solution": "On utilise des blocs moved. Le problème est que déplacer une ressource dans un module CHANGE son adresse dans l'état (par exemple aws_instance.db devient module.data.aws_instance.db). Si on se contente de déplacer le code, Terraform voit l'ancienne adresse disparaître (à détruire) et la nouvelle apparaître (à créer), donc il propose de DÉTRUIRE puis RECRÉER les ressources, inacceptable pour de la production (interruption, perte de données). Solution sûre et déclarative : pour chaque ressource déplacée, ajouter un bloc moved indiquant l'ancienne et la nouvelle adresse : `moved { from = aws_instance.db  to = module.data.aws_instance.db }`. Terraform comprend alors qu'il s'agit d'un simple RENOMMAGE/DÉPLACEMENT dans l'état, pas d'une suppression suivie d'une création : il met à jour l'adresse dans le state SANS toucher à l'infrastructure réelle (le plan montre « moved », pas de create/destroy). On place ces blocs moved dans le code (à côté du nouveau module), on vérifie avec terraform plan que le plan ne montre QUE des déplacements (aucun destroy/create), puis on applique. Pourquoi c'est mieux que terraform state mv : (1) DÉCLARATIF et VERSIONNÉ, les blocs moved vivent dans le code, revus en pull request, faisant partie de l'historique ; (2) AUTOMATIQUE pour toute l'équipe et la CI, chacun qui applique le code (ou la CI) exécute le déplacement automatiquement, alors que state mv est une commande impérative que CHAQUE personne/pipeline devrait penser à jouer manuellement sur le bon état (source d'erreurs et de divergences) ; (3) SÛR, le plan permet de vérifier avant d'appliquer qu'il n'y a bien que des déplacements. On peut laisser les blocs moved en place (ils sont idempotents une fois appliqués) ou les retirer après que tous les états ont été migrés. En résumé : les blocs moved permettent un refactoring de code (renommage, déplacement dans des modules, migration count→for_each) SANS destruction/recréation, de façon déclarative et automatique, la bonne pratique moderne, à préférer au state mv impératif."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Refactoring déclaratif (expert)",
+          "quizRef": "moved-removed-expert"
+        }
+      ]
+    },
+    {
+      "slug": "controle-fin-du-cycle-de-vie",
+      "title": "Contrôle fin du cycle de vie",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "postcondition : vérifier le résultat",
+          "body": "Terraform te laisse ajouter des **garde-fous** qui vérifient automatiquement que ton infrastructure est bien comme tu l'attends. On en distingue deux, à placer dans un bloc `lifecycle` (« cycle de vie ») de la ressource.\n\nUne **precondition** vérifie une **hypothèse AVANT** de créer (« l'image que je vais utiliser est bien dans la bonne région »). On l'a vue précédemment.\n\nUne **postcondition** vérifie le **résultat APRÈS** création. Autrement dit : « la ressource a bien été fabriquée, mais est-elle **conforme à ce que je voulais** ? ». Par exemple : « le bucket a bien le versioning activé », « l'instance a bien reçu une IP publique », « le certificat est bien valide ».\n\nLe mot important ici est **invariant** : une propriété qui doit **toujours** rester vraie, quoi qu'il arrive. La postcondition transforme cet invariant en **vérification automatique**.\n\nTechniquement, on écrit `lifecycle { postcondition { condition = ...  error_message = \"...\" } }`. Dans la `condition`, le mot-clé **`self`** désigne « la ressource elle-même » (ses attributs après création, par exemple `self.public_ip`). Si la condition est **fausse**, l'**apply échoue** avec ton message d'erreur.\n\n👉 **Analogie** : c'est le **contrôle qualité en bout de chaîne** dans une usine. L'objet est fabriqué (le cloud n'a signalé aucune erreur), mais un inspecteur vérifie qu'il a bien toutes les propriétés attendues **avant** de le laisser sortir. S'il manque une pièce, on **arrête tout** au lieu de livrer un produit défectueux.\n\nTout l'intérêt : attraper une configuration qui a « **réussi** » côté cloud mais qui ne correspond **pas** à ton intention, au lieu de découvrir le problème plus tard en production. Pre/postconditions transforment ton code Terraform en **contrat vérifié** : tu ne te contentes pas de créer, tu **garantis** des propriétés."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "replace_triggered_by & timeouts",
+          "body": "Deux réglages plus fins, utiles à connaître même si tu ne t'en serviras pas tous les jours. Les deux se placent aussi dans le bloc `lifecycle`.\n\n**`replace_triggered_by`** (« remplacement déclenché par ») **force la recréation** d'une ressource quand **une autre** ressource change, alors qu'aucune référence directe entre elles ne l'imposerait naturellement. Exemple : recréer une machine dès qu'un modèle de configuration lié (un *launch template*) est mis à jour, pour être sûr qu'elle reparte sur la dernière version.\n\n👉 **Analogie** : c'est un **effet domino que tu câbles toi-même**. « Si CETTE pièce bouge, alors refais CELLE-LÀ », même si rien ne les reliait d'office.\n\n**`timeouts`** (« délais d'expiration ») : certaines ressources sont **longues** à créer, modifier ou supprimer (une base de données managée, un cluster peuvent prendre des dizaines de minutes). Par défaut, Terraform **abandonne** au bout d'un certain temps s'il n'a pas de réponse, pour ne pas rester bloqué indéfiniment. Le bloc `timeouts { create = \"60m\" delete = \"30m\" }` **rallonge** ces délais, pour éviter un faux échec sur une opération simplement, et légitimement, lente.\n\n👉 **Analogie** : c'est comme régler la **minuterie de ton four** selon le plat. Un gâteau qui cuit en 1 heure, tu ne mets pas le minuteur sur 20 minutes en concluant qu'il est raté : tu **ajustes le délai** à ce que l'opération demande vraiment.\n\nCes options relèvent de l'**exploitation réelle** (le fonctionnement au quotidien en production) : on les découvre souvent le jour où une ressource précise l'exige. Un expert n'a pas besoin de toutes les connaître par cœur, mais il **sait qu'elles existent** et où les chercher."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "postcondition, replace_triggered_by, timeouts",
+          "codeLanguage": "hcl",
+          "body": "resource \"aws_instance\" \"web\" {\n  # ...\n  lifecycle {\n    postcondition {\n      condition     = self.public_ip != \"\"\n      error_message = \"L'instance doit avoir une IP publique.\"\n    }\n    replace_triggered_by = [aws_launch_template.web.latest_version]\n  }\n}\n\nresource \"aws_db_instance\" \"main\" {\n  # ...\n  timeouts {\n    create = \"60m\"      # une grosse base peut être longue à créer\n    delete = \"30m\"\n  }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une ressource est censée créer une instance avec une IP publique, mais à cause d'une mauvaise configuration réseau, l'instance est parfois créée SANS IP publique, et le problème n'est découvert que plus tard, quand l'application est injoignable. Quel mécanisme Terraform aurait détecté ce problème dès l'apply ?",
+          "solution": "Une postcondition dans le bloc lifecycle de la ressource aurait détecté le problème dès l'apply. Le scénario est typique : la création de l'instance « réussit » du point de vue du cloud (la ressource est bien créée, Terraform ne voit pas d'erreur), mais le RÉSULTAT ne correspond pas à l'intention, pas d'IP publique, à cause d'une config réseau incorrecte (sous-réseau sans auto-assign public IP, mauvaise association, etc.). Terraform, par défaut, ne vérifie que « la ressource a-t-elle été créée ? », pas « a-t-elle les propriétés attendues ? ». D'où un problème silencieux, découvert bien plus tard quand l'appli est injoignable. Une postcondition transforme l'invariant attendu en vérification automatique exécutée APRÈS création : on ajoute dans lifecycle un bloc postcondition avec une condition testant la propriété voulue, par exemple `condition = self.public_ip != \"\"  error_message = \"L'instance doit avoir une IP publique.\"` (self référence les attributs de la ressource elle-même après création). Si, à l'apply, l'instance n'a pas d'IP publique, la postcondition ÉCHOUE : l'apply s'arrête avec le message d'erreur explicite, signalant immédiatement que le résultat ne respecte pas l'intention. On attrape ainsi le problème au moment du déploiement (fail fast), avec un message clair pointant la cause, au lieu de le découvrir en production via une application injoignable. Les pre/postconditions transforment le code Terraform en contrat vérifié : les preconditions valident les hypothèses AVANT (ex. « l'AMI est dans la bonne région »), les postconditions valident le résultat APRÈS (ex. « l'IP publique est bien présente », « le versioning est activé »). C'est un outil précieux pour garantir des invariants d'infrastructure et détecter les configurations qui « réussissent » mais ne font pas ce qu'on voulait. Ici, une postcondition sur public_ip aurait bloqué l'apply et évité l'incident."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Contrôle fin du cycle de vie (expert)",
+          "quizRef": "lifecycle-fine-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "streams-modernes",
+  "lesson": "collectors-teeing",
+  "title": "Calcule une moyenne avec teeing",
+  "statement": "Écris une méthode qui calcule la moyenne d'une liste d'entiers en un seul parcours du stream, grâce à Collectors.teeing. Combine un collecteur de somme et un collecteur de compte, puis divise la somme par le compte. Tu peux supposer la liste non vide.",
+  "skeleton": "import java.util.List;\nimport java.util.stream.Collectors;\n\npublic class Exercice {\n    public static double moyenne(List<Integer> valeurs) {\n        // Utilise Collectors.teeing : somme, compte, puis somme / compte.\n        return 0;\n    }\n}\n",
+  "solution": "import java.util.List;\nimport java.util.stream.Collectors;\n\npublic class Exercice {\n    public static double moyenne(List<Integer> valeurs) {\n        return valeurs.stream()\n                .collect(Collectors.teeing(\n                        Collectors.summingDouble(n -> n),\n                        Collectors.counting(),\n                        (somme, compte) -> somme / compte\n                ));\n    }\n}",
+  "keyPoints": ["Collectors.teeing", "summingDouble", "counting", "fonction de fusion", "un seul parcours"],
+  "language": "java"
+}

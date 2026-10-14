@@ -1,0 +1,52 @@
+{
+  "ref": "gitops-cicd-check",
+  "node": "helm-gitops",
+  "lesson": "gitops-et-cicd",
+  "title": "GitOps & CI/CD",
+  "description": "Git source de vérité, Argo CD/Flux, réconciliation, séparation CI/CD.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En GitOps, où est déclaré l'état désiré du cluster ?",
+      "justification": "Dans un dépôt Git ; un agent (Argo CD/Flux) réconcilie en continu l'état réel avec Git (modèle pull).",
+      "position": 0,
+      "options": [
+        { "label": "Dans un dépôt Git, réconcilié par un agent du cluster", "correct": true, "position": 0 },
+        { "label": "Dans etcd uniquement, édité à la main", "correct": false, "position": 1 },
+        { "label": "Dans l'image de conteneur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une modification manuelle (kubectl edit) sur un cluster GitOps disparaît. Pourquoi ?",
+      "justification": "L'agent GitOps détecte la dérive avec Git (source de vérité) et la réconcilie automatiquement, annulant le changement manuel.",
+      "position": 1,
+      "options": [
+        { "label": "L'agent réconcilie vers l'état Git et annule la dérive", "correct": true, "position": 0 },
+        { "label": "Kubernetes supprime les Deployments la nuit", "correct": false, "position": 1 },
+        { "label": "kubectl edit est interdit", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment appliquer un changement sur un cluster géré en GitOps ?",
+      "justification": "En modifiant le dépôt Git (idéalement via PR) ; l'agent déploie alors, de façon tracée et réversible.",
+      "position": 2,
+      "options": [
+        { "label": "Modifier le dépôt Git (l'agent déploie)", "correct": true, "position": 0 },
+        { "label": "Éditer directement le cluster à la main", "correct": false, "position": 1 },
+        { "label": "Redémarrer les nœuds", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Séparer CI (build/test/push de l'image) et CD (GitOps déploie) est une bonne pratique de sécurité, car le pipeline de build n'a pas les droits de déployer en production.",
+      "justification": "Vrai : ce découplage limite le rayon d'explosion en cas de compromission de la CI et garde le déploiement traçable via Git.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

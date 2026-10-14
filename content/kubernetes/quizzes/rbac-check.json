@@ -1,0 +1,119 @@
+{
+  "ref": "rbac-check",
+  "node": "rbac",
+  "lesson": "roles-et-bindings",
+  "title": "RBAC",
+  "description": "Role/ClusterRole, RoleBinding, RBAC additif, moindre privilège.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre un Role et une RoleBinding ?",
+      "justification": "Un Role décrit un ensemble de permissions ; une RoleBinding les accorde à un utilisateur/groupe/ServiceAccount.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le Role décrit des permissions, la RoleBinding les accorde à quelqu'un",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux mots pour la même chose",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le Role accorde, la RoleBinding décrit",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la portée d'un Role/RoleBinding par rapport à un ClusterRole/ClusterRoleBinding ?",
+      "justification": "Role/RoleBinding : dans un namespace ; ClusterRole/ClusterRoleBinding : à l'échelle du cluster.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Role = namespace, ClusterRole = cluster entier",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Role = cluster, ClusterRole = namespace",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucune différence de portée",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment fonctionne le RBAC par défaut ?",
+      "justification": "Il est additif et fermé par défaut : aucune permission sans liaison explicite ; il n'existe pas de règle deny.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Fermé par défaut ; on ajoute des permissions explicitement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tout est permis sauf ce qu'on interdit",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Tous les utilisateurs sont admin",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour du moindre privilège, comment donner un accès lecture aux pods dans un seul namespace ?",
+      "justification": "Un Role (namespace) avec les verbes get/list/watch sur pods, lié via une RoleBinding, pas un ClusterRole large.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Un Role lecture + RoleBinding dans ce namespace",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le ClusterRole cluster-admin",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une ClusterRoleBinding globale",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le ClusterRole cluster-admin devrait être réservé à très peu de personnes et audité régulièrement.",
+      "justification": "Vrai : cluster-admin donne tous les droits ; un audit RBAC traque les liaisons trop larges pour respecter le moindre privilège.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

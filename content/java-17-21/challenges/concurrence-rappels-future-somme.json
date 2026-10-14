@@ -1,0 +1,10 @@
+{
+  "node": "concurrence-rappels",
+  "lesson": "future-et-resultats",
+  "title": "Récupère un résultat avec Future",
+  "statement": "Crée un ExecutorService avec un pool de 2 threads. Soumets lui un Callable<Integer> qui calcule et renvoie la somme des entiers de 1 à 10 (le résultat attendu est 55). Récupère le résultat via le Future renvoyé par submit, affiche le, puis arrête le pool avec shutdown(). Souviens toi que get() renvoie le résultat et qu'il peut bloquer en attendant.",
+  "skeleton": "import java.util.concurrent.*;\n\npublic class Demo {\n    public static void main(String[] args) throws Exception {\n        ExecutorService pool = Executors.newFixedThreadPool(2);\n        // 1. Cree un Callable<Integer> qui renvoie la somme de 1 a 10\n        // 2. Soumets le au pool et recupere un Future<Integer>\n        // 3. Affiche le resultat obtenu avec get()\n        // 4. Arrete le pool\n    }\n}",
+  "solution": "import java.util.concurrent.*;\n\npublic class Demo {\n    public static void main(String[] args) throws Exception {\n        ExecutorService pool = Executors.newFixedThreadPool(2);\n        Callable<Integer> calcul = () -> {\n            int total = 0;\n            for (int i = 1; i <= 10; i++) total += i;\n            return total;\n        };\n        Future<Integer> ticket = pool.submit(calcul);\n        System.out.println(ticket.get()); // 55\n        pool.shutdown();\n    }\n}",
+  "keyPoints": ["ExecutorService", "Callable<Integer>", "submit", "Future", "get()", "shutdown()"],
+  "language": "java"
+}

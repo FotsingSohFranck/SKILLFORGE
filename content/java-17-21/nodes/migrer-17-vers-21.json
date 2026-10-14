@@ -1,0 +1,226 @@
+{
+  "node": "migrer-17-vers-21",
+  "lessons": [
+    {
+      "slug": "pourquoi-migrer",
+      "title": "Pourquoi migrer",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Migrer, ça veut dire quoi au juste",
+          "position": 0,
+          "body": "**Migrer** une application, c'est la faire passer d'une version d'un outil à une version plus récente, ici du **JDK 17** au **JDK 21**. Le **JDK** (*Java Development Kit*, kit de développement Java) est l'ensemble des outils qui permettent de compiler et de lancer du code Java : pense à une boite à outils complète.\n\n👉 C'est comme passer de la version 2021 d'un logiciel à la version 2023 : mêmes fichiers, mais un moteur plus récent dessous, avec des réglages parfois à ajuster.\n\nJava 17 et Java 21 sont tous les deux des versions **LTS** (*Long Term Support*, support à long terme), c'est à dire des versions suivies et corrigées pendant de nombreuses années, contrairement aux versions intermédiaires suivies seulement six mois. On migre donc d'une base solide vers une base encore plus récente et plus durable."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Trois bonnes raisons de monter en version",
+          "position": 1,
+          "body": "On ne change pas de version pour le plaisir. Trois gains concrets justifient l'effort :\n\n1. **Le support à long terme.** Une LTS reçoit des correctifs de sécurité pendant des années. Rester sur une version trop vieille, c'est garder des portes ouvertes aux attaques.\n2. **Les performances.** Java 21 apporte de nouveaux **GC** (*Garbage Collector*, ramasse miettes : le composant qui libère automatiquement la mémoire des objets dont on ne se sert plus). Un GC plus moderne récupère la mémoire avec de plus courtes pauses, donc une application plus fluide.\n3. **Les nouvelles fonctionnalités du langage.** Entre 17 et 21 arrivent par exemple le *pattern matching* pour `switch` et les *records patterns*, qui rendent le code plus court et plus lisible.\n\n👉 C'est comme rénover une maison : plus sûre (serrures neuves), plus économe (meilleure isolation), et plus agréable à vivre (pièces mieux agencées)."
+        },
+        {
+          "type": "CODE",
+          "title": "Vérifier la version installée",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# Affiche la version du JDK actuellement utilisee par ta machine.\njava -version\n\n# Exemple de sortie si tu es encore en Java 17 :\n#   openjdk version \"17.0.10\" 2024-01-16\n#   OpenJDK Runtime Environment ...\n\n# Apres installation du JDK 21, la meme commande doit afficher :\n#   openjdk version \"21.0.2\" 2024-01-16\n\n# Affiche aussi la version de l'outil de compilation.\njavac -version\n# javac 21.0.2"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Migrer reste un projet à part entière",
+          "position": 3,
+          "body": "Même entre deux LTS proches, une migration n'est jamais automatique à 100 pour 100. Certaines choses ont pu changer : une API supprimée, une option de lancement retirée, une bibliothèque pas encore prête.\n\n👉 Une **API** (*Application Programming Interface*, interface de programmation) est l'ensemble des classes et méthodes qu'une bibliothèque met à ta disposition, un peu comme le tableau de bord d'une voiture : les boutons que tu as le droit d'utiliser.\n\nLe reste de ce nœud te donne une méthode sûre : vérifier la compatibilité, repérer les dépréciations et suppressions, activer les aperçus si besoin, puis dérouler un plan de migration incrémental."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : pourquoi migrer",
+          "position": 4,
+          "quizRef": "migrer-17-vers-21-pourquoi-migrer"
+        }
+      ]
+    },
+    {
+      "slug": "verifier-la-compatibilite",
+      "title": "Vérifier la compatibilité",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "La compatibilité, c'est quoi",
+          "position": 0,
+          "body": "La **compatibilité** désigne le fait que ton code, et tout ce dont il dépend, continue de fonctionner correctement avec la nouvelle version du JDK. Un projet est compatible avec Java 21 s'il compile, se lance et passe ses tests sans comportement cassé.\n\n👉 C'est comme vérifier qu'une prise électrique achetée à l'étranger rentre bien dans tes murs avant de brancher l'appareil : on contrôle d'abord que tout s'emboite.\n\nVérifier la compatibilité se fait en trois mouvements simples, qu'on va voir un par un : recompiler avec le JDK 21, relancer les tests, puis contrôler les bibliothèques."
+        },
+        {
+          "type": "CODE",
+          "title": "Étape 1 : recompiler avec le JDK 21",
+          "position": 1,
+          "codeLanguage": "bash",
+          "body": "# Recompiler, c'est demander au JDK 21 de retransformer ton code source en code executable.\n# Si quelque chose a change, les erreurs apparaissent ici, AVANT la mise en production.\n\n# Avec Maven (outil de build tres courant) :\nmvn clean compile\n\n# Avec Gradle (autre outil de build tres courant) :\n./gradlew clean compileJava\n\n# Un \"build\" est la construction complete du projet : compilation, puis assemblage du resultat.\n# Objectif de cette etape : BUILD SUCCESS, sans erreur de compilation."
+        },
+        {
+          "type": "CODE",
+          "title": "Étape 2 : relancer les tests",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# Compiler ne suffit pas : un code peut compiler mais mal se comporter a l'execution.\n# Les tests automatises verifient que le programme fait toujours ce qu'on attend.\n\n# Lancer toute la suite de tests avec Maven :\nmvn test\n\n# Ou avec Gradle :\n./gradlew test\n\n# Objectif : tous les tests au vert.\n# Un test qui echoue soudainement apres la montee de version pointe une incompatibilite a corriger."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Étape 3 : vérifier les dépendances",
+          "position": 3,
+          "body": "Une **dépendance** est une bibliothèque externe que ton projet réutilise au lieu de tout réécrire : par exemple Spring, Jackson ou une pile de tests. Une **bibliothèque** (*library*) est un paquet de code déjà écrit par d'autres, prêt à l'emploi.\n\n👉 Une dépendance, c'est comme un ingrédient acheté tout prêt pour une recette : tu comptes dessus, donc il faut qu'il soit encore bon avec ta nouvelle façon de cuisiner.\n\nChaque dépendance doit être compatible avec Java 21. En pratique, tu regardes la documentation de la bibliothèque, tu montes vers une version annoncée compatible Java 21, et tu relances compilation puis tests. Une vieille version peut utiliser une API interne supprimée en 21 et planter."
+        },
+        {
+          "type": "CODE",
+          "title": "Lister et contrôler les dépendances",
+          "position": 4,
+          "codeLanguage": "bash",
+          "body": "# Afficher l'arbre des dependances avec Maven : tu vois tout ce que ton projet tire derriere lui.\nmvn dependency:tree\n\n# Rechercher les versions plus recentes disponibles (utile pour viser une version compatible Java 21) :\nmvn versions:display-dependency-updates\n\n# Avec Gradle, l'equivalent pour lister les dependances :\n./gradlew dependencies\n\n# Regle pratique : monte chaque bibliotheque vers une version dont la doc annonce le support de Java 21,\n# puis relance 'mvn compile' et 'mvn test'."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : vérifier la compatibilité",
+          "position": 5,
+          "quizRef": "migrer-17-vers-21-verifier-la-compatibilite"
+        }
+      ]
+    },
+    {
+      "slug": "deprecations-et-suppressions",
+      "title": "Dépréciations et suppressions",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Dépréciation : un panneau \"à éviter\"",
+          "position": 0,
+          "body": "Une **dépréciation** (*deprecation*) signale qu'une partie du code (une méthode, une classe, une option) est **marquée à éviter** : elle fonctionne encore, mais elle est découragée et disparaitra probablement dans le futur. En Java, c'est l'annotation `@Deprecated` qui pose ce panneau, et le compilateur affiche un avertissement quand tu l'utilises.\n\n👉 C'est comme un panneau \"escalier en travaux, empruntez l'autre\" : tu peux encore passer, mais tu es prévenu qu'il vaut mieux changer d'itinéraire avant que l'escalier ne ferme pour de bon.\n\nUne API dépréciée aujourd'hui est souvent une API **supprimée** demain. Repérer et remplacer les usages dépréciés pendant la migration évite de mauvaises surprises plus tard."
+        },
+        {
+          "type": "CODE",
+          "title": "À quoi ressemble une API dépréciée",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "public class Compte {\n    // L'annotation @Deprecated marque cette methode comme \"a eviter\".\n    // forRemoval = true previent qu'elle est destinee a etre SUPPRIMEE dans une future version.\n    @Deprecated(since = \"20\", forRemoval = true)\n    public void vieilleMethode() {\n        // ... ancien comportement ...\n    }\n\n    // La methode de remplacement recommandee.\n    public void nouvelleMethode() {\n        // ... comportement a jour ...\n    }\n}\n\n// Quand tu appelles compte.vieilleMethode(), le compilateur affiche :\n//   warning: [removal] vieilleMethode() in Compte has been deprecated and marked for removal"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Suppression : le panneau tombe, le passage ferme",
+          "position": 2,
+          "body": "Une **suppression** (*removal*) va plus loin que la dépréciation : l'élément n'existe tout simplement plus dans la nouvelle version. Si ton code l'utilise encore, il ne compile plus ou plante au lancement.\n\nDeux familles à surveiller lors du passage en Java 21 :\n\n- Des **API supprimées** : des classes ou méthodes retirées du JDK.\n- Des **options JVM retirées.** La **JVM** (*Java Virtual Machine*, machine virtuelle Java) est le programme qui exécute ton code Java ; on la règle avec des **options**, de petits drapeaux passés au démarrage (par exemple `-XX:...`). Certaines options disparaissent d'une version à l'autre, et lancer l'application avec une option retirée provoque une erreur immédiate.\n\n👉 Une option retirée, c'est comme un bouton qui existait sur l'ancien tableau de bord et qui a disparu sur le nouveau : appuyer dessus ne fait plus rien, ou bloque le démarrage."
+        },
+        {
+          "type": "CODE",
+          "title": "jdeprscan : repérer les usages dépréciés",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# jdeprscan est un outil livre AVEC le JDK. Il scanne ton code compile et signale\n# les API depreciees que tu utilises, en particulier celles marquees pour suppression.\n\n# Analyser un fichier .jar (ton application packagee) en visant la plateforme Java 21 :\njdeprscan --release 21 mon-application.jar\n\n# Analyser un dossier de classes compilees :\njdeprscan --release 21 target/classes\n\n# Afficher UNIQUEMENT les API marquees pour suppression (les plus urgentes a traiter) :\njdeprscan --release 21 --for-removal mon-application.jar\n\n# Exemple de sortie :\n#   class com/exemple/Compte uses deprecated method java/lang/Thread::stop()V (forRemoval=true)"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Lis un rapport jdeprscan",
+          "position": 4,
+          "body": "Tu lances `jdeprscan --release 21 --for-removal mon-app.jar` et tu obtiens la ligne : `class com/exemple/Service uses deprecated method ...::stop()V (forRemoval=true)`. Que t'apprend cette ligne, et pourquoi est elle plus urgente qu'un simple avertissement de dépréciation ?",
+          "solution": "La ligne indique que la classe Service de ton application appelle une méthode dépréciée ET marquée pour suppression (forRemoval=true). C'est plus urgent qu'une dépréciation simple car une API marquée pour suppression va disparaitre d'une prochaine version : le jour où elle sera retirée, ton code ne compilera plus ou plantera. Il faut donc remplacer cet appel par la méthode recommandée avant que la suppression n'arrive, plutôt que d'attendre."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : dépréciations et suppressions",
+          "position": 5,
+          "quizRef": "migrer-17-vers-21-deprecations-et-suppressions"
+        }
+      ]
+    },
+    {
+      "slug": "activer-les-apercus",
+      "title": "Activer les aperçus",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Une fonctionnalité en aperçu, c'est quoi",
+          "position": 0,
+          "body": "Une **fonctionnalité en aperçu** (*preview feature*) est une nouveauté du langage déjà livrée dans le JDK mais pas encore définitive : elle est proposée pour être essayée et commentée, et sa forme peut encore changer avant de devenir standard.\n\n👉 C'est comme gouter un plat à l'essai au restaurant avant qu'il entre vraiment à la carte : il est servi, mais la recette peut encore évoluer, donc on prévient le client.\n\nComme ce n'est pas définitif, Java te force à l'activer explicitement, pour que tu saches que tu utilises quelque chose de non figé. Exemple d'aperçu dans cette période : la **concurrence structurée** (*structured concurrency*), une façon plus simple et plus sûre de lancer et coordonner plusieurs tâches en parallèle."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les deux drapeaux à connaitre",
+          "position": 1,
+          "body": "Pour utiliser un aperçu, il faut deux réglages, à la compilation et au lancement :\n\n- `--release 21` indique la version de Java que tu vises. Le mot *release* signifie \"version publiée\".\n- `--enable-preview` autorise les fonctionnalités en aperçu de cette version.\n\nPoint important : l'activation doit être présente **à la fois** quand tu compiles (avec `javac`) et quand tu lances (avec `java`). Oublier l'un des deux provoque une erreur.\n\n👉 Vois ça comme une case \"j'accepte d'utiliser une fonction expérimentale\" à cocher deux fois : une fois en atelier (compilation), une fois sur la route (exécution)."
+        },
+        {
+          "type": "CODE",
+          "title": "Compiler et lancer avec les aperçus activés",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# 1) Compiler en activant les apercus pour Java 21.\n#    --release 21   : on vise la plateforme Java 21\n#    --enable-preview: on autorise les fonctionnalites en apercu\njavac --release 21 --enable-preview Demo.java\n\n# 2) Lancer le programme : il faut REPETER --enable-preview, sinon erreur.\njava --enable-preview Demo\n\n# Si tu oublies --enable-preview au lancement, tu obtiens :\n#   Preview features are not enabled ... (use --enable-preview to enable preview features)\n\n# A la compilation, un rappel normal s'affiche (ce n'est pas une erreur) :\n#   Note: Demo.java uses preview features of Java SE 21."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Utiliser les aperçus avec prudence",
+          "position": 3,
+          "body": "Les aperçus sont parfaits pour **expérimenter** et donner ton avis, mais ils demandent de la prudence en production. Puisque leur forme peut changer à la version suivante, du code qui compile aujourd'hui avec `--enable-preview` pourrait devoir être réécrit après la prochaine montée de version.\n\n👉 C'est comme construire sur un plan encore susceptible d'être modifié : très bien pour une maquette, risqué pour l'ouvrage définitif.\n\nRègle simple pour une migration sereine : garde les aperçus pour tes essais et tes branches d'expérimentation, et ne les active en production que si tu acceptes de suivre leurs évolutions à chaque version."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : activer les aperçus",
+          "position": 4,
+          "quizRef": "migrer-17-vers-21-activer-les-apercus"
+        }
+      ]
+    },
+    {
+      "slug": "plan-de-migration",
+      "title": "Plan de migration",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi y aller par petites étapes",
+          "position": 0,
+          "body": "Une migration réussie est **incrémentale** : on avance par petites étapes sûres plutôt qu'en tout changeant d'un coup. Chaque étape est vérifiable, et si quelque chose casse, on sait tout de suite d'où ça vient.\n\n👉 C'est comme traverser une rivière en sautant de pierre en pierre : on assure chaque appui avant de passer au suivant, au lieu de sauter les yeux fermés jusqu'à l'autre rive.\n\nUne étape clé du plan concerne l'automatisation du projet via la **CI** (*Continuous Integration*, intégration continue) : un service qui, à chaque modification du code, recompile le projet et relance les tests automatiquement. La CI est ton filet de sécurité pendant toute la migration."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les étapes, dans l'ordre",
+          "position": 1,
+          "body": "Un plan de migration raisonnable enchaine ces étapes :\n\n1. **Installer le JDK 21** en local et vérifier avec `java -version`.\n2. **Recompiler** le projet avec le JDK 21 et corriger les erreurs de compilation.\n3. **Relancer les tests** et corriger les comportements cassés.\n4. **Traiter les dépréciations et suppressions** repérées avec `jdeprscan`.\n5. **Mettre à jour les dépendances** vers des versions compatibles Java 21.\n6. **Mettre à jour l'image Docker** du projet pour qu'elle embarque le JDK 21.\n7. **Mettre à jour la CI** pour qu'elle construise et teste avec Java 21.\n8. **Valider** en environnement de test, puis seulement ensuite **déployer** en production.\n\nChaque étape se termine par une vérification. On ne passe à la suivante que si la précédente est au vert."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Le plan de migration par étapes",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Installer le JDK 21 en local\"] --> B[\"Recompiler le projet\"]\n    B --> C[\"Relancer les tests\"]\n    C --> D[\"Traiter deprecations et suppressions\\n(jdeprscan)\"]\n    D --> E[\"Mettre a jour les dependances\"]\n    E --> F[\"Mettre a jour l'image Docker\"]\n    F --> G[\"Mettre a jour la CI\"]\n    G --> H[\"Valider en environnement de test\"]\n    H --> I[\"Deployer en production\"]"
+        },
+        {
+          "type": "CODE",
+          "title": "Mettre à jour l'image Docker",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Une \"image Docker\" est un modele fige contenant tout le necessaire pour lancer ton appli,\n# y compris le JDK. Migrer, c'est aussi changer la version du JDK dans ce modele.\n\n# Dans ton Dockerfile, on remplace l'ancienne base par une base Java 21.\n# AVANT (Java 17) :\n#   FROM eclipse-temurin:17-jre\n# APRES (Java 21) :\n#   FROM eclipse-temurin:21-jre\n\n# Reconstruire l'image avec la nouvelle base :\ndocker build -t mon-app:java21 .\n\n# Lancer un conteneur de test a partir de l'image fraichement construite :\ndocker run --rm mon-app:java21 java -version\n# Doit afficher une version 21.x"
+        },
+        {
+          "type": "CODE",
+          "title": "Mettre à jour la CI",
+          "position": 4,
+          "codeLanguage": "bash",
+          "body": "# La CI rejoue compilation et tests a chaque modification. Il faut lui dire d'utiliser Java 21.\n# Exemple avec GitHub Actions : on change la version demandee a l'action de setup Java.\n\n# AVANT, dans le fichier .github/workflows/build.yml :\n#   - uses: actions/setup-java@v4\n#     with:\n#       distribution: temurin\n#       java-version: '17'\n\n# APRES :\n#   - uses: actions/setup-java@v4\n#     with:\n#       distribution: temurin\n#       java-version: '21'\n\n# Les etapes de build restent les memes, elles tournent desormais sur Java 21 :\nmvn clean verify"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Remets le plan dans l'ordre",
+          "position": 5,
+          "body": "Un collègue propose de migrer ainsi : d'abord déployer en production, puis mettre à jour la CI, puis recompiler. Qu'est ce qui ne va pas, et quel ordre sûr proposes tu pour ces trois actions ?",
+          "solution": "L'ordre proposé est dangereux : déployer en production en premier revient à livrer aux utilisateurs un code jamais recompilé ni retesté avec Java 21, donc à risquer une panne en direct. L'ordre sûr est l'inverse : d'abord recompiler le projet avec le JDK 21 (et corriger les erreurs), ensuite mettre à jour la CI pour qu'elle construise et teste en Java 21 à chaque modification, et seulement en dernier, une fois tout validé, déployer en production. On déploie toujours après avoir vérifié, jamais avant."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : plan de migration",
+          "position": 6,
+          "quizRef": "migrer-17-vers-21-plan-de-migration"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "replace-provider-unlock-expert",
+  "node": "state-operations",
+  "lesson": "replace-provider-et-force-unlock",
+  "title": "replace-provider & force-unlock, expert",
+  "description": "state replace-provider (migration), force-unlock avec précaution.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `terraform state replace-provider` ?",
+      "justification": "Il met à jour la référence de provider dans l'état sans recréer les ressources, utile pour migrer Terraform ↔ OpenTofu (changement de registre).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Change la référence de provider dans l'état sans recréer",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Installe un nouveau provider",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime toutes les ressources",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand un verrou d'état peut-il rester bloqué ?",
+      "justification": "Quand un apply plante brutalement (crash, runner tué) en tenant le verrou : plus personne ne peut appliquer (« state locked »).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Après un apply interrompu brutalement en tenant le verrou",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Quand le code est mal formaté",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "À chaque plan",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle précaution avant `terraform force-unlock` ?",
+      "justification": "Vérifier qu'aucun apply ne tourne réellement ; forcer pendant une opération active provoque la corruption que le verrou évitait.",
+      "position": 2,
+      "options": [
+        {
+          "label": "S'assurer qu'aucun apply n'est en cours d'exécution",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le lancer immédiatement, par réflexe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le backend",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "force-unlock est une commande de dépannage à manier avec discernement, jamais par réflexe automatique quand « ça bloque ».",
+      "justification": "Vrai : forcer pendant qu'une opération tourne corrompt l'état ; on diagnostique d'abord (verrou orphelin ?) avant de débloquer.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

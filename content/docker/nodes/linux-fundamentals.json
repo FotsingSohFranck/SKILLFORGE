@@ -1,0 +1,220 @@
+{
+  "node": "linux-fundamentals",
+  "lessons": [
+    {
+      "slug": "pourquoi-linux",
+      "title": "Pourquoi Linux d'abord",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Docker, c'est du Linux",
+          "body": "Avant de plonger dans Docker, il faut comprendre une chose : **Docker, au fond, c'est du Linux**. Prenons le temps de définir les mots.\n\nLe **noyau** (en anglais *kernel*) est le cœur d'un système d'exploitation : c'est le programme central qui parle directement au matériel (processeur, mémoire, disque) et répartit ces ressources entre les autres programmes. 👉 **Analogie** : le noyau est le **chef d'orchestre** de la machine, celui que personne ne voit mais qui coordonne tous les musiciens (les programmes). **Linux** est un noyau libre et gratuit, utilisé par la grande majorité des serveurs du monde.\n\nLes conteneurs Docker reposent sur deux fonctionnalités de ce noyau Linux :\n- les **namespaces** (des *cloisons* qui donnent à chaque conteneur l'illusion d'être seul sur la machine, avec ses propres processus et son propre réseau) ;\n- les **cgroups** (abréviation de *control groups* : des *compteurs* qui limitent ce que chaque conteneur peut consommer, par exemple tant de mémoire, tant de processeur).\n\nRetiens juste, pour l'instant, que ce sont des briques **du noyau Linux**.\n\nUne **image** de conteneur (le modèle figé à partir duquel on lance un conteneur) est, la plupart du temps, une **mini-distribution Linux** plus ton application. Une **distribution** (Debian, Alpine, Ubuntu) est une version prête à l'emploi de Linux, livrée avec ses outils. Par exemple, l'image `python:3.12` contient un petit Linux Debian avec Python déjà installé dessus.\n\nConséquences très concrètes pour toi :\n- Écrire un **Dockerfile** (le fichier de recette qui décrit comment construire une image), c'est écrire des **commandes Linux** comme `apt install`, `cp`, `chmod`.\n- Déboguer un conteneur, c'est ouvrir un **shell** (l'interface texte de Linux, définie à la leçon suivante) à l'intérieur et taper des commandes Linux.\n\nEt sur Windows ou Mac ? Ton ordinateur n'a pas de noyau Linux. Docker Desktop en fait donc tourner un **dans une machine virtuelle légère** (une *VM* : un ordinateur simulé à l'intérieur du tien) en coulisses. C'est pour ça qu'une image `ubuntu` (Linux) fonctionne même sur Windows : elle utilise ce noyau Linux caché, pas celui de Windows.\n\n👉 **En résumé** : sans quelques bases Linux, Docker reste une boîte noire ; avec elles, tout devient limpide."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "L'essentiel, pas l'exhaustif",
+          "body": "Bonne nouvelle : **tu n'as pas besoin de devenir administrateur système** pour être à l'aise avec Docker. Un **administrateur système** (*sysadmin*) est le professionnel qui gère des serveurs à plein temps ; ce n'est pas ton objectif ici.\n\nIl te suffit de maîtriser un **socle** de bases, cinq familles de gestes :\n- **naviguer** dans le système de fichiers (te déplacer de dossier en dossier) ;\n- **manipuler** des fichiers (copier, déplacer, supprimer, lire) ;\n- comprendre les **permissions** et les **utilisateurs** (qui a le droit de faire quoi) ;\n- **installer des paquets** (ajouter des logiciels) ;\n- lire et écrire un petit **script shell** (une suite de commandes enregistrée dans un fichier).\n\nC'est exactement ce que la roadmap résume par la formule *just get the basic idea* (« saisis juste l'idée de base »). 👉 **Analogie** : pour conduire une voiture, tu n'as pas besoin d'être mécanicien ; il te faut savoir démarrer, accélérer, freiner et faire le plein. Pareil ici : ces quelques gestes suffisent à écrire des Dockerfiles propres et à déboguer des conteneurs sans stress. On les voit un par un dans les leçons suivantes."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "title": "Comment Docker fait tourner du Linux",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  A[\"Ton ordinateur : Windows, Mac ou Linux\"] --> B[\"Docker Desktop : machine virtuelle legere\"]\n  B --> C[\"Noyau Linux partage : namespaces + cgroups\"]\n  C --> D[\"Conteneur A : mini-Linux + appli 1\"]\n  C --> E[\"Conteneur B : mini-Linux + appli 2\"]\n  C --> F[\"Conteneur C : mini-Linux + appli 3\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Tu développes sur Windows et tu te demandes pourquoi une image Docker « ubuntu » fonctionne sur ta machine. Que se passe-t-il réellement ?",
+          "solution": "Docker Desktop fait tourner un noyau Linux dans une VM légère (via WSL2 sur Windows, ou un hyperviseur sur Mac). Tes conteneurs Linux s'exécutent dans ce noyau Linux, pas sur Windows directement. C'est pourquoi une image ubuntu (Linux) fonctionne : elle partage ce noyau Linux fourni par Docker Desktop, pas le noyau Windows. Comprendre cela explique pourquoi les conteneurs sont fondamentalement des objets Linux, même quand on travaille depuis Windows ou macOS."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Pourquoi Linux d'abord",
+          "quizRef": "linux-fundamentals-pourquoi-check"
+        }
+      ]
+    },
+    {
+      "slug": "shell-et-fichiers",
+      "title": "Shell, fichiers & permissions",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Se déplacer et manipuler des fichiers",
+          "body": "Commençons par l'outil de base. Le **shell** (les plus connus s'appellent *bash* et *sh*) est l'**interface texte** du système : au lieu de cliquer sur des icônes à la souris, tu **tapes des commandes** et le système les exécute. 👉 **Analogie** : la souris, c'est **montrer du doigt** ce que tu veux ; le shell, c'est l'**écrire en toutes lettres**. C'est plus direct, et c'est comme ça que l'on pilote un conteneur.\n\nLes commandes de base reviennent partout en Docker :\n- `pwd` (*print working directory*) : « où suis-je ? », affiche le dossier courant ;\n- `ls` : lister le contenu d'un dossier ;\n- `cd` (*change directory*) : se déplacer dans un autre dossier ;\n- `cat` / `less` : lire le contenu d'un fichier ;\n- `cp` / `mv` / `rm` : copier / déplacer / supprimer ;\n- `mkdir` : créer un dossier.\n\nEnsuite, il faut savoir **comment les fichiers sont rangés**. Le système de fichiers Linux est un **arbre unique** : tout part d'un point de départ appelé la **racine**, notée `/` (une simple barre oblique). Sous cette racine se trouvent des dossiers comme `/etc` (les réglages), `/home` (les dossiers personnels), `/app` (souvent ton application dans un conteneur). 👉 **Analogie** : c'est un **arbre généalogique** posé à l'envers, avec un seul ancêtre en haut, `/`, dont descendent tous les dossiers. Grosse différence avec Windows : **il n'y a pas de lecteurs `C:` ou `D:`**, tout est rattaché à ce même arbre.\n\nEnfin, deux façons de désigner un fichier :\n- un chemin **absolu** part de la racine `/` et donne l'adresse complète, par exemple `/etc/hosts` ;\n- un chemin **relatif** part du dossier où tu te trouves, par exemple `config.yml` (le fichier `config.yml` du dossier courant) ou `../data` (le dossier `data` situé un cran au-dessus).\n\n👉 **Analogie** : l'absolu, c'est l'**adresse postale complète** (pays, ville, rue) ; le relatif, c'est « **deuxième porte à droite** » à partir de là où tu es déjà."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Les commandes du quotidien",
+          "codeLanguage": "bash",
+          "body": "pwd                      # afficher le dossier courant\nls -la /app              # lister /app, format long, y compris fichiers cachés\ncd /app && cat config.yml\ncp source.txt /app/       # copier vers /app\nrm -rf /tmp/cache         # supprimer récursivement (attention, définitif)\nmkdir -p data/uploads     # créer l'arborescence (-p : parents inclus)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Utilisateurs, groupes & permissions",
+          "body": "Sur Linux, plusieurs **utilisateurs** peuvent partager la même machine, et le système contrôle en permanence **qui a le droit de faire quoi**. Chaque fichier possède trois informations de sécurité :\n- un **propriétaire** (l'utilisateur à qui il appartient) ;\n- un **groupe** (une équipe d'utilisateurs qui partagent des droits) ;\n- des **permissions** pour trois catégories de personnes : le **propriétaire**, le **groupe**, et les **autres** (tout le reste du monde).\n\nPour chacune de ces trois catégories, il existe trois droits possibles : **lecture (r)** pour *read*, **écriture (w)** pour *write*, **exécution (x)** pour *execute* (le droit de lancer le fichier comme un programme).\n\nLa commande `ls -l` affiche tout ça sous forme d'une suite de lettres, par exemple `-rwxr-xr--`. 👉 **Comment la lire** : on ignore le premier caractère, puis on lit par groupes de trois. `rwx` = le propriétaire peut lire, écrire, exécuter ; `r-x` = le groupe peut lire et exécuter mais pas écrire ; `r--` = les autres peuvent seulement lire. Un tiret `-` veut dire « droit absent ».\n\n👉 **Analogie** : imagine un immeuble avec un **badge** par personne. Le propriétaire de l'appartement peut entrer, meubler et cuisiner (rwx) ; les colocataires (le groupe) peuvent entrer et cuisiner mais pas repeindre (r-x) ; les visiteurs (les autres) peuvent juste regarder par la fenêtre (r--).\n\nOn modifie ces droits avec deux commandes :\n- `chmod` (*change mode*) change les **permissions** (par exemple ajouter le droit d'exécution) ;\n- `chown` (*change owner*) change le **propriétaire** et le groupe.\n\nEnfin, un utilisateur particulier : **root**, l'administrateur tout-puissant (son identifiant, son *id*, est toujours `0`). Root passe outre toutes les permissions.\n\nCes notions sont **cruciales en Docker** : par défaut, un conteneur tourne en **root**, ce qui est un risque de sécurité (on préfère un utilisateur limité). Et un fichier partagé entre ta machine et un conteneur peut devenir **illisible** si le propriétaire ou les permissions ne correspondent pas des deux côtés. Beaucoup de « permission denied » en Docker viennent de là."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Permissions en pratique",
+          "codeLanguage": "bash",
+          "body": "ls -l entrypoint.sh          # -rw-r--r--  (pas exécutable)\nchmod +x entrypoint.sh       # rendre exécutable\nchown appuser:appgroup /data # changer propriétaire et groupe\nid                           # afficher mon utilisateur, mes groupes\nwhoami                       # qui suis-je ? (souvent 'root' dans un conteneur)"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Dans un Dockerfile, tu copies un script `entrypoint.sh` puis tu le lances, mais Docker répond « permission denied ». Quelle notion Linux est en cause et comment corriger ?",
+          "solution": "C'est un problème de permission d'exécution : le fichier copié n'a pas le bit exécutable (x). Linux refuse de lancer un fichier non exécutable. Correction : ajouter le droit d'exécution, par exemple avec `RUN chmod +x entrypoint.sh` dans le Dockerfile (ou copier un fichier déjà exécutable). C'est une illustration directe de pourquoi les permissions Linux comptent en Docker : sans le bit x, le script ne peut pas s'exécuter, quelle que soit la commande."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Shell, fichiers & permissions",
+          "quizRef": "linux-fundamentals-shell-check"
+        }
+      ]
+    },
+    {
+      "slug": "paquets-processus-scripts",
+      "title": "Paquets, processus & scripts",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Gestionnaires de paquets",
+          "body": "Pour ajouter un logiciel sur Linux, on n'installe pas en téléchargeant un `.exe` comme sur Windows : on utilise un **gestionnaire de paquets**. Un **paquet** est un logiciel prêt à installer (le programme plus tout ce dont il a besoin) ; le **gestionnaire de paquets** est l'outil qui les télécharge, les installe et les met à jour proprement. 👉 **Analogie** : c'est le **magasin d'applications** (l'app store) de la machine, en version ligne de commande.\n\nChaque distribution a le sien :\n- **apt** sur Debian et Ubuntu ;\n- **apk** sur Alpine ;\n- **yum** ou **dnf** sur RHEL et Fedora.\n\nTu les retrouves dans les Dockerfiles pour ajouter des dépendances système (par exemple `curl` pour faire des requêtes réseau, ou `ca-certificates` pour valider le HTTPS). Le schéma est **toujours le même** : d'abord **mettre à jour l'index des paquets** (la liste de ce qui est disponible et où le trouver), puis **installer**. 👉 **Analogie** : on consulte d'abord le catalogue à jour, puis on commande.\n\nCas particulier utile à connaître : sur **Alpine**, les paquets (`apk`) sont **minuscules**, ce qui donne des images très légères, d'où sa popularité en Docker quand on veut réduire la taille."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Installer des paquets (dans un Dockerfile)",
+          "codeLanguage": "bash",
+          "body": "# Debian / Ubuntu\napt-get update && apt-get install -y curl ca-certificates\n\n# Alpine (images légères)\napk add --no-cache curl\n\n# On nettoie le cache dans la même couche pour ne pas gonfler l'image\napt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Processus, variables d'environnement, redirections",
+          "body": "Trois notions à connaître pour comprendre ce qui se passe *dans* un conteneur.\n\n**Le processus.** Un **processus** est un programme **en train de s'exécuter**. Chacun reçoit un numéro unique, le **PID** (*Process IDentifier*). 👉 **Analogie** : une recette dans un livre, c'est le programme (le fichier) ; la même recette qu'un cuisinier est en train de préparer, c'est le processus. La commande `ps` liste les processus, et `kill` en arrête un en lui envoyant un **signal** (une notification). Les deux signaux clés en Docker : **SIGTERM** (« arrête-toi proprement ») et **SIGKILL** (« meurs immédiatement »). On y revient en détail dans la leçon suivante.\n\n**Les variables d'environnement.** Ce sont des **réglages nommés** que le système transmet aux programmes : un nom et une valeur, par exemple `PORT=8080`. On en crée une avec `export NOM=valeur` et un programme la lit via `$NOM`. 👉 **Analogie** : c'est un **post-it collé sur la machine** que chaque programme peut lire au démarrage. Leur intérêt : configurer un programme **sans toucher à son code**. C'est **le** mécanisme de configuration des conteneurs : la même image tourne en test ou en production juste en changeant ses variables (l'URL de la base de données, le port, etc.).\n\n**Les redirections.** Par défaut, une commande affiche son résultat à l'écran. Une **redirection** permet d'**envoyer ce résultat ailleurs** : `>` écrit le résultat dans un **fichier**, et `|` (la barre verticale, appelée *pipe*) branche la sortie d'une commande sur l'**entrée** d'une autre. 👉 **Analogie** : `|` est un **tuyau** entre deux commandes ; ce qui sort de la première coule directement dans la seconde. Exemple : `ls | sort` liste les fichiers puis les trie. Ce mécanisme est central en Docker, car les **logs d'un conteneur** sont simplement la sortie affichée par son processus, capturée par Docker."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Un script shell minimal",
+          "codeLanguage": "bash",
+          "body": "#!/bin/sh\n# entrypoint.sh  -  souvent utilisé comme point d'entrée d'un conteneur\nset -e                        # arrêter au premier échec\n\necho \"Démarrage avec PORT=${PORT:-8080}\"   # variable d'env, défaut 8080\nif [ -z \"$DATABASE_URL\" ]; then\n  echo \"DATABASE_URL manquante\" >&2         # message vers l'erreur standard\n  exit 1\nfi\n\nexec java -jar /app/app.jar   # exec : remplace le shell par le process (PID 1 propre)"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Pourquoi un script d'entrée de conteneur termine-t-il souvent par `exec java -jar app.jar` plutôt que simplement `java -jar app.jar` ?",
+          "solution": "Sans `exec`, le shell lance java comme un processus ENFANT et reste lui-même le PID 1 du conteneur. Résultat : les signaux (SIGTERM à l'arrêt) vont au shell, pas à java, qui ne reçoit pas l'ordre d'arrêt gracieux et est tué brutalement (SIGKILL) après le délai. Avec `exec`, le processus java REMPLACE le shell et devient PID 1 : il reçoit directement les signaux et peut s'arrêter proprement (finir les requêtes en cours, fermer les connexions). C'est une bonne pratique essentielle pour l'arrêt gracieux des conteneurs."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Fondamentaux Linux",
+          "quizRef": "linux-fundamentals-check"
+        }
+      ]
+    },
+    {
+      "slug": "descripteurs-signaux-proc",
+      "title": "Descripteurs, signaux & /proc",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les trois flux standard & les descripteurs",
+          "body": "Quand un programme s'exécute, Linux lui ouvre automatiquement trois **canaux de communication**. On les appelle des **descripteurs de fichiers** (*file descriptors* : de simples numéros que le système attribue à chaque canal ouvert). Les trois canaux de base sont :\n- **0 = stdin** (*standard input*, l'entrée) : par où le programme **reçoit** des données, par exemple ce que tu tapes au clavier ;\n- **1 = stdout** (*standard output*, la sortie standard) : par où il **écrit son résultat normal** ;\n- **2 = stderr** (*standard error*, l'erreur standard) : par où il **écrit ses messages d'erreur**, séparément du résultat.\n\n👉 **Analogie** : imagine une machine avec **une fente d'entrée** (stdin) et **deux fentes de sortie**, une pour les bons produits (stdout) et une pour les rebuts signalés (stderr). Séparer les deux sorties permet de traiter les erreurs à part.\n\nC'est **fondamental pour Docker** : les **logs d'un conteneur** sont tout simplement les flux **stdout** et **stderr** de son processus PID 1, que le *daemon* Docker (le service Docker qui tourne en arrière-plan) capture au vol. D'où la règle d'or : **une application conteneurisée écrit ses logs sur la sortie standard**, pas dans un fichier caché, sinon `docker logs` ne verra rien.\n\nLes **redirections** manipulent ces canaux. `2>&1` veut dire « envoie le canal 2 (les erreurs) là où va déjà le canal 1 (la sortie) », autrement dit **fusionne les erreurs dans la sortie standard**. Et `|` (le *pipe*) branche la sortie d'une commande sur l'entrée de la suivante."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Redirections & signaux dans un script",
+          "codeLanguage": "bash",
+          "body": "echo \"info\" >&1          # vers stdout (descripteur 1)\necho \"erreur\" >&2        # vers stderr (descripteur 2)\ncommande 2>&1            # fusionner stderr dans stdout\n\n#!/bin/sh\n# Intercepter SIGTERM pour un arrêt propre (utile en PID 1)\nterm() { echo \"arret demande\"; kill -TERM \"$child\"; wait \"$child\"; }\ntrap term TERM INT\nmon_app & child=$!\nwait \"$child\"            # attendre, tout en pouvant réagir aux signaux"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Signaux : demander, forcer, ignorer",
+          "body": "Un **signal** est une **notification courte** envoyée à un processus pour lui demander de réagir. 👉 **Analogie** : c'est comme **frapper à la porte** de quelqu'un ; selon la façon de frapper, le message n'est pas le même, et la personne peut choisir de répondre ou non.\n\nLes signaux incontournables pour Docker :\n- **SIGTERM** (numéro 15) : « arrête-toi **proprement** ». C'est celui qu'envoie `docker stop`. Le processus peut le **capter** pour finir son travail avant de partir.\n- **SIGKILL** (numéro 9) : « **meurs immédiatement** ». Impossible à capter ou à ignorer ; le système coupe tout, sans ménagement. Docker l'envoie **après un délai de grâce** (10 secondes par défaut) si le processus n'est toujours pas parti.\n- **SIGINT** (numéro 2) : ce que déclenche **Ctrl-C** dans un terminal.\n- **SIGHUP** (numéro 1) : souvent interprété comme « **recharge ta configuration** ».\n\nPourquoi ça compte : une application **bien élevée** doit **intercepter SIGTERM** (avec `trap` en shell, ou un gestionnaire dans le code) pour **finir les requêtes en cours** et fermer proprement ses connexions avant de mourir. 👉 **Analogie** : SIGTERM, c'est le **« on ferme dans 5 minutes »** annoncé dans un magasin, qui te laisse finir tes achats ; SIGKILL, c'est **couper l'électricité** d'un coup. Une appli qui ignore SIGTERM se fait donc **tuer brutalement** au bout du délai, en pleine action, connexions coupées. C'est tout le mécanisme derrière l'**arrêt gracieux** des conteneurs."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "/proc, /sys, bits spéciaux & umask (niveau expert)",
+          "body": "Linux a une idée élégante : exposer son **état interne sous forme de fichiers**, dans des dossiers spéciaux appelés **pseudo-systèmes de fichiers**. Ce ne sont pas de vrais fichiers sur le disque : ce sont des **fenêtres en direct** sur ce que fait le noyau, que l'on lit avec les mêmes commandes que d'habitude (`cat`, `ls`). 👉 **Analogie** : c'est le **tableau de bord** d'une voiture ; les cadrans ne *contiennent* pas le moteur, ils en **affichent l'état** en temps réel.\n\n- **`/proc`** contient **un dossier par processus** (par exemple `/proc/1/` pour le PID 1 du conteneur) avec ses limites, ses variables d'environnement, ses descripteurs ouverts.\n- **`/sys/fs/cgroup`** expose les **cgroups**, donc les limites de ressources. C'est là, par exemple, que la JVM (la machine Java) va **lire la limite de mémoire** qu'on a fixée au conteneur.\n\nExplorer `/proc` et `/sys` est l'**outil ultime de débogage bas niveau** quand plus rien d'autre ne répond.\n\nCôté permissions avancées, deux notions de pro :\n- les **bits spéciaux** : **setuid** (le fichier s'exécute avec les droits de son **propriétaire**, pas de celui qui le lance, un point sensible à **surveiller en sécurité**), **setgid** (idem avec le groupe), et le **sticky bit** (posé sur `/tmp` pour empêcher chacun de supprimer les fichiers des autres) ;\n- l'**umask** : le **masque** qui décide des permissions **par défaut** des nouveaux fichiers créés.\n\n👉 **En clair** : un expert sait lire `ls -l` **au bit près** et repérer, par exemple, un binaire **setuid suspect** glissé dans une image, qui pourrait servir à un attaquant à obtenir les droits root."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Une application dans un conteneur écrit ses logs dans un fichier `/var/log/app.log` au lieu de la sortie standard. `docker logs` ne montre rien. Pourquoi, et quelle est la convention correcte ?",
+          "solution": "docker logs capture les flux stdout (descripteur 1) et stderr (descripteur 2) du processus PID 1 du conteneur, pas les fichiers écrits à l'intérieur. En écrivant dans /var/log/app.log, l'application envoie ses logs dans un fichier de sa couche éphémère, invisible pour `docker logs` (et perdu à la suppression du conteneur). Convention correcte (12-factor, « logs as streams ») : l'application écrit ses logs sur stdout/stderr ; le daemon Docker les capture, les horodate et les rend disponibles via `docker logs`, et un système de collecte (log driver) peut les router vers une plateforme centralisée. Si l'app ne sait écrire que dans un fichier, on peut le rediriger vers stdout (lien symbolique vers /dev/stdout, ou un sidecar), mais l'idéal est que l'application logue directement sur la sortie standard."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Linux avancé (expert)",
+          "quizRef": "linux-fundamentals-expert"
+        }
+      ]
+    },
+    {
+      "slug": "reseau-linux-capabilities",
+      "title": "Réseau Linux & capabilities",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le minimum réseau pour comprendre Docker",
+          "body": "Le réseau de Docker n'a rien de magique : il s'appuie **entièrement sur des primitives Linux**. Les connaître un peu démystifie tout. Définissons le vocabulaire.\n\n- Une **interface réseau** est un **point de connexion** de la machine au réseau. Elle peut être **physique** (la carte réseau `eth0`) ou **virtuelle** (créée par logiciel). 👉 **Analogie** : c'est une **prise réseau**, réelle ou simulée.\n- Une **adresse IP** est le **numéro** qui identifie une machine sur le réseau, comme `172.17.0.2`. 👉 **Analogie** : c'est l'**adresse postale** de la machine ; sans elle, impossible de lui livrer un paquet.\n- La **table de routage** est la **liste de règles** qui décide, pour un paquet donné, **par où le faire sortir**. 👉 **Analogie** : c'est le **panneau de direction** à chaque carrefour du réseau.\n\nLes outils modernes pour observer tout ça :\n- **`ip`** affiche les interfaces, les adresses et les routes (il remplace l'ancien `ifconfig`) ;\n- **`ss`** liste les **sockets** et les **ports en écoute**, c'est-à-dire les portes ouvertes par lesquelles un programme attend des connexions (il remplace l'ancien `netstat`).\n\nCôté Docker : le moteur crée un **pont virtuel** nommé **`docker0`** (un commutateur réseau logiciel) et des paires d'interfaces virtuelles appelées **veth** pour relier chaque conteneur à ce pont. Et quand tu publies un port avec l'option `-p`, Docker manipule **iptables** (le pare-feu du noyau Linux) pour faire de la **traduction d'adresses** (le *NAT*), afin d'aiguiller le trafic de l'hôte vers le bon conteneur.\n\n👉 **En clair** : savoir lire `ip addr` et `ss -tlnp` à l'intérieur d'un conteneur, c'est pouvoir répondre à la question qui revient sans arrêt : « pourquoi ça ne communique pas ? »."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Diagnostiquer le réseau",
+          "codeLanguage": "bash",
+          "body": "ip addr                    # interfaces et adresses IP\nip route                   # table de routage\nss -tlnp                   # ports TCP en écoute (et le processus)\n\n# Dans un conteneur (souvent minimal), on peut manquer ces outils :\ndocker exec -it web sh -c \"ip addr || cat /proc/net/fib_trie\"\n# ou entrer dans le namespace réseau du conteneur depuis l'hôte :\n#   nsenter -t <pid> -n ss -tlnp"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les capabilities Linux : root en morceaux",
+          "body": "Petit rappel : **root** est l'utilisateur administrateur, à qui **tout** est permis. Historiquement, un processus était soit **root** (tous les pouvoirs), soit un utilisateur ordinaire (aucun pouvoir privilégié). C'était **tout ou rien**, et c'est dangereux : donner root à un programme juste pour une petite chose lui donne aussi le pouvoir de tout casser.\n\nLes **capabilities** (littéralement « capacités ») résolvent ça en **découpant les super-pouvoirs de root en petites unités** attribuables **séparément**. 👉 **Analogie** : au lieu de confier le **passe-partout** de tout l'immeuble à un ouvrier, on ne lui remet **que la clé de la pièce** où il doit travailler.\n\nQuelques capabilities utiles à reconnaître :\n- `CAP_NET_BIND_SERVICE` : le droit d'**écouter sur un port inférieur à 1024** (les ports « réservés », comme le 80 du web) ;\n- `CAP_NET_RAW` : manipuler des paquets réseau bruts (ce qui permet à `ping` de fonctionner) ;\n- `CAP_CHOWN` : changer le propriétaire d'un fichier ;\n- `CAP_SYS_ADMIN` : le « **nouveau root** », extrêmement puissant, à éviter autant que possible.\n\nC'est **la** fondation de la sécurité des conteneurs : plutôt que de tourner en root complet, on ne garde que les capabilities **strictement nécessaires**. C'est le principe du **moindre privilège** (donner juste ce qu'il faut, rien de plus). Docker retire déjà par défaut un jeu de capabilities dangereuses ; le durcissement consiste à tout retirer avec `--cap-drop ALL`, puis à n'ajouter que le minimum requis, par exemple `--cap-add NET_BIND_SERVICE` si l'application doit écouter sur le port 80."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Une application doit écouter sur le port 80 (< 1024, normalement réservé à root) mais tu veux qu'elle tourne en utilisateur non privilégié dans le conteneur. Quelle notion Linux permet de concilier les deux ?",
+          "solution": "Les capabilities Linux, précisément CAP_NET_BIND_SERVICE. Le fait de lier un port inférieur à 1024 est un privilège traditionnellement réservé à root, mais il correspond à une capability isolable. On peut donc faire tourner le processus en utilisateur NON-root tout en lui accordant uniquement cette capability : soit au niveau du conteneur (`--cap-add NET_BIND_SERVICE`, idéalement combiné à `--cap-drop ALL`), soit sur le binaire (`setcap 'cap_net_bind_service=+ep' /app`). Ainsi l'application obtient le seul privilège dont elle a besoin (écouter sur le port 80) sans être root ni disposer des autres pouvoirs, application concrète du moindre privilège. Alternative fréquente : écouter sur un port élevé (8080) dans le conteneur et publier `-p 80:8080`, ce qui évite complètement le besoin de la capability."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Réseau Linux & capabilities (expert)",
+          "quizRef": "linux-network-caps-expert"
+        }
+      ]
+    }
+  ]
+}

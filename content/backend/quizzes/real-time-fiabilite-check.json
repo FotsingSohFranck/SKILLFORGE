@@ -1,0 +1,96 @@
+{
+  "ref": "real-time-fiabilite-check",
+  "node": "real-time",
+  "lesson": "fiabilite-temps-reel",
+  "title": "Quiz, Fiabilité du temps réel",
+  "description": "Reprise (Last-Event-ID), at-least-once, idempotence, ordre, backpressure, heartbeats.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur une connexion persistante (SSE, WebSocket), comment faut-il considérer les déconnexions ?",
+      "justification": "La déconnexion est une certitude (Wi-Fi, tunnel, proxy). Il faut concevoir la reprise (rattraper les messages manqués) pour ne pas créer de trous silencieux.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Comme une certitude : il faut concevoir la reprise pour ne pas perdre de messages",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Comme un cas rare qu'on peut ignorer",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Comme un bug réseau à corriger dans le code",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un client temps réel doit-il être idempotent (dédupliquer par id) ?",
+      "justification": "La livraison est at-least-once : la reprise peut rejouer un message déjà reçu. Le client déduplique par id pour que traiter deux fois le même message ne change rien.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Parce que la livraison est at-least-once : un message peut être rejoué, donc reçu plusieurs fois",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que chaque message n'est jamais livré qu'une seule fois",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour chiffrer les messages de bout en bout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Le serveur produit des messages plus vite qu'un client lent ne les consomme. Quelle attitude est correcte ?",
+      "justification": "Il faut choisir explicitement une stratégie : backpressure (ralentir la source), buffer borné puis drop, ou fermer la connexion. Ne rien décider laisse les tampons enfler jusqu'au crash (OOM).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Choisir explicitement : backpressure, buffer borné avec drop, ou fermer la connexion",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ne rien faire : TCP gère tout gratuitement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Augmenter le buffer sans aucune limite",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les heartbeats (ping/pong, keep-alive) servent à détecter les connexions mortes et à empêcher les proxys de couper une connexion jugée inactive.",
+      "justification": "Vrai : sans FIN, une connexion morte passe inaperçue ; le heartbeat la détecte (pour libérer les ressources) et maintient la connexion active face aux proxys/load balancers.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

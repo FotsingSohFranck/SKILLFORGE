@@ -1,0 +1,52 @@
+{
+  "ref": "search-engines-analyse-check",
+  "node": "search-engines",
+  "lesson": "comment-ca-marche",
+  "title": "Analyse & pertinence",
+  "description": "Tokenisation, stemming, analyse symétrique, TF-IDF / BM25.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le stemming (racinisation) ?",
+      "justification": "Le stemming réduit un mot à sa racine : « courir », « courais », « couraient » deviennent tous « cour », pour que ces formes se retrouvent entre elles.",
+      "position": 0,
+      "options": [
+        { "label": "Il réduit un mot à sa racine (« couraient » → « cour »)", "correct": true, "position": 0 },
+        { "label": "Il chiffre chaque mot avant l'indexation", "correct": false, "position": 1 },
+        { "label": "Il traduit le mot en anglais", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi appliquer la même analyse à l'indexation ET à la requête ?",
+      "justification": "Pour comparer requête et documents dans la même forme normalisée : si « couraient » est indexé « cour », la requête « courais » doit aussi devenir « cour » pour matcher.",
+      "position": 1,
+      "options": [
+        { "label": "Pour comparer requête et documents dans la même forme normalisée", "correct": true, "position": 0 },
+        { "label": "Pour réduire la taille de la base de données", "correct": false, "position": 1 },
+        { "label": "Pour chiffrer les deux côtés de la même façon", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans la requête `le conteneur docker`, pourquoi le mot `docker` pèse-t-il plus que `le` ?",
+      "justification": "Grâce à l'IDF (rareté du terme) : `le` est partout et ne distingue rien, `docker` est rare donc bien plus révélateur ; il reçoit un poids plus fort.",
+      "position": 2,
+      "options": [
+        { "label": "Parce que `docker` est un terme rare, donc plus révélateur (IDF)", "correct": true, "position": 0 },
+        { "label": "Parce que `docker` est plus court à indexer", "correct": false, "position": 1 },
+        { "label": "Parce que les moteurs ignorent toujours le premier mot", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un moteur de recherche classe les résultats par pertinence, du plus pertinent au moins pertinent.",
+      "justification": "Vrai : un score (TF-IDF ou BM25) note chaque document et les meilleurs sont placés en haut, contrairement à un simple oui/non.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

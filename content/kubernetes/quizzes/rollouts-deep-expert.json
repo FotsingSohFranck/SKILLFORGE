@@ -1,0 +1,96 @@
+{
+  "ref": "rollouts-deep-expert",
+  "node": "deployments",
+  "lesson": "rollouts-en-profondeur",
+  "title": "Rollouts en profondeur, expert",
+  "description": "Recreate vs RollingUpdate, revisionHistoryLimit, rollout bloqué, replicas/HPA.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand utiliser la stratégie Recreate plutôt que RollingUpdate ?",
+      "justification": "Quand l'ancienne et la nouvelle version ne peuvent pas coexister (volume RWO exclusif, incompatibilité, singleton), au prix d'une coupure.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Quand les deux versions ne peuvent pas coexister",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours, c'est plus rapide",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Jamais, c'est déprécié",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signale la condition ProgressDeadlineExceeded d'un Deployment ?",
+      "justification": "Le rollout n'a pas progressé dans le délai imparti (progressDeadlineSeconds) : les nouveaux pods ne deviennent pas Ready.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le rollout est bloqué (nouveaux pods pas Ready)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le déploiement a réussi",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le cluster est plein",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la première chose à regarder pour diagnostiquer un rollout bloqué ?",
+      "justification": "L'état des nouveaux pods (get pods, puis describe/logs) : Pending, ImagePullBackOff, CrashLoopBackOff, ou Running mais pas Ready.",
+      "position": 2,
+      "options": [
+        {
+          "label": "L'état des nouveaux pods (get/describe/logs)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le nombre de nœuds du cluster uniquement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La version de kubectl",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Quand un HPA gère un Deployment, il ne faut pas déclarer replicas dans le manifeste appliqué, sinon apply/sync écrase l'autoscaling (yo-yo).",
+      "justification": "Vrai : un champ, un propriétaire, l'HPA possède replicas ; on le retire du manifeste (et on l'ignore côté GitOps).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

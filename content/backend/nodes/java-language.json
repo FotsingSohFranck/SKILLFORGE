@@ -1,0 +1,730 @@
+{
+  "node": "java-language",
+  "lessons": [
+    {
+      "slug": "java-et-la-jvm",
+      "title": "Java & la JVM",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un langage, une machine virtuelle",
+          "body": "Java est un **langage de programmation** créé en 1995, encore aujourd'hui l'un des plus utilisés pour construire des serveurs et de grosses applications.\n\nDeux mots sont à définir tout de suite.\n\n**Typé statiquement** : cela veut dire que le **type** de chaque variable (est-ce un nombre entier ? un texte ? un objet ?) est connu et vérifié *avant* d'exécuter le programme, au moment de la compilation. Si tu essaies de mettre du texte dans une variable prévue pour un nombre, le programme refuse de se construire. 👉 **Analogie** : c'est comme un formulaire papier dont les cases imposent un format (la case « âge » n'accepte que des chiffres) : les erreurs sont attrapées à la saisie, pas une fois le courrier parti.\n\n**Le bytecode** : Java ne se transforme pas directement en langage du processeur (le *code machine*, propre à chaque type d'ordinateur). Il se transforme d'abord en un format intermédiaire universel appelé **bytecode**, rangé dans des fichiers `.class`.\n\n**La JVM** (*Java Virtual Machine*, « machine virtuelle Java ») est le programme qui **lit ce bytecode et l'exécute**. Il en existe une version pour Linux, une pour macOS, une pour Windows. 👉 **Analogie** : le bytecode est une partition de musique (la même pour tout le monde) et la JVM est le musicien : chaque système sait lire la partition et la jouer. D'où le slogan de Java : « écris une fois, exécute partout » (le même fichier `.jar` tourne sur les trois systèmes sans être recompilé).\n\nDernier point : la JVM ne se contente pas d'exécuter, elle **optimise le code pendant qu'il tourne** (c'est la compilation **JIT**, *Just-In-Time*, « juste à temps »). Concrètement, un service Java est un peu lent les toutes premières secondes, puis devient très rapide, proche d'un programme écrit en langage machine, une fois « chauffé »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Java se compile en bytecode, execute par la JVM : ecrire une fois, tourner partout.",
+          "body": "/images/lessons/java-et-la-jvm-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Compiler et exécuter",
+          "body": "**Compiler**, c'est traduire ton code source (lisible par un humain) vers un format exécutable par la machine. En Java, le cycle a deux temps.\n\n1. **`javac`** (le *compilateur* Java) lit ton fichier `Bonjour.java` et produit un fichier `Bonjour.class` contenant le **bytecode**.\n2. **`java`** démarre la **JVM**, qui charge ce `.class` et l'exécute.\n\nDans un vrai projet, on ne tape presque jamais `javac`/`java` à la main : un **outil de build** s'en charge. Un outil de build est un programme qui automatise tout le travail répétitif : compiler tous les fichiers, télécharger les **dépendances** (les bibliothèques externes dont ton code a besoin), lancer les tests, et empaqueter le résultat en un seul fichier **`.jar`** exécutable (une archive qui contient tout ton programme compilé).\n\n👉 **Analogie** : l'outil de build est le chef de chantier. Toi tu fournis les plans (le code) ; lui commande les matériaux (les dépendances), assemble, vérifie et te livre la maison clé en main (le `.jar`). Les deux plus connus sont **Maven** et **Gradle**. Cette plateforme utilise **Maven** (organisé en plusieurs modules)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "javac compile le source en bytecode, la commande java le lance sur la JVM.",
+          "body": "/images/lessons/java-et-la-jvm-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Du code source à l'exécution",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    A[\"Code source (.java)\"] -->|javac| B[\"Bytecode (.class)\"]\n    B -->|\"java lance la JVM\"| C[JVM]\n    C -->|au démarrage| D[Interprétation]\n    C -->|\"à chaud (JIT)\"| E[Code machine optimisé]\n    D --> F[Exécution]\n    E --> F[Exécution]"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Bonjour, en Java 25",
+          "codeLanguage": "java",
+          "body": "// Depuis Java 25, un fichier source peut se réduire à l'essentiel :\n// plus besoin de 'public class', ni de 'static', ni de 'String[] args'.\nvoid main() {\n    var nom = \"SkillForge\";\n    System.out.println(\"Bonjour \" + nom + \" !\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Variables, types primitifs & inférence",
+          "body": "Une **variable** est une boîte nommée qui contient une valeur (`int age = 36;` crée une boîte `age` qui contient 36). Java classe ce que peut contenir une variable en deux grandes catégories.\n\n**Les types primitifs** sont les valeurs de base, stockées directement : `int` (nombre entier), `long` (entier très grand), `double` (nombre à virgule), `boolean` (vrai/faux), `char` (un caractère). Ils sont rangés « par valeur », c'est-à-dire que la boîte contient directement la donnée.\n\n**Les objets** (tout le reste : un texte `String`, une liste, un utilisateur…) sont manipulés « par référence » : la boîte ne contient pas l'objet lui-même mais son **adresse**. 👉 **Analogie** : un type primitif, c'est le nombre écrit directement sur un post-it ; un objet, c'est l'**adresse d'une maison** notée sur le post-it (la maison, elle, est ailleurs).\n\nLe mot-clé **`var`** demande au compilateur de **deviner le type** d'après la valeur de départ : `var total = 0;` crée bien un `int` (car 0 est un entier), sans que tu aies à l'écrire. On appelle ça l'**inférence de type**. Attention : ce n'est pas du typage « mou », le type reste fixé et vérifié ; `var` t'évite juste de te répéter. On garde le type explicite quand il n'est pas évident à la lecture."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Variables et types primitifs : des boites typees ; l'inference (var) deduit le type sans l'ecrire.",
+          "body": "/images/lessons/java-et-la-jvm-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Mémoire & ramasse-miettes (niveau expert)",
+          "body": "Dans certains langages (C, C++), le programmeur doit **réserver** puis **libérer** lui-même la mémoire de chaque objet ; s'il oublie de libérer, la mémoire se remplit peu à peu jusqu'à saturation (une **fuite mémoire**).\n\nJava t'évite cette corvée grâce au **ramasse-miettes** (en anglais *garbage collector*, souvent abrégé **GC**). C'est un mécanisme automatique qui repère les objets dont **plus personne ne se sert** (aucune variable ne pointe vers eux) et récupère leur place tout seul. 👉 **Analogie** : c'est le service de nettoyage d'un hôtel : dès qu'une chambre est libérée et que plus aucun client n'y a ses affaires, il la remet à disposition, sans que tu aies à t'en occuper.\n\nLa contrepartie : de temps en temps, le GC fait une petite **pause** pour faire le ménage (très courte avec les GC modernes comme **G1** ou **ZGC**). Bien programmer en Java, c'est donc éviter de créer des tonnes d'objets inutiles dans les portions de code très sollicitées, et se souvenir qu'en Java « rapide » se **mesure** après la phase de chauffe (la compilation JIT), pas au tout premier appel."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La memoire est geree pour vous : le ramasse-miettes recupere les objets devenus inutiles.",
+          "body": "/images/lessons/java-et-la-jvm-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "EXERCISE",
+          "position": 10,
+          "title": "À vous",
+          "body": "Pourquoi une même méthode Java peut-elle sembler lente au tout premier appel puis devenir rapide ensuite ? Quel mécanisme l'explique ?",
+          "solution": "Au démarrage, la JVM exécute le bytecode en mode interprété ; le compilateur JIT observe les méthodes « chaudes » (souvent appelées) et les recompile en code machine optimisé. D'où l'accélération après quelques exécutions. C'est pourquoi on mesure les performances après une phase de chauffe (warm-up), pas au premier appel."
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : Java & la JVM",
+          "quizRef": "java-language-jvm-check"
+        }
+      ]
+    },
+    {
+      "slug": "types-records-sealed",
+      "title": "Types, records & sealed classes",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Classes et objets",
+          "body": "Une **classe** est un **plan** qui décrit un type d'objet : ce qu'il **contient** (ses **champs**, c'est-à-dire son état, par exemple le solde d'un compte) et ce qu'il **sait faire** (ses **méthodes**, son comportement, par exemple `deposer`).\n\nÀ partir de ce plan, on fabrique des **objets** (on dit aussi des **instances**) avec le mot-clé **`new`** : `var compte = new Compte();`. 👉 **Analogie** : la classe est le **plan d'architecte** d'une maison ; chaque objet est une **maison réelle** construite d'après ce plan. Un seul plan, autant de maisons que tu veux, chacune avec ses propres valeurs (l'une a le solde 10, l'autre 50).\n\nL'**encapsulation** est un principe clé : on **cache l'état** derrière les méthodes. Les champs sont déclarés **`private`** (accessibles seulement depuis l'intérieur de la classe) et le monde extérieur passe par des méthodes qui **protègent les règles** (les **invariants**, par exemple « le solde ne descend jamais sous zéro »). 👉 **Analogie** : un distributeur de billets ne te laisse pas plonger la main dans la caisse ; tu passes par des boutons (les méthodes) qui vérifient tes droits. Un bon objet expose donc un *comportement* utile, pas ses données brutes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une classe est un plan, un objet l'instance creee a partir de ce plan.",
+          "body": "/images/lessons/types-records-sealed-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Les records : données immuables",
+          "codeLanguage": "java",
+          "body": "// Un record : porteur de données concis et IMMUABLE.\n// equals(), hashCode(), toString() et l'accès sont générés.\npublic record Money(long cents, String currency) {\n    public Money {                       // compact constructor : validation\n        if (currency == null || currency.isBlank())\n            throw new IllegalArgumentException(\"currency requis\");\n    }\n    public Money add(Money other) {\n        if (!currency.equals(other.currency))\n            throw new IllegalArgumentException(\"devises différentes\");\n        return new Money(cents + other.cents, currency);\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Pourquoi l'immutabilité",
+          "body": "Un objet **immuable** est un objet qui **ne change jamais** après sa création : pour « le modifier », on en fabrique un **nouveau** avec la valeur voulue, au lieu de toucher l'ancien. 👉 **Analogie** : un billet de 10 euros est immuable ; tu ne le transformes pas en billet de 20, tu en prends un autre. Un `record` `Money(1000, \"EUR\")` ne se modifie pas : sa méthode `add` renvoie un *nouveau* `Money`.\n\nPourquoi c'est précieux, surtout côté serveur ? Un serveur traite beaucoup de requêtes **en même temps**, chacune sur un **thread** (un fil d'exécution, une « voie » de calcul parallèle, on y revient plus loin). Un objet immuable est :\n- **sûr à partager entre threads** sans précaution : comme personne ne peut le changer, aucun risque que deux requêtes se marchent dessus ;\n- **impossible à corrompre** par le code qui le reçoit (il ne peut pas modifier ta valeur dans ton dos) ;\n- **prévisible** comme clé de dictionnaire ou de cache (sa valeur ne bouge pas).\n\nRègle pratique : pour les **DTO** (objets qui transportent des données entre couches), les **valeurs métier** et les **commandes**, le `record` immuable est le choix par défaut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'immutabilite : un objet qu'on ne modifie plus est plus sur, surtout en concurrence.",
+          "body": "/images/lessons/types-records-sealed-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Sealed : des hiérarchies fermées",
+          "codeLanguage": "java",
+          "body": "// 'sealed' liste explicitement les sous-types autorisés.\n// Combiné aux records, on modélise un TYPE SOMME (algébrique).\npublic sealed interface Shape permits Circle, Rectangle {}\n\npublic record Circle(double radius) implements Shape {}\npublic record Rectangle(double width, double height) implements Shape {}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Enums & modélisation (niveau expert)",
+          "body": "Une **enum** (abréviation d'*enumeration*, « énumération ») représente un **ensemble fini de valeurs nommées**, fixé à l'avance : `Role.ADMIN`, `Role.LEARNER`. 👉 **Analogie** : les points cardinaux (Nord, Sud, Est, Ouest) : la liste est close, on n'en invente pas un cinquième. Une enum peut aussi porter des données et des méthodes.\n\nLe mot-clé **`sealed`** (« scellé ») sert à **fermer une hiérarchie** : une interface `sealed` **liste explicitement** les seuls sous-types autorisés (`permits Circle, Rectangle`). Personne ne peut en ajouter un autre ailleurs.\n\nEn combinant **`sealed` + `record`**, Java te donne ce qu'on appelle un **type somme** (ou *type algébrique*) : une valeur qui est **soit ceci, soit cela**, et rien d'autre. Un `Shape` est *soit* un `Circle` *soit* un `Rectangle`, et le **compilateur le sait**. 👉 **Analogie** : un feu tricolore est *soit* vert, *soit* orange, *soit* rouge : trois états possibles, exhaustifs et exclusifs. L'énorme avantage : on modélise un domaine avec une telle précision que les **états invalides deviennent impossibles à écrire**, ce qui est la meilleure des documentations."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Enums et types scelles modelisent un ensemble ferme de cas connus.",
+          "body": "/images/lessons/types-records-sealed-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Vous devez représenter le résultat d'un paiement : soit un succès avec un identifiant de transaction, soit un échec avec un motif. Quel outil du langage choisir et pourquoi ?",
+          "solution": "Une interface sealed 'PaymentResult permits Success, Failure' avec deux records : record Success(String txId) et record Failure(String reason). Avantage : les deux seuls cas possibles sont explicites, immuables, et un switch dessus sera vérifié exhaustif par le compilateur, impossible d'oublier un cas."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : types, records & sealed",
+          "quizRef": "java-language-types-check"
+        }
+      ]
+    },
+    {
+      "slug": "collections-generiques-optional",
+      "title": "Collections, génériques & Optional",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les collections de base",
+          "body": "Une **collection** est un objet qui **regroupe plusieurs valeurs** (là où une variable simple n'en contient qu'une). Trois familles couvrent l'essentiel des besoins.\n\n- **`List`** (« liste ») : une **suite ordonnée**, où les **doublons** sont permis (une même valeur peut y figurer deux fois). Implémentation courante : `ArrayList`. 👉 **Analogie** : ta liste de courses, dans l'ordre, où « lait » peut apparaître deux fois.\n- **`Set`** (« ensemble ») : une collection **sans doublon**, chaque valeur y est unique. `HashSet` (ordre quelconque), `LinkedHashSet` (garde l'ordre d'insertion). 👉 **Analogie** : un trousseau où chaque clé est unique.\n- **`Map`** (« dictionnaire ») : des **associations clé vers valeur**. `HashMap`. 👉 **Analogie** : un annuaire : tu cherches un nom (la clé) et tu obtiens un numéro (la valeur).\n\nChoisir la bonne structure, c'est déjà optimiser. Retrouver une valeur par sa clé dans une `Map` est quasi **instantané** (en jargon : en temps *O(1)*, c'est-à-dire que le temps ne grandit pas avec la taille de la collection) ; l'unicité est **gratuite** avec un `Set`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "List, Set, Map : les collections de base pour regrouper et retrouver des donnees.",
+          "body": "/images/lessons/collections-generiques-optional-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Génériques : typer les conteneurs",
+          "codeLanguage": "java",
+          "body": "List<String> noms = new ArrayList<>();\nnoms.add(\"Ada\");\n// noms.add(42);        // ERREUR de compilation : typage garanti\n\nMap<String, Integer> ages = new HashMap<>();\nages.put(\"Ada\", 36);\nint age = ages.getOrDefault(\"Ada\", 0);   // pas de NullPointerException"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Génériques & bornes",
+          "body": "Les **génériques** (notés entre chevrons, `<T>`) permettent d'écrire du code **réutilisable ET typé**. Le `T` est un **paramètre de type** : un emplacement à remplir. Quand tu écris `List<String>`, tu dis « une liste **de chaînes de caractères** » : Java refuse alors d'y mettre autre chose, et tu ressors des `String` sans avoir à faire de **transtypage** (un *cast*, c'est-à-dire forcer manuellement le type, source d'erreurs). 👉 **Analogie** : `List` est un bac de rangement générique ; `<String>` est l'étiquette « chaussettes » collée dessus : impossible d'y ranger des livres, et tu sais d'avance ce que tu vas en sortir.\n\nOn peut **contraindre** le paramètre avec une **borne** : `<T extends Comparable<T>>` signifie « `T` doit être un type **comparable** » (dont on peut ranger les valeurs dans l'ordre). Cela garantit qu'une méthode générique pourra vraiment trier ou comparer ses éléments.\n\nAvantage décisif : tout est vérifié **à la compilation**. Une erreur de type (mettre un nombre là où on attend un texte) est signalée *avant* l'exécution, elle n'atteint jamais l'utilisateur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les generiques apportent la securite de type : une List<String> ne contient que des String.",
+          "body": "/images/lessons/collections-generiques-optional-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Sequenced collections (Java 21+)",
+          "codeLanguage": "java",
+          "body": "// Interface unifiée pour accéder aux extrémités et inverser.\nList<String> etapes = new ArrayList<>(List.of(\"a\", \"b\", \"c\"));\netapes.getFirst();     // \"a\"\netapes.getLast();      // \"c\"\netapes.reversed();     // vue inversée [c, b, a]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Optional : bannir le null (niveau expert)",
+          "body": "En Java, une variable d'objet peut valoir **`null`**, un mot spécial qui signifie « **rien**, aucune valeur, aucune adresse ». Le problème : si tu appelles une méthode sur un `null` (`utilisateur.getNom()` alors que `utilisateur` est `null`), le programme plante avec la fameuse **`NullPointerException`** (souvent abrégée **NPE**), l'erreur la plus courante en Java. 👉 **Analogie** : `null`, c'est une **enveloppe vide** ; l'ouvrir en t'attendant à une lettre te fait tomber dans le vide.\n\n**`Optional<T>`** est la parade : c'est une **boîte qui contient soit une valeur, soit rien**, et qui rend cette absence **visible dans le type**. Une méthode qui peut ne rien trouver renvoie `Optional<User>` au lieu de `User` : l'appelant *voit* qu'il peut y avoir du vide, et le compilateur l'oblige à traiter ce cas, avec des méthodes comme `map` (transformer si présent), `orElse` (valeur par défaut) ou `orElseThrow` (échouer proprement).\n\n👉 **Analogie** : au lieu d'une enveloppe qui peut sournoisement être vide, `Optional` est une **boîte transparente** : tu vois tout de suite si elle contient quelque chose, et tu ne te fais pas surprendre. Règle : **ne renvoie jamais `null`** depuis une API ; renvoie un `Optional`. Dans le style **réactif** de cette plateforme (WebFlux/R2DBC), ce sont `Mono` (0 ou 1 valeur) et `Flux` (plusieurs) qui jouent ce rôle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Optional rend l'absence explicite et bannit le null, source n1 des NullPointerException.",
+          "body": "/images/lessons/collections-generiques-optional-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une méthode `findByEmail` peut ne trouver aucun utilisateur. Quelle signature de retour choisir pour forcer l'appelant à gérer l'absence, et comment l'appelant récupère-t-il une valeur par défaut ?",
+          "solution": "Optional<User> findByEmail(String email). L'appelant : repo.findByEmail(e).orElseThrow(() -> new NotFoundException(...)) pour échouer proprement, ou .map(User::displayName).orElse(\"Anonyme\") pour une valeur par défaut. Le compilateur ne laisse pas ignorer le cas vide."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : collections, génériques & Optional",
+          "quizRef": "java-language-collections-check"
+        }
+      ]
+    },
+    {
+      "slug": "exceptions-et-erreurs",
+      "title": "Exceptions & gestion d'erreurs",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le mécanisme des exceptions",
+          "body": "Une **exception** est un objet qui signale qu'**une erreur est survenue** et **interrompt** le déroulement normal du programme. Au lieu de continuer comme si de rien n'était, le code « lève » (jette) une exception, qui **remonte la pile d'appels** (la chaîne des méthodes qui se sont appelées les unes les autres) jusqu'à trouver un endroit qui sait la **traiter**, un bloc **`try/catch`**. Si personne ne l'attrape, le thread s'arrête. 👉 **Analogie** : c'est une **alarme incendie** : dès qu'elle sonne, on arrête tout, et le signal remonte les étages jusqu'à quelqu'un chargé d'agir.\n\nJava distingue deux familles d'exceptions.\n- Les exceptions **vérifiées** (en anglais *checked*, par exemple `IOException`) : le compilateur **t'oblige** à les gérer ou à les déclarer. Elles représentent des aléas prévisibles du monde extérieur (un fichier absent, le réseau coupé). 👉 **Analogie** : la météo, tu sais qu'il *peut* pleuvoir, alors tu prends un parapluie.\n- Les exceptions **non vérifiées** (en anglais *unchecked*, filles de `RuntimeException` : `IllegalArgumentException`, `NullPointerException`) : elles signalent en général un **bug de programmation**. Le compilateur ne t'oblige pas à les attraper, car la bonne réponse est de **corriger le code**, pas de composer avec."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une exception interrompt le flux normal pour signaler un probleme a traiter.",
+          "body": "/images/lessons/exceptions-et-erreurs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "try / catch / finally & try-with-resources",
+          "codeLanguage": "java",
+          "body": "// try-with-resources ferme automatiquement la ressource (AutoCloseable)\ntry (var reader = Files.newBufferedReader(path)) {\n    return reader.readLine();\n} catch (IOException e) {\n    throw new UncheckedIOException(\"lecture impossible\", e);  // on enrichit et propage\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Exceptions de domaine",
+          "body": "Dans une architecture propre (comme celle de cette plateforme), on sépare les **erreurs métier** des **erreurs techniques**. Le **domaine** (le cœur des règles de ton application, indépendant de la technique) lève des **exceptions métier explicites**, au nom parlant : `NotFoundException` (ressource introuvable), `BusinessRuleException` (règle métier violée), plutôt que des exceptions techniques obscures.\n\nUn **handler global** (un « gestionnaire » centralisé, placé au bord de l'application, dans la couche web) **intercepte** ces exceptions et les **traduit** en codes HTTP normalisés : 404 pour introuvable, 409 pour conflit, 422 pour règle métier. Jamais de trace technique (*stacktrace*) renvoyée au client. 👉 **Analogie** : c'est le **standard téléphonique** de l'entreprise : peu importe le service qui a un souci en interne, l'accueil répond au client par un message clair et calibré, sans lui déballer la cuisine interne.\n\nDans cette plateforme, le schéma est exactement : exception de domaine, puis `GlobalErrorHandler`, puis code HTTP (404/409/422…)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les exceptions de domaine expriment une regle metier violee, pas un bug technique.",
+          "body": "/images/lessons/exceptions-et-erreurs-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Récupérable vs irrécupérable (niveau expert)",
+          "body": "Toutes les erreurs ne se traitent pas de la même façon.\n\nUne erreur **récupérable** est une erreur dont on peut se remettre proprement : par exemple une **entrée invalide** envoyée par l'utilisateur. On répond simplement « ta requête est incorrecte » (code 400) et le service continue de tourner. 👉 **Analogie** : un client remplit mal un formulaire, on lui rend le formulaire à corriger, la boutique reste ouverte.\n\nUne erreur **irrécupérable** est un **bug de programmation** : là, il n'y a rien à « rattraper », on **journalise** (on enregistre l'incident pour l'analyser), on renvoie une erreur générique (code 500) et surtout on **corrige le code**.\n\nTrois **anti-patterns** (mauvaises habitudes classiques) à fuir absolument :\n- **avaler une exception** : écrire `catch (Exception e) {}` (un bloc vide) fait disparaître l'erreur en silence, sans aucune trace pour comprendre le problème ; 👉 c'est comme **débrancher le détecteur de fumée** parce qu'il fait du bruit ;\n- **attraper trop large** (`catch (Exception e)`) : on capture aussi des erreurs qu'on n'aurait pas dû, ce qui masque de vrais bugs ;\n- **utiliser les exceptions pour le contrôle de flux** normal : une exception doit rester… exceptionnelle, pas remplacer un simple `if`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Distinguer le recuperable (on peut reagir) de l'irrecuperable (on laisse remonter).",
+          "body": "/images/lessons/exceptions-et-erreurs-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un développeur écrit `catch (Exception e) { }` pour « éviter que ça plante ». Citez deux raisons pour lesquelles c'est dangereux.",
+          "solution": "1) On masque des bugs réels (l'erreur disparaît silencieusement, aucune trace pour diagnostiquer). 2) On attrape aussi des erreurs qu'on ne devrait pas gérer là (ex. programmation), laissant le système dans un état incohérent. Il faut attraper le type précis attendu, journaliser, et propager le reste."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : exceptions & gestion d'erreurs",
+          "quizRef": "java-language-exceptions-check"
+        }
+      ]
+    },
+    {
+      "slug": "pattern-matching-switch",
+      "title": "Pattern matching & switch moderne",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Du switch instruction au switch expression",
+          "body": "Un **`switch`** est un aiguillage : selon la valeur examinée, il exécute une branche ou une autre. Historiquement, c'était une **instruction** (elle *fait* des choses, branche par branche, avec un `break` obligatoire pour éviter de « déborder » sur la branche suivante, source de bugs classiques).\n\nLe `switch` moderne devient une **expression** : au lieu d'exécuter des actions, il **renvoie directement une valeur**, avec une flèche `->`. Plus de `break`, plus de débordement accidentel. 👉 **Analogie** : l'ancien switch est un interrupteur qu'on doit penser à refermer à chaque étage ; le nouveau est un **distributeur** : tu choisis une touche, il te rend directement le produit correspondant.\n\nMieux encore : le **pattern matching** (« filtrage par motif ») teste **le type** d'une valeur *et* en **extrait les données** en une seule opération. Et combiné aux types `sealed`, le compilateur vérifie l'**exhaustivité** : si tu oublies un cas possible, le code **ne compile pas**. 👉 **Analogie** : un trieur postal qui, pour chaque colis, reconnaît le format *et* sort déjà l'adresse, et qui refuse de fonctionner tant qu'une catégorie de colis n'a pas sa case."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le switch expression renvoie une valeur, plus sur et plus concis que l'ancienne instruction.",
+          "body": "/images/lessons/pattern-matching-switch-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Switch sur des types (avec record patterns)",
+          "codeLanguage": "java",
+          "body": "double area(Shape s) {\n    return switch (s) {\n        case Circle(double r)          -> Math.PI * r * r;\n        case Rectangle(double w, double h) -> w * h;\n        // pas de 'default' nécessaire : Shape est sealed → exhaustif\n    };\n}"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Gardes et pattern matching sur instanceof",
+          "codeLanguage": "java",
+          "body": "// 'when' ajoute une condition ; instanceof lie directement la variable\nString etiquette(Object o) {\n    return switch (o) {\n        case Integer i when i < 0 -> \"négatif\";\n        case Integer i           -> \"entier \" + i;\n        case String s            -> \"texte de \" + s.length() + \" caractères\";\n        case null                -> \"absent\";\n        default                  -> \"inconnu\";\n    };\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Modéliser puis matcher (niveau expert)",
+          "body": "La vraie puissance naît de la **combinaison** de deux idées vues plus tôt : d'abord **modéliser** le domaine avec `sealed` + `record` (les types algébriques : un cas *soit* A *soit* B), puis **traiter chaque cas** par un `switch` en pattern matching.\n\nL'intérêt est énorme pour la maintenance. Le jour où tu **ajoutes un nouveau cas** au type (un troisième sous-type), la compilation **échoue partout** où un `switch` doit être mis à jour : le compilateur te **liste lui-même** tous les endroits à compléter. 👉 **Analogie** : c'est une **checklist automatique** qui se remplit toute seule ; impossible d'oublier un endroit, la machine refuse d'avancer tant que la liste n'est pas cochée.\n\nC'est une alternative bien plus sûre aux longues cascades de `if/else instanceof` écrites à la main, où rien ne t'avertit quand tu oublies un cas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Modeliser puis matcher : le pattern matching decompose un type selon sa forme reelle.",
+          "body": "/images/lessons/pattern-matching-switch-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Vous ajoutez un troisième type de forme `Triangle` à une interface sealed déjà traitée par plusieurs `switch`. Qu'est-ce qui vous garantit de n'oublier aucun endroit à mettre à jour ?",
+          "solution": "L'exhaustivité vérifiée par le compilateur : chaque switch sans 'default' sur le type sealed ne compile plus tant que le cas Triangle n'est pas ajouté. Le compilateur liste ainsi tous les points à compléter, impossible d'en oublier un."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : pattern matching & switch moderne",
+          "quizRef": "java-language-pattern-check"
+        }
+      ]
+    },
+    {
+      "slug": "streams-et-fonctionnel",
+      "title": "Streams & programmation fonctionnelle",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Lambdas & interfaces fonctionnelles",
+          "body": "Une **lambda** est une **petite fonction sans nom** (une *fonction anonyme*) qu'on écrit en une ligne : `x -> x * 2` se lit « à partir de `x`, renvoie `x` fois 2 ». 👉 **Analogie** : c'est une **recette express** que tu glisses dans la poche de quelqu'un pour qu'il l'applique, sans avoir eu besoin de la baptiser ni de la ranger dans un grand livre.\n\nUne lambda **implémente une interface fonctionnelle** : une interface qui ne demande **qu'une seule méthode**. Les plus courantes : `Function` (transforme une valeur en une autre), `Predicate` (répond vrai/faux, par exemple « est actif ? »), `Consumer` (fait quelque chose sans rien renvoyer), `Supplier` (fournit une valeur à la demande).\n\nL'intérêt profond : cela permet de **passer un comportement en paramètre**, comme on passe une donnée. C'est le cœur du **style fonctionnel**. 👉 **Analogie** : au lieu de dire à quelqu'un *quoi trier*, tu lui donnes directement *la règle de tri* à appliquer.\n\nQuand la lambda ne fait qu'appeler une méthode existante, on l'écrit encore plus court avec une **référence de méthode** : `User::email` remplace `u -> u.email()`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lambdas et interfaces fonctionnelles permettent de passer du comportement en argument.",
+          "body": "/images/lessons/streams-et-fonctionnel-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le Stream API : décrire, pas boucler",
+          "codeLanguage": "java",
+          "body": "record User(String email, boolean active, int xp) {}\n\nList<String> emailsActifs = users.stream()\n        .filter(User::active)\n        .sorted(Comparator.comparingInt(User::xp).reversed())\n        .map(User::email)\n        .toList();"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Intermédiaire vs terminal, et paresse",
+          "body": "Un **stream** (« flux ») est une **chaîne de traitement** posée sur une collection : tu décris *ce que tu veux obtenir* (filtrer, transformer, trier) plutôt que d'écrire une boucle à la main. 👉 **Analogie** : une **chaîne de montage** : les données avancent et passent par des postes successifs.\n\nDeux sortes d'opérations s'enchaînent.\n- Les opérations **intermédiaires** (`filter`, `map`, `sorted`) décrivent une étape et renvoient un nouveau stream. Elles sont **paresseuses** : posées seules, elles **ne font rien** encore.\n- Une opération **terminale** (`toList`, `count`, `reduce`, `collect`) **déclenche** enfin tout le calcul et produit un résultat.\n\nCette **paresse** est une qualité : rien ne tourne tant qu'on n'a pas dit ce qu'on veut au bout, ce qui évite le travail inutile et permet des optimisations (par exemple s'**arrêter dès le premier résultat trouvé** avec `findFirst`, sans parcourir le reste : un *court-circuit*). 👉 **Analogie** : la chaîne de montage ne démarre que lorsqu'une commande ferme tombe au bout du tapis. Détail important : un stream se **consomme une seule fois** (comme un ticket : une fois utilisé, il faut en refaire un)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un stream enchaine des operations intermediaires (paresseuses) puis une operation terminale.",
+          "body": "/images/lessons/streams-et-fonctionnel-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Collectors & regroupement",
+          "codeLanguage": "java",
+          "body": "// Grouper les utilisateurs par tranche de XP, compter chacune\nMap<Boolean, Long> parActivite = users.stream()\n        .collect(Collectors.groupingBy(User::active, Collectors.counting()));\n\n// Gatherers (Java 24+) : opérations intermédiaires personnalisées\n// ex. fenêtres glissantes\nvar fenetres = Stream.of(1,2,3,4)\n        .gather(Gatherers.windowSliding(2))\n        .toList();   // [[1,2],[2,3],[3,4]]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Quand (ne pas) utiliser un stream (niveau expert)",
+          "body": "Les streams brillent pour **transformer des collections** de façon lisible et déclarative. Mais ils ne remplacent pas tout.\n\nPour un simple **effet de bord** (afficher, écrire dans un fichier, bref *agir* plutôt que *calculer une valeur*) ou une logique impérative compliquée, une bonne vieille boucle `for` reste souvent **plus claire**. Évite les streams profondément imbriqués les uns dans les autres, et évite de glisser des effets de bord dans un `map` (dont le rôle est de *transformer*, pas d'agir).\n\nAttention particulière au **parallélisme**. `parallelStream()` répartit le travail sur plusieurs cœurs du processeur en même temps. 👉 **Analogie** : embaucher dix cuisiniers au lieu d'un. Cela n'accélère que si le plat est **gros et fait de calcul pur** (*CPU-bound*) : pour une petite tâche, ou une tâche qui passe son temps à **attendre** (base de données, réseau), les dix cuisiniers se gênent et on va **plus lentement**, en plus d'introduire des bugs difficiles. Le parallélisme se **mesure** avant de s'adopter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un stream brille sur les transformations declaratives ; une boucle reste parfois plus claire.",
+          "body": "/images/lessons/streams-et-fonctionnel-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Écrivez, avec le Stream API, une expression qui calcule la somme des XP des utilisateurs actifs à partir d'une `List<User>`.",
+          "solution": "int total = users.stream().filter(User::active).mapToInt(User::xp).sum(); on filtre les actifs, on projette vers un IntStream avec mapToInt, puis sum() (opération terminale)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : streams & programmation fonctionnelle",
+          "quizRef": "java-language-streams-check"
+        }
+      ]
+    },
+    {
+      "slug": "concurrence-moderne",
+      "title": "Concurrence moderne",
+      "position": 6,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Threads & le coût de l'attente",
+          "body": "Un **thread** (« fil d'exécution ») est une **voie de calcul** qui avance en parallèle des autres : grâce à eux, un serveur traite plusieurs requêtes **en même temps** plutôt qu'une à la fois. 👉 **Analogie** : les **caisses d'un supermarché** : plusieurs files avancent simultanément au lieu d'une seule interminable.\n\nLe hic historique : en Java, un thread correspondait à un **thread du système d'exploitation**, une ressource **coûteuse** (chacun réserve de la mémoire, et passer de l'un à l'autre, le *changement de contexte*, prend du temps). Un serveur **bloquant** qui dédie **un thread par requête** plafonne donc vite : sous forte affluence, on **épuise** les threads disponibles alors même qu'ils ne calculent presque rien, ils **attendent** surtout des entrées/sorties (la réponse de la base, du réseau). 👉 **Analogie** : embaucher un caissier par client, mais qui reste planté à attendre que le client trouve sa monnaie : au bout de 200 caissiers, plus personne de libre, alors qu'aucun ne travaille vraiment."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les threads executent en parallele ; attendre (I/O) coute cher, d'ou les virtual threads.",
+          "body": "/images/lessons/concurrence-moderne-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Virtual threads (Java 21+)",
+          "codeLanguage": "java",
+          "body": "// Des threads \"légers\" gérés par la JVM : on peut en créer des millions.\ntry (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n    for (int i = 0; i < 10_000; i++) {\n        executor.submit(() -> {\n            // du code bloquant devient bon marché :\n            // le virtual thread se \"gare\" pendant l'I/O, libérant le thread porteur\n            return callRemoteService();\n        });\n    }\n}  // l'executor attend la fin de toutes les tâches"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Le partage d'état, source de bugs",
+          "body": "Lancer des threads est facile ; la vraie difficulté est de **partager des données** entre eux sans casse. Si deux threads modifient la **même variable** en même temps sans précaution, on obtient une **course de données** (*data race*) : le résultat devient **imprévisible**, il dépend de qui arrive « en premier », ce qui change à chaque exécution. 👉 **Analogie** : deux personnes qui écrivent sur **le même chèque** en même temps ; le montant final n'a plus aucun sens.\n\nTrois parades classiques :\n- l'**immutabilité** (des objets qui ne changent jamais : rien à synchroniser, donc aucun conflit possible) ;\n- les **structures thread-safe** (« sûres pour les threads »), conçues pour cela, comme `ConcurrentHashMap` ;\n- la **synchronisation explicite** (`synchronized`, `Lock`, `AtomicInteger`) qui impose un accès ordonné, un thread à la fois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le partage d'etat mutable entre threads est la source n1 des bugs de concurrence.",
+          "body": "/images/lessons/concurrence-moderne-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Scoped values & au-delà (niveau expert)",
+          "body": "Java moderne remplace les vieux `ThreadLocal` **modifiables** (une valeur attachée à chaque thread) par les **scoped values** (*valeurs de portée*, Java 25) : des valeurs **immuables** partagées seulement **le temps d'un appel**, parfaites avec les virtual threads (par exemple l'identité de l'appelant ou le contexte d'une requête). 👉 **Analogie** : un **badge visiteur** valable uniquement pendant ta visite, que tu ne peux pas trafiquer, et qu'on te reprend à la sortie.\n\nLa **concurrence structurée** organise des sous-tâches parallèles comme **un seul bloc** : soit toutes réussissent, soit on **annule tout**, ce qui rend le parallélisme aussi lisible qu'un code séquentiel. 👉 **Analogie** : un vol de correspondance groupé : si une étape tombe, toute la réservation est annulée d'un coup, pas de demi-voyage.\n\nEnfin, l'alternative de fond retenue dans **cette plateforme** est le **réactif** (WebFlux/R2DBC), non bloquant de bout en bout, avec sa règle d'or : **jamais de `.block()`** dans le pipeline (car bloquer casserait justement le modèle non bloquant)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Scoped values et structured concurrency structurent le partage et la duree de vie des taches.",
+          "body": "/images/lessons/concurrence-moderne-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Une application bloquante \"un thread par requête\" sature son pool de 200 threads sous charge, alors que le CPU est à 15 %. Que se passe-t-il, et comment les virtual threads (ou le réactif) aident-ils ?",
+          "solution": "Les threads passent leur temps à ATTENDRE des I/O (base, appels réseau), pas à calculer : le pool est épuisé par des threads inactifs, d'où le refus de requêtes malgré un CPU oisif. Virtual threads : on n'est plus limité par le nombre de threads OS (le virtual thread se gare pendant l'I/O). Réactif : le thread n'attend jamais l'I/O, quelques threads absorbent des milliers de requêtes."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Quiz : Java moderne",
+          "quizRef": "java-modern"
+        }
+      ]
+    },
+    {
+      "slug": "modele-memoire-concurrence-avancee",
+      "title": "Modèle mémoire & concurrence avancée",
+      "position": 7,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le Java Memory Model",
+          "body": "Quand plusieurs **threads** (fils d'exécution parallèles) manipulent les **mêmes données**, deux pièges **invisibles** apparaissent.\n\n- La **visibilité** : un thread qui écrit une valeur peut ne pas être « vu » tout de suite par un autre thread. Pourquoi ? Chaque cœur du processeur travaille avec sa propre **antémémoire** (*cache CPU*), une copie locale rapide ; l'écriture peut rester coincée dans ce cache et tarder à être publiée aux autres. 👉 **Analogie** : tu modifies un document sur ton brouillon personnel ; tant que tu ne l'as pas déposé sur le tableau commun, tes collègues voient encore l'ancienne version.\n- Le **réordonnancement** : pour aller plus vite, le compilateur et le processeur s'autorisent à **changer l'ordre** de certaines instructions, tant que le résultat *sur un seul thread* reste identique. Vu d'un autre thread, cela peut donner des surprises.\n\nLe **Java Memory Model (JMM)**, le « modèle mémoire » de Java, met de l'ordre avec la relation **happens-before** (« se produit avant ») : si une action A *happens-before* B, alors l'effet de A est **garanti visible** par B. 👉 **Analogie** : c'est la règle « on ne sert le plat (B) qu'une fois la commande affichée au passe (A) » : l'ordre et la visibilité sont garantis. Sans cette garantie, un programme qui « marche » sur ta machine peut **échouer ailleurs**. Maîtriser le JMM, c'est écrire du code concurrent *correct*, pas seulement « qui semble marcher »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le Java Memory Model definit ce qu'un thread voit des ecritures d'un autre (happens-before).",
+          "body": "/images/lessons/modele-memoire-concurrence-avancee-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "volatile & publication sûre",
+          "codeLanguage": "java",
+          "body": "// Sans volatile, le thread lecteur peut boucler indéfiniment :\n// il ne voit jamais l'écriture de 'stop'.\nprivate volatile boolean stop = false;  // volatile => visibilité garantie\n\nvoid worker() {\n    while (!stop) { /* travail */ }      // voit stop=true dès qu'il est écrit\n}\nvoid arret() { stop = true; }\n\n// Publication sûre : les champs 'final' d'un objet sont visibles\n// une fois le constructeur terminé (garantie du JMM)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Verrous : synchronized, Lock, conditions",
+          "body": "Un **verrou** (*lock*) garantit qu'un **seul thread à la fois** entre dans une portion de code sensible : c'est l'**exclusion mutuelle**. 👉 **Analogie** : la **serrure des toilettes d'un train** : une personne à la fois, les autres attendent que ce soit libre.\n\n- Le mot-clé **`synchronized`** est le verrou le plus simple : il assure l'exclusion mutuelle **et** une relation happens-before (en entrant, un thread voit tout ce qu'a fait le précédent occupant).\n- **`ReentrantLock`** est un verrou **explicite**, plus riche : on peut tenter de le prendre avec un délai maximum (`tryLock`), demander de l'équité (premier arrivé, premier servi).\n- **`ReadWriteLock`** distingue lecteurs et écrivains : **plusieurs lecteurs en même temps OU un seul écrivain**. Utile quand on lit beaucoup et écrit rarement. 👉 **Analogie** : un tableau d'affichage que dix personnes peuvent lire ensemble, mais qu'une seule peut modifier, et seule, à la fois.\n- Les **conditions** (`await`/`signal`) permettent d'**attendre qu'un état soit atteint** avant de continuer.\n\nRègle d'or : garder un verrou **le moins longtemps possible**, et **jamais** pendant une opération d'entrée/sortie externe (appel réseau, base), sous peine de bloquer tout le monde."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Verrous : synchronized, Lock et conditions coordonnent l'acces a une ressource partagee.",
+          "body": "/images/lessons/modele-memoire-concurrence-avancee-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Sans verrou : CAS & Atomics",
+          "body": "Poser un verrou juste pour incrémenter un **compteur** partagé (par exemple « nombre de visites ») est souvent **exagéré** : le verrou fait attendre les autres pour presque rien.\n\nLes classes **`Atomic*`** (`AtomicInteger`, `AtomicReference`) offrent une alternative sans verrou fondée sur le **CAS** (*compare-and-swap*, « compare et échange »). C'est une instruction fournie par le **matériel** qui dit : « mets cette valeur à jour **seulement si** elle vaut encore ce que je crois ; sinon, quelqu'un est passé avant moi, je **réessaie** ». 👉 **Analogie** : tu modifies une page d'un wiki ; au moment d'enregistrer, le site vérifie que personne n'a touché la page entre-temps ; si si, il te demande de recharger et de refaire ta petite modification.\n\nOn parle de **lock-free** (« sans blocage ») : aucun thread n'est mis en attente, ce qui donne d'excellentes performances quand la **contention** (le nombre de threads qui se disputent la même donnée) reste modérée. `compteur.incrementAndGet()` est **atomique** (indivisible) et bien plus rapide qu'un `synchronized` pour ce cas précis."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sans verrou : le CAS (compare-and-swap) et les Atomics pour des mises a jour concurrentes.",
+          "body": "/images/lessons/modele-memoire-concurrence-avancee-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Composer de l'asynchrone : CompletableFuture",
+          "codeLanguage": "java",
+          "body": "CompletableFuture<User> u = fetchUser(id);          // async\nCompletableFuture<Profile> p = u.thenCompose(this::fetchProfile);\n\n// Combiner plusieurs appels en parallèle puis agréger :\nvar all = CompletableFuture.allOf(a, b, c);\nall.thenRun(() -> log.info(\"tout est prêt\"))\n   .exceptionally(ex -> { log.error(\"échec\", ex); return null; });"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Synchronizers & pools (niveau expert)",
+          "body": "`java.util.concurrent` fournit une boîte à outils de **synchroniseurs**, des objets pour coordonner des threads.\n- **`CountDownLatch`** : attendre que **N tâches** soient finies avant de continuer. 👉 **Analogie** : le départ d'une course qui n'est donné qu'une fois les N coureurs prêts.\n- **`Semaphore`** : limiter l'accès à **N permis** en même temps. 👉 **Analogie** : un parking de 50 places : au-delà, on attend qu'une voiture sorte.\n- **`CyclicBarrier`** / **`Phaser`** : un **point de rendez-vous** où des threads s'attendent mutuellement avant de repartir ensemble.\n- **`BlockingQueue`** : une file d'attente pour le schéma **producteur/consommateur** (les uns déposent, les autres retirent), avec attente automatique si c'est vide ou plein.\n\nEnfin, un **`ExecutorService`** gère un **pool** (une réserve) de threads : tu lui **soumets** des tâches et il les répartit, puis on l'arrête proprement (`shutdown` puis `awaitTermination`). Avec les **virtual threads** vus plus tôt, on privilégie `newVirtualThreadPerTaskExecutor()` pour les charges massivement en attente d'entrées/sorties. Règle : ne crée **jamais** des threads « à la main » dans un service ; passe toujours par un executor géré. 👉 **Analogie** : tu ne recrutes pas un intérimaire pour chaque courrier à poster ; tu confies la pile au service courrier (le pool), qui optimise l'ensemble."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Synchronizers (latch, semaphore) et pools orchestrent plusieurs taches concurrentes.",
+          "body": "/images/lessons/modele-memoire-concurrence-avancee-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "EXERCISE",
+          "position": 10,
+          "title": "À vous",
+          "body": "Un thread écrit `config = charger()` puis un autre lit `config`, mais lit parfois `null` malgré l'écriture. Quel principe du JMM est en cause, et deux façons correctes de publier `config` ?",
+          "solution": "La visibilité : sans relation happens-before, l'écriture de config par un thread n'est pas garantie visible par l'autre (caches CPU, réordonnancement). Publications correctes : déclarer 'config' volatile (visibilité garantie à chaque lecture), ou le publier via une structure thread-safe / un verrou (synchronized, AtomicReference), ou s'appuyer sur l'immutabilité + champs final. Le simple champ non-volatile ne suffit pas."
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : modèle mémoire & concurrence avancée",
+          "quizRef": "java-language-memoire-check"
+        }
+      ]
+    },
+    {
+      "slug": "performance-jvm-gc-jit",
+      "title": "Performance JVM : GC, JIT & profiling",
+      "position": 8,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La mémoire de la JVM",
+          "body": "La JVM range ce que ton programme utilise en trois grandes zones de mémoire.\n- Le **heap** (« le tas ») : c'est là que **vivent tous les objets** que tu crées ; c'est le GC (ramasse-miettes) qui y fait le ménage. 👉 **Analogie** : un grand entrepôt commun où sont stockés tous les objets.\n- La **stack** (« la pile »), une **par thread** : elle contient les variables locales et le fil des appels de méthodes en cours. 👉 **Analogie** : ta pile d'assiettes du moment, empilées et dépilées au fur et à mesure des appels.\n- Le **metaspace** : les **métadonnées** des classes (la description des plans, pas les objets eux-mêmes).\n\nLe heap est **générationnel**, une idée maligne fondée sur un constat : « la plupart des objets meurent jeunes » (une variable temporaire ne sert qu'un instant). Les objets **naissent** dans la *young generation* (jeune génération), **collectée souvent et vite**. Ceux qui **survivent** assez longtemps passent en *old generation* (vieille génération), collectée **moins souvent** mais plus coûteusement. 👉 **Analogie** : le bac à compost qu'on vide sans arrêt, versus le grenier qu'on ne trie qu'une fois par an."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La memoire de la JVM : heap, stack, metaspace ; savoir ou vivent les objets.",
+          "body": "/images/lessons/performance-jvm-gc-jit-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les GC modernes : G1 & ZGC",
+          "body": "Un **GC** (ramasse-miettes) doit régulièrement mettre le programme en pause pour récupérer la mémoire des objets morts. Tout l'art est de rendre ces **pauses** rares et courtes. Java propose plusieurs GC.\n- **G1** (le GC par **défaut**) découpe le heap en petites **régions** et vise des **pauses cibles** que tu peux fixer (`-XX:MaxGCPauseMillis`). C'est un bon compromis pour la plupart des services. 👉 **Analogie** : une équipe de ménage qui nettoie pièce par pièce, en promettant de ne jamais bloquer un couloir plus de X secondes.\n- **ZGC** (et Shenandoah) visent des pauses **inférieures à la milliseconde**, même sur d'énormes quantités de mémoire (des centaines de Go), en travaillant **presque en même temps** que le programme. Idéal quand la **faible latence** est cruciale.\n\nOn choisit selon l'objectif : le **débit** (traiter le plus de travail possible au total) ou la **latence** (répondre vite à chaque requête). Un GC mal choisi ou mal réglé provoque des pauses qui dégradent la **p99** (le temps de réponse des 1 % de requêtes les plus lentes, un indicateur clé de la qualité perçue)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les GC modernes (G1, ZGC) recuperent la memoire avec des pauses minimes.",
+          "body": "/images/lessons/performance-jvm-gc-jit-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Lire un GC log & les symptômes",
+          "body": "Pour **diagnostiquer** le comportement mémoire, on active les **journaux du GC** (`-Xlog:gc*`) : la JVM y écrit, en continu, ce que fait le ramasse-miettes. 👉 **Analogie** : la **boîte noire** d'un avion, qu'on relit pour comprendre ce qui s'est passé.\n\nLes symptômes à repérer :\n- des **pauses longues** (souvent un GC mal choisi, ou un heap trop petit) ;\n- un **taux d'allocation** élevé : tu crées énormément d'objets, ce qui met la mémoire sous pression et force le GC à tourner sans cesse ;\n- une **fréquence** de collectes anormalement haute ;\n- une *old generation* qui **monte sans jamais redescendre** : signe d'une **fuite mémoire** (des objets qu'on garde par erreur), qui finit en **`OutOfMemoryError`** (plus de mémoire disponible, le programme s'arrête).\n\nÀ retenir : un heap **trop petit** multiplie les GC ; **trop grand** allonge chaque pause. On **dimensionne puis on mesure**, on ne devine pas les réglages de la JVM au hasard."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lire un GC log revele les symptomes : pauses longues, allocation excessive, fuites.",
+          "body": "/images/lessons/performance-jvm-gc-jit-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le JIT : pourquoi le warmup",
+          "body": "La JVM démarre en **interprétant** le bytecode, instruction par instruction : c'est correct mais lent. En parallèle, le compilateur **JIT** (*Just-In-Time*) observe quelles méthodes sont **« chaudes »** (appelées très souvent) et les **recompile en code machine optimisé** pendant l'exécution (d'abord un étage rapide et léger, **C1**, puis un étage très optimisé, **C2**).\n\nParmi ses optimisations : l'**inlining** (recopier le corps d'une petite méthode à l'endroit où on l'appelle, pour éviter le coût de l'appel), l'**escape analysis** (si un objet ne « s'échappe » pas de la méthode, l'allouer sur la pile plutôt que sur le heap, ce qui soulage le GC), l'élimination du code inutile.\n\nConséquence directe : la **phase de chauffe** (*warmup*). Les toutes premières exécutions sont lentes, puis ça accélère nettement. 👉 **Analogie** : un athlète à l'échauffement : ses premiers gestes sont poussifs, puis il tourne à plein régime. Le JIT peut même **déoptimiser** (revenir en arrière) s'il avait parié sur une hypothèse qui s'avère fausse. À retenir pour toute mesure de perf : on chronomètre **après** le warmup, jamais au premier appel."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le JIT compile le code chaud a chaud : d'ou le warmup avant d'atteindre la pleine vitesse.",
+          "body": "/images/lessons/performance-jvm-gc-jit-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Mesurer juste avec JMH",
+          "codeLanguage": "java",
+          "body": "// NE PAS chronométrer à la main (System.nanoTime autour d'une boucle) :\n// le JIT, le GC et le warmup faussent tout.\n@Benchmark\npublic long sommePairs(Data d) {          // JMH gère warmup, itérations, forks\n    return Arrays.stream(d.nums).filter(n -> n % 2 == 0).sum();\n}\n// JMH mesure après chauffe, isole le code, et donne un intervalle de confiance."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Profiler en production (niveau expert)",
+          "body": "**Profiler**, c'est **mesurer où** un programme passe réellement son temps (ou sa mémoire), au lieu de le **deviner**. Deux outils de référence.\n- **JFR** (*Java Flight Recorder*, la « boîte noire » intégrée à la JVM) : il enregistre l'activité avec un **coût quasi nul**, si bien qu'on peut le laisser tourner **en production**, puis analyser l'enregistrement dans *JDK Mission Control*.\n- **async-profiler** : produit des **flame graphs** (« graphes en flammes »), une visualisation qui montre d'un coup d'œil quelles méthodes consomment le plus de CPU, de mémoire ou de temps de verrou. 👉 **Analogie** : une **carte thermique** de ton code, où les zones les plus « chaudes » sautent aux yeux.\n\nOn distingue deux natures de goulots : **CPU-bound** (le temps part dans le **calcul** : il faut optimiser l'algorithme) et **I/O-bound** (le temps part à **attendre** la base ou le réseau : il faut réduire ou masquer l'attente).\n\nRéflexe d'expert : réduire les **allocations** dans les portions très sollicitées (moins de pression sur le GC), réutiliser des tampons, éviter l'**autoboxing** en boucle serrée (la conversion automatique et coûteuse entre un `int` primitif et un objet `Integer`). Mais **toujours** dans cet ordre : **profiler d'abord**, puis optimiser **le goulot prouvé**, jamais au pif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Profiler en production (flight recorder, async-profiler) sans fausser les mesures.",
+          "body": "/images/lessons/performance-jvm-gc-jit-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "EXERCISE",
+          "position": 11,
+          "title": "À vous",
+          "body": "Un collègue « prouve » qu'une méthode est rapide en l'entourant de `System.nanoTime()` dans un `main`, une seule fois. Citez deux raisons pour lesquelles cette mesure est trompeuse.",
+          "solution": "1) Pas de warmup : au premier appel, le code est interprété (pas encore compilé par le JIT), donc artificiellement lent, ou l'inverse si le JIT a sur-optimisé un cas trivial. 2) Bruit non contrôlé : GC, autres threads, dead-code elimination (le JIT peut supprimer un calcul dont le résultat n'est pas utilisé). On utilise JMH, qui gère warmup, itérations, forks et empêche ces biais, et donne un intervalle de confiance."
+        },
+        {
+          "type": "QUIZ",
+          "position": 12,
+          "title": "Quiz : performance JVM",
+          "quizRef": "java-language-performance-check"
+        }
+      ]
+    },
+    {
+      "slug": "generiques-modules-outillage",
+      "title": "Génériques avancés, modules & outillage",
+      "position": 9,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Variance & PECS",
+          "body": "Les génériques Java sont **invariants** : même si un `Integer` est un `Number`, une `List<Integer>` **n'est pas** une `List<Number>`. Surprenant, mais c'est une protection (sinon on pourrait glisser un `Double` dans une liste censée ne contenir que des `Integer`).\n\nPour assouplir quand c'est sûr, on utilise des **wildcards** (« jokers », le caractère `?`) :\n- `? extends T` : « un `T` **ou n'importe quel sous-type** ». On s'en sert pour **lire** (un *producteur* de T).\n- `? super T` : « un `T` **ou n'importe quel super-type** ». On s'en sert pour **écrire** (un *consommateur* de T).\n\nLe moyen mnémotechnique **PECS** résume la règle : *Producer Extends, Consumer Super* (« un producteur, c'est extends ; un consommateur, c'est super »). Exemple : `copy(List<? super T> dst, List<? extends T> src)` lit depuis `src` et écrit dans `dst`. 👉 **Analogie** : un **robinet** d'où l'eau *sort* (producteur, `extends`) versus un **évier** où l'eau *entre* (consommateur, `super`). Comprendre la variance évite des signatures trop rigides et des transtypages inutiles."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Variance et PECS : producer-extends, consumer-super, pour des generiques flexibles et surs.",
+          "body": "/images/lessons/generiques-modules-outillage-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Type erasure & ses conséquences",
+          "body": "À la compilation, Java **efface** l'information générique : c'est le **type erasure** (« effacement de type »). À l'exécution, `List<String>` et `List<Integer>` sont **la même classe** `List`, sans distinction. 👉 **Analogie** : l'étiquette « chaussettes » collée sur le bac aide au rangement, mais elle est **retirée** avant l'expédition : à l'arrivée, le bac ne « sait » plus ce qu'il contenait.\n\nConséquences concrètes à connaître :\n- impossible de faire `new T[]` ou un test `instanceof List<String>` (l'info a disparu) ;\n- on ne peut pas surcharger deux méthodes qui ne diffèrent que par `List<String>` contre `List<Integer>` ;\n- on croise des avertissements « unchecked ».\n\nQuand on a **vraiment** besoin du type à l'exécution, on le passe explicitement via un `Class<T>` (un *token de type*, un objet qui représente la classe). Savoir tout cela évite des heures de perplexité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le type erasure efface les generiques a l'execution : d'ou certaines limites a connaitre.",
+          "body": "/images/lessons/generiques-modules-outillage-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Les contrats equals/hashCode/Comparable",
+          "body": "Certaines méthodes vont **par paire**, avec un **contrat** à respecter.\n\nSi tu redéfinis **`equals`** (« ces deux objets sont-ils égaux ? »), tu **dois** aussi redéfinir **`hashCode`** (un nombre-résumé de l'objet). Le contrat : **deux objets égaux ont le même hashCode**. Sinon, ils se « **perdent** » dans une `HashMap` (qui range par hashCode avant de comparer). 👉 **Analogie** : le hashCode est le **rayon** d'une bibliothèque et `equals` le **titre exact** : si deux exemplaires identiques sont rangés sur des rayons différents, tu ne les retrouves jamais ensemble. `equals` doit aussi être cohérent (réflexif, symétrique, transitif).\n\nDe même, **`Comparable`/`Comparator`** (qui définissent un ordre de tri) doivent rester **cohérents avec `equals`**, sinon un `TreeSet`/`TreeMap` se comporte bizarrement. Bonne nouvelle : les **records** génèrent tout cela correctement pour toi, une raison de plus de les préférer pour les valeurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "equals/hashCode/Comparable forment des contrats : les respecter evite des bugs sournois.",
+          "body": "/images/lessons/generiques-modules-outillage-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Modules (JPMS) & encapsulation forte",
+          "body": "Le **système de modules** de Java (**JPMS**, déclaré dans un fichier `module-info.java`) permet à un module de dire **explicitement** ce qu'il **expose** aux autres (`exports`) et ce dont il **a besoin** (`requires`). 👉 **Analogie** : un bâtiment d'entreprise avec des **badges d'accès** : chaque service déclare quelles portes il ouvre au public et quelles zones il utilise, le reste est fermé.\n\nDeux bénéfices : une **encapsulation forte** (le code interne devient **inaccessible** de l'extérieur, même par réflexion) et un **graphe de dépendances vérifié au démarrage** (les manques sont détectés tout de suite). C'est utile pour les grosses bases de code et pour produire des exécutables minimaux (`jlink`). Beaucoup d'applications restent sur le simple **classpath** (sans modules), mais connaître JPMS aide à comprendre les erreurs du type « module does not export … »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les modules (JPMS) encapsulent fortement : on expose explicitement ce qui est public.",
+          "body": "/images/lessons/generiques-modules-outillage-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Diagnostiquer une JVM en marche",
+          "codeLanguage": "bash",
+          "body": "jps                      # lister les JVM et leurs PID\njstack <pid>             # dump des threads (deadlock, thread bloqué)\njcmd <pid> GC.heap_info  # état du heap\njcmd <pid> Thread.print  # équivalent thread dump\njmap -histo <pid>        # histogramme des objets (fuite mémoire ?)\njshell                   # REPL pour tester un bout de code Java"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Pour aller plus loin",
+          "body": "Quelques références qui font les experts Java, pour prolonger ce parcours :\n- **Effective Java** (Joshua Bloch) : le livre de chevet des bonnes pratiques, à lire absolument.\n- **Java Concurrency in Practice** (Brian Goetz) : la référence sur la concurrence et le modèle mémoire (JMM).\n- la **Java Language Specification (JLS)** : la spécification officielle, pour trancher les détails de sémantique.\n- les **JEPs** (*JDK Enhancement Proposals*, openjdk.org/jeps) : les propositions qui décrivent l'évolution du langage et de la JVM (virtual threads, ZGC, scoped values…).\n- la doc **JFR / JDK Mission Control** pour le profiling.\n\n👉 **Conseil** : n'essaie pas de tout lire d'un coup. Reviens à ces sources au fil de tes projets, quand une question précise se pose : c'est là qu'elles éclairent le plus."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir le langage Java.",
+          "body": "/images/lessons/generiques-modules-outillage-5.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Quiz : Java (niveau expert)",
+          "quizRef": "java-expert"
+        }
+      ]
+    }
+  ]
+}

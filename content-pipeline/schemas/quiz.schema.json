@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "quiz.schema.json",
+  "title": "Quiz (authoré)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ref", "node", "title", "questions"],
+  "properties": {
+    "ref": { "type": "string", "minLength": 1, "description": "clé locale, référencée par une section QUIZ" },
+    "node": { "type": "string", "minLength": 1, "description": "slug du nœud rattaché" },
+    "lesson": { "type": "string", "description": "slug de leçon (optionnel)" },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "questions": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/question" } }
+  },
+  "definitions": {
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "prompt", "options"],
+      "properties": {
+        "type": { "enum": ["MCQ", "TRUE_FALSE", "SCENARIO"] },
+        "prompt": { "type": "string", "minLength": 1 },
+        "justification": { "type": "string" },
+        "position": { "type": "integer" },
+        "options": { "type": "array", "minItems": 2, "items": { "$ref": "#/definitions/option" } }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "correct"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "correct": { "type": "boolean" },
+        "position": { "type": "integer" }
+      }
+    }
+  }
+}

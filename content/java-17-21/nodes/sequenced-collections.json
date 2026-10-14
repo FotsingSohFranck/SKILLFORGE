@@ -1,0 +1,240 @@
+{
+  "node": "sequenced-collections",
+  "lessons": [
+    {
+      "slug": "le-probleme-premier-dernier",
+      "title": "Le problème du premier et du dernier élément",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Des collections qui ont un ordre",
+          "position": 0,
+          "body": "En Java, une **collection** est un objet qui regroupe plusieurs éléments, un peu comme une boite qui contient plein de petites choses. Certaines collections ont un **ordre de rencontre** (en anglais *encounter order*) : les éléments y sont rangés dans un ordre précis, du premier au dernier, comme les wagons d'un train.\n\nC'est le cas d'une **List** (une liste, par exemple `ArrayList`), d'une **Deque** (une file à deux bouts, prononce \"dèque\"), d'un **LinkedHashSet** (un ensemble sans doublons qui retient l'ordre d'insertion) et d'un **LinkedHashMap** (une table clé vers valeur qui retient l'ordre d'insertion).\n\n👉 Imagine une file d'attente à la boulangerie : il y a clairement une première personne et une dernière. Pour toutes ces collections ordonnées, la question \"qui est premier, qui est dernier ?\" a un sens."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Avant Java 21 : chaque collection avait sa propre façon de faire",
+          "position": 1,
+          "body": "Le problème, c'est qu'avant Java 21, il n'existait pas de manière **unifiée** (c'est à dire identique pour toutes les collections) d'accéder au premier ou au dernier élément. Chaque type avait sa propre recette :\n\n- Sur une `List`, le premier élément se lisait avec `list.get(0)` et le dernier avec `list.get(list.size() - 1)`.\n- Sur une `Deque`, on utilisait `deque.getFirst()` et `deque.getLast()`.\n- Sur un `LinkedHashSet`, il n'existait tout simplement **aucune** méthode directe pour le premier ou le dernier. Il fallait démarrer une boucle et s'arreter au bon moment.\n\n👉 C'est comme si chaque appareil de ta maison avait un bouton \"marche\" à un endroit différent et avec un nom différent : télécommande, interrupteur mural, bouton caché derrière. Tu dois tout mémoriser au lieu d'avoir un geste unique."
+        },
+        {
+          "type": "CODE",
+          "title": "Le même besoin, trois syntaxes différentes",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class Avant21 {\n    public static void main(String[] args) {\n        // 1) Sur une List : get(0) et get(size - 1).\n        List<String> liste = new ArrayList<>(List.of(\"a\", \"b\", \"c\"));\n        String premierListe = liste.get(0);\n        String dernierListe = liste.get(liste.size() - 1);\n\n        // 2) Sur une Deque : getFirst() et getLast().\n        Deque<String> deque = new ArrayDeque<>(List.of(\"a\", \"b\", \"c\"));\n        String premierDeque = deque.getFirst();\n        String dernierDeque = deque.getLast();\n\n        // 3) Sur un LinkedHashSet : AUCUNE methode directe avant 21.\n        LinkedHashSet<String> set = new LinkedHashSet<>(List.of(\"a\", \"b\", \"c\"));\n        String premierSet = set.iterator().next(); // bricolage pour le premier\n        String dernierSet = null;\n        for (String s : set) {                      // bricolage pour le dernier\n            dernierSet = s;\n        }\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Et le dernier élément dans l'ordre inverse ?",
+          "position": 3,
+          "body": "Même galère pour **parcourir une collection à l'envers**, c'est à dire du dernier vers le premier. Sur une `List`, il fallait écrire une boucle qui part de `size() - 1` et descend jusqu'à 0. Sur un `LinkedHashSet`, c'était encore plus pénible : il n'y avait aucun moyen simple de le lire à l'envers.\n\nBref, trois idées pourtant très simples (le premier, le dernier, l'ordre inverse) demandaient de connaitre par cœur des recettes différentes selon la collection, et parfois du code bricolé. C'est exactement ce désordre que Java 21 vient ranger, avec une nouveauté appelée **Sequenced Collections** (les collections séquencées), décrite dans le document officiel **JEP 431**.\n\n👉 Une **JEP** (*JDK Enhancement Proposal*, proposition d'amélioration du JDK) est une fiche qui décrit officiellement une nouveauté du langage Java. La JEP 431 est celle qui introduit tout ce qu'on va voir dans ce nœud."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Repère ce qui cloche",
+          "position": 4,
+          "body": "On veut le dernier élément de trois collections : une List, une Deque et un LinkedHashSet (tous contenant \"a\", \"b\", \"c\"). Écris, avec les outils d'avant Java 21, comment tu obtiens le dernier élément de chacune. Qu'est ce qui te gène dans ces trois façons de faire ?",
+          "solution": "List : liste.get(liste.size() - 1) renvoie \"c\". Deque : deque.getLast() renvoie \"c\". LinkedHashSet : aucune méthode directe, il faut parcourir tout l'ensemble dans une boucle et garder le dernier élément vu (String dernier = null; for (String s : set) dernier = s;), ce qui finit sur \"c\".\n\nCe qui gène : trois syntaxes différentes pour un besoin identique, une formule size() - 1 facile à rater (risque de dépasser les bornes), et pour le LinkedHashSet un bricolage qui parcourt inutilement toute la collection. On aimerait une seule méthode claire valable partout."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : le problème du premier et du dernier",
+          "position": 5,
+          "quizRef": "sequenced-collections-le-probleme-premier-dernier"
+        }
+      ]
+    },
+    {
+      "slug": "sequencedcollection",
+      "title": "L'interface SequencedCollection",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Une interface commune pour les deux bouts",
+          "position": 0,
+          "body": "Une **interface** en Java est un contrat : une liste de méthodes qu'un type promet de fournir, sans dire comment. Java 21 ajoute l'interface **SequencedCollection** (collection séquencée), qui rassemble en un seul contrat les gestes sur les deux bouts d'une collection ordonnée.\n\nElle offre six méthodes au nom explicite :\n\n- `getFirst()` : renvoie le premier élément.\n- `getLast()` : renvoie le dernier élément.\n- `addFirst(e)` : ajoute un élément au début.\n- `addLast(e)` : ajoute un élément à la fin.\n- `removeFirst()` : retire et renvoie le premier élément.\n- `removeLast()` : retire et renvoie le dernier élément.\n\n👉 Au lieu d'un bouton \"marche\" différent par appareil, tu as désormais la même télécommande universelle pour toutes les collections ordonnées."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Qui implémente SequencedCollection ?",
+          "position": 1,
+          "body": "Le gros intérêt, c'est que les collections que tu utilises déjà respectent ce nouveau contrat sans que tu aies rien à changer. En Java 21 :\n\n- **List** (donc `ArrayList`, `LinkedList`, etc.) **implémente SequencedCollection**. Tu peux maintenant écrire `list.getFirst()` et `list.getLast()`.\n- **Deque** (donc `ArrayDeque`, etc.) **implémente SequencedCollection** aussi. Elle avait déjà `getFirst`/`getLast`, c'est désormais officialisé par l'interface commune.\n\n**Implémenter** une interface veut dire : fournir concrètement les méthodes promises par le contrat. Donc `list.getFirst()` fonctionne sur toutes les listes, exactement comme `deque.getFirst()` sur toutes les deques. Une seule façon de faire, partout."
+        },
+        {
+          "type": "CODE",
+          "title": "Les mêmes méthodes, enfin partout pareil",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class Apres21 {\n    public static void main(String[] args) {\n        List<String> liste = new ArrayList<>(List.of(\"a\", \"b\", \"c\"));\n\n        // Fini get(0) et get(size - 1) : on dit ce qu'on veut.\n        System.out.println(liste.getFirst()); // a\n        System.out.println(liste.getLast());  // c\n\n        // On ajoute aux deux bouts sans calcul d'indice.\n        liste.addFirst(\"debut\");\n        liste.addLast(\"fin\");\n        System.out.println(liste); // [debut, a, b, c, fin]\n\n        // On retire aux deux bouts ; la methode renvoie l'element retire.\n        String enleveDebut = liste.removeFirst(); // \"debut\"\n        String enleveFin = liste.removeLast();     // \"fin\"\n        System.out.println(liste); // [a, b, c]\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Attention : collection vide",
+          "position": 3,
+          "body": "Si tu appelles `getFirst()`, `getLast()`, `removeFirst()` ou `removeLast()` sur une collection **vide** (sans aucun élément), Java lève une exception `NoSuchElementException`. Une **exception** est un signal d'erreur qui interrompt le programme pour dire \"ce que tu demandes est impossible ici\".\n\nC'est logique : s'il n'y a personne dans la file d'attente, demander \"qui est premier ?\" n'a pas de réponse.\n\n👉 Avant d'appeler `getFirst()`, on vérifie donc souvent que la collection n'est pas vide avec `isEmpty()`, exactement comme on regarde s'il reste du monde dans la file avant d'appeler le suivant."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Traduis l'ancien code",
+          "position": 4,
+          "body": "Réécris ces deux lignes d'avant Java 21 avec les méthodes de SequencedCollection : String premier = liste.get(0); String dernier = liste.get(liste.size() - 1);",
+          "solution": "String premier = liste.getFirst();\nString dernier = liste.getLast();\n\nPlus de calcul d'indice, plus de formule size() - 1 à risque. Les deux lignes disent directement l'intention : le premier, le dernier. En prime, elles fonctionnent à l'identique sur une Deque."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : l'interface SequencedCollection",
+          "position": 5,
+          "quizRef": "sequenced-collections-sequencedcollection"
+        }
+      ]
+    },
+    {
+      "slug": "la-vue-inversee-reversed",
+      "title": "La vue inversée avec reversed()",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Lire une collection à l'envers",
+          "position": 0,
+          "body": "SequencedCollection apporte aussi une méthode très pratique : **reversed()**. Elle renvoie une **vue inversée** de la collection, c'est à dire les mêmes éléments mais présentés du dernier vers le premier.\n\nLe mot important est **vue** (en anglais *view*). Une vue n'est pas une copie : c'est une fenetre sur la collection d'origine. Elle ne duplique pas les éléments, elle les montre juste dans l'autre sens.\n\n👉 Imagine une rangée de livres sur une étagère, et un miroir placé au bout : dans le miroir, tu vois les mêmes livres mais dans l'ordre inverse. Le miroir ne crée pas de nouveaux livres, il reflète les tiens. `reversed()` est ce miroir."
+        },
+        {
+          "type": "CODE",
+          "title": "reversed() en action",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class Inverse {\n    public static void main(String[] args) {\n        List<String> liste = new ArrayList<>(List.of(\"a\", \"b\", \"c\"));\n\n        // reversed() donne une vue dans l'ordre inverse.\n        List<String> alEnvers = liste.reversed();\n        System.out.println(alEnvers); // [c, b, a]\n\n        // Parcourir a l'envers devient trivial : plus de boucle descendante.\n        for (String s : liste.reversed()) {\n            System.out.println(s); // c, puis b, puis a\n        }\n\n        // Sur la vue inversee, getFirst() est le dernier de l'originale.\n        System.out.println(liste.reversed().getFirst()); // c\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Une vue reste branchée sur l'originale",
+          "position": 2,
+          "body": "Comme la vue n'est pas une copie, elle reste **branchée** sur la collection d'origine. Deux conséquences importantes :\n\n1. Si tu modifies la collection d'origine, la vue inversée reflète aussitot le changement (le miroir montre toujours l'état actuel de l'étagère).\n2. Mieux : modifier la vue modifie l'originale. Un `addFirst(\"z\")` sur la vue inversée ajoute en réalité à la fin de la collection d'origine, car le \"début\" de la vue correspond à la \"fin\" de l'originale.\n\n👉 La vue et l'originale sont deux portes sur la même pièce. Peu importe par laquelle tu entres pour déplacer un meuble, c'est la même pièce qui change."
+        },
+        {
+          "type": "CODE",
+          "title": "Modifier via la vue agit sur l'originale",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class VueBranchee {\n    public static void main(String[] args) {\n        List<String> liste = new ArrayList<>(List.of(\"a\", \"b\", \"c\"));\n        List<String> vue = liste.reversed();\n\n        // addFirst sur la vue = ajouter a la FIN de l'originale.\n        vue.addFirst(\"z\");\n        System.out.println(liste); // [a, b, c, z]\n        System.out.println(vue);   // [z, c, b, a]\n\n        // Un changement sur l'originale se voit aussitot dans la vue.\n        liste.addFirst(\"debut\");\n        System.out.println(vue);   // [z, c, b, a, debut]\n    }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Devine l'affichage",
+          "position": 4,
+          "body": "Soit List<Integer> nombres = new ArrayList<>(List.of(1, 2, 3)); puis List<Integer> vue = nombres.reversed(); et enfin vue.addLast(0);. Qu'affichent System.out.println(nombres); et System.out.println(vue); ?",
+          "solution": "vue vaut au départ [3, 2, 1]. addLast(0) ajoute à la fin de la vue, donc au DÉBUT de l'originale (la fin de la vue correspond au début de l'originale). Résultat : nombres affiche [0, 1, 2, 3] et vue affiche [3, 2, 1, 0]. La vue et l'originale restent cohérentes car elles pointent sur les mêmes données."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : la vue inversée reversed()",
+          "position": 5,
+          "quizRef": "sequenced-collections-la-vue-inversee-reversed"
+        }
+      ]
+    },
+    {
+      "slug": "sequencedset-et-sequencedmap",
+      "title": "SequencedSet et SequencedMap",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "SequencedSet : un ensemble ordonné, sans doublon",
+          "position": 0,
+          "body": "Un **Set** (un ensemble) est une collection sans doublon : chaque élément y est unique. Java 21 ajoute l'interface **SequencedSet** (ensemble séquencé), qui est à la fois un `Set` et une `SequencedCollection`. Autrement dit : un ensemble sans doublon, mais qui a un ordre et donc un premier et un dernier.\n\nLe représentant le plus courant est le **LinkedHashSet**, qui retient l'ordre d'insertion des éléments. En Java 21, **LinkedHashSet implémente SequencedSet**. Tu peux donc enfin écrire `set.getFirst()`, `set.getLast()` et `set.reversed()` directement, sans le bricolage à base de boucle qu'on voyait dans la première leçon.\n\n👉 C'est l'ensemble des invités d'une soirée, notés dans l'ordre d'arrivée : pas de doublon (chacun n'est compté qu'une fois), mais on sait qui est arrivé en premier et en dernier."
+        },
+        {
+          "type": "CODE",
+          "title": "LinkedHashSet devient agréable à manipuler",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class SetSequence {\n    public static void main(String[] args) {\n        LinkedHashSet<String> invites = new LinkedHashSet<>();\n        invites.add(\"Ana\");\n        invites.add(\"Bob\");\n        invites.add(\"Cléa\");\n\n        // Enfin des methodes directes, comme pour une List.\n        System.out.println(invites.getFirst()); // Ana\n        System.out.println(invites.getLast());   // Cléa\n\n        // La vue inversee marche aussi.\n        System.out.println(invites.reversed());   // [Cléa, Bob, Ana]\n\n        // Ajouter au debut est possible (l'ordre est respecte).\n        invites.addFirst(\"Zoé\");\n        System.out.println(invites); // [Zoé, Ana, Bob, Cléa]\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "SequencedMap : une table clé vers valeur, ordonnée",
+          "position": 2,
+          "body": "Une **Map** (une table associative) associe des **clés** à des **valeurs**, comme un dictionnaire associe un mot à sa définition. Java 21 ajoute l'interface **SequencedMap** (table séquencée) pour les Maps qui ont un ordre. Le représentant courant est le **LinkedHashMap**, qui retient l'ordre d'insertion ; en Java 21, **LinkedHashMap implémente SequencedMap**.\n\nComme une Map manipule des paires clé/valeur et non de simples éléments, ses méthodes ont des noms adaptés :\n\n- `firstEntry()` / `lastEntry()` : la première / dernière paire clé valeur (une **entrée**, en anglais *entry*).\n- `pollFirstEntry()` / `pollLastEntry()` : retire et renvoie la première / dernière entrée (poll veut dire \"prélever\").\n- `putFirst(k, v)` / `putLast(k, v)` : insère une paire au début / à la fin.\n- `sequencedKeySet()`, `sequencedValues()`, `sequencedEntrySet()` : les clés, les valeurs, les entrées, sous forme de vues ordonnées.\n- `reversed()` : la table vue dans l'ordre inverse."
+        },
+        {
+          "type": "CODE",
+          "title": "LinkedHashMap et ses nouvelles méthodes",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class MapSequence {\n    public static void main(String[] args) {\n        LinkedHashMap<String, Integer> scores = new LinkedHashMap<>();\n        scores.put(\"Ana\", 10);\n        scores.put(\"Bob\", 7);\n        scores.put(\"Cléa\", 9);\n\n        // Premiere et derniere entree (la paire cle=valeur).\n        System.out.println(scores.firstEntry()); // Ana=10\n        System.out.println(scores.lastEntry());   // Cléa=9\n\n        // Les cles dans l'ordre, sous forme de vue.\n        System.out.println(scores.sequencedKeySet()); // [Ana, Bob, Cléa]\n\n        // Retirer la premiere entree et la recuperer.\n        var premiere = scores.pollFirstEntry();\n        System.out.println(premiere); // Ana=10\n        System.out.println(scores);   // {Bob=7, Cléa=9}\n\n        // Inserer une paire tout au debut.\n        scores.putFirst(\"Zoé\", 12);\n        System.out.println(scores);   // {Zoé=12, Bob=7, Cléa=9}\n    }\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "La place des nouvelles interfaces dans la hiérarchie",
+          "position": 4,
+          "diagramFormat": "MERMAID",
+          "body": "classDiagram\n    class Collection\n    class SequencedCollection\n    class Set\n    class SequencedSet\n    class List\n    class Deque\n    class Map\n    class SequencedMap\n    class LinkedHashSet\n    class LinkedHashMap\n    Collection <|-- SequencedCollection\n    SequencedCollection <|-- List\n    SequencedCollection <|-- Deque\n    Collection <|-- Set\n    Set <|-- SequencedSet\n    SequencedCollection <|-- SequencedSet\n    SequencedSet <|-- LinkedHashSet\n    Map <|-- SequencedMap\n    SequencedMap <|-- LinkedHashMap"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Trouve la bonne méthode",
+          "position": 5,
+          "body": "Tu as un LinkedHashMap<String, Integer> appelé classement, rempli dans l'ordre d'arrivée. 1) Comment obtiens tu la toute première entrée sans la retirer ? 2) Comment retires tu la dernière entrée en la récupérant ? 3) Comment obtiens tu les clés dans l'ordre inverse d'arrivée ?",
+          "solution": "1) classement.firstEntry() renvoie la première entrée sans modifier la table. 2) classement.pollLastEntry() retire la dernière entrée et la renvoie. 3) classement.reversed().sequencedKeySet() donne les clés dans l'ordre inverse ; on peut aussi écrire classement.sequencedKeySet().reversed(). Les deux renvoient une vue, pas une copie."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : SequencedSet et SequencedMap",
+          "position": 6,
+          "quizRef": "sequenced-collections-sequencedset-et-sequencedmap"
+        }
+      ]
+    },
+    {
+      "slug": "en-pratique",
+      "title": "En pratique",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Remplacer le code bancal par des méthodes claires",
+          "position": 0,
+          "body": "Maintenant que tu connais les outils, l'objectif pratique est simple : **repérer** dans un code existant les vieilles recettes et les **remplacer** par les méthodes séquencées. Un code bancal est un code qui marche mais qui est fragile ou difficile à lire ; ici, les formules d'indice et les boucles de bricolage.\n\nQuelques remplacements types :\n\n- `list.get(0)` devient `list.getFirst()`.\n- `list.get(list.size() - 1)` devient `list.getLast()`.\n- Une boucle descendante pour parcourir à l'envers devient `for (var e : list.reversed())`.\n- Le bricolage pour le dernier d'un `LinkedHashSet` devient `set.getLast()`.\n\n👉 On remplace des gestes compliqués par des mots simples : au lieu d'expliquer le chemin, tu nommes la destination."
+        },
+        {
+          "type": "CODE",
+          "title": "Avant / après sur un cas concret",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class AvantApres {\n    // AVANT : indices et formule a risque.\n    static String dernierMessageAvant(List<String> messages) {\n        if (messages.isEmpty()) return \"aucun\";\n        return messages.get(messages.size() - 1);\n    }\n\n    // APRES : on dit simplement ce qu'on veut.\n    static String dernierMessageApres(List<String> messages) {\n        if (messages.isEmpty()) return \"aucun\";\n        return messages.getLast();\n    }\n\n    // AVANT : boucle descendante pour l'ordre inverse.\n    static void afficherEnversAvant(List<String> messages) {\n        for (int i = messages.size() - 1; i >= 0; i--) {\n            System.out.println(messages.get(i));\n        }\n    }\n\n    // APRES : une vue inversee, lisible d'un coup d'oeil.\n    static void afficherEnversApres(List<String> messages) {\n        for (String m : messages.reversed()) {\n            System.out.println(m);\n        }\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un exemple parlant : un historique récent",
+          "position": 2,
+          "body": "Un cas très fréquent : garder un **historique** des dernières actions (les dernières pages visitées, les derniers fichiers ouverts) et afficher la plus récente en premier.\n\nAvec une `LinkedHashSet`, tu ajoutes chaque action avec `addLast(...)`. Le plus récent est alors `getLast()`, et pour afficher du plus récent au plus ancien, tu utilises `reversed()`. Comme un Set évite les doublons, une page déjà présente n'apparait pas deux fois ; et comme il est séquencé, l'ordre d'arrivée est respecté.\n\n👉 C'est exactement le comportement d'un historique de navigateur : pas de doublon inutile, le plus récent en haut, et un bouton pour tout voir à l'envers."
+        },
+        {
+          "type": "CODE",
+          "title": "Un petit historique séquencé",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "import java.util.*;\n\npublic class Historique {\n    public static void main(String[] args) {\n        LinkedHashSet<String> pages = new LinkedHashSet<>();\n        pages.addLast(\"accueil\");\n        pages.addLast(\"profil\");\n        pages.addLast(\"parametres\");\n\n        // La page la plus recente.\n        System.out.println(\"Derniere page : \" + pages.getLast()); // parametres\n\n        // De la plus recente a la plus ancienne.\n        System.out.println(\"Historique recent :\");\n        for (String page : pages.reversed()) {\n            System.out.println(\" - \" + page); // parametres, profil, accueil\n        }\n    }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Modernise ce code",
+          "position": 4,
+          "body": "Réécris cette méthode en utilisant les collections séquencées de Java 21 : static int premier(List<Integer> xs) { return xs.get(0); } et static int dernier(List<Integer> xs) { return xs.get(xs.size() - 1); }. Que gagnes tu ?",
+          "solution": "static int premier(List<Integer> xs) { return xs.getFirst(); }\nstatic int dernier(List<Integer> xs) { return xs.getLast(); }\n\nGains : plus de calcul d'indice ni de formule xs.size() - 1 (source classique de bug si on écrit size() au lieu de size() - 1), un code qui exprime directement l'intention, et des méthodes identiques quel que soit le type de collection séquencée (List, Deque, LinkedHashSet)."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : en pratique",
+          "position": 5,
+          "quizRef": "sequenced-collections-en-pratique"
+        }
+      ]
+    }
+  ]
+}

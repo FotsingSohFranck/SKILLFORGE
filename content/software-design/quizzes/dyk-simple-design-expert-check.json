@@ -1,0 +1,96 @@
+{
+  "ref": "dyk-simple-design-expert-check",
+  "node": "dry-yagni-kiss",
+  "lesson": "simple-design-beck",
+  "title": "Quiz, Simple Design (expert)",
+  "description": "Les 4 règles de Beck dans l'ordre, tension intention/duplication, lien avec AHA.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'ordre correct des 4 règles du Simple Design de Kent Beck ?",
+      "justification": "1) Passe les tests, 2) révèle l'intention, 3) pas de duplication, 4) le moins d'éléments possible. L'ordre est le cœur de la règle : la priorité supérieure gagne les arbitrages.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Passe les tests → révèle l'intention → pas de duplication → minimum d'éléments",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Minimum d'éléments → pas de duplication → tests → intention",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pas de duplication → tests → minimum d'éléments → intention",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une factorisation supprime une duplication mais rend le code illisible. Que disent les règles ?",
+      "justification": "La règle 2 (révéler l'intention) prime sur la règle 3 (pas de duplication) : on tolère alors un peu de duplication plutôt qu'une abstraction obscure, c'est le principe AHA.",
+      "position": 1,
+      "options": [
+        {
+          "label": "L'intention (règle 2) prime : mieux vaut un peu de duplication qu'une abstraction obscure",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La duplication (règle 3) prime toujours : il faut factoriser",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le minimum d'éléments (règle 4) tranche",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Deux blocs se ressemblent aujourd'hui mais changeront pour des raisons différentes. Faut-il les factoriser ?",
+      "justification": "Non : c'est une similarité accidentelle, pas une duplication de connaissance. DRY vise l'unicité d'une connaissance métier ; factoriser du code coïncidemment identique crée un couplage néfaste (fausse abstraction).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Non : similarité accidentelle, pas duplication de connaissance",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Oui, toute répétition doit disparaître",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Oui, avec une méthode paramétrée générique",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La règle « minimiser le nombre d'éléments » justifie de fusionner trois méthodes bien nommées en une méthode générique à `Map<String,Object>`.",
+      "justification": "Faux : minimiser les éléments est la règle 4 (la plus basse). Elle ne prime pas sur l'intention (règle 2) ni sur l'absence de duplication utile ; fusionner en une méthode fourre-tout à Map opaque détruit l'intention.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

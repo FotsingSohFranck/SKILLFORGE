@@ -1,0 +1,10 @@
+{
+  "node": "meta-arguments",
+  "lesson": "for-each-modules-et-migration",
+  "title": "Migrer count vers for_each avec moved",
+  "statement": "Un ancien code crée trois serveurs avec `count = 3` : ils sont adressés `aws_instance.web[0]`, `aws_instance.web[1]` et `aws_instance.web[2]`. Tu migres vers `for_each = toset([\"api\", \"web\", \"cron\"])` (les clés dans cet ordre : [0] devient \"api\", [1] devient \"web\", [2] devient \"cron\"). Écris les trois blocs `moved` qui mappent chaque ancien index à sa nouvelle clé, pour que Terraform mette à jour l'état sans détruire ni recréer les serveurs.",
+  "skeleton": "# un bloc moved par serveur : from = ancien index, to = nouvelle cle\n",
+  "solution": "moved {\n  from = aws_instance.web[0]\n  to   = aws_instance.web[\"api\"]\n}\n\nmoved {\n  from = aws_instance.web[1]\n  to   = aws_instance.web[\"web\"]\n}\n\nmoved {\n  from = aws_instance.web[2]\n  to   = aws_instance.web[\"cron\"]\n}",
+  "keyPoints": ["moved", "from", "to", "aws_instance.web[0]", "aws_instance.web[\"api\"]", "aws_instance.web[\"cron\"]"],
+  "language": "hcl"
+}

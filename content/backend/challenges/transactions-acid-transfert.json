@@ -1,0 +1,10 @@
+{
+  "node": "transactions-acid",
+  "lesson": "quest-ce-quune-transaction",
+  "title": "Écrire un transfert atomique",
+  "statement": "Écris une transaction SQL qui transfère 100 unités du compte `'A'` vers le compte `'B'` dans la table `accounts` (colonne `balance`, clé `id`). Elle doit ouvrir la transaction, débiter A, créditer B, puis valider. Objectif : soit les deux mises à jour s'appliquent, soit aucune (« tout ou rien »).",
+  "skeleton": "-- ouvre la transaction, débite A, crédite B, puis valide\n",
+  "solution": "BEGIN;\n  UPDATE accounts SET balance = balance - 100 WHERE id = 'A';\n  UPDATE accounts SET balance = balance + 100 WHERE id = 'B';\nCOMMIT;",
+  "keyPoints": ["BEGIN", "balance = balance - 100", "balance = balance + 100", "COMMIT"],
+  "language": "sql"
+}

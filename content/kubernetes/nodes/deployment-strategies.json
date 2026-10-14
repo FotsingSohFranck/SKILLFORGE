@@ -1,0 +1,114 @@
+{
+  "node": "deployment-strategies",
+  "lessons": [
+    {
+      "slug": "rolling-et-rollback",
+      "title": "Rolling update & rollback",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La stratégie par défaut",
+          "body": "Avant tout, deux mots de vocabulaire de base. Un **pod** est la plus petite unité que Kubernetes sait déployer : une enveloppe qui contient ton application (un ou plusieurs conteneurs) et tourne sur une machine du cluster. Un **Deployment** est l'objet Kubernetes qui gère un groupe de pods **identiques** : tu lui dis *je veux 4 exemplaires de mon application en version 2*, et il s'arrange pour que ce soit vrai en permanence.\n\nMettre à jour l'application, c'est faire passer ces pods de la version 1 à la version 2. La vraie question : comment le faire **sans couper le service** ? Le **rolling update** (mise à jour progressive) est la stratégie **par défaut** d'un Deployment. Au lieu de tout éteindre puis tout rallumer, Kubernetes remplace les anciens pods par les nouveaux **un peu à la fois**, en gardant toujours assez de pods debout pour répondre aux utilisateurs. On parle de **zéro coupure** (en anglais *zero downtime*) : à aucun instant le service n'est totalement à l'arrêt.\n\n👉 **Analogie** : c'est comme changer les pneus d'un camion **sans l'arrêter**, une roue à la fois. Le camion continue de rouler pendant que tu remplaces progressivement chaque roue.\n\nDeux réglages pilotent le rythme de la bascule :\n- **`maxUnavailable`** : combien de pods on **s'autorise à perdre** pendant la mise à jour. Exemple : sur 4 pods, `maxUnavailable: 1` garantit qu'il en reste toujours au moins 3 qui répondent.\n- **`maxSurge`** : combien de pods **en plus** on peut créer temporairement au-dessus du nombre voulu. Exemple : `maxSurge: 1` autorise Kubernetes à monter à 5 pods le temps de la transition, pour ne pas perdre en capacité.\n\nLe garde-fou essentiel est la **readiness probe** (sonde de disponibilité) : une petite vérification que Kubernetes répète régulièrement pour savoir si un pod est **vraiment prêt** à recevoir du trafic (par exemple *l'application répond-elle sur `/health` ?*). Kubernetes n'envoie du trafic à un nouveau pod, et ne retire un ancien, **que** lorsque le nouveau a répondu *oui, je suis prêt*. Sans cette sonde, il enverrait des utilisateurs vers un pod encore en train de démarrer, et ils tomberaient sur des erreurs. Simple, sûr, et suffisant pour la grande majorité des déploiements."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Rollback : revenir vite",
+          "body": "Un déploiement sans coupure n'est vraiment sûr que si **revenir en arrière est trivial**. Ce retour en arrière porte un nom : le **rollback** (littéralement *rembobiner*). C'est l'action de **remettre l'application dans sa version précédente** quand la nouvelle pose problème.\n\nCe qui rend le rollback quasi instantané dans Kubernetes : le Deployment garde l'**historique des révisions**. Une **révision** est simplement une version passée de ta configuration (version 1, version 2, et ainsi de suite). En coulisses, chaque révision correspond à un **ReplicaSet** : l'objet interne qui maintient un nombre de pods identiques pour *une* version donnée. Kubernetes ne détruit pas immédiatement l'ancien ReplicaSet quand tu déploies ; il le garde de côté, ramené à zéro pod. Revenir en arrière consiste donc juste à **re-remplir l'ancien ReplicaSet** et à vider le nouveau, sans rien reconstruire ni retélécharger.\n\nEn pratique, on pilote tout cela avec **`kubectl`**, l'outil en ligne de commande de Kubernetes (celui avec lequel tu parles au cluster). La commande `kubectl rollout undo deployment/<nom>` rebascule vers la version précédente en un instant.\n\n👉 **Analogie** : c'est le **Ctrl+Z** de ton déploiement. Comme un logiciel garde tes dernières actions pour les annuler, le Deployment garde tes dernières versions pour y revenir d'un geste.\n\nLa règle d'or : **déployer souvent, en petits incréments**, avec un rollback prêt. Un petit changement est plus facile à diagnostiquer et à annuler qu'un gros paquet de nouveautés mélangées. Pendant et après la bascule, on surveille les **métriques** : le taux d'erreur, et la **latence** (le temps de réponse), souvent mesurée en **P99** (la durée sous laquelle tombent 99 % des requêtes, autrement dit *le pire des cas courants*). Ces métriques disent s'il faut continuer ou annuler. Sans capacité de rollback rapide, on n'ose plus déployer souvent, et le risque s'accumule."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Pendant un rolling update, le taux d'erreur grimpe brutalement. Quelle est la première action, et qu'est-ce qui la rend possible instantanément ?",
+          "solution": "Première action : annuler le déploiement et revenir à la version précédente, avec `kubectl rollout undo deployment/<nom>`. Cela rebascule immédiatement vers la dernière révision saine, stoppant l'hémorragie pendant qu'on investigue à froid, on ne débogue pas en production sous incident. Ce qui rend ce rollback instantané possible : le Deployment conserve l'HISTORIQUE des révisions (les anciens ReplicaSets restent référencés), donc revenir en arrière consiste simplement à re-scaler l'ancien ReplicaSet et à réduire le nouveau, pas besoin de reconstruire ou re-télécharger quoi que ce soit. C'est pourquoi on privilégie des déploiements petits et fréquents : un incrément réduit est plus facile à diagnostiquer ET à annuler proprement. La discipline complète : surveiller les métriques (taux d'erreur, latence, P99) pendant le rollout via l'observabilité, déclencher le rollback dès que ça se dégrade, puis analyser la cause à tête reposée avant de re-tenter. Un rollback rapide et fiable est la condition qui permet d'oser déployer souvent."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Rolling update & rollback",
+          "quizRef": "rolling-rollback-check"
+        }
+      ]
+    },
+    {
+      "slug": "blue-green-et-canary",
+      "title": "Blue-green & canary",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Blue-green : basculer d'un coup",
+          "body": "Le rolling update remplace les pods petit à petit. Le **blue-green** prend un parti radicalement différent : faire tourner **deux environnements complets en parallèle**. Un **environnement**, ici, c'est un jeu complet de pods qui fait tourner *une* version de l'application.\n- **Blue** : la version **actuelle**, celle qui reçoit tout le trafic réel des utilisateurs.\n- **Green** : la **nouvelle** version, déployée juste à côté, que tu peux tester tranquillement **sans** lui envoyer de vrais utilisateurs.\n\nQuand green est validé, on **bascule tout le trafic d'un coup** de blue vers green. Ce basculement se fait en changeant l'**aiguillage** du réseau. Deux objets Kubernetes jouent ce rôle d'aiguillage : le **Service** (le point d'entrée stable qui distribue le trafic vers un groupe de pods) et l'**Ingress** (la porte d'entrée HTTP depuis l'extérieur du cluster). Basculer, c'est repointer le Service ou l'Ingress de blue vers green.\n\n👉 **Analogie** : deux scènes de théâtre montées côte à côte. Le public regarde la scène *blue*. Pendant ce temps, tu répètes le nouveau spectacle sur la scène *green*, rideau fermé. Quand tout est prêt, tu tournes les projecteurs d'un coup vers *green* : le public bascule instantanément, sans entracte. Si le spectacle *green* rate, tu ramènes les projecteurs sur *blue* en une seconde.\n\n**Avantages** : la bascule est **instantanée** et le **rollback est immédiat** (si green déraille, tu re-pointes simplement sur blue, resté intact et prêt). **Inconvénients** : il faut faire tourner **deux fois les ressources** (deux environnements complets) pendant la fenêtre de bascule, et gérer la **compatibilité des données**, car blue et green peuvent taper dans la **même base de données** en même temps."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Canary : tester sur une fraction du trafic",
+          "body": "Le **canary** (canari) déploie la nouvelle version pour une **petite fraction** des utilisateurs seulement (disons 5 %), **surveille** de près les métriques (erreurs, latence), puis **généralise progressivement** si tout va bien (5 %, puis 25 %, puis 100 %). Si les métriques se dégradent, on **annule** en n'ayant impacté que ces 5 %.\n\n👉 **Analogie (et origine du nom)** : autrefois, les mineurs descendaient avec un **canari** en cage. L'oiseau, plus sensible au gaz, tombait malade **avant** les humains : il servait d'alerte précoce. Ici, les 5 % d'utilisateurs qui reçoivent la nouvelle version sont ton canari : si un problème apparaît, tu le vois tôt et tu arrêtes **avant** d'exposer tout le monde.\n\n**Exemple concret** : tu déploies une refonte du moteur de recherche. Tu l'actives d'abord pour 5 % des visiteurs. Tu surveilles leur taux d'erreur et leur temps de réponse pendant une heure. Sain ? Tu montes à 25 %, puis 100 %. Dégradé ? Tu reviens à 0 %, et seuls 5 % des visiteurs auront vu le souci.\n\nC'est la stratégie la plus **prudente** pour un changement risqué : on valide sur du **trafic réel**, mais à impact **borné**. Sa mise en œuvre fine (envoyer *exactement* 5 % du trafic vers la nouvelle version, ce qu'on appelle le **routage pondéré**, et analyser les métriques automatiquement) dépasse ce que fait un Deployment tout seul. On s'appuie alors sur des outils dédiés : **Argo Rollouts** et **Flagger** (des contrôleurs spécialisés dans les déploiements progressifs), souvent épaulés par un **service mesh** (une couche réseau, comme Istio ou Linkerd, capable de découper le trafic très finement entre versions)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le fil rouge : la compatibilité (niveau expert)",
+          "body": "Quelle que soit la stratégie, retiens un fil rouge : pendant la mise à jour, **l'ancienne et la nouvelle version coexistent** un moment. Tout le rollout pour un rolling update, la fenêtre de bascule pour un blue-green, toute la montée en charge pour un canary. Pendant cette coexistence, les deux versions tournent **en même temps** et tapent souvent dans les **mêmes données**. D'où deux impératifs de niveau expert.\n\n**1. La compatibilité de schéma.** Le **schéma**, c'est la structure de ta base de données (ses tables, ses colonnes). Si la version 2 a besoin d'une base modifiée alors que la version 1 tourne encore, la modification ne doit **pas casser** la version 1. La technique s'appelle **expand/contract** (étendre puis contracter) : on fait des **migrations rétrocompatibles**, c'est-à-dire des changements de base que l'**ancien** code supporte encore.\n👉 **Analogie** : pour remplacer un pont pendant que les voitures roulent, tu construis d'abord la **nouvelle voie à côté** (expand), tu bascules le trafic dessus, **puis** seulement tu démolis l'ancienne (contract). Tu n'arraches jamais la voie sur laquelle des voitures circulent encore.\n**Exemple** : plutôt que de *renommer* une colonne d'un coup (ce qui casserait la version 1), tu **ajoutes** la nouvelle colonne, tu fais écrire les deux versions dedans le temps de la transition, puis tu supprimes l'ancienne colonne une fois la version 1 disparue.\n\n**2. La compatibilité de contrats.** Un **contrat**, c'est la promesse d'une API sur la forme de ses échanges (les champs attendus, le format des réponses). La nouvelle version ne doit **pas casser** les clients ni les autres services qui l'appellent pendant la coexistence.\n\nAutrement dit, une stratégie de déploiement sûre est autant une affaire de **conception applicative** (compatibilité, **feature flags** que l'on verra, readiness) que de mécanique Kubernetes. La stratégie gère l'aiguillage du **trafic** ; c'est à toi de garantir que les deux versions peuvent **cohabiter** sans se marcher dessus."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Vous devez déployer un changement risqué (refonte d'un algorithme critique) et voulez limiter l'impact d'un éventuel problème à une petite partie des utilisateurs, tout en surveillant les métriques avant de généraliser. Quelle stratégie choisir et comment la mettre en œuvre ?",
+          "solution": "Un déploiement canary. On route d'abord une petite fraction du trafic (ex. 5 %) vers la nouvelle version, on surveille de près les métriques clés (taux d'erreur, latence P99, métriques métier) pendant un temps représentatif, puis on augmente progressivement (5 % → 25 % → 50 % → 100 %) si tout reste sain, ou on annule immédiatement si les métriques se dégradent, l'impact ayant été borné aux 5 % concernés. C'est la stratégie la plus prudente pour un changement risqué, car on valide sur du trafic RÉEL à impact limité, au lieu de basculer tout le monde d'un coup. Mise en œuvre : le Deployment brut ne fait que du rolling ; pour un vrai canary (routage pondéré du trafic + analyse), on utilise un outil dédié comme Argo Rollouts ou Flagger (souvent avec un service mesh ou un Ingress qui supporte la répartition pondérée), qui automatise la montée progressive et le rollback basé sur des seuils de métriques. Prérequis transverses : la nouvelle version doit être compatible avec l'ancienne pendant la coexistence (schéma de base rétrocompatible, contrats d'API stables), sans quoi le canary casserait les données ou les clients. Idéalement on combine avec un feature flag pour activer/désactiver la nouvelle logique indépendamment du déploiement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Blue-green & canary",
+          "quizRef": "blue-green-canary-check"
+        }
+      ]
+    },
+    {
+      "slug": "progressive-delivery",
+      "title": "Progressive delivery automatisée",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Automatiser le canary par les métriques",
+          "body": "Un canary **manuel** (un humain augmente le trafic à la main en surveillant des tableaux de bord) est lent, fatigant et faillible, surtout la nuit. La **progressive delivery** (livraison progressive) est l'idée d'**automatiser** entièrement cette montée en charge et la décision d'avancer ou d'annuler.\n\nDes outils comme **Argo Rollouts** ou **Flagger** remplacent le Deployment par un objet **Rollout**, qui décrit la stratégie canary : les **paliers** de trafic (un palier = une étape, par exemple 5 %, puis 25 %, puis 100 %) et, à chaque palier, une **analyse automatique des métriques**.\n\nCette analyse s'écrit dans un **AnalysisTemplate** (modèle d'analyse) : tu y listes les indicateurs à surveiller (taux de succès, latence **P99**, taux d'erreur, une métrique métier) avec des **seuils** (des limites à ne pas franchir, par exemple *taux d'erreur inférieur à 1 %*). Pour lire ces métriques, l'outil interroge le système qui les stocke, le plus souvent **Prometheus** : une base de données spécialisée dans les mesures d'infrastructure au fil du temps (le standard de fait pour la métrologie Kubernetes).\n\n👉 **Analogie** : c'est le **régulateur de vitesse** de ta voiture. Tu fixes une consigne, et la voiture accélère ou freine toute seule pour la respecter, sans que tu gardes le pied sur la pédale. Ici, tu fixes des seuils, et le Rollout accélère (monte le trafic) ou freine (annule) tout seul selon les métriques.\n\nLe cycle à chaque palier : l'outil monte le trafic, interroge Prometheus, compare aux seuils. Si les métriques restent **saines**, il **avance** au palier suivant ; si elles se **dégradent**, il **annule automatiquement** (rollback vers la version stable). Le déploiement devient une **boucle de décision fondée sur des données**, sans surveillance humaine constante : plus rapide et plus fiable qu'un canary piloté à la main."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Schéma : la boucle de décision automatisée",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[Nouvelle version deployee a 5%] --> B{Metriques dans les seuils ?}\n    B -- Oui --> C[Monter le trafic a 25%]\n    C --> D{Metriques dans les seuils ?}\n    D -- Oui --> E[100% : nouvelle version stable]\n    B -- Non --> R[Rollback automatique vers la version stable]\n    D -- Non --> R"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Traffic mirroring & feature flags (niveau expert)",
+          "body": "Deux techniques complètent l'arsenal de l'expert.\n\n**Le traffic mirroring (miroir de trafic, aussi appelé *shadowing*).** L'idée : envoyer une **copie** du trafic de production vers la nouvelle version, **sans** que ses réponses n'atteignent jamais les utilisateurs (elles sont calculées puis jetées). Tu testes ainsi la nouvelle version sur du trafic **réel** (sa vraie charge, ses vrais cas limites) en toute sécurité, et tu **compares** son comportement à celui de l'ancienne.\n👉 **Analogie** : un pilote d'avion en **entraînement sur simulateur** branché sur les conditions du vrai vol. Il vit exactement la même situation que le vol réel, mais ses commandes ne pilotent pas l'avion des passagers : aucune de ses erreurs n'a de conséquence.\n\n**Les feature flags (drapeaux de fonctionnalité).** Un feature flag est un **interrupteur** dans le code qui active ou désactive une fonctionnalité **sans redéployer**. Il permet de **découpler** trois choses qu'on confond souvent : **déployer** (mettre le code sur les serveurs), **exposer** (router du trafic vers lui) et **activer** (allumer la fonctionnalité). Tu peux livrer du code **éteint**, puis l'allumer pour un pourcentage d'utilisateurs indépendamment du déploiement, et l'**éteindre instantanément** en cas de souci, sans rien redéployer.\n👉 **Analogie** : l'**interrupteur d'une pièce**. L'électricité est déjà installée dans les murs (le code est déployé), mais la lumière ne s'allume que quand tu appuies (le flag). Et tu peux tout éteindre en une seconde.\n\n**Le principe à retenir** : déployer n'est pas exposer, et exposer n'est pas activer. Un expert orchestre ces couches (stratégie de déploiement, mirroring, feature flags) pour réduire au minimum le risque de **chaque** changement."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe fait des canary manuels : un ingénieur augmente le trafic vers la nouvelle version toutes les 15 minutes en surveillant Grafana, ce qui est chronophage et sujet à erreur (surtout la nuit). Comment automatiser ce processus, et sur quoi se base la décision d'avancer ou d'annuler ?",
+          "solution": "On automatise avec un outil de progressive delivery comme Argo Rollouts ou Flagger, qui pilote le canary de façon autonome à partir de l'analyse de métriques. On remplace le Deployment par un objet Rollout (Argo Rollouts) décrivant la stratégie canary : les paliers de trafic (ex. 5 % → 25 % → 50 % → 100 %) et, à chaque palier, une analyse via un AnalysisTemplate. L'AnalysisTemplate définit les métriques à surveiller et leurs seuils, typiquement le taux de succès/erreur (par ex. taux d'erreur < 1 %), la latence P99 (< X ms), voire une métrique métier, que l'outil interroge automatiquement dans Prometheus à chaque étape. La décision d'avancer ou d'annuler se base donc sur ces métriques : si, à un palier, les indicateurs restent DANS les seuils (version saine), l'outil augmente automatiquement le trafic vers l'étape suivante ; si un indicateur se DÉGRADE au-delà du seuil, il déclenche automatiquement un rollback (retour à la version stable), en n'ayant impacté qu'une fraction des utilisateurs. Bénéfices : plus d'intervention humaine chronophage ni de surveillance manuelle (y compris la nuit), décisions objectives et reproductibles fondées sur les données, montée en charge et rollback plus rapides et fiables. On peut compléter par du traffic mirroring (tester la nouvelle version sur une copie du trafic réel avant même de l'exposer) et des feature flags (activer/désactiver la fonctionnalité indépendamment du déploiement). Le canary passe ainsi d'un geste manuel fragile à une boucle de décision automatisée par les métriques."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Progressive delivery (expert)",
+          "quizRef": "progressive-delivery-expert"
+        }
+      ]
+    }
+  ]
+}

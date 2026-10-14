@@ -1,0 +1,96 @@
+{
+  "ref": "enterprise-mapping-expert-check",
+  "node": "enterprise-patterns",
+  "lesson": "impedance-active-record-acl",
+  "title": "Quiz, Impedance, Active Record & ACL (expert)",
+  "description": "Impedance mismatch, Active Record vs Data Mapper, Money, ACL.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que l'object-relational impedance mismatch ?",
+      "justification": "Le désaccord structurel entre le monde objet (graphes, héritage, identité) et le monde relationnel (tables, clés, ensembles) ; l'ORM cherche à l'absorber, imparfaitement.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le désaccord de structure entre modèle objet et modèle relationnel",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une panne électrique du serveur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un conflit de fusion Git",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre Active Record et Data Mapper ?",
+      "justification": "Active Record : l'objet contient ses données ET sa persistance (couplé à la base). Data Mapper : une couche séparée mappe, l'objet du domaine ignore la base (découplé).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Active Record couple l'objet à la base ; Data Mapper garde le domaine ignorant de la base",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ce sont deux noms du même pattern",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Data Mapper met le SQL dans l'entité",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi utiliser un value object Money plutôt qu'un double pour de l'argent ?",
+      "justification": "Les double provoquent des erreurs d'arrondi ; Money encapsule montant + devise, l'arithmétique/arrondi, et interdit d'additionner des devises différentes.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Pour éviter les erreurs d'arrondi et gérer la devise et les règles de calcul",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que double est interdit en Java",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour accélérer les calculs",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un contexte borné devrait pouvoir lire directement les tables d'un autre contexte pour aller plus vite.",
+      "justification": "Faux : cela couple au schéma interne du voisin et détruit l'isolation ; on passe par une API/des événements et un Anti-Corruption Layer qui traduit vers son propre modèle.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

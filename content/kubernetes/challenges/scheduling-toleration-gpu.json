@@ -1,0 +1,10 @@
+{
+  "node": "scheduling",
+  "lesson": "scheduler-et-placement",
+  "title": "Réserver un nœud GPU à un pod",
+  "statement": "Tes nœuds GPU portent le taint `gpu=true:NoSchedule` (ils repoussent tout le monde) et le label `gpu=true`. Écris le manifeste (YAML) d'un **Pod** nommé `ml-trainer` (image `tensorflow/tensorflow:2.16.1`, conteneur nommé `trainer`) qui : (1) est AUTORISÉ sur ces nœuds grâce à une **toleration** du taint, et (2) est FORCÉ d'y aller grâce à un **nodeSelector** ciblant le label `gpu=true`. Rappel : la toleration seule autorise mais ne contraint pas, d'où le nodeSelector.",
+  "skeleton": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: ml-trainer\nspec:\n  # 1) forcer le placement sur les nœuds GPU (label gpu=true)\n  nodeSelector:\n    # ...\n  # 2) autoriser le placement malgré le taint gpu=true:NoSchedule\n  tolerations:\n    # ...\n  containers:\n    # nom, image\n",
+  "solution": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: ml-trainer\nspec:\n  nodeSelector:\n    gpu: \"true\"\n  tolerations:\n    - key: \"gpu\"\n      operator: \"Equal\"\n      value: \"true\"\n      effect: \"NoSchedule\"\n  containers:\n    - name: trainer\n      image: tensorflow/tensorflow:2.16.1",
+  "keyPoints": ["nodeSelector", "gpu: \"true\"", "tolerations", "effect: \"NoSchedule\"", "name: trainer", "tensorflow/tensorflow:2.16.1"],
+  "language": "yaml"
+}

@@ -1,0 +1,38 @@
+{
+  "node": "iam",
+  "lessons": [
+    {
+      "slug": "qui-peut-quoi",
+      "title": "Qui peut quoi",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le socle de toute la sécurité AWS",
+          "body": "**IAM** (Identity and Access Management) décide qui (utilisateur, rôle, service) peut faire quoi sur quelles ressources. Tout appel à AWS est autorisé ou refusé par IAM. On raisonne en **principe du moindre privilège** : n'accorder que ce qui est strictement nécessaire, rien de plus."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Une policy lisible",
+          "codeLanguage": "json",
+          "body": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [{\n    \"Effect\": \"Allow\",\n    \"Action\": [\"s3:GetObject\"],\n    \"Resource\": \"arn:aws:s3:::mon-bucket/*\"\n  }]\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Rôles plutôt que clés",
+          "body": "Ne diffusez pas de clés d'accès long terme dans le code ou sur les serveurs. Une application sur AWS assume un **rôle IAM** : elle reçoit des **identifiants temporaires** rotés automatiquement. Pas de secret à gérer, pas de clé qui traîne, c'est plus simple *et* plus sûr."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Une équipe donne à son application la policy `AdministratorAccess` « pour éviter les soucis de droits ». Quel principe est violé et quel risque cela crée-t-il ?",
+          "solution": "Le principe du moindre privilège. Si l'application (ou une clé) est compromise, l'attaquant obtient un contrôle total du compte AWS. On restreint aux seules actions/ressources nécessaires."
+        }
+      ]
+    }
+  ]
+}

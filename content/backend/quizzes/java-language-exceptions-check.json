@@ -1,0 +1,52 @@
+{
+  "ref": "java-language-exceptions-check",
+  "node": "java-language",
+  "lesson": "exceptions-et-erreurs",
+  "title": "Quiz : exceptions & gestion d'erreurs",
+  "description": "Mécanisme, checked/unchecked, exceptions de domaine et anti-patterns.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait une exception quand elle est levée ?",
+      "justification": "Elle interrompt le flot normal et remonte la pile d'appels jusqu'à un try/catch qui la traite ; sinon le thread s'arrête.",
+      "position": 0,
+      "options": [
+        { "label": "Elle interrompt le flot et remonte la pile d'appels jusqu'à un try/catch", "correct": true, "position": 0 },
+        { "label": "Elle redémarre automatiquement le programme", "correct": false, "position": 1 },
+        { "label": "Elle est ignorée si on ne l'attrape pas", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre exception vérifiée (checked) et non vérifiée ?",
+      "justification": "Pour les vérifiées (IOException), le compilateur oblige à les gérer ou les déclarer ; les non vérifiées (RuntimeException) signalent souvent un bug.",
+      "position": 1,
+      "options": [
+        { "label": "Les vérifiées, le compilateur oblige à les gérer ; les non vérifiées signalent souvent un bug", "correct": true, "position": 0 },
+        { "label": "Les vérifiées sont plus rapides à lever", "correct": false, "position": 1 },
+        { "label": "Les non vérifiées ne peuvent jamais être attrapées", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un handler global d'erreurs au bord de l'application ?",
+      "justification": "Il traduit les exceptions de domaine en codes HTTP normalisés (404/409/422), sans jamais exposer de stacktrace au client.",
+      "position": 2,
+      "options": [
+        { "label": "Traduire les exceptions de domaine en codes HTTP normalisés, sans exposer de stacktrace", "correct": true, "position": 0 },
+        { "label": "Supprimer toutes les exceptions du programme", "correct": false, "position": 1 },
+        { "label": "Accélérer les requêtes de la base", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`catch (Exception e) {}` (bloc vide) est une bonne façon d'éviter les plantages.",
+      "justification": "Faux : avaler une exception masque les vrais bugs (aucune trace) et laisse le système dans un état incohérent. Il faut attraper le type précis, journaliser et propager le reste.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

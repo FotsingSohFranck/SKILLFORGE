@@ -1,0 +1,10 @@
+{
+  "node": "extending-kubernetes",
+  "lesson": "crds-et-operateurs",
+  "title": "Déclarer une ressource custom d'operator",
+  "statement": "Un operator PostgreSQL a installé une CRD qui ajoute le `kind` `Cluster` (apiVersion `postgresql.cnpg.io/v1`). Écris le YAML d'une ressource custom nommée `prod-db` qui demande : 3 instances, 20Gi de stockage, et une sauvegarde toutes les heures (`schedule: \"0 * * * *\"`). Tu déclares seulement l'état voulu ; c'est l'operator qui fera le travail.",
+  "skeleton": "apiVersion: postgresql.cnpg.io/v1\nkind: \nmetadata:\n  name: \nspec:\n  # instances, storage, backup...\n",
+  "solution": "apiVersion: postgresql.cnpg.io/v1\nkind: Cluster\nmetadata:\n  name: prod-db\nspec:\n  instances: 3\n  storage:\n    size: 20Gi\n  backup:\n    schedule: \"0 * * * *\"",
+  "keyPoints": ["kind: Cluster", "name: prod-db", "instances: 3", "20Gi", "schedule"],
+  "language": "yaml"
+}

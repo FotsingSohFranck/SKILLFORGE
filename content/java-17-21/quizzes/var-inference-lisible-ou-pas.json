@@ -1,0 +1,41 @@
+{
+  "ref": "var-inference-lisible-ou-pas",
+  "node": "var-inference",
+  "lesson": "lisible-ou-pas",
+  "title": "Quiz : lisible ou pas",
+  "description": "Quand var aide la lisibilité et quand il la nuit.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel cas var améliore t il le plus la lisibilité ?",
+      "justification": "Quand la valeur à droite est un new explicite, le type saute aux yeux et var évite seulement la répétition.",
+      "position": 0,
+      "options": [
+        { "label": "var clients = new ArrayList<Client>();", "correct": true, "position": 0 },
+        { "label": "var r = service.traiter(commande);", "correct": false, "position": 1 },
+        { "label": "var x = repo.chercher(id);", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un collègue écrit var r = service.traiter(commande); et tu ne vois pas le nom de la méthode traiter. Quel est le problème ?",
+      "justification": "Le type de r est caché : le nom traiter ne révèle pas le type renvoyé, donc le lecteur doit deviner. Un type explicite serait plus clair.",
+      "position": 1,
+      "options": [
+        { "label": "Le type de r n'est pas devinable à la lecture, var masque une information utile", "correct": true, "position": 0 },
+        { "label": "var est interdit sur un appel de méthode", "correct": false, "position": 1 },
+        { "label": "La ligne ne compile pas", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans var n = 0;, la variable n est de type int, pas long ni double.",
+      "justification": "Un littéral entier sans décimale est un int par défaut. C'est un piège classique : var déduit int, pas long ni double.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

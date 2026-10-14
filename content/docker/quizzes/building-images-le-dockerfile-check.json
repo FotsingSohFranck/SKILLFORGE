@@ -1,0 +1,96 @@
+{
+  "ref": "building-images-le-dockerfile-check",
+  "node": "building-images",
+  "lesson": "le-dockerfile",
+  "title": "Quiz, Le Dockerfile",
+  "description": "Dockerfile, image, docker build, couches, RUN vs CMD, forme exec.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un Dockerfile ?",
+      "justification": "C'est un fichier texte qui décrit, étape par étape, comment construire une image ; `docker build` le lit pour produire l'image.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un fichier texte décrivant étape par étape comment construire une image",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un conteneur déjà en cours d'exécution",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un serveur qui stocke les images",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quel moment s'exécute une instruction `RUN`, et à quel moment une instruction `CMD` ?",
+      "justification": "RUN s'exécute pendant la construction de l'image (build) et fige un résultat en couche ; CMD définit la commande lancée au démarrage du conteneur (runtime).",
+      "position": 1,
+      "options": [
+        {
+          "label": "RUN pendant le build, CMD au démarrage du conteneur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "RUN au démarrage du conteneur, CMD pendant le build",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les deux pendant le build",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Chaque instruction d'un Dockerfile crée une couche empilée dans l'image.",
+      "justification": "Vrai : chaque instruction (FROM, COPY, RUN...) produit une couche, empilée sur la précédente comme un mille-feuille.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi préférer la forme exec `CMD [\"node\", \"server.js\"]` à la forme shell `CMD node server.js` ?",
+      "justification": "En forme exec, le programme devient PID 1 et reçoit directement les signaux, ce qui permet un arrêt propre (gracieux) du conteneur.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Le programme devient PID 1 et reçoit les signaux (arrêt gracieux)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle rend l'image plus petite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle s'exécute pendant le build au lieu du runtime",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

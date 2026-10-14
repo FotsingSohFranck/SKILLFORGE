@@ -1,0 +1,10 @@
+{
+  "node": "coupling-cohesion",
+  "lesson": "les-deux-forces",
+  "title": "Découpler une classe par un port",
+  "statement": "La classe `AlertService` crée elle-même sa dépendance concrète (`new SmtpClient()`), ce qui la couple fortement à l'envoi par email SMTP : impossible de la tester sans vrai serveur mail, impossible de changer de canal (SMS, push) sans rouvrir la classe. Réécris-la pour qu'elle dépende d'une abstraction : une interface `Notifier` reçue par son constructeur (injection de dépendance). Écris l'interface `Notifier` et la version découplée d'`AlertService`.",
+  "skeleton": "// Version couplee (a refactorer)\nclass AlertService {\n    private final SmtpClient client = new SmtpClient();\n    void raise(String message) {\n        client.sendEmail(message);\n    }\n}\n\n// TODO : definis l'interface Notifier et la version decouplee d'AlertService",
+  "solution": "interface Notifier {\n    void send(String message);\n}\n\n// Depend d'une abstraction (couplage de donnees), pas d'un detail concret\nclass AlertService {\n    private final Notifier notifier;\n    AlertService(Notifier notifier) { // injection par le constructeur\n        this.notifier = notifier;\n    }\n    void raise(String message) {\n        notifier.send(message);\n    }\n}\n\n// Une implementation concrete est branchee au bord, pas au coeur\nclass SmtpNotifier implements Notifier {\n    private final SmtpClient client = new SmtpClient();\n    public void send(String message) { client.sendEmail(message); }\n}",
+  "keyPoints": ["interface Notifier", "Notifier notifier", "AlertService(Notifier", "this.notifier = notifier", "notifier.send"],
+  "language": "java"
+}

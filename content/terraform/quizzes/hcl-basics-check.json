@@ -1,0 +1,119 @@
+{
+  "ref": "hcl-basics-check",
+  "node": "hcl-basics",
+  "lesson": "initialiser-un-projet",
+  "title": "Le langage HCL",
+  "description": "HCL, blocs, références/dépendances implicites, fichiers, terraform init.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que HCL ?",
+      "justification": "Le langage de configuration déclaratif de Terraform (fichiers .tf), lisible par humains et machines, structuré en blocs.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le langage de configuration déclaratif de Terraform",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un langage de programmation impératif complet",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un format de base de données",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que crée le fait de référencer un attribut d'une autre ressource (ex. aws_security_group.web.id) ?",
+      "justification": "Une dépendance implicite : Terraform en déduit l'ordre de création/suppression, sans depends_on explicite.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une dépendance implicite entre les ressources",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une copie de la ressource",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Rien de particulier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `terraform init` ?",
+      "justification": "Il télécharge les providers et modules, initialise le backend et génère le lock file, la première commande d'un projet.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Télécharge les providers/modules et prépare le projet",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Crée les ressources cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime l'infrastructure",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi committer le fichier .terraform.lock.hcl ?",
+      "justification": "Il fige les versions exactes des providers : toute l'équipe et la CI utilisent les mêmes versions (reproductibilité + intégrité).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Pour figer les versions des providers (reproductibilité)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour stocker les mots de passe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ce fichier ne doit jamais être committé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Terraform fusionne tous les fichiers .tf d'un répertoire, quel que soit leur nombre et leur ordre.",
+      "justification": "Vrai : le découpage main.tf/variables.tf/outputs.tf est une convention de lisibilité ; techniquement tous les .tf sont fusionnés.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

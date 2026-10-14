@@ -1,0 +1,96 @@
+{
+  "ref": "core-workflow-plan-apply-check",
+  "node": "core-workflow",
+  "lesson": "plan-apply-destroy",
+  "title": "Quiz, Plan, apply, destroy",
+  "description": "Le cycle write/plan/apply, le rôle du plan sauvegardé et de destroy.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`terraform plan` modifie l'infrastructure réelle.",
+      "justification": "Faux : plan ne fait que PRÉVISUALISER. Il compare l'état désiré (code) au réel et affiche ce qui serait fait, sans rien changer. C'est apply qui exécute.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un plan, que signifie le symbole `-/+` devant une ressource ?",
+      "justification": "`-/+` = remplacement : Terraform va détruire la ressource puis la recréer. (`+` = créer, `~` = modifier en place, `-` = détruire.)",
+      "position": 1,
+      "options": [
+        {
+          "label": "La ressource sera remplacée (détruite puis recréée)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La ressource sera seulement modifiée en place",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La ressource est ignorée par Terraform",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `terraform destroy` ?",
+      "justification": "Il supprime TOUTE l'infrastructure décrite par le code (utile pour un environnement éphémère, redoutable en prod). On relit toujours ce qu'il va détruire.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Il supprime toute l'infrastructure gérée par ce code",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il supprime seulement le fichier d'état",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il met en pause les serveurs sans les détruire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "En CI, une PR affiche un plan approuvé qui crée 1 serveur. Dix minutes plus tard, quelqu'un modifie l'infra à la main. Comment garantir que l'apply fait EXACTEMENT ce qui a été approuvé ?",
+      "justification": "On sauvegarde le plan (`plan -out=tfplan`) et on applique ce fichier (`apply tfplan`). L'apply rejoue le plan figé sans recalculer, et échoue si l'état a trop divergé.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Sauvegarder le plan avec `plan -out=tfplan` puis lancer `apply tfplan`",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Relancer `terraform apply` qui recalcule un nouveau plan à cet instant",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Utiliser `-target` pour appliquer juste le serveur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

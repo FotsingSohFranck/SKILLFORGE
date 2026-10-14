@@ -1,0 +1,52 @@
+{
+  "ref": "locals-outputs-locals-check",
+  "node": "locals-outputs",
+  "lesson": "locals",
+  "title": "Les valeurs locales",
+  "description": "locals vs variables, principe DRY, non surchargeable, référence local.nom.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une valeur locale (`locals`) dans un module Terraform ?",
+      "justification": "Un local est une valeur calculée EN INTERNE dans le code, à partir de variables ou d'autres expressions, pour être réutilisée. Ce n'est pas une entrée fournie de l'extérieur.",
+      "position": 0,
+      "options": [
+        { "label": "Une expression calculée en interne, nommée pour être réutilisée dans le code", "correct": true, "position": 0 },
+        { "label": "Un paramètre que l'utilisateur du module fournit de l'extérieur", "correct": false, "position": 1 },
+        { "label": "Une valeur affichée après l'apply pour informer l'utilisateur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi définir des `common_tags` dans un local plutôt que de recopier la même map partout ?",
+      "justification": "Pour respecter le principe DRY : on écrit la convention une seule fois et on la réutilise via local.common_tags ; si elle change, on ne corrige qu'à un seul endroit.",
+      "position": 1,
+      "options": [
+        { "label": "Pour éviter la répétition (DRY) et n'avoir qu'un seul endroit à corriger", "correct": true, "position": 0 },
+        { "label": "Parce que les ressources n'acceptent pas de tags écrits directement", "correct": false, "position": 1 },
+        { "label": "Pour que l'utilisateur du module puisse changer les tags de l'extérieur", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut surcharger la valeur d'un `local` depuis l'extérieur du module (via tfvars ou `-var`).",
+      "justification": "Faux : un local est un calcul interne à l'auteur du module, non configurable de l'extérieur. Seules les variables d'entrée acceptent une valeur fournie par l'appelant.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment référence-t-on une valeur locale nommée `name_prefix` ailleurs dans le code ?",
+      "justification": "On y accède avec le préfixe local. : ici local.name_prefix. (var. sert pour les variables d'entrée, module. pour les outputs d'un module.)",
+      "position": 3,
+      "options": [
+        { "label": "local.name_prefix", "correct": true, "position": 0 },
+        { "label": "var.name_prefix", "correct": false, "position": 1 },
+        { "label": "output.name_prefix", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

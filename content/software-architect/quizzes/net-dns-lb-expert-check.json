@@ -1,0 +1,96 @@
+{
+  "ref": "net-dns-lb-expert-check",
+  "node": "networks",
+  "lesson": "dns-lb-et-edge",
+  "title": "Quiz, DNS, load balancing & edge (expert)",
+  "description": "Service discovery, L4/L7, consistent hashing, CDN, zero-trust.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un système distribué dynamique trouve-t-il ses services sans coder les IP en dur ?",
+      "justification": "Par la découverte de service (Consul, etcd, DNS interne K8s) : les services s'enregistrent et se trouvent par nom logique, avec health checks.",
+      "position": 0,
+      "options": [
+        {
+          "label": "La découverte de service (registre + health checks)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En codant les IP en dur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En redémarrant le réseau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel algorithme de load balancing route une même clé vers la même instance (utile au cache) ?",
+      "justification": "Le consistent hashing : minimise les redistributions quand une instance part/arrive, crucial pour l'affinité de cache/données.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Consistent hashing",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Round-robin pur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Aucun",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment réduire la latence pour des utilisateurs mondiaux d'un contenu statique ?",
+      "justification": "Un CDN : des serveurs distribués géographiquement mettent le contenu en cache près des utilisateurs et déchargent l'origine.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un CDN (cache géographiquement proche)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un seul serveur central",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Désactiver le cache",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le modèle zero-trust considère que même le trafic interne doit être authentifié et autorisé (« ne jamais faire confiance, toujours vérifier »).",
+      "justification": "Vrai : l'identité (mTLS, autorisation) remplace la confiance périmétrique ; on segmente finement pour limiter le rayon d'explosion.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

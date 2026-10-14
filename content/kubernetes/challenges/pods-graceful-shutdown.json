@@ -1,0 +1,10 @@
+{
+  "node": "pods",
+  "lesson": "arret-gracieux",
+  "title": "Expliquer et corriger les 502 pendant un rolling update",
+  "statement": "À chaque rolling update, quelques requêtes échouent en erreur 502 pendant deux à trois secondes, alors que l'application intercepte pourtant bien SIGTERM et termine proprement ses requêtes en cours. En t'appuyant sur la séquence de terminaison d'un pod, explique en quelques phrases : (1) quelle course provoque ces 502, et (2) la parade classique côté configuration du pod, en précisant pourquoi elle fonctionne.",
+  "skeleton": "1. La course en cause :\n\n2. La parade et pourquoi elle marche :\n",
+  "solution": "1. La course en cause. Lors de la terminaison, Kubernetes fait deux choses quasi simultanément : il retire le pod des Endpoints du Service ET envoie SIGTERM au conteneur. Or le retrait des Endpoints doit se propager à tous les composants de routage (kube-proxy sur chaque nœud, l'Ingress, parfois des caches DNS), ce qui prend un court instant. Pendant ce laps de temps, l'application a déjà reçu SIGTERM et commence à s'arrêter, mais du nouveau trafic peut encore lui être routé par les composants pas encore à jour : ces connexions tombent, d'où les 502. Le fait que l'app gère bien SIGTERM ne suffit pas, car le problème est le décalage de propagation du retrait de route.\n2. La parade. Ajouter un hook preStop avec un petit sleep (par exemple `sleep 5`). Le pod attend ce délai AVANT que SIGTERM ne soit envoyé, ce qui laisse le temps au retrait des Endpoints de se propager partout ; quand l'app reçoit enfin SIGTERM, plus aucun nouveau trafic ne lui arrive et elle termine tranquillement ses requêtes en cours dans la terminationGracePeriodSeconds. On combine donc : preStop sleep (attendre le retrait des routes) + gestion de SIGTERM par l'app + une grace period suffisante. C'est le pattern standard pour des déploiements sans coupure.",
+  "keyPoints": ["Endpoints", "propag", "SIGTERM", "preStop", "sleep", "grace"],
+  "language": "text"
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "for-each-modules-expert",
+  "node": "meta-arguments",
+  "lesson": "for-each-modules-et-migration",
+  "title": "for_each sur modules & migration, expert",
+  "description": "count/for_each sur modules, migration count→for_each via moved.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "count et for_each s'appliquent-ils aussi aux blocs module ?",
+      "justification": "Oui : ils instancient le module entier une fois par élément, pour déployer un même ensemble dans plusieurs environnements/régions.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Oui, ils instancient le module entier en boucle",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Non, seulement aux ressources",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Seulement aux providers",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment migrer une ressource de count vers for_each sans la recréer ?",
+      "justification": "Avec des blocs moved mappant chaque ancien index à sa nouvelle clé (ex. [0] → [\"api\"]) : Terraform met à jour l'état sans recréer.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des blocs moved mappant index → clé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En supprimant puis recréant",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Ce n'est pas possible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment vérifier qu'une migration count→for_each est neutre avant d'appliquer ?",
+      "justification": "Lancer terraform plan et s'assurer qu'il ne montre QUE des déplacements (moved), aucun create/destroy.",
+      "position": 2,
+      "options": [
+        {
+          "label": "terraform plan ne doit montrer que des moved (pas de create/destroy)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Appliquer directement sans vérifier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer le state",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour un module instancié en boucle, on référence ses outputs par clé (ex. module.stack[\"prod\"].url).",
+      "justification": "Vrai : avec for_each sur un module, chaque instance est adressée par sa clé, comme pour une ressource for_each.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

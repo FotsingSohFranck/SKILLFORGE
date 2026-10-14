@@ -1,0 +1,41 @@
+{
+  "ref": "scoped-values-declarer-un-scoped-value",
+  "node": "scoped-values",
+  "lesson": "declarer-un-scoped-value",
+  "title": "Quiz : déclarer un Scoped Value",
+  "description": "Création de la clé et distinction clé / valeur.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment déclare-t-on correctement la clé d'un Scoped Value portant une String ?",
+      "justification": "On déclare la clé une fois, en static final, avec ScopedValue.newInstance() et le type entre chevrons.",
+      "position": 0,
+      "options": [
+        { "label": "static final ScopedValue<String> CLE = ScopedValue.newInstance();", "correct": true, "position": 0 },
+        { "label": "static final ScopedValue<String> CLE = new ScopedValue(\"\");", "correct": false, "position": 1 },
+        { "label": "ScopedValue<String> CLE = ScopedValue.set(\"valeur\");", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Juste après ScopedValue.newInstance(), avant toute liaison, que renvoie CLE.isBound() ?",
+      "justification": "La clé existe mais ne porte encore aucune valeur : isBound() renvoie false tant qu'aucune liaison n'a été faite.",
+      "position": 1,
+      "options": [
+        { "label": "false, car aucune valeur n'est encore liée", "correct": true, "position": 0 },
+        { "label": "true, car la clé porte une valeur par défaut", "correct": false, "position": 1 },
+        { "label": "Cela lève une exception immédiatement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La clé d'un Scoped Value est unique et vit longtemps, mais la valeur qu'elle porte est temporaire.",
+      "justification": "Vrai : la clé (static final) vit pendant tout le programme, tandis que la valeur n'est liée que le temps d'un bloc.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "scaling-db-check",
+  "node": "scaling-databases",
+  "lesson": "cap-et-choix",
+  "title": "Scaler les bases de données",
+  "description": "Réplication, sharding, CAP.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "La réplication en lecture met à l'échelle principalement…",
+      "justification": "Elle répartit les lectures sur des réplicas ; les écritures restent sur le primaire.",
+      "position": 0,
+      "options": [
+        { "label": "Les lectures", "correct": true, "position": 0 },
+        { "label": "Les écritures", "correct": false, "position": 1 },
+        { "label": "Le chiffrement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un bon critère pour une clé de sharding ?",
+      "justification": "Elle doit répartir la charge uniformément (haute cardinalité) pour éviter les hotspots.",
+      "position": 1,
+      "options": [
+        { "label": "Répartir la charge uniformément entre shards", "correct": true, "position": 0 },
+        { "label": "Concentrer le trafic sur un shard", "correct": false, "position": 1 },
+        { "label": "Être toujours la clé primaire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Selon CAP, en cas de partition réseau, on choisit entre…",
+      "justification": "Pendant une partition (P inévitable), on arbitre entre cohérence (C) et disponibilité (A).",
+      "position": 2,
+      "options": [
+        { "label": "Cohérence et disponibilité", "correct": true, "position": 0 },
+        { "label": "Vitesse et sécurité", "correct": false, "position": 1 },
+        { "label": "Lecture et écriture", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le sharding devrait être la première solution de mise à l'échelle envisagée.",
+      "justification": "Non : on optimise, cache et réplique d'abord. Le sharding est complexe (jointures/transactions cassées) et vient en dernier recours.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

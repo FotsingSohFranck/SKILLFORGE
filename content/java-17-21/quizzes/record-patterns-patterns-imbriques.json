@@ -1,0 +1,41 @@
+{
+  "ref": "record-patterns-patterns-imbriques",
+  "node": "record-patterns",
+  "lesson": "patterns-imbriques",
+  "title": "Quiz : patterns imbriqués",
+  "description": "Déconstruire un record à l'intérieur d'un autre record.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pour record Ligne(Point debut, Point fin), quel motif déconstruit la ligne ET ses deux points d'un coup ?",
+      "justification": "Un pattern imbriqué place un record pattern dans l'autre : Ligne(Point(var x1, var y1), Point(var x2, var y2)).",
+      "position": 0,
+      "options": [
+        { "label": "case Ligne(Point(var x1, var y1), Point(var x2, var y2)) -> ...", "correct": true, "position": 0 },
+        { "label": "case Ligne(var debut, var fin).x1.y1 -> ...", "correct": false, "position": 1 },
+        { "label": "case Ligne -> debut.x1() ...", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu as besoin des coordonnées du point de début, mais tu veux garder le point de fin entier. Quel motif choisis tu ?",
+      "justification": "On mélange les niveaux : on déconstruit le début avec Point(var x1, var y1), et on garde la fin entière dans var fin.",
+      "position": 1,
+      "options": [
+        { "label": "case Ligne(Point(var x1, var y1), var fin) -> ...", "correct": true, "position": 0 },
+        { "label": "case Ligne(var debut, Point(var x2, var y2)) -> ...", "correct": false, "position": 1 },
+        { "label": "case Ligne -> ... puis appeler fin.x2()", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On est obligé de déconstruire tous les composants jusqu'au niveau le plus profond.",
+      "justification": "Faux : on peut garder un composant entier avec un simple nom et n'ouvrir que les niveaux qui nous intéressent.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "node": "mvc",
+  "lesson": "separer-les-preoccupations",
+  "title": "Ranger chaque responsabilité au bon endroit (M, V ou C)",
+  "statement": "Pour chacune de ces responsabilités d'une application web, indique si elle appartient au **Modèle (M)**, à la **Vue (V)** ou au **Contrôleur (C)** de MVC, et justifie en une phrase.\n\n1. Calculer le prix total d'une commande avec ses remises.\n2. Lire les paramètres d'une requête HTTP entrante et appeler le bon traitement.\n3. Afficher la liste des produits dans un tableau HTML.\n4. Vérifier qu'un email n'est pas déjà utilisé (règle métier).\n5. Décider quelle page renvoyer après une inscription réussie.",
+  "skeleton": "1. \n2. \n3. \n4. \n5. \n",
+  "solution": "1. Modèle  -  c'est une règle métier (calcul de tarification) : elle vit dans le domaine, testable sans web ni base. 2. Contrôleur  -  lire la requête entrante et aiguiller vers le bon traitement est exactement le rôle de l'adaptateur d'entrée ; il coordonne, sans décider de règle. 3. Vue  -  afficher/dessiner des données à l'écran est de la pure présentation. 4. Modèle  -  l'unicité d'un email est une règle métier (validation métier), à placer dans le domaine, pas dans le contrôleur ni la vue. 5. Contrôleur  -  décider quelle vue renvoyer en réponse à une action fait partie de la coordination du contrôleur (il choisit la vue, il ne la dessine pas). À retenir : le Modèle décide des règles, la Vue affiche, le Contrôleur coordonne et reste mince. Toute règle (les points 1 et 4) qui migrerait dans le contrôleur en ferait un fat controller.",
+  "keyPoints": [
+    "Modèle",
+    "Contrôleur",
+    "Vue",
+    "règle métier",
+    "mince"
+  ],
+  "language": "text"
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "indexes-performance-index-check",
+  "node": "indexes-performance",
+  "lesson": "les-index",
+  "title": "Quiz : les index",
+  "description": "À quoi sert un index, le parcours séquentiel, le coût en écriture, quoi indexer.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert principalement un index sur une colonne ?",
+      "justification": "L'index (un B-tree) pointe directement vers les lignes cherchées, évitant de parcourir toute la table (comme l'index d'un livre).",
+      "position": 0,
+      "options": [
+        { "label": "Retrouver rapidement des lignes sans lire toute la table", "correct": true, "position": 0 },
+        { "label": "Chiffrer la colonne pour la sécuriser", "correct": false, "position": 1 },
+        { "label": "Faire une copie de sauvegarde de la table", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur une table de 10 millions de lignes sans index adapté, comment la base trouve-t-elle une valeur filtrée ?",
+      "justification": "Faute d'index, elle fait un parcours séquentiel (seq scan) : elle lit les lignes une par une, ce qui est très lent sur de gros volumes.",
+      "position": 1,
+      "options": [
+        { "label": "Elle lit les lignes une par une (parcours séquentiel)", "correct": true, "position": 0 },
+        { "label": "Elle devine la position grâce au nom de la colonne", "correct": false, "position": 1 },
+        { "label": "Elle refuse d'exécuter la requête", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter un index ralentit les écritures (INSERT, UPDATE, DELETE) et occupe de l'espace.",
+      "justification": "Vrai : à chaque écriture, la base doit aussi mettre à jour l'index, et celui-ci prend de la place. C'est pourquoi on n'indexe pas tout.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelles colonnes vaut-il le plus la peine d'indexer ?",
+      "justification": "On indexe ce que les requêtes réelles sollicitent : clés étrangères, colonnes de WHERE, JOIN et ORDER BY fréquentes. Un index jamais utilisé est un pur coût.",
+      "position": 3,
+      "options": [
+        { "label": "Les clés étrangères et les colonnes souvent filtrées, jointes ou triées", "correct": true, "position": 0 },
+        { "label": "Toutes les colonnes, systématiquement, au cas où", "correct": false, "position": 1 },
+        { "label": "Uniquement les colonnes de type texte", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "hcl-basics-langage-check",
+  "node": "hcl-basics",
+  "lesson": "quest-ce-que-hcl",
+  "title": "Qu'est-ce que HCL",
+  "description": "Langage déclaratif, structure d'un bloc, interpolation, références.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que veut dire « HCL est un langage déclaratif » ?",
+      "justification": "En déclaratif, tu décris le RÉSULTAT voulu (l'état final de l'infra) ; Terraform calcule tout seul les étapes pour l'atteindre. En impératif, tu dicterais chaque étape.",
+      "position": 0,
+      "options": [
+        { "label": "Tu décris le résultat voulu, et Terraform calcule les étapes pour l'atteindre", "correct": true, "position": 0 },
+        { "label": "Tu dictes chaque étape à exécuter, une par une, dans l'ordre", "correct": false, "position": 1 },
+        { "label": "Tu déclares des variables comme dans un langage classique", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la structure de base d'un bloc HCL ?",
+      "justification": "Un bloc s'écrit TYPE \"label\" { ... } et contient des arguments sous forme de paires clé = valeur entre accolades.",
+      "position": 1,
+      "options": [
+        { "label": "Un type et des étiquettes, suivis d'accolades contenant des paires clé = valeur", "correct": true, "position": 0 },
+        { "label": "Une suite de lignes SQL terminées par un point-virgule", "correct": false, "position": 1 },
+        { "label": "Des balises ouvrantes et fermantes comme en HTML", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans une chaîne, l'interpolation `\"serveur-${var.env}\"` insère la valeur de la variable `env` : si `env` vaut `prod`, on obtient `\"serveur-prod\"`.",
+      "justification": "Vrai : la syntaxe ${ ... } insère la valeur d'une expression au milieu d'une chaîne (comme un publipostage). Ici la valeur de var.env remplace le ${...}.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Ta ressource `aws_instance.web` contient `security_group_id = aws_security_group.web.id`. Que provoque cette référence, en plus de fournir une valeur ?",
+      "justification": "Référencer un attribut d'une autre ressource crée une dépendance implicite : Terraform en déduit qu'il doit créer le security group AVANT l'instance (et le détruire après), sans depends_on explicite.",
+      "position": 3,
+      "options": [
+        { "label": "Une dépendance implicite : Terraform crée d'abord le security group, puis l'instance", "correct": true, "position": 0 },
+        { "label": "Une copie du security group à l'intérieur de l'instance", "correct": false, "position": 1 },
+        { "label": "Rien de spécial : c'est juste une valeur, l'ordre de création reste au hasard", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

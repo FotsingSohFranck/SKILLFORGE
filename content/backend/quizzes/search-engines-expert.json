@@ -1,0 +1,119 @@
+{
+  "ref": "search-engines-expert",
+  "node": "search-engines",
+  "lesson": "pertinence-avancee-recherche-semantique",
+  "title": "Moteurs de recherche, niveau expert",
+  "description": "Shards, near-real-time, query vs filter, pagination, vecteurs, hybride, RAG.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi mettre une condition binaire (ex. statut = PUBLIÉ) dans le filter context plutôt que le query context ?",
+      "justification": "Le filter ne calcule pas de score (inutile pour du binaire) et est cachable/réutilisable, plus rapide que le query context.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Pas de calcul de score inutile, et le filtre est cachable",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le filter classe mieux par pertinence",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le query context est déprécié",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment paginer profondément dans Elasticsearch sans le coût prohibitif de `from/size` ?",
+      "justification": "search_after (curseur sur les valeurs de tri) évite de trier/rapatrier tous les résultats précédents, contrairement à from/size.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Avec search_after (curseur de tri)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En augmentant from à l'infini",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En supprimant le tri",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment faire évoluer le mapping/les shards d'un index en production sans coupure ?",
+      "justification": "Reindexer derrière un alias : construire le nouvel index en parallèle, puis basculer l'alias atomiquement (rollback trivial).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Reindexer derrière un alias puis basculer l'alias",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Modifier le mapping en place à chaud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer et recréer l'index en production",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une requête et les documents pertinents ne partagent aucun mot en commun. Quelle approche retrouve quand même les bons résultats ?",
+      "justification": "La recherche vectorielle/sémantique : des embeddings capturent le sens, on cherche les vecteurs proches (kNN) malgré le vocabulaire différent.",
+      "position": 3,
+      "options": [
+        {
+          "label": "La recherche sémantique/vectorielle (embeddings + kNN)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un LIKE '%mot%' en SQL",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Augmenter le boost BM25",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La recherche hybride (BM25 + vecteurs) est le socle de l'étage de récupération d'un système RAG.",
+      "justification": "Vrai : le RAG récupère les passages pertinents (souvent en hybride lexical+sémantique) pour les fournir en contexte à un LLM.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ref": "running-containers-run-check",
+  "node": "running-containers",
+  "lesson": "run-en-profondeur",
+  "title": "Quiz, docker run en profondeur",
+  "description": "Options de docker run (-d, -it, --rm) et politiques de redémarrage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait l'option `-d` de `docker run` ?",
+      "justification": "-d (detached) lance le conteneur en arrière-plan : il tourne sans bloquer ton terminal, qui reste libre pour d'autres commandes.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Elle lance le conteneur en arrière-plan (détaché)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Elle supprime le conteneur à l'arrêt",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Elle active le mode debug de l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert `--rm` dans `docker run -it --rm alpine sh` ?",
+      "justification": "--rm supprime automatiquement le conteneur dès qu'il s'arrête : parfait pour un test jetable qui ne laisse rien traîner.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Supprimer automatiquement le conteneur quand il s'arrête",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Redémarrer le conteneur en cas de crash",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Retirer l'image du disque après usage",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Un service en conteneur doit redémarrer automatiquement s'il plante ET après un redémarrage du serveur, mais ne PAS se relancer si un opérateur l'a arrêté volontairement pour maintenance. Quelle restart policy choisir ?",
+      "justification": "unless-stopped redémarre après un crash et après un reboot de l'hôte (comme always), mais respecte un `docker stop` manuel, contrairement à always.",
+      "position": 2,
+      "options": [
+        {
+          "label": "`--restart unless-stopped`",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "`--restart always` (relancerait aussi après un stop manuel)",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "`--restart no` (ne redémarrerait jamais)",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une longue commande `docker run` avec beaucoup d'options peut être remplacée, une fois pour toutes, par une description dans un fichier Docker Compose.",
+      "justification": "Vrai : Compose déplace toutes ces options (ports, variables, volumes, réseau...) dans un fichier compose.yaml reproductible, au lieu de les retaper à chaque fois.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

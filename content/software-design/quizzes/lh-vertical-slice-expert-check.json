@@ -1,0 +1,96 @@
+{
+  "ref": "lh-vertical-slice-expert-check",
+  "node": "layered-hexagonal",
+  "lesson": "vertical-slice-pragmatisme",
+  "title": "Quiz, Vertical Slice & dosage (expert)",
+  "description": "Découpage par feature, minimiser le couplage entre features, doser l'indirection.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quel axe la Vertical Slice Architecture découpe-t-elle ?",
+      "justification": "Par fonctionnalité (feature) : chaque tranche verticale contient tout, de l'endpoint à la persistance. On minimise le couplage entre features plutôt qu'entre couches techniques.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Par fonctionnalité (tranche verticale), de l'endpoint à la persistance",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par couche technique horizontale",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par type de fichier",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour un CRUD trivial (recopier id + name), pourquoi un port + adapter + domain model + 3 mappings est-il discutable ?",
+      "justification": "C'est du cérémonial : le port n'aura qu'une implémentation, le domain model ne protège aucun invariant, les mappings recopient les mêmes champs, on paie l'indirection là où elle ne rapporte rien (YAGNI).",
+      "position": 1,
+      "options": [
+        {
+          "label": "C'est du cérémonial coûteux qui protège d'un changement qui n'arrivera pas",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que le CRUD est interdit en hexagonal",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce qu'il faut toujours plus de couches",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un même codebase peut mélanger hexagonal complet (cœur riche) et tranches minces / accès direct (CRUD simple).",
+      "justification": "Vrai : on dose la cérémonie selon la richesse et la volatilité du domaine, hexagonal là où le métier est riche et volatil, léger là où ce n'est que du CRUD.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "CRUD de catégories croulant sous 3 mappings ET module de tarification complexe écrit en un gros service tapant la base. Quel dosage ?",
+      "justification": "Inverser l'effort : alléger le CRUD (tranche mince/accès direct) et introduire l'hexagonal sur la tarification (cœur riche et volatil, à isoler et tester).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Alléger le CRUD (tranche mince) et isoler la tarification en hexagonal",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Mettre encore plus de couches sur les catégories",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprimer toute structure partout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

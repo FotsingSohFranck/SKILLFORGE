@@ -1,0 +1,30 @@
+{
+  "node": "common-attacks",
+  "lessons": [
+    {
+      "slug": "connaitre-lennemi",
+      "title": "Connaître l'ennemi",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "XSS : du script dans la page",
+          "body": "Le **Cross-Site Scripting** injecte du JavaScript malveillant dans une page, exécuté dans le navigateur d'une victime (vol de session, actions à son insu). Parade : **échapper** systématiquement les données affichées, et poser une **Content-Security-Policy** qui restreint les scripts autorisés."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "CSRF et SSRF",
+          "body": "Le **CSRF** pousse le navigateur d'une victime authentifiée à envoyer une requête non voulue ; on s'en protège par des jetons anti-CSRF ou des cookies `SameSite`, et une API stateless à jeton y est peu sensible. Le **SSRF** trompe le serveur pour qu'il appelle une URL interne : validez et restreignez les adresses que votre serveur peut joindre."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Limiter le débit",
+          "body": "Sans **rate limiting**, une API subit le *credential stuffing* (essais massifs de mots de passe) et le déni de service. On plafonne le nombre de requêtes par client/IP et par fenêtre de temps, avec un `429 Too Many Requests` au-delà. C'est une protection simple au fort effet."
+        }
+      ]
+    }
+  ]
+}

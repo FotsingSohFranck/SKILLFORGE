@@ -1,0 +1,134 @@
+{
+  "node": "third-party-images",
+  "lessons": [
+    {
+      "slug": "des-services-sans-installation",
+      "title": "Des services sans rien installer",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Image, conteneur, hôte : les mots de base",
+          "body": "Avant de parler d'« images tierces », posons trois mots que tu vas croiser sans arrêt.\n\n**Docker** est un outil qui fait tourner des logiciels dans des boîtes isolées. Chaque boîte s'appelle un **conteneur** (en anglais *container*) : c'est un logiciel qui s'exécute avec **tout ce dont il a besoin** (son code, ses librairies, sa configuration) rangé dans une bulle séparée du reste de ta machine. L'ordinateur qui fait tourner Docker s'appelle l'**hôte** (en anglais *host*) : ici, c'est simplement **ta propre machine**.\n\nD'où vient un conteneur ? D'une **image** : un **modèle figé**, en lecture seule, qui contient un logiciel déjà prêt à démarrer. 👉 **Analogie** : l'image est le **moule à gâteau**, le conteneur est le **gâteau** qu'on en sort. À partir du même moule (la même image), tu peux cuire autant de gâteaux (lancer autant de conteneurs) que tu veux, sans abîmer le moule.\n\nUne **image tierce** est juste une image que **tu n'as pas fabriquée toi-même** : elle est publiée par quelqu'un d'autre (l'éditeur du logiciel, la communauté) et tu la réutilises telle quelle. Par exemple l'image `postgres` est fournie par l'équipe PostgreSQL : tu la récupères et tu t'en sers, sans avoir écrit une seule ligne."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Le super-pouvoir : un service en une commande",
+          "body": "Avant Docker, installer un service comme PostgreSQL, Redis ou RabbitMQ sur son poste était pénible : télécharger, gérer les dépendances, tomber sur un conflit de versions, et une désinstallation qui laisse des traces partout.\n\nPetit rappel de vocabulaire au passage : une **base de données** (comme **PostgreSQL**) est un logiciel qui **stocke et organise des données** de façon durable ; un **cache** (comme **Redis**) garde des données en mémoire pour **répondre très vite** ; une **file de messages** (comme **RabbitMQ**) fait **transiter des messages** entre programmes. Ce sont des **services** : des logiciels qui tournent en fond et rendent un service aux autres programmes.\n\nAvec Docker, on **lance un tel service en une seule commande**, sans rien installer sur l'hôte : `docker run postgres`. Cette commande **récupère l'image** si besoin puis **démarre un conteneur** à partir d'elle.\n\n👉 **Analogie** : au lieu de faire venir un plombier qui perce tes murs pour installer une machine (installation classique, salissante), tu **branches un appareil sur une prise** et tu le débranches quand tu as fini. Besoin de tester avec PostgreSQL 16 puis PostgreSQL 18 ? Deux conteneurs, zéro conflit. Fini ? Tu supprimes le conteneur, et **ta machine reste propre**, comme si rien ne s'était passé. C'est l'usage le plus immédiat de Docker : un **catalogue de logiciels prêts à l'emploi**."
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Lancer une base de données",
+          "codeLanguage": "bash",
+          "body": "# PostgreSQL prêt en une commande.\ndocker run -d --name pg \\\n  -e POSTGRES_PASSWORD=secret \\\n  -e POSTGRES_DB=mabase \\\n  -p 5432:5432 \\\n  postgres:18\n#  -d      = \"detached\" : tourne en arriere-plan (te rend la main).\n#  --name  = donne un nom au conteneur (plus simple que son identifiant).\n#  -e      = definit une variable d'environnement (voir section suivante).\n#  -p      = \"publie\" un port : port_hote:port_conteneur (voir plus bas).\n#  postgres:18 = l'image et sa version (le \"tag\" 18).\n\n# Redis, tout aussi simple.\ndocker run -d --name cache -p 6379:6379 redis:7\n\n# Un utilitaire jetable, sans rien installer (ici curl).\n# --rm supprime le conteneur des qu'il a fini : rien ne traine.\ndocker run --rm curlimages/curl https://example.com"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Configurer par variables d'environnement",
+          "body": "Comment dire à l'image quel mot de passe utiliser, quel nom de base créer ? Par des **variables d'environnement**.\n\nUne **variable d'environnement** est une **valeur nommée** que le système transmet à un programme au moment où il démarre, sous la forme `NOM=valeur`. 👉 **Analogie** : c'est comme les **réglages sur un étiquette collée** au colis avant de l'expédier : le programme lit ces réglages en s'ouvrant et s'adapte, sans qu'on modifie son contenu. Avec Docker, on les passe avec l'option `-e` (par exemple `-e POSTGRES_PASSWORD=secret`).\n\nLes **images officielles** suivent une convention : elles se configurent par des variables **documentées** sur leur page de catalogue. Par exemple PostgreSQL lit `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_USER` ; MySQL lit `MYSQL_ROOT_PASSWORD` ; etc.\n\nCe catalogue, c'est **Docker Hub** : le **registre** public où sont hébergées et partagées les images (un **registre** est une bibliothèque d'images, comme un magasin d'applications). La page d'une image y décrit ses **variables d'environnement**, ses **ports** (une **porte numérotée** par laquelle un service reçoit les connexions, par exemple `5432` pour PostgreSQL) et ses **volumes** (un **dossier persistant** rangé hors du conteneur pour que les données survivent à sa suppression).\n\nCette façon de configurer par l'environnement porte un nom : c'est le principe **12-factor** (une liste de bonnes pratiques pour les applications modernes ; l'une d'elles dit « range la configuration dans l'environnement, pas dans le code »). Le premier réflexe avant de lancer un service tiers est donc simple : **lire sa page Docker Hub**, section « Environment Variables »."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Du registre au conteneur : le trajet d'une image",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    Hub[(\"Docker Hub (le registre public)\")] -->|\"docker pull / run\"| IMG[\"Image tierce postgres:18 (modèle figé, lecture seule)\"]\n    IMG -->|\"docker run\"| C1[\"Conteneur pg (instance qui tourne)\"]\n    IMG -->|\"docker run (2e fois)\"| C2[\"Conteneur pg2 (autre instance)\"]\n    C1 -->|\"-p 5432:5432\"| HOTE[\"Ton hôte : localhost\"]\n    C2 -->|\"-p 5433:5432\"| HOTE"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Tu dois tester ton application successivement contre PostgreSQL 16 puis PostgreSQL 18, sans polluer ta machine ni gérer des conflits d'installation. Comment Docker rend-il cela trivial ?",
+          "solution": "On lance chaque version dans son propre conteneur à partir de l'image officielle, en choisissant le tag de version et un port hôte distinct : `docker run -d -p 5416:5432 -e POSTGRES_PASSWORD=x postgres:16` puis `docker run -d -p 5418:5432 -e POSTGRES_PASSWORD=x postgres:18`. Les deux versions tournent en parallèle, isolées, sans rien installer sur l'hôte ni conflit de dépendances. On teste l'application contre l'une puis l'autre (via le bon port), et quand on a fini, `docker rm -f` supprime les conteneurs, la machine reste propre. C'est l'avantage majeur des images tierces : des services jetables, versionnés et isolés."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz, Des services sans rien installer",
+          "quizRef": "third-party-images-services-check"
+        }
+      ]
+    },
+    {
+      "slug": "choisir-une-image-de-confiance",
+      "title": "Choisir une image de confiance",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Toutes les images ne se valent pas",
+          "body": "Rappel : **Docker Hub** est le **registre** public, c'est-à-dire la bibliothèque où n'importe qui peut **publier** une image pour la partager. C'est pratique, mais ça a une conséquence importante : **n'importe qui** peut y déposer **n'importe quoi**.\n\nOr lancer une image, c'est **exécuter du code sur ta machine**. Une image inconnue peut donc contenir du **code arbitraire** (du code que tu n'as ni écrit ni lu, qui fait ce que son auteur veut) : par exemple du **minage de cryptomonnaie** (utiliser ton processeur pour fabriquer de la monnaie numérique au profit de l'attaquant) ou une **backdoor** (une « porte dérobée », un accès caché qui laisse l'auteur entrer chez toi plus tard). 👉 **Analogie** : télécharger une image au hasard, c'est comme **laisser entrer chez toi un inconnu** parce qu'il porte un uniforme crédible : l'habit ne prouve rien.\n\nOn privilégie donc les images dignes de confiance :\n- les **Docker Official Images** : un **badge officiel** de Docker Hub qui signale des images maintenues par Docker et les éditeurs (par exemple `postgres`, `node`, `nginx`) ;\n- les **Verified Publisher** : des images d'**éditeurs vérifiés** par Docker (l'entreprise a prouvé son identité) ;\n- ou tout simplement les images de **ta propre organisation**.\n\nEt on se méfie d'une image au **faible nombre de téléchargements**, sans code source public, ou dont le nom **ressemble** à une officielle. Ce dernier piège porte un nom : le **typosquatting** (de *typo*, faute de frappe) : publier `postgress` (avec deux « s ») en espérant que tu te trompes en tapant `postgres`. Le faux nom te sert alors une image piégée."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "Épingler la version, jamais latest en prod",
+          "body": "Une image se désigne par `nom:tag`. Le **tag** est une **étiquette de version** collée à l'image : `postgres:18`, `node:22-alpine`. Si tu écris juste `postgres` sans tag, Docker en choisit un par défaut : **`latest`** (« le dernier »).\n\nLe piège, c'est que `latest` est un tag **mouvant** : il ne désigne pas une version fixe, il pointe vers **la dernière version publiée du moment**. 👉 **Analogie** : `latest` est comme l'adresse « **la boulangerie du coin** ». Aujourd'hui elle vend telle baguette ; dans six mois le commerce a changé de mains et la baguette n'est plus la même, alors que l'adresse, elle, n'a pas bougé. En **production** (l'environnement réel qui sert les vrais utilisateurs), c'est dangereux : deux déploiements à des dates différentes peuvent récupérer des images **différentes**, et un truc qui marchait se met à casser sans qu'on ait rien changé de visible.\n\nLa parade est d'**épingler** (fixer) une version précise : `postgres:18.1`. Pour une garantie **absolue**, on peut même épingler le **digest** : `postgres@sha256:abc123...`. Un **digest** est une **empreinte** calculée à partir du contenu exact de l'image (par une fonction nommée **SHA-256**) ; comme une **empreinte digitale**, elle est **immuable** : si un seul octet de l'image change, l'empreinte change aussi. Épingler le digest garantit donc que c'est **exactement le même contenu**, bit pour bit.\n\n**Reproductibilité** (obtenir le même résultat à chaque fois, partout) **= versions épinglées**. Retiens la règle : jamais `latest` pour quelque chose que tu veux reproductible."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Inspecter avant d'exécuter (niveau expert)",
+          "body": "Avant d'adopter une image tierce, un réflexe de pro : l'**inspecter**, comme on lirait la composition d'un produit avant de l'acheter.\n\nPremière chose à chercher : les **vulnérabilités**. Une **vulnérabilité** est une **faille de sécurité connue** dans un logiciel, qu'un attaquant peut exploiter. Chacune reçoit un identifiant public appelé **CVE** (*Common Vulnerabilities and Exposures*, une sorte de **numéro de dossier** mondial des failles connues, par exemple `CVE-2024-1234`). Des outils comme **`docker scout`** (fourni avec Docker) ou **Trivy** (un scanner open source) analysent les **couches** de l'image et te listent ses CVE. Une **couche** (*layer*) est une **strate** empilée dans l'image : chaque instruction de construction ajoute une couche, un peu comme les couches d'un mille-feuille.\n\nAutres commandes utiles :\n- `docker history <image>` révèle **comment l'image a été construite**, c'est-à-dire les instructions du **Dockerfile** (la **recette** texte qui décrit, étape par étape, comment fabriquer l'image) ;\n- `docker inspect <image>` montre sa **configuration** : sous quel **utilisateur** elle tourne, ses ports, et son **entrypoint** (le programme lancé **automatiquement** au démarrage du conteneur, son « point d'entrée »).\n\nCe qu'on vérifie concrètement : que l'image tourne en **non-root** (pas en super-utilisateur « root », le compte tout-puissant ; tourner en root, c'est donner les pleins pouvoirs au code au cas où il serait malveillant), qu'elle est **récente** (une image non mise à jour accumule des CVE au fil des mois) et **minimale** (le moins de logiciels superflus, donc moins de failles possibles).\n\n👉 **L'idée clé** : une image tierce fait partie de ta **chaîne d'approvisionnement** (en anglais *supply chain*, l'ensemble des ingrédients et fournisseurs dont dépend ton produit final). Sa sécurité devient **la tienne** : un ingrédient contaminé contamine tout le plat."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Un développeur utilise `image: node:latest` dans son projet. Six mois plus tard, un nouveau collègue clone le projet et obtient une image Node différente, avec des comportements subtils qui changent. Quelle est la cause et la correction ?",
+          "solution": "La cause est l'usage du tag mouvant `latest` : il pointe vers la dernière version de Node au moment du pull. Entre les deux moments, Node a publié de nouvelles versions (ex. une nouvelle version majeure), donc les deux développeurs ne récupèrent pas la même image, d'où des différences de comportement (dépendances, API, défauts). Correction : épingler une version précise, par exemple `node:22.11-alpine` (voire un digest `node@sha256:...` pour une immuabilité totale). Ainsi tout le monde, et la CI, utilisent exactement la même image, garantissant la reproductibilité. La règle : jamais `latest` pour quelque chose qu'on veut reproductible."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Utiliser des images tierces",
+          "quizRef": "third-party-images-check"
+        }
+      ]
+    },
+    {
+      "slug": "exploiter-images-officielles",
+      "title": "Exploiter les images officielles à fond",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les scripts d'initialisation",
+          "body": "Les images officielles de bases de données offrent un **point d'extension** précieux : un **répertoire d'initialisation**. Un **point d'extension** est un endroit prévu par les auteurs de l'image pour que **tu ajoutes ton comportement** sans réécrire l'image.\n\nConcrètement, PostgreSQL exécute **automatiquement** les fichiers `.sql`, `.sql.gz` et `.sh` que tu déposes dans le dossier **`/docker-entrypoint-initdb.d/`** au **premier** démarrage (le **SQL** est le langage pour parler aux bases de données ; un fichier **`.sh`** est un script shell, une suite de commandes). MySQL et MariaDB font pareil. Tu peux ainsi y monter un script de **création de schéma** (la structure des tables), de **rôles** (les comptes d'accès), ou un **jeu de données de test**. Parfait pour un environnement de dev ou des tests reproductibles, **sans construire d'image personnalisée**.\n\nCe déclenchement au démarrage est géré par l'**entrypoint** de l'image (rappel : le programme lancé automatiquement quand le conteneur démarre). 👉 **Analogie** : c'est le **kit de démarrage** d'un meuble : les vis et la notice ne servent qu'**au montage initial** ; une fois le meuble monté, on ne rejoue pas la notice à chaque fois qu'on ouvre le tiroir.\n\nAttention justement : ces scripts ne s'exécutent qu'à l'**initialisation** (quand le stockage de la base est vide), **pas** à chaque démarrage. C'est voulu : on parle d'**idempotence** de l'initialisation (une action **idempotente** donne le même résultat qu'on la fasse une ou plusieurs fois : ici, initialiser une base déjà initialisée ne doit rien réécraser)."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Initialiser une base au premier démarrage",
+          "codeLanguage": "yaml",
+          "body": "services:\n  db:\n    image: postgres:18\n    environment:\n      POSTGRES_PASSWORD: secret\n    volumes:\n      # Un volume nomme : le dossier de donnees PERSISTE (survit a la suppression).\n      - pgdata:/var/lib/postgresql/data\n      # Scripts joues UNE fois, a l'initialisation (quand pgdata est vide).\n      # \":ro\" = read-only (lecture seule) : le conteneur ne peut pas les modifier.\n      - ./init/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro\n      - ./init/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro\nvolumes:\n  pgdata:"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Comprendre les variantes de tags",
+          "body": "Une image officielle publie de **nombreux tags** pour la **même** version, et les choisir sciemment est une vraie compétence. Pour bien comprendre, il faut savoir qu'une image est bâtie **sur** un système d'exploitation de base (souvent une distribution **Linux**). **Debian** est une distribution Linux réputée pour sa stabilité ; **Alpine** en est une autre, minuscule, pensée pour être la plus légère possible.\n\nPour `node:22`, on trouve par exemple :\n- `22` : base **Debian complète**, confortable (plein d'outils présents), mais **grosse** ;\n- `22-slim` : la même Debian mais **allégée** (on a retiré le superflu) ;\n- `22-alpine` : basée sur **Alpine**, donc **minuscule** ;\n- `22-bookworm` : Debian nommée **explicitement** (`bookworm` est le nom d'une version de Debian).\n\n**Règle pratique** : la **base complète** en développement (tous les outils sont là, le débogage est facile) ; une variante **slim ou alpine** pour l'image de **production**, car elle est **petite** et présente une **surface d'attaque** plus faible (la **surface d'attaque** est l'ensemble des points par lesquels un attaquant pourrait entrer : moins il y a de logiciels installés, plus elle est petite).\n\nMais attention avec Alpine. La plupart des Linux utilisent une brique système appelée **glibc** (l'implémentation standard de la **libc**, la bibliothèque C de base dont dépendent quasiment tous les programmes). Alpine, lui, utilise **musl libc**, une implémentation **différente**. 👉 **Analogie** : glibc et musl, c'est comme **deux prises électriques** de forme différente : la plupart des appareils marchent, mais certains, prévus pour l'autre prise, refusent de se brancher. Résultat : une **dépendance native** (du code compilé pour un système précis, par exemple un pilote de base de données) prévue pour glibc peut **casser** sur Alpine. On valide donc toujours la compatibilité avant d'adopter Alpine en production. Le suffixe de distribution (`bookworm`) a un autre mérite : il **épingle** aussi la base, pour la reproductibilité."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Tu veux qu'un conteneur PostgreSQL de développement démarre déjà avec un schéma et des données de test, sans construire d'image personnalisée ni exécuter de commandes manuelles après le démarrage. Comment faire, et quelle est la limite à connaître ?",
+          "solution": "On monte les scripts SQL (ou shell) dans le répertoire /docker-entrypoint-initdb.d/ de l'image officielle postgres, par exemple via des volumes en lecture seule : `./init/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro` et un `02-seed.sql` pour les données. Au premier démarrage, l'entrypoint de l'image exécute automatiquement ces fichiers dans l'ordre alphabétique, la base est donc prête avec son schéma et ses données sans image sur-mesure ni intervention manuelle. Limite cruciale à connaître : ces scripts ne s'exécutent QU'À L'INITIALISATION, c'est-à-dire uniquement quand le répertoire de données (le volume) est VIDE. Si le volume contient déjà une base (redémarrage, volume persistant existant), les scripts sont ignorés. Pour rejouer l'initialisation, il faut repartir d'un volume vide (supprimer le volume). C'est un comportement voulu (on ne réinitialise pas une base existante), mais il surprend souvent : « pourquoi mon nouveau script de seed n'est pas appliqué ? » car le volume existait déjà."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Exploiter les images officielles (expert)",
+          "quizRef": "third-party-images-expert"
+        }
+      ]
+    }
+  ]
+}

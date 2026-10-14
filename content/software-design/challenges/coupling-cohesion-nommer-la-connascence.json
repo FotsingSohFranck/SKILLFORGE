@@ -1,0 +1,10 @@
+{
+  "node": "coupling-cohesion",
+  "lesson": "connascence-et-couplage-mesure",
+  "title": "Nommer et affaiblir une connascence",
+  "statement": "On te montre cet appel : `transfer(\"alice\", \"bob\", 100.0, true)`, dont la signature est `transfer(String from, String to, double amount, boolean instant)`. Réponds en français : (1) Quelle forme de connascence rend cet appel fragile, et est-elle statique ou dynamique ? (2) Vers quelle forme plus faible peux-tu la ramener, et par quels moyens concrets ?",
+  "skeleton": "Réponds en deux points : (1) forme de connascence + statique ou dynamique ; (2) forme cible plus faible + moyens concrets.",
+  "solution": "(1) C'est une connascence de POSITION : l'appelant et la méthode doivent s'accorder sur l'ORDRE exact des arguments. Les deux premiers sont des String interchangeables (rien n'empêche d'inverser 'alice' et 'bob'), et le booléen 'true' ne dit pas ce qu'il signifie à la lecture. C'est une connascence STATIQUE : elle est visible dans le code source, donc fragile mais repérable à la lecture. (2) On la ramène vers une connascence de NOM, plus faible, où l'on s'accorde sur des noms plutôt que sur des positions. Moyens concrets : un objet-paramètre / un builder (TransferRequest.builder().from(...).to(...).amount(...).instant(true).build()), et/ou des value objects TYPÉS (un type AccountId pour from et to, un type Money pour le montant) qui rendent les arguments non interchangeables (connascence de type) et remplacent le booléen nu par un nom explicite. Résultat : l'ordre cesse d'être un couplage fragile, et un mauvais appel devient beaucoup plus difficile à écrire.",
+  "keyPoints": ["position", "statique", "nom", "type"],
+  "language": "text"
+}

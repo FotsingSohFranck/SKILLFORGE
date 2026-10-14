@@ -1,0 +1,10 @@
+{
+  "node": "scheduling",
+  "lesson": "affinites-priorites-evictions",
+  "title": "Répartir les répliques sur les zones",
+  "statement": "Une app `web` (3 répliques, pods portant le label `app: web`) voit ses 3 copies atterrir dans la même zone : une panne de zone la coupe entièrement. Complète la section `spec` du template de pod avec une **topologySpreadConstraint** qui étale les répliques à travers les **zones** (`topologyKey: topology.kubernetes.io/zone`), avec un écart maximal (`maxSkew`) de **1**, et qui **refuse de planifier** un pod si la répartition ne peut être respectée (`whenUnsatisfiable: DoNotSchedule`). Le `labelSelector` doit cibler `app: web`.",
+  "skeleton": "# à placer dans spec.template.spec du Deployment\ntopologySpreadConstraints:\n  - maxSkew: # ?\n    topologyKey: # quel domaine de panne ?\n    whenUnsatisfiable: # dur ou souple ?\n    labelSelector:\n      matchLabels:\n        # quel pod ?\n",
+  "solution": "topologySpreadConstraints:\n  - maxSkew: 1\n    topologyKey: topology.kubernetes.io/zone\n    whenUnsatisfiable: DoNotSchedule\n    labelSelector:\n      matchLabels:\n        app: web",
+  "keyPoints": ["topologySpreadConstraints", "maxSkew: 1", "topologyKey: topology.kubernetes.io/zone", "whenUnsatisfiable: DoNotSchedule", "app: web"],
+  "language": "yaml"
+}

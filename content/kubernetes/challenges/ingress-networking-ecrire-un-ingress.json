@@ -1,0 +1,10 @@
+{
+  "node": "ingress-networking",
+  "lesson": "ingress",
+  "title": "Écrire une règle d'Ingress",
+  "statement": "Écris un manifeste Kubernetes (YAML) pour un **Ingress** nommé `site`, pris en charge par le contrôleur `nginx` (champ `ingressClassName`). Pour le domaine (`host`) `exemple.com`, route :\n- le chemin `/api` vers le Service `backend` sur le **port 8080** ;\n- le chemin `/` vers le Service `frontend` sur le **port 80**.\n\nUtilise `pathType: Prefix` pour chaque chemin.",
+  "skeleton": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: site\nspec:\n  ingressClassName: # quel contrôleur applique les règles ?\n  rules:\n    - host: # le domaine\n      http:\n        paths:\n          # chemin /api -> service backend:8080\n          # chemin /   -> service frontend:80\n",
+  "solution": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: site\nspec:\n  ingressClassName: nginx\n  rules:\n    - host: exemple.com\n      http:\n        paths:\n          - path: /api\n            pathType: Prefix\n            backend:\n              service:\n                name: backend\n                port:\n                  number: 8080\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80",
+  "keyPoints": ["kind: Ingress", "ingressClassName: nginx", "host: exemple.com", "/api", "pathType: Prefix", "name: backend", "number: 8080", "name: frontend", "number: 80"],
+  "language": "yaml"
+}

@@ -1,0 +1,10 @@
+{
+  "node": "provisioners",
+  "lesson": "terraform-data-et-null-resource",
+  "title": "Moderniser une null_resource en terraform_data",
+  "statement": "On te donne une ancienne `null_resource` (provider `null`) qui sert de support à un provisioner `local-exec`, rejoué quand la version applicative change grâce à `triggers`. Réécris-la avec la ressource native `terraform_data`. Utilise `triggers_replace` pour rejouer le provisioner quand `var.app_version` change, et garde un provisioner `local-exec` qui affiche un message de déploiement contenant la version.",
+  "skeleton": "# Ancien code à moderniser :\n# resource \"null_resource\" \"deploy\" {\n#   triggers = { version = var.app_version }\n#   provisioner \"local-exec\" {\n#     command = \"echo 'deploiement de ${var.app_version}'\"\n#   }\n# }\n\n# Ta version avec terraform_data :\nresource \"terraform_data\" \"deploy\" {\n  # ...\n}\n",
+  "solution": "resource \"terraform_data\" \"deploy\" {\n  triggers_replace = [var.app_version]\n\n  provisioner \"local-exec\" {\n    command = \"echo 'deploiement de ${var.app_version}'\"\n  }\n}",
+  "keyPoints": ["terraform_data", "triggers_replace", "var.app_version", "provisioner \"local-exec\"", "command"],
+  "language": "hcl"
+}

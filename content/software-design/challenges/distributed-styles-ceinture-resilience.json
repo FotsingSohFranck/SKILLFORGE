@@ -1,0 +1,18 @@
+{
+  "node": "distributed-styles",
+  "lesson": "patterns-de-resilience",
+  "title": "Assembler la ceinture de sécurité d'un appel distant",
+  "statement": "Le service de « profil » de ton site appelle en synchrone un service externe d'« avatars » (les photos de profil) hébergé ailleurs. Ce service d'avatars devient parfois très lent. Résultat observé : quand il ralentit, la page de profil se fige, puis, de proche en proche, tout le site devient injoignable. Explique la panne en cascade, puis compose une combinaison de patterns de résilience pour la contenir. Pour CHAQUE pattern proposé, nomme-le et dis en une phrase ce qu'il apporte ici. L'avatar n'est pas essentiel : on peut afficher un avatar par défaut.",
+  "skeleton": "Diagnostic de la panne en cascade : ...\n\nPatterns proposes :\n- Timeout : ...\n- Circuit breaker : ...\n- Fallback / degradation gracieuse : ...\n- Bulkhead : ...\n- (Retry : si pertinent, avec quelles precautions ?)",
+  "solution": "Diagnostic (panne en cascade) : l'appel au service d'avatars est synchrone et sans protection. Quand ce service ralentit, chaque requête de la page de profil reste bloquée à l'attendre (pas de timeout), immobilisant un thread (un « guichet ») du serveur. Sous trafic, tous les guichets finissent occupés à attendre les avatars ; la page de profil ne peut plus répondre, puis, comme les threads sont partagés, les autres parties du site n'en ont plus de disponibles et tombent à leur tour. Une défaillance d'un service NON essentiel (l'avatar) contamine tout le site.\n\nCombinaison de patterns :\n- Timeout : borner l'appel au service d'avatars (par ex. 200 ms). Passé ce délai, on abandonne et on libère le thread, ce qui empêche à lui seul l'épuisement par attente infinie.\n- Circuit breaker (disjoncteur) : surveiller le taux d'échec/lenteur des appels aux avatars ; au-delà d'un seuil, ouvrir le circuit pour cesser d'appeler le service en détresse et échouer immédiatement pendant un temps. Cela stoppe la cascade (on n'empile plus des appels voués à timeouter) et laisse le service respirer, avant un test prudent en half-open.\n- Fallback + dégradation gracieuse : quand l'appel échoue (timeout ou circuit ouvert), renvoyer une réponse de repli, ici l'avatar par défaut, au lieu de propager l'erreur. La page de profil s'affiche entièrement, seule la photo est générique. On perd un accessoire, pas la page.\n- Bulkhead (cloison étanche) : isoler les appels aux avatars dans leur propre pool de threads/connexions, séparé de celui qui sert le reste de la page. Ainsi, même saturé par un service lent, ce pool ne peut pas assécher les threads du reste du site : la défaillance est cloisonnée.\n- Retry (optionnel) : éventuellement un réessai en cas d'échec transitoire, MAIS avec backoff exponentiel et jitter, et seulement parce que charger un avatar est idempotent. On ne réessaie pas quand le circuit est ouvert, pour ne pas aggraver la surcharge.\n\nRésultat : quand les avatars ralentissent, l'appel timeoute vite, le circuit s'ouvre pour protéger tout le monde, la page s'affiche en mode dégradé (avatar par défaut) et le bulkhead empêche la contagion. La panne d'un service non essentiel reste locale et invisible pour l'essentiel du parcours. Idéalement, on chargerait même l'avatar de façon asynchrone côté client pour découpler davantage.",
+  "keyPoints": [
+    "cascade",
+    "timeout",
+    "circuit breaker",
+    "fallback",
+    "avatar par défaut",
+    "bulkhead",
+    "idempotent"
+  ],
+  "language": "text"
+}

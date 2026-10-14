@@ -1,0 +1,134 @@
+{
+  "node": "docker-and-oci",
+  "lessons": [
+    {
+      "slug": "docker-nest-pas-seul",
+      "title": "Docker n'est pas seul",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Docker : un mot pour plusieurs choses",
+          "body": "Quand on dit **Docker**, on croit parler d'une seule chose. En réalité, ce mot recouvre **plusieurs objets différents**, et les confondre est la première source de confusion du débutant. Distinguons-les.\n\n- L'**entreprise** : Docker Inc., la société qui a lancé l'outil en 2013.\n- La **CLI** (de l'anglais *Command Line Interface*, l'**interface en ligne de commande**) : c'est le programme `docker` que tu tapes dans ton terminal, par exemple `docker run`. La CLI ne fait pas le travail elle-même : elle **transmet tes ordres** à un autre programme.\n- Le **daemon** (prononce « démon » : c'est le mot anglais pour un **programme qui tourne en fond**, en permanence, sans fenêtre). Ici c'est `dockerd`. C'est **lui** qui fait le vrai travail : télécharger des images, démarrer des conteneurs, gérer le réseau.\n- Un **écosystème** entier d'outils tout autour.\n\n👉 **Analogie** : la CLI `docker`, c'est le **serveur au restaurant** qui prend ta commande ; le daemon `dockerd`, c'est la **cuisine** qui la prépare vraiment. Tu parles au serveur, mais c'est la cuisine qui cuisine.\n\nAu début (2013), Docker était **monolithique** : un seul gros bloc de logiciel qui faisait tout (le mot *monolithique* vient de *monolithe*, un bloc de pierre d'un seul tenant). Avec le temps, ce bloc a été **décomposé** en composants plus petits et **standardisés**, que d'autres outils peuvent réutiliser. Comprendre cette décomposition explique trois choses qui étonnent les débutants : pourquoi on entend que « Kubernetes n'a plus besoin de Docker », pourquoi des alternatives comme Podman existent, et ce qu'est **réellement** une image."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 1,
+          "title": "L'OCI : des standards ouverts",
+          "body": "Pour éviter que les conteneurs dépendent d'un seul fournisseur, un organisme a été créé en 2015 : l'**Open Container Initiative**, presque toujours abrégé en **OCI**. Son rôle est de **standardiser** les conteneurs.\n\nUn **standard** (ou *norme*), c'est un ensemble de règles écrites que tout le monde accepte de suivre, pour que des outils différents soient **compatibles** entre eux. 👉 **Analogie** : le format d'une prise électrique est un standard. Peu importe la marque de ton chargeur, il rentre dans n'importe quelle prise du pays parce que tous respectent la même norme. Sans standard, chaque marque aurait sa propre prise et rien ne serait interchangeable.\n\nL'OCI publie trois **spécifications** (une *spécification*, ou *spec*, est le document précis qui décrit une règle) :\n- l'**image-spec** : le format d'une **image**. Retiens pour l'instant qu'une image est le *modèle figé* à partir duquel on démarre un conteneur. Cette spec décrit ses **couches** (les strates empilées qui composent l'image), son **manifeste** (la *fiche d'identité* de l'image : la liste de ses couches et où les trouver) et sa **configuration**.\n- le **runtime-spec** : comment **exécuter** un conteneur à partir d'un système de fichiers déjà préparé.\n- la **distribution-spec** : comment un **registre** (en anglais *registry* : le serveur où l'on **range et télécharge** les images, comme Docker Hub) distribue ces images.\n\n👉 **Exemple concret** : grâce à l'OCI, une image que tu construis avec Docker sur ton portable tourne sans rien changer avec Podman chez un collègue, avec containerd sur un serveur, ou dans Kubernetes en production. Toutes ces briques **parlent le même langage** : le standard OCI."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "title": "Construire une fois, exécuter partout (grâce à l'OCI)",
+          "body": "graph TD\n    BUILD[\"Construire l'image\\n(Docker, Buildah...)\"] --> IMG[\"Image OCI\\n(format standard commun)\"]\n    IMG --> REG[\"Registre OCI\\n(Docker Hub, GHCR...)\"]\n    REG --> RUN1[\"Exécuter avec Docker\"]\n    REG --> RUN2[\"Exécuter avec Podman\"]\n    REG --> RUN3[\"Exécuter dans Kubernetes\\n(containerd)\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un collègue s'inquiète : « Si on construit nos images avec Docker, on est enfermés dans l'écosystème Docker pour toujours. » Est-ce exact ?",
+          "solution": "Non. Les images Docker respectent la spécification OCI image-spec (format standard ouvert). Une image construite avec Docker peut donc être exécutée par n'importe quel runtime compatible OCI (containerd, CRI-O, Podman) et poussée dans n'importe quel registre OCI (ghcr, ECR, GCR...). Il n'y a pas de verrouillage : le standard OCI garantit l'interopérabilité. On peut construire avec Docker et déployer dans Kubernetes (qui n'utilise pas Docker mais containerd/CRI-O) sans rien changer à l'image."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Docker n'est pas seul",
+          "quizRef": "docker-and-oci-decomposition-check"
+        }
+      ]
+    },
+    {
+      "slug": "runtimes-et-couches",
+      "title": "Runtimes & couches de l'écosystème",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "runc, containerd, et la CLI",
+          "body": "Exécuter un conteneur n'est pas une action unique : c'est un travail **en couches**, où chaque étage a un rôle précis. Découvrons-les de bas en haut.\n\nD'abord un mot clé : un **runtime** (mot anglais, littéralement « ce qui s'exécute au moment de tourner ») est le programme qui **fait tourner** le conteneur. Il en existe deux sortes.\n\n- **runc** est le **runtime bas niveau** de référence. *Bas niveau* veut dire « au plus près de la machine ». runc parle directement au **noyau** Linux (le *noyau*, ou *kernel*, est le cœur du système d'exploitation, la partie qui commande le matériel). Il utilise deux mécanismes du noyau : les **namespaces** (qui **isolent** ce que le conteneur peut voir : ses processus, son réseau, ses fichiers) et les **cgroups** (*control groups*, qui **limitent** ce qu'il peut consommer : mémoire, CPU). C'est runc qui **crée concrètement** le conteneur.\n\n👉 **Analogie** : les *namespaces* donnent au conteneur des **murs** (il ne voit pas les voisins), et les *cgroups* lui posent un **compteur** (il ne dépasse pas sa part d'électricité et d'eau). runc est l'ouvrier qui monte ces murs et pose ce compteur.\n\n- **containerd** est le **runtime haut niveau** : un **daemon** (un programme qui tourne en fond en permanence) qui gère le **cycle de vie complet** du conteneur : télécharger les images, préparer le réseau et le stockage, puis **déléguer** la création finale à runc.\n\nEnfin, la **CLI docker** (la commande que tu tapes) ne parle à aucun des deux directement : elle s'adresse au **daemon dockerd**, qui s'appuie lui-même sur containerd, qui s'appuie sur runc.\n\n👉 **Exemple concret** : quand tu tapes `docker run nginx`, l'ordre descend l'escalier : `docker` (CLI) puis `dockerd` puis `containerd` (prépare l'image et le réseau) puis `runc` (monte les murs et démarre le processus) puis le **noyau Linux**. Chaque étage a **une** responsabilité claire, et c'est justement cette découpe qui a permis à tout l'écosystème de se développer."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "diagramFormat": "MERMAID",
+          "title": "La pile d'exécution",
+          "body": "graph TD\n    CLI[\"CLI docker / kubectl\"] --> HIGH[\"Runtime haut niveau\\n(containerd / CRI-O)\"]\n    HIGH --> LOW[\"Runtime bas niveau\\n(runc)\"]\n    LOW --> KERNEL[\"Noyau Linux\\n(namespaces, cgroups)\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "« Kubernetes a abandonné Docker » : ce que ça veut dire",
+          "body": "Fin 2020, un titre a semé la panique : « **Kubernetes abandonne Docker** ». Beaucoup ont cru que leurs images allaient cesser de fonctionner. En réalité, il n'en était rien. Décodons.\n\nRappel : **Kubernetes** (souvent abrégé **K8s**) est l'outil qui **orchestre** des conteneurs à grande échelle sur des dizaines de machines : il démarre, arrête, réplique et surveille des conteneurs automatiquement. Pour exécuter un conteneur, Kubernetes a besoin de parler à un runtime.\n\nKubernetes définit pour cela une interface standard, la **CRI** (de l'anglais *Container Runtime Interface*, l'**interface de runtime de conteneur**) : une prise normalisée à laquelle **n'importe quel** runtime compatible peut se brancher. Le problème : le daemon Docker ne parlait **pas** nativement cette langue. Kubernetes maintenait donc une pièce d'adaptation spéciale appelée le **dockershim** (un *shim* est une petite **cale d'adaptation** entre deux pièces qui ne s'emboîtent pas directement).\n\nCe que Kubernetes a retiré, c'est **uniquement** ce dockershim. Désormais il parle **directement** à un runtime compatible CRI comme **containerd** ou **CRI-O**.\n\n👉 **Analogie** : tu avais besoin d'un **adaptateur de prise** pour brancher un vieil appareil ; on a remplacé l'appareil par un modèle qui a déjà la bonne prise, et on a jeté l'adaptateur. L'électricité (tes images) n'a pas changé.\n\n👉 **Ce que ça change pour toi** : **rien**, ou presque. Tes images sont au format **OCI** ; containerd les exécute parfaitement. On continue de **construire** des images « Docker » comme avant ; simplement, en production Kubernetes, ce n'est plus le daemon Docker qui les **exécute**. Toute la confusion venait d'un raccourci faux : croire que « Docker » = « les conteneurs », alors que Docker n'est **qu'un** outil parmi d'autres autour du standard OCI."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Alternatives & rootless (niveau expert)",
+          "body": "Puisque tout repose sur le standard OCI, Docker n'est plus le seul acteur. Voici les alternatives que tu croiseras, sans t'inquiéter de tout retenir.\n\n- **Podman** : un outil **daemonless** (sans daemon : *pas* de service central qui tourne en fond en permanence, contrairement à `dockerd`) et **rootless** par défaut. *Rootless* signifie « sans les droits **root** » ; *root* est le **super-administrateur** d'un système Linux, celui qui a tous les pouvoirs. Faire tourner des conteneurs **sans** ces pouvoirs limite les dégâts si l'un d'eux est piraté. Bonus : la CLI de Podman est **compatible** avec celle de Docker (souvent, tu remplaces `docker` par `podman` et tout marche pareil).\n- **Buildah** : construit des images **sans daemon**.\n- **nerdctl** : une CLI « comme Docker » qui parle **directement** à containerd.\n- **skopeo** : déplace et inspecte des images **entre registres** sans jamais les exécuter.\n\nPour une **sécurité renforcée**, certains runtimes implémentent le runtime-spec autrement, afin de dresser une **frontière plus solide** que le noyau partagé habituel. Par défaut, tous les conteneurs d'une machine se partagent en effet le **même** noyau, donc une évasion peut être grave :\n- **gVisor** : un **noyau applicatif** qui se place entre le conteneur et le vrai noyau et **intercepte** ses **appels système** (les *appels système*, ou *syscalls*, sont les demandes qu'un programme adresse au noyau : lire un fichier, ouvrir le réseau...). En filtrant ces demandes, gVisor réduit la surface d'attaque.\n- **Kata Containers** : enferme chaque conteneur dans une **micro-VM** (une *machine virtuelle* légère, avec **son propre** noyau bien séparé).\n\n👉 **Analogie** : le noyau partagé, c'est un **immeuble** où tous les appartements partagent les mêmes murs porteurs ; gVisor ajoute un **agent de sécurité** qui contrôle chaque passage, et Kata construit carrément des **maisons séparées**. Plus d'isolation, utile quand tu héberges du code **non fiable** venant de plusieurs clients (on parle de **multi-tenant** : plusieurs « locataires » sur la même infrastructure).\n\nLe point à retenir : **tous** ces outils restent **interopérables** grâce à l'OCI. Tu changes de runtime sans changer tes images."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Votre équipe veut la sécurité d'une isolation plus forte que le noyau partagé pour exécuter du code utilisateur non fiable, tout en gardant des images OCI standard. Quelle catégorie de solution regarder, et pourquoi est-ce compatible avec vos images existantes ?",
+          "solution": "Il faut regarder les runtimes à isolation renforcée comme gVisor (un noyau applicatif en espace utilisateur qui intercepte et filtre les appels système du conteneur) ou Kata Containers (qui exécute chaque conteneur dans une micro-VM légère avec son propre noyau). Ils offrent une frontière de sécurité plus forte que le noyau partagé classique, ce qui limite l'impact d'une évasion, pertinent pour du code non fiable / multi-tenant hostile. C'est compatible avec les images existantes car ces runtimes implémentent la runtime-spec OCI : ils exécutent les mêmes images OCI standard, on ne change que le runtime, pas le format d'image ni le processus de build."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Docker & l'OCI",
+          "quizRef": "docker-oci-check"
+        }
+      ]
+    },
+    {
+      "slug": "multi-arch-et-containerd",
+      "title": "Multi-arch & architecture containerd",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une image, plusieurs architectures",
+          "body": "Longtemps, presque tous les ordinateurs partageaient la même **architecture** de processeur : le **x86** (aussi appelé **amd64**). L'*architecture*, c'est le **jeu d'instructions** que comprend le processeur, sa « langue » interne. Un programme compilé pour une architecture est une suite d'instructions (un **binaire**) que **seul** ce type de processeur sait exécuter.\n\nOr le monde a changé : les Mac **Apple Silicon**, les serveurs **ARM** dans le cloud (comme AWS Graviton) et le Raspberry Pi utilisent l'architecture **arm64**, différente du x86. Une même image doit donc pouvoir tourner sur **plusieurs architectures**.\n\n👉 **Analogie** : une notice de meuble existe en français **et** en anglais. Le meuble est le même, mais chaque personne a besoin de la notice **dans sa langue**. Un binaire arm64 est « écrit dans une langue » qu'un processeur x86 ne comprend pas, et inversement.\n\nL'OCI résout ça avec un objet appelé **manifest list** (aussi nommé **image index**). Attention, il **ne contient aucune couche** d'image : c'est seulement un **aiguillage** qui **pointe** vers plusieurs manifestes, un par couple (système, architecture), par exemple `linux/amd64` et `linux/arm64`.\n\n👉 **Exemple concret** : quand tu tapes `docker pull node:22`, le daemon lit ce manifest list, **repère** l'architecture de **ta** machine (on parle de ta **plateforme**), et **télécharge automatiquement** la bonne variante. Toi, tu n'as tapé qu'un seul tag (`node:22`) ; en coulisses, plusieurs architectures sont servies de façon **transparente**. Un seul nom, la bonne image pour chacun."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Inspecter et choisir une architecture",
+          "codeLanguage": "bash",
+          "body": "# Voir les architectures disponibles derrière un tag (le manifest list)\ndocker manifest inspect node:22 | grep architecture\n#   \"architecture\": \"amd64\"\n#   \"architecture\": \"arm64\"\n\n# Forcer une plateforme précise (utile sur Apple Silicon pour tester amd64)\ndocker run --platform linux/amd64 node:22 node -v\n\n# Construire pour plusieurs architectures (voir le nœud Construire des images)\ndocker buildx build --platform linux/amd64,linux/arm64 -t org/app:1.0 --push ."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'architecture de containerd",
+          "body": "Sous le daemon, **containerd** est lui-même découpé en composants nets. Voyons les principaux sans jargon inutile.\n\n- Les **snapshotters** gèrent les **systèmes de fichiers en couches** d'une image. Une image est empilée en **couches** superposées ; le snapshotter par défaut, **overlayfs**, sait **empiler** ces couches et présenter au conteneur un système de fichiers unique. Certaines variantes (comme **stargz**) permettent le **lazy pulling**, littéralement le « téléchargement paresseux » : **démarrer** le conteneur **avant** d'avoir tout téléchargé, en récupérant les morceaux au fur et à mesure.\n\n👉 **Analogie** : le *lazy pulling*, c'est commencer à regarder un film en **streaming** sans attendre qu'il soit entièrement téléchargé.\n\n- Pour **chaque** conteneur, containerd lance un **shim** (`containerd-shim-runc-v2`). On a vu qu'un *shim* est une petite cale ; ici, ce petit processus **reste** entre containerd et **runc**. Son intérêt : il **maintient le conteneur en vie même si containerd redémarre**, et il **récupère le code de sortie** du conteneur (le *code de sortie*, ou *exit code*, est le nombre qu'un programme renvoie en se terminant : `0` = tout va bien, une autre valeur = erreur).\n\n👉 **Analogie** : le shim est une **nounou** qui reste avec l'enfant (le conteneur) même si le parent (containerd) s'absente un moment, et qui note à quelle heure et dans quel état il s'est endormi.\n\n- Enfin, containerd expose une **API** au format **CRI** que Kubernetes **consomme directement** (une *API*, *Application Programming Interface*, est la **prise standardisée** par laquelle deux logiciels se parlent).\n\nCette découpe en cascade (containerd puis shim puis runc puis noyau) est exactement ce qui rend l'écosystème **modulaire** et **robuste** : chaque pièce peut redémarrer, être remplacée ou améliorée sans casser les autres."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "BuildKit : le moteur de build moderne (niveau expert)",
+          "body": "La **construction** d'une image (le *build* : l'étape où l'on **fabrique** l'image à partir d'un `Dockerfile`) est devenue, elle aussi, un composant indépendant : **BuildKit**, aujourd'hui le **moteur de build** par défaut de Docker. Un *moteur de build* est simplement le programme qui **exécute** les étapes de fabrication. BuildKit apporte quatre progrès concrets.\n\n- Un **graphe de dépendances** qui **parallélise** les étapes indépendantes. *Paralléliser*, c'est faire **plusieurs choses en même temps** au lieu d'une par une. 👉 **Analogie** : au lieu de cuire les plats l'un après l'autre, tu allumes plusieurs feux à la fois pour ce qui n'a pas besoin d'attendre.\n- Un **cache** bien plus fin et **exportable**. Le *cache* garde les résultats déjà calculés pour **ne pas refaire** deux fois le même travail ; l'exporter (vers un registre) sert à le **partager**, par exemple avec la **CI** (*Continuous Integration*, l'**intégration continue** : les serveurs qui construisent et testent ton code automatiquement à chaque changement).\n- Des **mounts** au moment du build (un *mount* **branche** temporairement un espace de stockage dans l'étape de build) : `--mount=type=cache` accélère la récupération des dépendances, et `--mount=type=secret` fournit un **secret** (mot de passe, clé) **sans** qu'il reste gravé dans une **couche** de l'image. C'est important : tout ce qu'on écrit normalement dans une image se fige dans ses couches et **reste visible** ; un secret ne doit **jamais** y traîner.\n- Le **multi-arch** via `buildx` : construire pour plusieurs architectures d'un coup, comme vu plus haut.\n\nBuildKit est **indépendant** du daemon Docker : on peut l'utiliser seul, dans Kubernetes, etc.\n\n👉 **La vision d'ensemble d'un expert** : **construire** (BuildKit), **exécuter** (containerd/runc) et **distribuer** (registres OCI) sont **trois briques séparées et standardisées**. C'est cette séparation, plutôt qu'un gros bloc « Docker » unique, qui définit l'écosystème conteneur moderne."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Un développeur sur un Mac Apple Silicon (arm64) construit une image sans préciser de plateforme, la pousse, puis le déploiement sur des serveurs x86 (amd64) échoue avec « exec format error ». Que s'est-il passé et comment construire correctement pour les deux architectures ?",
+          "solution": "Le développeur a construit l'image pour l'architecture de SA machine (arm64, Apple Silicon) uniquement. Poussée telle quelle, cette image ne contient que des binaires arm64 ; sur des serveurs x86 (amd64), le noyau ne peut pas exécuter ces binaires → « exec format error ». Le manifest ne propose pas de variante amd64. Solution : construire une image MULTI-ARCH avec buildx : `docker buildx build --platform linux/amd64,linux/arm64 -t org/app:1.0 --push .`. BuildKit construit alors une variante par architecture et publie un manifest list qui les regroupe sous le même tag ; au pull, chaque hôte récupère automatiquement la bonne variante (amd64 pour les serveurs, arm64 pour le Mac). C'est indispensable dès qu'on développe et déploie sur des architectures différentes. (Alternative de dépannage ponctuel : `--platform linux/amd64` pour forcer une construction amd64, mais le multi-arch est la vraie réponse.)"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Multi-arch & containerd (expert)",
+          "quizRef": "multi-arch-containerd-expert"
+        }
+      ]
+    }
+  ]
+}

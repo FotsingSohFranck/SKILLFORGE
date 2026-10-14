@@ -1,0 +1,119 @@
+{
+  "ref": "autoscaling-check",
+  "node": "autoscaling",
+  "lesson": "cluster-autoscaler",
+  "title": "Autoscaling",
+  "description": "HPA (répliques), VPA (right-sizing), Cluster Autoscaler (nœuds), limites.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le Horizontal Pod Autoscaler (HPA) ?",
+      "justification": "Il ajuste le NOMBRE de répliques d'un Deployment selon une métrique (CPU/mémoire ou custom), scaling horizontal.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Ajuster le nombre de répliques selon une métrique",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter des nœuds au cluster",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer les pods",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le Vertical Pod Autoscaler (VPA) ?",
+      "justification": "Il ajuste les requests/limits (la taille) des conteneurs selon leur consommation, right-sizing, souvent en recommandation.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Ajuster les requests/limits (taille) des conteneurs",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajuster le nombre de répliques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Créer des Services",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Des pods restent Pending faute de place. Quel composant provisionne de nouveaux nœuds ?",
+      "justification": "Le Cluster Autoscaler (ou Karpenter) détecte les pods non planifiables et ajoute des nœuds ; il retire les nœuds sous-utilisés.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le Cluster Autoscaler",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'HPA",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le kubelet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est un prérequis essentiel d'un HPA basé sur le CPU ?",
+      "justification": "Des requests CPU bien réglées : l'HPA raisonne en pourcentage de la request ; sans elles, le scaling est erratique.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Des requests CPU correctement définies",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le tag latest sur l'image",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un StatefulSet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'autoscaling est réactif : provisionner un nœud prend des minutes, donc pour un pic brutal on garde une marge de capacité.",
+      "justification": "Vrai : le Cluster Autoscaler est en retard (démarrage machine, jointure, pull) ; on sur-provisionne ou on pré-scale les pics prévisibles.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

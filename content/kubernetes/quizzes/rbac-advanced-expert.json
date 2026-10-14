@@ -1,0 +1,119 @@
+{
+  "ref": "rbac-advanced-expert",
+  "node": "rbac",
+  "lesson": "rbac-avance-workload-identity",
+  "title": "RBAC avancé & workload identity, expert",
+  "description": "kubectl auth can-i, rôles par défaut/agrégés, workload identity (IRSA/WI).",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment vérifier/auditer ce qu'un ServiceAccount a le droit de faire ?",
+      "justification": "kubectl auth can-i (avec --as pour tester au nom d'un autre sujet) : l'outil d'audit RBAC pour traquer les droits excessifs.",
+      "position": 0,
+      "options": [
+        {
+          "label": "kubectl auth can-i (éventuellement --as=...)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "kubectl logs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "kubectl top",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le ClusterRole par défaut `view` ?",
+      "justification": "Lecture seule des ressources d'un namespace, sans accès aux secrets ; edit modifie, admin gère aussi le RBAC local, cluster-admin = tout.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Lecture seule (sans les secrets)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Tout supprimer dans le cluster",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Gérer le RBAC de tout le cluster",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment une CRD peut-elle étendre le rôle view/edit avec les permissions sur son nouveau type, sans modifier les rôles de base ?",
+      "justification": "Via les ClusterRoles agrégés (aggregationRule) : un ClusterRole labellisé est automatiquement agrégé aux rôles view/edit/admin.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Via les ClusterRoles agrégés (aggregationRule)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "En donnant cluster-admin à tous",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est impossible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un pod accède-t-il à un service cloud (S3) sans clé d'accès statique ?",
+      "justification": "Via la workload identity (IRSA/GKE WI/AKS Managed Identity) : le SA K8s est lié à un rôle IAM, le pod obtient des credentials temporaires.",
+      "position": 3,
+      "options": [
+        {
+          "label": "La workload identity (SA lié à un rôle IAM, credentials temporaires)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une clé d'accès statique dans un Secret",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En codant la clé dans l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La workload identity fournit des credentials cloud temporaires et éphémères, éliminant les clés statiques à stocker et à faire tourner.",
+      "justification": "Vrai : l'identité de la charge est fédérée avec l'IAM cloud ; les accès sont temporaires, scopés et audités, « pas de secret en dur ».",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

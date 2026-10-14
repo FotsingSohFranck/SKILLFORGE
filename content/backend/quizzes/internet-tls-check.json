@@ -1,0 +1,96 @@
+{
+  "ref": "internet-tls-check",
+  "node": "internet",
+  "lesson": "tls-et-https-en-profondeur",
+  "title": "Quiz, TLS & HTTPS",
+  "description": "Garanties de TLS, handshake, certificats et chaîne de confiance.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelles sont les trois garanties apportées par TLS ?",
+      "justification": "TLS apporte confidentialité (chiffrement), intégrité (pas de modification non détectée) et authenticité du serveur (prouvée par un certificat).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Confidentialité, intégrité et authenticité du serveur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Vitesse, compression et cache",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Sauvegarde, réplication et pare-feu",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le certificat présenté par le serveur ?",
+      "justification": "Le certificat, signé par une autorité de certification, prouve l'identité du serveur ; le navigateur remonte la chaîne jusqu'à une CA racine de confiance.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Prouver que le serveur est bien celui qu'il prétend être",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Accélérer le chargement des pages",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Stocker le mot de passe de l'utilisateur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Par défaut, TLS authentifie aussi le client (l'utilisateur), pas seulement le serveur.",
+      "justification": "Faux : par défaut TLS n'authentifie que le serveur. Authentifier aussi le client est le rôle du mTLS (TLS mutuel).",
+      "position": 2,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Des visiteurs voient une erreur d'autorité de certificat alors qu'il est valide chez toi. Cause fréquente ?",
+      "justification": "Une chaîne incomplète (le serveur ne sert pas les certificats intermédiaires) empêche certains clients de remonter à la racine. On corrige en installant la chaîne complète (fullchain).",
+      "position": 3,
+      "options": [
+        {
+          "label": "La chaîne est incomplète : les certificats intermédiaires ne sont pas servis",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le port 443 est fermé",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le DNS pointe vers la bonne IP",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

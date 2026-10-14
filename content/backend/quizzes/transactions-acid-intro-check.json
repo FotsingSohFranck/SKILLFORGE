@@ -1,0 +1,52 @@
+{
+  "ref": "transactions-acid-intro-check",
+  "node": "transactions-acid",
+  "lesson": "quest-ce-quune-transaction",
+  "title": "Qu'est-ce qu'une transaction",
+  "description": "Tout ou rien, COMMIT/ROLLBACK, les quatre propriétés ACID.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une transaction garantit avant tout ?",
+      "justification": "C'est le principe « tout ou rien » : soit toutes les opérations réussissent ensemble, soit aucune ne laisse de trace.",
+      "position": 0,
+      "options": [
+        { "label": "Toutes les opérations réussissent ensemble, ou aucune n'a d'effet", "correct": true, "position": 0 },
+        { "label": "Les requêtes s'exécutent plus vite", "correct": false, "position": 1 },
+        { "label": "Les données sont compressées sur le disque", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait la commande ROLLBACK ?",
+      "justification": "ROLLBACK annule toutes les opérations de la transaction et remet la base dans l'état d'avant, comme si rien n'avait été fait.",
+      "position": 1,
+      "options": [
+        { "label": "Elle annule tout et revient à l'état d'avant la transaction", "correct": true, "position": 0 },
+        { "label": "Elle enregistre définitivement les changements", "correct": false, "position": 1 },
+        { "label": "Elle accélère la prochaine requête", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifient les lettres de l'acronyme ACID ?",
+      "justification": "ACID = Atomicité, Cohérence, Isolation, Durabilité : les quatre propriétés d'une transaction fiable.",
+      "position": 2,
+      "options": [
+        { "label": "Atomicité, Cohérence, Isolation, Durabilité", "correct": true, "position": 0 },
+        { "label": "Accès, Cache, Index, Données", "correct": false, "position": 1 },
+        { "label": "Authentification, Chiffrement, Intégrité, Disponibilité", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après un COMMIT confirmé, une coupure de courant juste après peut faire perdre les données validées.",
+      "justification": "Faux : c'est la Durabilité. Une fois le COMMIT confirmé, les données sont écrites pour de bon (disque + journal) et survivent à une panne.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

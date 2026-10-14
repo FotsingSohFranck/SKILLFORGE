@@ -1,0 +1,96 @@
+{
+  "ref": "progressive-delivery-expert",
+  "node": "deployment-strategies",
+  "lesson": "progressive-delivery",
+  "title": "Progressive delivery, expert",
+  "description": "Argo Rollouts/Flagger, AnalysisTemplate, traffic mirroring, feature flags.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un outil comme Argo Rollouts automatise-t-il un canary ?",
+      "justification": "Il pilote la montée de trafic et analyse des métriques (AnalysisTemplate) à chaque palier : avance si saines, rollback si dégradées.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il avance/annule selon l'analyse automatique de métriques",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il augmente le trafic au hasard",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il supprime les métriques",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quoi se base la décision d'avancer ou d'annuler un canary automatisé ?",
+      "justification": "Sur des métriques à seuils (taux d'erreur, latence P99, métrique métier) interrogées dans Prometheus à chaque palier.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Des métriques à seuils (erreurs, latence, métier)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'heure de la journée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le nombre de nœuds",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le traffic mirroring (shadowing) ?",
+      "justification": "Envoyer une copie du trafic de prod à la nouvelle version sans que ses réponses atteignent les utilisateurs, tester sur du trafic réel en sécurité.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Envoyer une copie du trafic à la nouvelle version, sans impact utilisateur",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Doubler le nombre de répliques",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Chiffrer le trafic",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les feature flags découplent le déploiement de l'activation : on déploie du code désactivé et on l'active (ou l'éteint) indépendamment du rollout.",
+      "justification": "Vrai : déployer ≠ exposer ≠ activer ; on active pour un pourcentage d'utilisateurs et on éteint instantanément en cas de souci, sans redéployer.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

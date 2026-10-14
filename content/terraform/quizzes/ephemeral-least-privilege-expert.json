@@ -1,0 +1,96 @@
+{
+  "ref": "ephemeral-least-privilege-expert",
+  "node": "security",
+  "lesson": "ephemeral-et-moindre-privilege",
+  "title": "Éphémères & moindre privilège, expert",
+  "description": "Valeurs ephemeral (secrets hors state), IAM moindre privilège pour Terraform.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment manipuler un secret sans qu'il soit persisté dans le state ?",
+      "justification": "Avec les valeurs ephemeral (1.10+) : lire le secret via une ephemeral resource, l'utiliser pendant l'apply, sans l'écrire dans le state ni le plan.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Avec les valeurs ephemeral (jamais persistées)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Avec sensitive = true",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En le codant dans main.tf",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne pas donner AdministratorAccess au rôle IAM de Terraform ?",
+      "justification": "Si le pipeline est compromis, l'attaquant contrôle tout le cloud ; on applique le moindre privilège (permissions strictement nécessaires, par périmètre).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une compromission donnerait le contrôle total du cloud",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "C'est plus lent",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est payant",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Le moindre privilège pour Terraform se combine idéalement avec quoi ?",
+      "justification": "L'authentification OIDC (credentials temporaires) et la séparation plan (lecture) / apply (écriture) pour borner l'impact d'une compromission.",
+      "position": 2,
+      "options": [
+        {
+          "label": "OIDC + séparation plan/apply",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une clé statique partagée",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le tag latest",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le rôle d'exécution de Terraform ne devrait avoir que les permissions strictement nécessaires, idéalement segmentées par périmètre.",
+      "justification": "Vrai : le moindre privilège appliqué à Terraform lui-même borne l'impact d'une compromission du pipeline (un vecteur d'attaque majeur).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

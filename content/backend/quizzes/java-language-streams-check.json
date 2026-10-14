@@ -1,0 +1,52 @@
+{
+  "ref": "java-language-streams-check",
+  "node": "java-language",
+  "lesson": "streams-et-fonctionnel",
+  "title": "Quiz : streams & programmation fonctionnelle",
+  "description": "Lambdas, opérations intermédiaires/terminales, paresse et parallélisme.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une lambda ?",
+      "justification": "Une lambda est une petite fonction anonyme (x -> x * 2) qui implémente une interface fonctionnelle et permet de passer un comportement en paramètre.",
+      "position": 0,
+      "options": [
+        { "label": "Une petite fonction anonyme qu'on passe en paramètre", "correct": true, "position": 0 },
+        { "label": "Une variable globale partagée", "correct": false, "position": 1 },
+        { "label": "Un type de collection", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand un stream déclenche-t-il réellement le calcul ?",
+      "justification": "À l'opération terminale (toList, count, collect, reduce) ; les opérations intermédiaires sont paresseuses.",
+      "position": 1,
+      "options": [
+        { "label": "À l'opération terminale (toList, count, collect…)", "correct": true, "position": 0 },
+        { "label": "Dès le premier filter ou map", "correct": false, "position": 1 },
+        { "label": "À la création du stream", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les opérations intermédiaires sont-elles dites « paresseuses » ?",
+      "justification": "Posées seules elles ne calculent rien ; c'est l'opération terminale qui déclenche tout, ce qui permet des optimisations (court-circuit).",
+      "position": 2,
+      "options": [
+        { "label": "Posées seules elles ne calculent rien ; c'est le terminal qui lance tout", "correct": true, "position": 0 },
+        { "label": "Elles s'exécutent en arrière-plan sur un autre thread", "correct": false, "position": 1 },
+        { "label": "Elles sont plus lentes que les boucles for", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`parallelStream()` accélère toujours, quelle que soit la tâche.",
+      "justification": "Faux : il n'accélère que sur de gros volumes CPU-bound. Sur une petite tâche ou une tâche en attente d'I/O, il peut ralentir et introduire des bugs.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

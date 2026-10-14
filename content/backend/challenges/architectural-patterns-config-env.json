@@ -1,0 +1,10 @@
+{
+  "node": "architectural-patterns",
+  "lesson": "twelve-factor",
+  "title": "Externaliser la config (facteur Config)",
+  "statement": "Cette classe lit l'URL et le mot de passe de la base **en dur** dans le code, ce qui viole le facteur « Config » des Twelve-Factor (et committe un secret). Réécris la méthode `load()` pour lire ces deux valeurs depuis des **variables d'environnement** nommées `DATABASE_URL` et `DATABASE_PASSWORD`, avec `System.getenv(...)`. Ne laisse aucun secret en dur.",
+  "skeleton": "public class DbConfig {\n    public DbConnection load() {\n        String url = \"jdbc:postgresql://prod-db:5432/app\";\n        String password = \"S3cr3t-en-dur\";\n        return new DbConnection(url, password);\n    }\n}",
+  "solution": "public class DbConfig {\n    public DbConnection load() {\n        String url = System.getenv(\"DATABASE_URL\");\n        String password = System.getenv(\"DATABASE_PASSWORD\");\n        return new DbConnection(url, password);\n    }\n}",
+  "keyPoints": ["System.getenv", "DATABASE_URL", "DATABASE_PASSWORD"],
+  "language": "java"
+}

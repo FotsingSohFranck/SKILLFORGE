@@ -1,0 +1,52 @@
+{
+  "ref": "web-security-https-check",
+  "node": "web-security",
+  "lesson": "https-et-transport",
+  "title": "Quiz : HTTPS & transport",
+  "description": "HTTP en clair, TLS, certificat, HSTS, en transit vs au repos.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que protège concrètement TLS (le « S » de HTTPS) ?",
+      "justification": "TLS chiffre et authentifie le canal : il protège les données pendant leur voyage sur le réseau (en transit), contre l'écoute et l'altération.",
+      "position": 0,
+      "options": [
+        { "label": "Les données en transit, contre l'écoute et l'altération sur le réseau", "correct": true, "position": 0 },
+        { "label": "Les données stockées dans la base (au repos)", "correct": false, "position": 1 },
+        { "label": "Un jeton déjà volé sur l'ordinateur de la victime", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un site en HTTPS qui stocke les mots de passe en clair est protégé contre une fuite de sa base de données.",
+      "justification": "Faux : TLS protège le transit, pas les données au repos. Une fuite de base expose ce qui y est stocké. Il faut hacher les mots de passe (BCrypt, Argon2).",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'en-tête HSTS (Strict-Transport-Security) ?",
+      "justification": "HSTS ordonne au navigateur de n'utiliser que HTTPS pour ce site, ce qui interdit toute rétrogradation vers du HTTP non chiffré.",
+      "position": 2,
+      "options": [
+        { "label": "Forcer le navigateur à n'utiliser que HTTPS et interdire la rétrogradation en HTTP", "correct": true, "position": 0 },
+        { "label": "Chiffrer la base de données au repos", "correct": false, "position": 1 },
+        { "label": "Accélérer le chargement des images", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Sur le wifi ouvert d'un aéroport, tu te connectes à un site en HTTP simple (sans le S). Un voisin malveillant écoute le réseau. Que risques-tu ?",
+      "justification": "En HTTP simple, tout circule en clair, comme une carte postale : un attaquant en position d'homme du milieu peut lire ton mot de passe. En HTTPS, il ne verrait qu'un flux chiffré inexploitable.",
+      "position": 3,
+      "options": [
+        { "label": "Il peut lire en clair ton mot de passe et tes données, car rien n'est chiffré", "correct": true, "position": 0 },
+        { "label": "Rien, le wifi public chiffre automatiquement tout le trafic", "correct": false, "position": 1 },
+        { "label": "Rien, le mot de passe est toujours protégé même sans HTTPS", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

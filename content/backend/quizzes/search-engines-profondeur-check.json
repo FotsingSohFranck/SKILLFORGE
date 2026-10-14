@@ -1,0 +1,52 @@
+{
+  "ref": "search-engines-profondeur-check",
+  "node": "search-engines",
+  "lesson": "elasticsearch-en-profondeur",
+  "title": "Elasticsearch en profondeur",
+  "description": "Shards, near-real-time, query vs filter, pagination profonde.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les replicas d'un shard ?",
+      "justification": "Les replicas sont des copies : elles assurent la résilience (reprise si un nœud tombe) et absorbent des lectures supplémentaires.",
+      "position": 0,
+      "options": [
+        { "label": "Assurer la résilience et absorber des lectures supplémentaires", "correct": true, "position": 0 },
+        { "label": "Augmenter le nombre de shards primaires après coup", "correct": false, "position": 1 },
+        { "label": "Chiffrer les données de l'index", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le nombre de shards primaires d'un index peut se changer à chaud, sans réindexer.",
+      "justification": "Faux : le nombre de shards primaires est figé à la création (il détermine le routage `hash(id) % shards`) ; le changer impose un reindex.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un document tout juste indexé n'apparaît-il pas immédiatement dans les résultats ?",
+      "justification": "Elasticsearch est near-real-time : l'écriture va dans un buffer, rendu interrogeable seulement au prochain refresh (~1 s) sous forme de segment.",
+      "position": 2,
+      "options": [
+        { "label": "Il attend le prochain refresh pour devenir un segment interrogeable", "correct": true, "position": 0 },
+        { "label": "Il faut redémarrer le cluster pour le voir", "correct": false, "position": 1 },
+        { "label": "Il n'est jamais recherchable avant un merge complet", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu dois afficher la page 1000 de résultats (`from: 10000, size: 10`) et c'est très lent. Quelle est la bonne approche ?",
+      "justification": "`from/size` force chaque shard à trier les 10010 premiers résultats (coûteux, et plafonné). `search_after` est un curseur sur les valeurs de tri qui reprend après le dernier résultat.",
+      "position": 3,
+      "options": [
+        { "label": "Utiliser `search_after` (un curseur sur les valeurs de tri)", "correct": true, "position": 0 },
+        { "label": "Augmenter `max_result_window` sans limite", "correct": false, "position": 1 },
+        { "label": "Retirer le tri pour aller plus vite", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

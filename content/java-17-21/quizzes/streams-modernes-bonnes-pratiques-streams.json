@@ -1,0 +1,41 @@
+{
+  "ref": "streams-modernes-bonnes-pratiques-streams",
+  "node": "streams-modernes",
+  "lesson": "bonnes-pratiques-streams",
+  "title": "Quiz : bonnes pratiques des streams",
+  "description": "Lisibilité, choix stream ou boucle, effets de bord.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il faut éviter les effets de bord dans les étapes map et filter d'un stream.",
+      "justification": "Vrai : un effet de bord (modifier une variable extérieure) nuit à la lisibilité et devient dangereux en parallèle. map et filter devraient rester purs.",
+      "position": 0,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu dois parcourir une liste, t'arrêter au premier élément négatif et renvoyer son index. Stream ou boucle ?",
+      "justification": "Une boucle est plus adaptée : il faut un index et un arrêt anticipé (break), ce que les streams expriment mal. Choisis l'outil le plus lisible, pas le plus moderne.",
+      "position": 1,
+      "options": [
+        { "label": "Une boucle, car on a besoin de l'index et d'un arrêt anticipé", "correct": true, "position": 0 },
+        { "label": "Un stream avec un effet de bord qui note l'index", "correct": false, "position": 1 },
+        { "label": "Un stream parallèle pour aller plus vite", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la bonne façon de produire une liste filtrée à partir d'un stream ?",
+      "justification": "On laisse le pipeline produire lui même le résultat (filter puis toList), sans remplir une liste extérieure par effet de bord.",
+      "position": 2,
+      "options": [
+        { "label": "stream().filter(...).toList()", "correct": true, "position": 0 },
+        { "label": "map qui ajoute dans une liste externe partagée", "correct": false, "position": 1 },
+        { "label": "forEach qui écrit dans un champ statique", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

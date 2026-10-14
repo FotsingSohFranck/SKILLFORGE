@@ -1,0 +1,10 @@
+{
+  "node": "observability",
+  "lesson": "kube-state-metrics-events-otel",
+  "title": "Écrire une alerte Prometheus sur les répliques manquantes",
+  "statement": "Une équipe veut être alertée quand un Deployment tourne **durablement** avec moins de répliques prêtes que désiré (ex. 2/5). Écris une **règle d'alerte Prometheus** (format `PrometheusRule` / groupe de règles) qui se déclenche quand le nombre de répliques **disponibles** est inférieur au nombre **désiré** pendant **10 minutes**.\n\nUtilise les métriques exposées par **kube-state-metrics** :\n- `kube_deployment_status_replicas_available` (répliques disponibles) ;\n- `kube_deployment_spec_replicas` (répliques désirées).\n\nAjoute un `label` `severity: warning` et une annotation de description.",
+  "skeleton": "groups:\n  - name: deployment-availability\n    rules:\n      - alert: DeploymentRepliquesInsuffisantes\n        # expr: compare disponibles < desirees\n        # for: fenetre de persistance\n        # labels + annotations\n",
+  "solution": "groups:\n  - name: deployment-availability\n    rules:\n      - alert: DeploymentRepliquesInsuffisantes\n        expr: kube_deployment_status_replicas_available < kube_deployment_spec_replicas\n        for: 10m\n        labels:\n          severity: warning\n        annotations:\n          summary: \"Deployment avec repliques manquantes\"\n          description: \"Le Deployment {{ $labels.deployment }} (namespace {{ $labels.namespace }}) a moins de repliques pretes que desire depuis 10 minutes.\"",
+  "keyPoints": ["alert:", "expr:", "kube_deployment_status_replicas_available", "kube_deployment_spec_replicas", "<", "for: 10m", "severity: warning", "annotations"],
+  "language": "yaml"
+}

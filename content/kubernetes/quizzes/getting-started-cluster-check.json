@@ -1,0 +1,96 @@
+{
+  "ref": "getting-started-cluster-check",
+  "node": "getting-started",
+  "lesson": "un-cluster-pour-apprendre",
+  "title": "Quiz, Un cluster pour apprendre",
+  "description": "Cluster et nœuds, clusters locaux vs managés, kubectl, apiserver, contexte.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un « cluster » Kubernetes ?",
+      "justification": "Un cluster est un groupe de machines (les nœuds) piloté par Kubernetes, qui y fait tourner les applications et les maintient en bon état.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un groupe de machines (les nœuds) piloté par Kubernetes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un fichier YAML qui décrit une application",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un seul conteneur Docker isolé",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour apprendre sur ton propre PC, quel outil crée un cluster local rapide à jeter ?",
+      "justification": "kind (Kubernetes-in-Docker), comme minikube ou k3d, crée un cluster local jetable. Le même kubectl et les mêmes manifestes fonctionnent ensuite en managé (EKS/GKE/AKS).",
+      "position": 1,
+      "options": [
+        {
+          "label": "kind (Kubernetes-in-Docker)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "EKS, le service managé d'Amazon",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "kubectl delete",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert kubectl, et à quel composant s'adresse-t-il ?",
+      "justification": "kubectl est l'outil en ligne de commande (ta « télécommande ») ; il envoie tes ordres à l'apiserver, la porte d'entrée centrale du cluster.",
+      "position": 2,
+      "options": [
+        {
+          "label": "C'est l'outil en ligne de commande qui parle à l'apiserver",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "C'est le disque dur qui stocke les images de conteneurs",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est un nœud supplémentaire du cluster",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le « contexte » kubectl détermine à quel cluster tes commandes s'adressent, d'où l'intérêt de le vérifier avant une commande destructive.",
+      "justification": "Vrai : le contexte courant (cluster + utilisateur + namespace) fixe la cible. Vérifier `kubectl config current-context` avant un delete/apply évite d'agir par erreur sur la production.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

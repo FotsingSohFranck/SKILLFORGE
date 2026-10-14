@@ -1,0 +1,10 @@
+{
+  "node": "data-sources",
+  "lesson": "interroger-lexistant",
+  "title": "Résoudre dynamiquement la dernière AMI",
+  "statement": "Au lieu d'un id d'AMI codé en dur, écris une **data source** qui récupère la dernière image Ubuntu 22.04, puis référence-la dans une ressource.\n\n1. Déclare une data source de type `aws_ami` nommée `ubuntu` avec : `most_recent = true`, `owners = [\"099720109477\"]`, et un bloc `filter` sur `name` dont `values` vaut `[\"ubuntu/*-22.04-*\"]`.\n2. Dans une ressource `aws_instance` nommée `web`, mets `instance_type = \"t3.micro\"` et fais pointer `ami` sur l'id lu par ta data source (référence de la forme `data.<type>.<nom>.id`).",
+  "skeleton": "data \"aws_ami\" \"ubuntu\" {\n  most_recent = \n  owners      = \n\n  filter {\n    name   = \n    values = \n  }\n}\n\nresource \"aws_instance\" \"web\" {\n  ami           = \n  instance_type = \n}",
+  "solution": "data \"aws_ami\" \"ubuntu\" {\n  most_recent = true\n  owners      = [\"099720109477\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"ubuntu/*-22.04-*\"]\n  }\n}\n\nresource \"aws_instance\" \"web\" {\n  ami           = data.aws_ami.ubuntu.id\n  instance_type = \"t3.micro\"\n}",
+  "keyPoints": ["data \"aws_ami\" \"ubuntu\"", "most_recent = true", "owners", "099720109477", "filter", "ubuntu/*-22.04-*", "data.aws_ami.ubuntu.id"],
+  "language": "hcl"
+}

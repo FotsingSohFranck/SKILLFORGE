@@ -1,0 +1,96 @@
+{
+  "ref": "graceful-shutdown-expert",
+  "node": "pods",
+  "lesson": "arret-gracieux",
+  "title": "Arrêt gracieux, expert",
+  "description": "Séquence de terminaison, terminationGracePeriod, preStop, course endpoint/SIGTERM.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il si un conteneur ne s'arrête pas avant la fin du terminationGracePeriodSeconds ?",
+      "justification": "Il reçoit SIGKILL (arrêt brutal). Avant cela : retrait des endpoints, preStop, SIGTERM, attente de la grace period.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Il est tué par SIGKILL",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il continue indéfiniment",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est mis en pause",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi des requêtes peuvent-elles échouer au début de la terminaison d'un pod, même si l'app gère SIGTERM ?",
+      "justification": "Le retrait des endpoints se propage (kube-proxy, ingress) pendant que SIGTERM arrive : du trafic est encore routé vers un pod qui s'arrête.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le retrait du routage n'est pas encore propagé partout",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'app ne gère jamais SIGTERM",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le pod manque de mémoire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle parade classique laisse le temps au retrait des routes avant SIGTERM ?",
+      "justification": "Un hook preStop avec un petit sleep : le pod attend que les routes soient retirées partout avant de recevoir SIGTERM.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un hook preStop avec un sleep de quelques secondes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Désactiver la readiness probe",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Mettre replicas à 1",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un déploiement réellement sans coupure combine preStop (attendre le retrait des routes), gestion de SIGTERM par l'app, et une grace period suffisante.",
+      "justification": "Vrai : les trois ensemble évitent de couper les requêtes en cours lors des rollouts, scale-down et drains.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

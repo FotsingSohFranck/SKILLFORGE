@@ -1,0 +1,96 @@
+{
+  "ref": "deployments-replicasets-check",
+  "node": "deployments",
+  "lesson": "replicasets-et-deployments",
+  "title": "Quiz, ReplicaSets & Deployments",
+  "description": "ReplicaSet, répliques, sélecteur de labels, rôle du Deployment, applications sans état.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un des pods gérés par un ReplicaSet plante en pleine nuit. Que se passe-t-il ?",
+      "justification": "Le ReplicaSet est un contrôleur : il maintient N répliques en permanence, donc il recrée automatiquement un pod identique pour retrouver le nombre voulu (auto-réparation).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Le ReplicaSet recrée automatiquement un pod identique pour maintenir N répliques",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Rien : il faut recréer le pod à la main le lendemain",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Tous les autres pods sont supprimés puis recréés",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un ReplicaSet reconnaît-il « ses » pods ?",
+      "justification": "Grâce à un sélecteur de labels : il gère tous les pods qui portent l'étiquette clé/valeur qu'il cible (par ex. app: web), comme des casquettes de reconnaissance.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Grâce à un sélecteur de labels (une étiquette clé/valeur, ex. app: web)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Grâce à l'ordre de création des pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Grâce à l'adresse IP de chaque pod",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi utilise-t-on un Deployment plutôt que de créer un ReplicaSet directement ?",
+      "justification": "Le Deployment ajoute la gestion des versions par-dessus le ReplicaSet : rolling update (bascule progressive) et historique pour le rollback.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Parce qu'il ajoute la gestion des versions : rolling update et rollback",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce qu'il chiffre automatiquement les pods",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce qu'il fournit du stockage persistant aux pods",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un Deployment est l'objet adapté pour faire tourner une application sans état (stateless).",
+      "justification": "Vrai : les répliques sans état sont interchangeables, ce qui convient parfaitement au Deployment. Une app avec état se gère plutôt avec un StatefulSet.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

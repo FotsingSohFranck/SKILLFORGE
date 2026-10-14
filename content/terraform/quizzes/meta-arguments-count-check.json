@@ -1,0 +1,96 @@
+{
+  "ref": "meta-arguments-count-check",
+  "node": "meta-arguments",
+  "lesson": "count-et-for-each",
+  "title": "Quiz, count & for_each",
+  "description": "Meta-argument, index fragile de count, clé stable de for_each.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un meta-argument dans Terraform ?",
+      "justification": "Un meta-argument est un argument spécial, valable sur n'importe quelle ressource, qui modifie son comportement (comme count ou for_each) plutôt que son contenu.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Un argument spécial, valable sur n'importe quelle ressource, qui modifie son comportement",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un attribut propre à une seule ressource AWS",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une commande de la ligne de commande Terraform",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi l'index de `count` est-il fragile ?",
+      "justification": "count identifie les instances par leur position (index). Retirer un élément au milieu décale tous les suivants, et Terraform détruit/recrée les instances décalées.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Retirer un élément au milieu décale les index suivants, ce qui provoque des recréations",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "count ne peut pas dépasser 10 instances",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "count crée les instances dans un ordre aléatoire",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment `for_each` identifie-t-il chaque instance qu'il crée ?",
+      "justification": "for_each parcourt une map ou un set et identifie chaque instance par une clé stable (each.key), pas par un index positionnel.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Par une clé stable issue d'une map ou d'un set (each.key)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Par un numéro de série généré par le cloud",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Par la date de création de la ressource",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La règle d'expert est d'utiliser `for_each` par défaut, et de réserver `count` aux N copies purement identiques et interchangeables.",
+      "justification": "Vrai : for_each offre une identité stable (idéal dès que les instances ont un nom/une identité) ; count reste adapté au cas d'un simple nombre de copies interchangeables.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

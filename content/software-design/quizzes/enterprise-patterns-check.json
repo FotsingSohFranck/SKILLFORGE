@@ -1,0 +1,119 @@
+{
+  "ref": "enterprise-patterns-check",
+  "node": "enterprise-patterns",
+  "lesson": "les-briques-d-une-application",
+  "title": "Quiz, Patterns d'entreprise",
+  "description": "Domain Model, Repository, DTO, Use Case, Transaction Script.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un DTO (Data Transfer Object) ?",
+      "justification": "Transporter des données à travers une frontière en découplant la représentation externe du modèle interne ; il évite d'exposer les entités du domaine.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Transporter les données à travers une frontière, sans exposer le domaine",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Contenir les règles métier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Générer le SQL",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fournit le pattern Repository au domaine ?",
+      "justification": "L'illusion d'une collection en mémoire d'objets du domaine (save/findById) : c'est le port de persistance, le domaine ignore la base.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une collection d'objets illusoire, sans révéler la base",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le rendu HTML des données",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La configuration du serveur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand préférer un Transaction Script à un Domain Model ?",
+      "justification": "Pour une logique métier peu complexe (procédure simple par cas d'usage) ; le Domain Model s'impose quand la complexité des règles grandit.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Quand la logique métier est simple et peu susceptible de croître",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Toujours, c'est le plus riche",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Uniquement pour les micro-frontends",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle d'un Use Case (service applicatif) ?",
+      "justification": "Orchestrer un cas d'usage (charger via repository, invoquer le domaine, persister) sans contenir les règles métier, qui vivent dans le domaine.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Orchestrer le cas d'usage sans contenir les règles métier",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Porter toutes les règles métier lui-même",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Mapper les objets vers les tables",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les DTOs et les entités de persistance ne doivent jamais fuir dans le domaine : on mappe aux frontières.",
+      "justification": "Vrai : le domaine reste pur ; le mapping DTO ↔ command et domaine ↔ entité de persistance se fait aux bords (web, persistance).",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "node": "caching",
+  "lesson": "coherence-races-invalidation",
+  "title": "Invalider dans le bon ordre",
+  "statement": "Complète la méthode `updateUser` pour éviter de re-cacher du périmé. Respecte le **bon ordre** de l'invalidation en cache-aside : (1) écrire d'abord la modification **en base** ; (2) **ensuite seulement**, supprimer la clé `user:<id>` du cache. On **supprime** la clé (invalidation), on ne la met pas à jour. On dispose d'un `repository` avec `save(user)` et d'un `cache` avec `delete(key)` ; `user.id()` donne l'identifiant.",
+  "skeleton": "public void updateUser(User user) {\n    String key = \"user:\" + user.id();\n    // 1. ecrire la modification en base\n    // 2. puis supprimer la cle du cache\n}",
+  "solution": "public void updateUser(User user) {\n    String key = \"user:\" + user.id();\n    repository.save(user); // 1. la base d'abord\n    cache.delete(key);     // 2. puis on supprime la cle (invalidation)\n}",
+  "keyPoints": ["repository.save", "cache.delete", "user:"],
+  "language": "java"
+}

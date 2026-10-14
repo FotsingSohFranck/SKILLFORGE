@@ -1,0 +1,10 @@
+{
+  "node": "sealed-patterns-exhaustivite",
+  "lesson": "exhaustivite-sans-default",
+  "title": "Calcule l'aire sans default",
+  "statement": "On te donne l'interface scellee Forme permits Cercle, Rectangle, Triangle et ses trois records. Ecris une methode static double aire(Forme f) qui renvoie l'aire de chaque forme, avec un switch exhaustif et SANS default. Aire du cercle = PI * rayon * rayon ; aire du rectangle = largeur * hauteur ; aire du triangle = (base * hauteur) / 2.",
+  "skeleton": "sealed interface Forme permits Cercle, Rectangle, Triangle { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\nstatic double aire(Forme f) {\n    // Ecris ici un switch exhaustif, sans default\n}\n",
+  "solution": "static double aire(Forme f) {\n    return switch (f) {\n        case Cercle(double r) -> Math.PI * r * r;\n        case Rectangle(double larg, double haut) -> larg * haut;\n        case Triangle(double base, double haut) -> (base * haut) / 2;\n    };\n}",
+  "keyPoints": ["switch", "case Cercle", "case Rectangle", "case Triangle", "sans default", "exhaustif"],
+  "language": "java"
+}

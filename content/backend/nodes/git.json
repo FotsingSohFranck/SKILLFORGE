@@ -1,0 +1,753 @@
+{
+  "node": "git",
+  "lessons": [
+    {
+      "slug": "preparer-sa-machine",
+      "title": "Préparer sa machine (avant de commencer)",
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "C'est quoi le « terminal » ?",
+          "body": "Avant de toucher à Git, il faut savoir **où** on tape ses commandes : le **terminal** (aussi appelé **ligne de commande** ou *console*).\n\nD'habitude, tu pilotes ton ordinateur à la **souris** : tu cliques sur des icônes. Le terminal, c'est l'autre façon de faire : tu **tapes des ordres en texte**, une ligne à la fois, et l'ordinateur les exécute.\n\n👉 **Analogie** : au lieu de **montrer du doigt** ce que tu veux (la souris), tu l'**écris** en toutes lettres (le terminal). C'est plus direct, et beaucoup d'outils de développement, dont Git, s'utilisent comme ça.\n\nOù le trouver ?\n- **Windows** : ouvre « **PowerShell** » ou « **Terminal** » depuis le menu Démarrer.\n- **macOS** : ouvre l'application « **Terminal** ».\n- **Linux** : « **Terminal** » (souvent le raccourci Ctrl+Alt+T).\n\nUne fenêtre s'ouvre avec un **curseur** qui clignote et attend que tu tapes une commande, suivie de la touche Entrée.",
+          "position": 0
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le terminal : une fenetre ou l'on tape des commandes pour parler directement a la machine.",
+          "body": "/images/lessons/preparer-sa-machine-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Installer Git",
+          "body": "Git est un **logiciel à installer une seule fois** sur ta machine.\n- **Windows** : télécharge l'installeur sur **git-scm.com** (garde les options par défaut), ou tape dans PowerShell : `winget install Git.Git`.\n- **macOS** : tape `brew install git` si tu as Homebrew ; sinon, au premier `git` tapé, macOS te propose d'installer les « Command Line Tools ».\n- **Linux (Debian/Ubuntu)** : `sudo apt install git`.\n\nPour **vérifier** que tout est bon, tape dans le terminal :\n\n`git --version`\n\nSi une version s'affiche (par exemple `git version 2.45.0`), c'est gagné : Git est prêt. Si tu obtiens « command not found », l'installation n'a pas abouti, reprends l'étape d'installation.",
+          "position": 2
+        },
+        {
+          "type": "IMAGE",
+          "title": "Installer Git : l'outil de gestion de versions utilise par toute l'industrie.",
+          "body": "/images/lessons/preparer-sa-machine-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "title": "Se repérer dans le terminal (les 4 commandes de base)",
+          "codeLanguage": "bash",
+          "body": "# Ces commandes ne sont PAS du Git : c'est la base pour se déplacer.\n\npwd\n     # \"print working directory\" : affiche DANS QUEL dossier tu te trouves.\n     # (Sur Windows PowerShell, tu peux aussi utiliser  pwd.)\n\nls\n     # liste les fichiers et dossiers de l'endroit où tu es.\n     # (Sur Windows PowerShell,  ls  marche aussi ; en cmd.exe, c'est  dir.)\n\ncd mon-dossier\n     # \"change directory\" : ENTRE dans le dossier \"mon-dossier\".\n     #   cd ..   remonte d'un cran (dossier parent).\n\nmkdir mon-projet\n     # \"make directory\" : crée un nouveau dossier nommé \"mon-projet\".",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Se présenter à Git (une seule fois)",
+          "body": "Chaque commit que tu feras portera ton **nom** et ton **e-mail** (pour savoir qui a fait quoi). On les règle **une seule fois** sur la machine, et Git s'en souvient pour toujours :\n\n`git config --global user.name \"Ton Nom\"`\n`git config --global user.email \"toi@exemple.com\"`\n\nLe mot **`--global`** veut dire « pour tous mes projets sur cet ordinateur ». Tu n'as donc à le faire **qu'une fois**, pas à chaque projet ni à chaque commit. Utilise de préférence le **même e-mail** que ton compte GitHub/GitLab plus tard, pour que tes contributions soient bien reconnues.",
+          "position": 5
+        },
+        {
+          "type": "IMAGE",
+          "title": "Se presenter a Git une fois (nom, email) pour signer ses commits.",
+          "body": "/images/lessons/preparer-sa-machine-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CODE",
+          "title": "Ta première fois : créer un dépôt",
+          "codeLanguage": "bash",
+          "body": "# On met tout bout à bout : créer un dossier, y entrer, et le suivre avec Git.\n\nmkdir mon-projet        # crée le dossier\ncd mon-projet           # entre dedans\n\ngit init                # transforme ce dossier en dépôt Git\n                        # (crée le sous-dossier caché .git). C'est parti !\n\ngit status              # montre l'état : ici, un dépôt tout neuf et vide.\n# En cas de doute, à N'IMPORTE quel moment,  git status  est ton ami.",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "title": "À vous",
+          "body": "Tu viens d'ouvrir un terminal sur une machine où tu n'es pas sûr que Git soit installé. Quelles commandes tapes-tu pour : (1) vérifier que Git est là, (2) te présenter à Git avec ton nom et ton e-mail, (3) créer un dossier `essai-git`, y entrer, et en faire un dépôt Git ?",
+          "solution": "Étape par étape : (1) Vérifier l'installation : git --version, si une version s'affiche (ex. git version 2.45.0), Git est prêt ; sinon il faut l'installer (git-scm.com, ou winget/brew/apt selon l'OS). (2) Se présenter à Git (une seule fois pour tous les projets, grâce à --global) : git config --global user.name \"Ton Nom\" puis git config --global user.email \"toi@exemple.com\". Git attachera désormais ces infos à chacun de tes commits. (3) Créer le dossier, y entrer, et l'initialiser : mkdir essai-git (crée le dossier), cd essai-git (entre dedans), git init (crée le dépôt, c'est-à-dire le sous-dossier caché .git qui va suivre l'historique). Un git status confirmera que tu es dans un dépôt tout neuf. À partir de là, tu peux commencer à créer des fichiers et à faire tes premiers commits, c'est exactement ce qu'on fait dans l'atelier suivant.",
+          "position": 8
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Préparer sa machine",
+          "quizRef": "git-prep-check",
+          "position": 9
+        }
+      ],
+      "position": 0
+    },
+    {
+      "slug": "pourquoi-versionner",
+      "title": "Pourquoi versionner",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème : garder une trace de son travail",
+          "body": "Imagine que tu écris un programme. Aujourd'hui il marche. Demain tu ajoutes une fonctionnalité… et tout casse. Tu voudrais **revenir en arrière**, à la version qui marchait. Comment faire ?\n\nLa méthode « débutant » : copier le dossier avant chaque changement. On se retrouve vite avec `projet`, `projet-copie`, `projet-final`, `projet-final-v2`, `projet-final-vraiment-final`… Impossible de s'y retrouver, impossible de savoir *ce qui* a changé entre deux copies, et impossible de travailler à plusieurs sans s'écraser mutuellement.\n\nC'est exactement ce problème que résout le **versionnage** (en anglais *version control*)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le probleme : garder une trace fiable de son travail sans multiplier les copies 'final_v2_vraiment'.",
+          "body": "/images/lessons/pourquoi-versionner-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La solution : un système de gestion de versions",
+          "body": "Un **système de gestion de versions**, souvent abrégé **VCS** (de l'anglais *Version Control System*), est un outil qui **enregistre l'évolution de tes fichiers au fil du temps**. Chaque fois que tu franchis une étape, tu enregistres une **version** : une photo de l'état de ton projet à cet instant.\n\n👉 **Analogie** : c'est comme les **sauvegardes d'un jeu vidéo**. À chaque point important, tu sauvegardes. Si tu meurs plus loin, tu recharges la dernière sauvegarde au lieu de tout recommencer. Le VCS fait pareil avec ton code : chaque version est un point de sauvegarde auquel tu peux **revenir**, que tu peux **comparer** avec une autre, et sur lequel Git a noté **qui** a fait le changement et **quand**.\n\nConcrètement, ça t'apporte trois choses : tu **expérimentes sans peur** (tout est réversible), tu gardes une **trace** de chaque modification (traçabilité), et tu peux **travailler à plusieurs** sur le même projet sans chaos. **Git** est le VCS le plus utilisé au monde, c'est celui qu'on apprend ici."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La solution : un systeme de gestion de versions qui enregistre l'historique et permet d'y revenir.",
+          "body": "/images/lessons/pourquoi-versionner-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le vocabulaire de base : dépôt et commit",
+          "body": "Deux mots reviennent sans arrêt avec Git ; définissons-les tout de suite.\n\n**Le dépôt** (en anglais *repository*, souvent raccourci en **repo**) : c'est **ton projet suivi par Git**. Concrètement, c'est ton dossier de travail, dans lequel Git a créé un sous-dossier caché nommé `.git` où il range tout l'historique. Transformer un dossier ordinaire en dépôt, c'est « dire à Git de surveiller ce dossier ».\n\n**Le commit** (prononcé « comitte », du verbe anglais *to commit* = valider, entériner) : c'est **une version enregistrée** de ton projet, un de ces fameux points de sauvegarde. Chaque commit garde une photo de tes fichiers à cet instant, plus un petit **message** que tu écris pour expliquer ce que tu as fait (par exemple « ajoute la page de connexion »).\n\n👉 **En résumé** : tu travailles dans un **dépôt**, et de temps en temps tu fais un **commit** pour figer une version. La suite de tes commits, mis bout à bout, forme l'**historique** du projet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Vocabulaire de base : le depot garde l'historique, le commit est un instantane date et signe.",
+          "body": "/images/lessons/pourquoi-versionner-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Git est « distribué » : qu'est-ce que ça veut dire ?",
+          "body": "On dit souvent que **Git est distribué**. Le mot fait peur, mais l'idée est simple. Pour la comprendre, comparons avec l'autre approche possible, dite **centralisée**.\n\n**Approche centralisée** : il existe **un seul endroit officiel**, un ordinateur central, le **serveur**, qui détient le projet et son historique. Toi, sur ton ordinateur, tu n'as qu'une copie de la dernière version. Pour consulter l'historique ou enregistrer un changement, tu dois **contacter ce serveur**. S'il est en panne ou si tu n'as pas de réseau, tu es bloqué. C'est le fonctionnement d'anciens outils comme **SVN** (Subversion). On dit que le serveur est un **point de défaillance unique** : s'il tombe, tout le monde est à l'arrêt.\n\n**Approche distribuée (celle de Git)** : quand tu récupères un projet, on appelle ça **cloner** (de *to clone* = copier à l'identique), tu ne reçois pas seulement la dernière version des fichiers. Tu reçois **une copie complète du projet ET de tout son historique** sur ton propre ordinateur. Chaque personne de l'équipe a donc, chez elle, un dépôt entier et autonome.\n\n👉 **Analogie** : dans le modèle centralisé, tu vas à la **bibliothèque** consulter le seul exemplaire d'un livre ; si elle est fermée, tant pis. Dans le modèle distribué, tu es reparti avec une **photocopie du livre entier**, tu peux le lire, l'annoter et y travailler chez toi, **même sans réseau**.\n\nConséquence très concrète : avec Git tu peux enregistrer des commits, consulter l'historique et créer des branches **hors ligne** (sans connexion Internet). Tu te **synchronises** avec les autres seulement quand tu le décides. Si le serveur d'équipe tombe en panne, personne n'est bloqué : chacun a tout l'historique en local."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Git est distribue : chaque clone contient tout l'historique, pas seulement un serveur central.",
+          "body": "/images/lessons/pourquoi-versionner-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Comment Git enregistre : des instantanés, pas des différences",
+          "body": "Petite subtilité utile pour la suite. On pourrait croire que Git, pour économiser de la place, n'enregistre à chaque commit que **ce qui a changé** (les « différences », en anglais *diffs*). En réalité, ce n'est pas comme ça qu'il raisonne.\n\nÀ chaque commit, Git prend un **instantané** (en anglais *snapshot*), une **photo de l'état complet de tous tes fichiers** à cet instant. 👉 **Analogie** : plutôt que de noter « j'ai déplacé le stylo de 3 cm », Git prend une **photo de tout le bureau**. (Rassure-toi, il est malin : un fichier que tu n'as pas modifié n'est pas re-photographié, Git réutilise l'image précédente, donc ça ne gaspille pas d'espace.)\n\nChaque commit reçoit un **identifiant unique** appelé **hash** : une longue suite de caractères comme `a3f8e1c…`, calculée automatiquement à partir du contenu du commit. C'est un peu la **plaque d'immatriculation** du commit : elle permet de le désigner sans ambiguïté. (Techniquement ce hash est produit par une fonction appelée **SHA** ; retiens juste que c'est l'identifiant du commit.)\n\nPas besoin de tout maîtriser maintenant : garde simplement en tête « commit = photo complète, identifiée par un hash ». Ça rendra limpides les branches et les fusions qu'on verra bientôt."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Git enregistre des instantanes complets du projet, pas de simples differences.",
+          "body": "/images/lessons/pourquoi-versionner-5.jpg",
+          "position": 9
+        },
+        {
+          "type": "CODE",
+          "position": 10,
+          "title": "En pratique : créer ton tout premier dépôt",
+          "codeLanguage": "bash",
+          "body": "# On tape ces commandes dans un terminal, à l'intérieur du dossier du projet.\n\ngit init                       # \"initialise\" : crée le dépôt (le dossier caché .git).\n                               # Ton dossier ordinaire devient un dépôt Git suivi.\n\ngit config user.name \"Ada\"    # dit à Git ton nom : il sera attaché à chaque commit.\ngit config user.email \"ada@dev\"  # idem pour l'e-mail (sert à t'identifier comme auteur).\n\ngit status                     # affiche l'état actuel du dépôt :\n                               # quels fichiers ont changé, ce qui est prêt, etc.\n                               # C'est LA commande à taper en cas de doute."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 11,
+          "title": "À vous",
+          "body": "Un collègue débutant panique : « le serveur Git de l'entreprise est en panne, on ne peut plus travailler ! ». En t'appuyant sur ce que tu viens d'apprendre sur le côté « distribué » de Git, explique-lui pourquoi il se trompe (en partie).",
+          "solution": "Il se trompe parce que Git est distribué : quand on a cloné le projet, on a reçu sur notre propre ordinateur une copie COMPLÈTE du projet ET de tout son historique. On peut donc continuer à travailler normalement en local : enregistrer des commits (des versions), créer des branches, consulter l'historique, comparer des versions, tout cela sans le serveur, même hors ligne. La SEULE chose qu'on ne peut pas faire tant que le serveur est en panne, c'est se SYNCHRONISER avec les autres (récupérer leurs nouveaux commits ou publier les siens). Autrement dit : le partage est en pause, mais le travail continue. Dans un système centralisé comme SVN, au contraire, la panne du serveur aurait bel et bien tout bloqué, c'est justement le « point de défaillance unique » que le modèle distribué de Git évite."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Pourquoi versionner",
+          "quizRef": "git-pourquoi-check",
+          "position": 12
+        }
+      ]
+    },
+    {
+      "slug": "atelier-fil-rouge",
+      "title": "Atelier : versionne ton premier projet de A à Z",
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le principe de l'atelier",
+          "body": "Assez de théorie : on va **faire**. Dans cette leçon, tu construis un tout petit projet et tu le versionnes du début à la fin, création, premier commit, modification, puis une branche que tu fusionnes.\n\n👉 **Tape les commandes toi-même** dans ton terminal au fur et à mesure : c'est en faisant que ça rentre. Chaque étape correspond à un concept que tu as vu (ou que tu vas voir juste après). À la fin, tu auras réalisé un cycle Git **complet** de tes propres mains.\n\nPré-requis : avoir fait la leçon « Préparer sa machine » (Git installé, terminal ouvert).",
+          "position": 0
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'atelier fil rouge : on pratique les commandes sur un vrai mini-projet, pas en theorie.",
+          "body": "/images/lessons/atelier-fil-rouge-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "title": "Étape 1, créer le projet et le suivre",
+          "codeLanguage": "bash",
+          "body": "mkdir mon-cv            # on crée un dossier de projet (un mini \"CV\")\ncd mon-cv              # on entre dedans\ngit init               # on en fait un dépôt Git\n\n# On crée un premier fichier. (echo écrit du texte dans un fichier.)\necho \"# Mon CV\" > cv.md\n\ngit status             # Git voit un nouveau fichier \"cv.md\" NON suivi (untracked)",
+          "position": 2
+        },
+        {
+          "type": "CODE",
+          "title": "Étape 2, ton premier commit",
+          "codeLanguage": "bash",
+          "body": "git add cv.md          # on prépare le fichier (staging)\ngit commit -m \"feat: première version du CV\"\n     # on enregistre la version. Bravo : ton tout premier commit !\n\ngit log --oneline      # tu vois ton commit dans l'historique (une ligne)",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "title": "Étape 3, modifier et voir la différence",
+          "codeLanguage": "bash",
+          "body": "# On ajoute une ligne au CV. (>>  ajoute à la fin du fichier.)\necho \"## Expériences\" >> cv.md\n\ngit diff               # Git te montre EXACTEMENT ce qui a changé\n                       # (la ligne ajoutée, précédée d'un +)\n\ngit add cv.md\ngit commit -m \"feat: ajoute la section Expériences\"",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "title": "Étape 4, une branche pour essayer, puis fusionner",
+          "codeLanguage": "bash",
+          "body": "git switch -c ajout-photo     # crée une branche et bascule dessus\n\necho \"![photo](photo.jpg)\" >> cv.md   # on tente d'ajouter une photo\ngit add cv.md\ngit commit -m \"feat: ajoute une photo\"\n\ngit switch main               # on revient sur la branche principale\ngit merge ajout-photo         # on ramène le travail de la branche dans main\ngit branch -d ajout-photo     # la branche a été fusionnée : on la supprime\n\ngit log --oneline --graph     # admire ton historique : plusieurs commits !",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Récap : ce que tu viens de faire",
+          "body": "Tu viens de dérouler un **cycle Git complet**, tout seul :\n- **`git init`** : transformé un dossier en dépôt.\n- **`git add` + `git commit`** : enregistré des versions, en passant par la zone de préparation.\n- **`git diff`** : vu précisément ce qui a changé avant de committer.\n- **`git switch -c` + `git merge`** : créé une branche pour essayer une idée, puis fusionné dans `main`.\n\n👉 **C'est exactement le quotidien d'un développeur.** Tout le reste du parcours Git approfondit ces gestes (collaboration à distance, corriger l'historique, résoudre des conflits…), mais la **boucle de base**, tu la maîtrises déjà. Si une commande t'a paru floue, reviens à la leçon correspondante, et refais l'atelier : la deuxième fois est toujours plus claire.",
+          "position": 6
+        },
+        {
+          "type": "IMAGE",
+          "title": "Recap : revenir sur ce qu'on vient de faire pour ancrer les gestes.",
+          "body": "/images/lessons/atelier-fil-rouge-2.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "title": "À vous",
+          "body": "Refais l'atelier, mais avec TON propre mini-projet (par ex. un dossier `notes` avec un fichier `notes.md`). Objectif : (1) créer le dépôt, (2) faire un premier commit, (3) modifier le fichier et faire un second commit, (4) créer une branche `idee`, y ajouter quelque chose, puis la fusionner dans `main`. Quelles commandes utilises-tu à chaque étape ?",
+          "solution": "Voici la séquence complète (à adapter au nom de ton projet). (1) Créer le dépôt : mkdir notes puis cd notes puis git init. Créer un fichier : echo \"# Mes notes\" > notes.md. (2) Premier commit : git add notes.md puis git commit -m \"feat: première note\". (3) Modifier puis second commit : echo \"- une idée\" >> notes.md (ajoute une ligne), éventuellement git diff pour voir le changement, puis git add notes.md et git commit -m \"feat: ajoute une idée\". (4) Brancher, modifier, fusionner : git switch -c idee (crée et bascule sur la branche), echo \"- une autre idée\" >> notes.md, git add notes.md, git commit -m \"feat: seconde idée\" ; puis git switch main pour revenir, git merge idee pour ramener le travail, et git branch -d idee pour supprimer la branche fusionnée. Un git log --oneline --graph te montrera l'ensemble de tes commits. Tu as reproduit le cycle complet init → add → commit → branche → merge : c'est la base que tu utiliseras tous les jours.",
+          "position": 8
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Atelier fil rouge",
+          "quizRef": "git-atelier-check",
+          "position": 9
+        }
+      ],
+      "position": 2
+    },
+    {
+      "slug": "le-flux-de-base",
+      "title": "Le flux de base",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les trois zones de Git",
+          "body": "Pour enregistrer une version (un commit), un changement passe par **trois espaces** dans Git. C'est le point de départ à bien comprendre ; tout le reste en découle.\n\n1. **Le répertoire de travail** (en anglais *working directory*) : ce sont tout simplement **tes fichiers**, tels que tu les vois et les modifies dans ton éditeur. C'est ton « bureau ».\n\n2. **La zone de préparation** (en anglais *staging area*, aussi appelée **index**) : une sorte de **salle d'attente** où tu déposes les changements que tu veux inclure dans ton prochain commit. Rien n'est encore enregistré ; tu prépares.\n\n3. **Le dépôt** (le fameux `.git`) : c'est là que Git **enregistre définitivement** le commit, avec tout l'historique.\n\n👉 **Analogie du colis** : tu prépares un carton (le commit). Ton bureau plein d'objets = le **répertoire de travail**. Tu choisis les objets à mettre dedans et tu les poses près du carton = la **zone de préparation**. Puis tu fermes et expédies le carton = le **commit** dans le dépôt.\n\nPourquoi cette étape intermédiaire ? Parce qu'elle te laisse **choisir précisément** ce qui entre dans un commit. Tu as modifié 5 fichiers mais un seul concerne le correctif du jour ? Tu ne prépares que celui-là. Cela permet de faire des commits **propres et cohérents** au lieu de tout mélanger."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les trois zones de Git : repertoire de travail, index (staging), depot.",
+          "body": "/images/lessons/le-flux-de-base-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le cycle add / commit",
+          "codeLanguage": "bash",
+          "body": "git status                 # \"quel est l'état ?\" : montre les fichiers modifiés,\n                           # ce qui est préparé, ce qui ne l'est pas.\n\ngit add fichier.java       # \"add\" = déposer ce fichier dans la zone de préparation\n                           # (staging). Il est maintenant prêt à être committé.\n\ngit add .                  # le point \".\" veut dire \"tout le dossier courant\" :\n                           # prépare TOUS les fichiers modifiés d'un coup.\n\ngit commit -m \"feat: ajoute l'inscription\"\n                           # \"commit\" = enregistre une version avec ce qui est préparé.\n                           # -m = le message qui explique le changement.\n\ngit log --oneline --graph  # affiche l'historique (la liste des commits),\n                           # --oneline = une ligne par commit (compact)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Qu'est-ce qu'un bon commit ?",
+          "body": "Un commit devrait représenter **un seul changement cohérent** : une fonctionnalité ajoutée, un bug corrigé, pas « tout le travail de la journée » en vrac. On parle de commit **atomique** (le mot vient d'« atome » : une unité indivisible, qui fait *une* chose).\n\nPourquoi ? Un commit petit et ciblé est facile à **relire**, facile à **annuler** si besoin (tu retires juste ce changement précis), et facile à comprendre dans l'historique six mois plus tard.\n\nLe **message** du commit compte autant que le code. La bonne habitude : expliquer le **pourquoi**, pas seulement le **quoi**. Compare :\n- ❌ `update` (ne dit rien)\n- ✅ `fix: évite un doublon d'inscription (contrainte unique en base)`\n\nLe second raconte ce qui a été fait *et* la raison. Ton toi du futur (et tes collègues) te remercieront."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un bon commit est petit, coherent, avec un message qui dit le pourquoi.",
+          "body": "/images/lessons/le-flux-de-base-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Voir ce qui a changé",
+          "codeLanguage": "bash",
+          "body": "git diff                   # \"diff\" = différence. Montre les changements\n                           # que tu N'AS PAS ENCORE préparés (pas encore \"add\").\n\ngit diff --staged          # montre au contraire ce qui EST préparé,\n                           # donc ce qui partira dans le prochain commit.\n\ngit show HEAD              # affiche le dernier commit en détail.\n                           # \"HEAD\" (on le verra) = le commit où tu es actuellement.\n\ngit log -p fichier.java   # l'historique d'un fichier précis, avec le détail\n                           # des changements à chaque commit (-p = \"patch\")."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Ignorer ce qui ne doit pas être versionné",
+          "body": "Tous les fichiers d'un dossier ne doivent pas être suivis par Git. Certains sont **inutiles** à partager, d'autres carrément **dangereux**.\n\nPour dire à Git « ignore ces fichiers », on crée un fichier nommé **`.gitignore`** à la racine du projet : on y liste, ligne par ligne, ce que Git doit faire semblant de ne pas voir. Typiquement :\n- les **fichiers générés automatiquement** par la compilation (on les appelle *artefacts de build* : par ex. les dossiers `target/`, `dist/`, `node_modules/`), inutile de les versionner, ils se recréent tout seuls ;\n- les **fichiers de configuration locale** propres à ton éditeur/IDE ;\n- surtout : les **secrets**, mots de passe, clés d'API, fichiers `.env`.\n\n⚠️ **Règle d'or (à retenir absolument) : jamais de secret dans l'historique.** Une clé ou un mot de passe committé **reste dans l'historique pour toujours**, même si tu le « supprimes » dans un commit suivant (souviens-toi : Git garde *tout* l'historique). La seule vraie parade est de considérer ce secret comme **compromis** et de le **changer** immédiatement. D'où l'importance de le mettre dans `.gitignore` *avant* de committer. (Cette section est marquée « niveau expert » car c'est un réflexe de professionnel, mais autant le prendre dès le début.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le .gitignore exclut ce qui ne doit pas etre versionne : secrets, binaires, dependances.",
+          "body": "/images/lessons/le-flux-de-base-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "title": "Un exemple réel de fichier .gitignore",
+          "codeLanguage": "bash",
+          "body": "# Fichier nommé  .gitignore  à la racine du projet.\n# Chaque ligne = un motif de fichiers/dossiers à ignorer.\n\n# --- Fichiers générés à la compilation (se recréent tout seuls) ---\ntarget/\ndist/\nbuild/\nnode_modules/\n\n# --- Secrets : NE JAMAIS versionner ! ---\n.env\n*.key\nsecrets.json\n\n# --- Fichiers propres à l'éditeur / au système ---\n.idea/\n.vscode/\n.DS_Store\n\n# Astuce : le  *  veut dire \"n'importe quoi\".  *.log  ignore tous les .log\n*.log",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Tu as modifié 5 fichiers, mais seulement 2 concernent le correctif que tu veux livrer maintenant. Comment faire un commit qui ne contient QUE ces 2 fichiers, et que deviennent les 3 autres ?",
+          "solution": "On utilise la zone de préparation (staging) pour choisir exactement ce qui entre dans le commit. Concrètement : git add fichier1 fichier2 (on ne prépare QUE les deux fichiers concernés par le correctif), puis git commit -m \"fix: ...\". Le commit ne contiendra que ces deux fichiers. Les 3 autres fichiers modifiés restent tels quels dans le répertoire de travail : ils ne sont pas préparés, donc pas inclus dans ce commit, ils attendent, et tu pourras les committer plus tard, séparément. C'est TOUT l'intérêt de l'étape de préparation : elle te permet de composer des commits ciblés et atomiques au lieu de tout enregistrer en bloc. (Astuce : git status te montre à tout moment ce qui est préparé et ce qui ne l'est pas.)"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Le flux de base",
+          "quizRef": "git-flux-check",
+          "position": 10
+        }
+      ]
+    },
+    {
+      "slug": "branches-et-fusion",
+      "title": "Branches & fusion",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une branche : une ligne de travail parallèle",
+          "body": "Jusqu'ici on a travaillé sur une seule ligne de commits. Mais imagine : le projet marche, et tu veux essayer une nouvelle fonctionnalité **sans risquer de casser** ce qui fonctionne déjà. C'est le rôle des **branches**.\n\nUne **branche** (*branch* en anglais) est une **ligne de travail indépendante**. Tu pars de l'état actuel du projet, et tu fais tes commits « à côté », dans ta bulle, sans toucher à la ligne principale. Si ça marche, tu ramèneras ton travail dans la ligne principale. Si ça rate, tu jettes la branche et rien n'est abîmé.\n\nLa ligne principale porte presque toujours le nom **`main`** (autrefois `master`). C'est la version « officielle » du projet.\n\n👉 **Analogie** : `main` est le tronc de l'arbre. Une branche, c'est… une branche : elle pousse à partir du tronc, tu y travailles à part, puis tu peux la **greffer** de nouveau sur le tronc. D'où les mots « branche » et « arbre ».\n\nUn détail rassurant : en interne, une branche n'est qu'un **marque-page** qui pointe vers un commit. La créer est donc **instantané** et ne coûte presque rien, on en crée sans hésiter. Le modèle le plus courant : **une branche par fonctionnalité** (ou par correctif), qu'on ramène dans `main` une fois terminée et relue."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une branche est une ligne de travail parallele, isolee du reste.",
+          "body": "/images/lessons/branches-et-fusion-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Créer une branche, y basculer, la fusionner",
+          "codeLanguage": "bash",
+          "body": "git switch -c feature/inscription\n     # \"switch -c\" = crée une nouvelle branche (-c = create) ET bascule dessus.\n     # Ici on la nomme \"feature/inscription\". Tu es maintenant dans ta bulle.\n\n# ... tu fais tes commits tranquillement sur cette branche ...\n\ngit switch main\n     # revient sur la branche principale (sans -c : on bascule sur une branche existante).\n\ngit merge feature/inscription\n     # \"merge\" = fusionner : ramène le travail de ta branche dans main.\n\ngit branch -d feature/inscription\n     # \"-d\" = delete : supprime la branche une fois qu'elle est fusionnée\n     # (elle ne sert plus, son travail est déjà dans main)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Deux façons de fusionner : fast-forward ou commit de fusion",
+          "body": "Quand tu tapes `git merge`, Git a deux manières de procéder selon la situation.\n\n**Cas 1, le « fast-forward » (avance rapide).** Si `main` **n'a pas bougé** depuis que tu as créé ta branche, ta branche est simplement `main` + quelques commits en plus. Git n'a rien à réconcilier : il fait **avancer le marque-page `main`** jusqu'à ton dernier commit. C'est propre et linéaire, comme si tu avais travaillé directement sur `main`.\n\n**Cas 2, le « commit de fusion » (merge commit).** Si, pendant que tu travaillais, `main` **a aussi évolué** de son côté (un collègue a ajouté des commits), les deux lignes ont **divergé**. Git crée alors un **commit de fusion** spécial : un commit qui a **deux parents** (ta branche *et* `main`), et qui réunit les deux histoires en une seule.\n\n👉 **Analogie** : deux rivières qui se rejoignent. Si l'une est un simple affluent qui rattrape l'autre, elles se confondent sans remous (fast-forward). Si les deux ont vraiment coulé séparément, leur point de jonction est un événement à part entière (le commit de fusion).\n\nLes deux sont parfaitement normaux. Certaines équipes préfèrent un historique bien **linéaire** et utilisent pour cela le *rebase* (qu'on verra plus loin) ; ne t'en soucie pas encore."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Fusionner : fast-forward (simple avance) ou commit de fusion (deux histoires se rejoignent).",
+          "body": "/images/lessons/branches-et-fusion-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Quand Git ne peut pas décider : le conflit",
+          "codeLanguage": "bash",
+          "body": "git merge feature/x\n# Git répond : CONFLICT (content): Merge conflict in fichier.java\n#\n# Cela veut dire : ta branche ET main ont modifié LES MÊMES LIGNES\n# différemment. Git ne sait pas laquelle garder. Il ouvre le fichier\n# et y insère des \"marqueurs\" pour te montrer les deux versions :\n#\n#   <<<<<<< HEAD\n#   (la version de ta branche actuelle)\n#   =======\n#   (la version qui vient de feature/x)\n#   >>>>>>> feature/x\n#\n# À toi de jouer : tu édites le fichier pour garder la bonne version\n# (ou combiner les deux), puis tu SUPPRIMES les marqueurs. Ensuite :\n\ngit add fichier.java       # \"c'est résolu, voici la version finale\"\ngit commit                 # finalise la fusion"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Bien comprendre un conflit (et comment les éviter)",
+          "body": "Un **conflit de fusion** n'est **pas un bug** ni une erreur de Git. C'est une situation logique : deux personnes (ou deux branches) ont modifié **exactement les mêmes lignes** d'un fichier de façons différentes. Git est prudent, il refuse de deviner à ta place laquelle garder, et il te confie **la décision**. C'est un arbitrage **humain**, pas un plantage.\n\nCe n'est donc pas quelque chose à craindre, mais quelque chose à savoir résoudre (tu ouvres le fichier, tu choisis, tu retires les marqueurs, tu `add` + `commit`).\n\nComment en avoir **moins** ? Trois habitudes simples :\n- des branches **courtes dans le temps** (quelques jours, pas des mois) ;\n- des commits **petits** et ciblés ;\n- se **synchroniser souvent** avec `main` (ramener régulièrement les changements des autres).\n\n👉 **Le principe** : plus une branche vit longtemps isolée, plus elle s'éloigne de `main`, et plus la fusion finale risque d'être douloureuse. Des allers-retours fréquents = des fusions indolores."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un conflit survient quand deux branches modifient la meme ligne : Git demande de trancher.",
+          "body": "/images/lessons/branches-et-fusion-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "title": "Exemple concret : un conflit du début à la fin",
+          "codeLanguage": "bash",
+          "body": "# Fichier de départ  accueil.txt  sur main :\n#     Bonjour et bienvenue !\n\n# --- Sur la branche \"promo\", tu changes la ligne : ---\n#     Bonjour et bienvenue, -20% aujourd'hui !\n\n# --- Pendant ce temps, un collègue change la MÊME ligne sur main : ---\n#     Salut et bienvenue sur le site !\n\ngit merge promo\n# CONFLICT (content): Merge conflict in accueil.txt\n\n# En ouvrant accueil.txt, Git montre les DEUX versions :\n#   <<<<<<< HEAD\n#   Salut et bienvenue sur le site !\n#   =======\n#   Bonjour et bienvenue, -20% aujourd'hui !\n#   >>>>>>> promo\n\n# Tu décides de COMBINER les deux, et tu retires les marqueurs.\n# Le fichier final devient :\n#   Salut et bienvenue sur le site, -20% aujourd'hui !\n\ngit add accueil.txt      # \"c'est résolu\"\ngit commit               # finalise la fusion\n# ✅ Le conflit est réglé : une seule ligne, choisie par toi.",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Deux développeurs modifient la même fonction, chacun sur sa branche, puis on fusionne. Git affiche « CONFLICT ». Un débutant conclut « Git est buggé ». A-t-il raison ? Que faut-il faire concrètement ?",
+          "solution": "Non, il a tort : ce n'est pas un bug, c'est le comportement normal et voulu de Git. Les deux développeurs ont modifié LES MÊMES LIGNES de la même fonction, de deux façons différentes. Git est incapable (et refuse) de deviner tout seul laquelle des deux versions est la bonne, ce serait dangereux d'inventer. Il te signale donc honnêtement le conflit et te demande de trancher. Marche à suivre concrète : (1) ouvrir le fichier en conflit ; Git y a inséré des marqueurs <<<<<<<, ======= et >>>>>>> qui délimitent les deux versions. (2) Décider : garder l'une, garder l'autre, ou combiner les deux pour obtenir la bonne fonction finale. (3) SUPPRIMER les lignes de marqueurs (elles ne doivent pas rester dans le code). (4) git add fichier pour dire à Git « c'est résolu », puis git commit pour finaliser la fusion. Le conflit est un arbitrage humain, pas une panne, et on en a d'autant moins que les branches sont courtes et qu'on se synchronise souvent avec main."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Branches & fusion",
+          "quizRef": "git-branches-check",
+          "position": 10
+        }
+      ]
+    },
+    {
+      "slug": "depots-distants-collaboration",
+      "title": "Dépôts distants & collaboration",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le dépôt distant (remote) : le point de rendez-vous",
+          "body": "On a dit que Git est distribué : chacun a une copie complète du projet chez soi. Mais alors, comment les membres d'une équipe **partagent-ils** leur travail ? Grâce à un **dépôt distant**.\n\nUn **dépôt distant** (en anglais *remote*) est simplement **une copie du dépôt hébergée ailleurs**, sur un serveur accessible par tous, qui sert de **point de rendez-vous** commun. Chacun travaille dans son dépôt local, puis vient déposer/récupérer les changements sur ce dépôt partagé.\n\nPar convention, ce dépôt distant principal est presque toujours nommé **`origin`** (« l'origine »). Retiens : quand tu vois `origin`, pense « le dépôt partagé de l'équipe ».\n\n👉 **Analogie** : `origin` est une **boîte aux lettres commune** (ou un Google Drive partagé). Tu rédiges tes lettres chez toi (commits locaux), puis tu vas les **déposer** dans la boîte (`push`) et **relever** celles des autres (`fetch`/`pull`).\n\nEn pratique, on n'héberge pas ce dépôt distant soi-même : on utilise une **plateforme** comme **GitHub**, **GitLab** ou **Bitbucket**. Ces sites hébergent ton `origin` et ajoutent par-dessus des outils d'équipe : **revue de code**, **intégration continue** (les tests qui tournent automatiquement, on y revient), gestion des tâches, etc."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le depot distant (remote) est le point de rendez-vous partage de l'equipe.",
+          "body": "/images/lessons/depots-distants-collaboration-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Cloner et synchroniser",
+          "codeLanguage": "bash",
+          "body": "git clone https://github.com/org/projet.git\n     # \"clone\" = télécharge une COPIE COMPLÈTE d'un dépôt distant sur ta machine\n     # (fichiers + tout l'historique). C'est comme ça qu'on démarre sur un projet existant.\n\ngit push\n     # \"push\" = pousser : envoie tes commits locaux vers le dépôt distant (origin).\n     # Tu PUBLIES ton travail pour que les autres l'aient.\n\ngit pull\n     # \"pull\" = tirer : récupère les nouveaux commits des autres depuis origin\n     # ET les intègre dans ta branche, en une seule commande.\n\ngit fetch\n     # \"fetch\" = va chercher les nouveautés d'origin SANS les intégrer tout de suite\n     # (pour que tu puisses les inspecter d'abord). Voir la section suivante."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "fetch ou pull : quelle différence ?",
+          "body": "Ces deux commandes se ressemblent mais ne font pas la même chose, et confondre les deux est une source classique de surprise.\n\n**`git fetch`** = « va **regarder** ce qu'il y a de nouveau sur le dépôt distant, et télécharge-le, mais **ne touche pas** à mon travail ». Après un `fetch`, tu peux inspecter tranquillement ce que les autres ont fait (par ex. avec `git log origin/main` = « montre-moi les commits de la branche main du distant ») **avant** de décider quoi en faire.\n\n**`git pull`** = `fetch` **PUIS** intégration automatique dans ta branche. C'est deux actions en une : récupérer *et* fusionner d'un coup.\n\n👉 **Analogie** : `fetch`, c'est **relever le courrier et le poser sur la table** pour le lire d'abord. `pull`, c'est **relever le courrier et le ranger directement** dans tes affaires sans le regarder.\n\nEn cas de doute, surtout au début, `fetch` puis inspection est **plus prudent** qu'un `pull` qui intègre « à l'aveugle ». Avec l'expérience, `pull` devient le réflexe quotidien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "fetch recupere sans fusionner ; pull recupere ET fusionne dans ta branche.",
+          "body": "/images/lessons/depots-distants-collaboration-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "La pull request : le contrôle qualité de l'équipe",
+          "body": "Dans une équipe, on n'ajoute pas son travail dans `main` n'importe comment. On passe par une **pull request** (abrégée **PR** ; appelée *merge request* sur GitLab).\n\nUne pull request, c'est une **proposition** : « voici ma branche, j'aimerais la fusionner dans `main`, est-ce que vous validez ? ». Elle ouvre un espace de **revue** (*code review*) où les collègues peuvent :\n- lire ton code et **commenter ligne par ligne** ;\n- discuter, demander des ajustements ;\n- vérifier que l'**intégration continue** (la CI : le build + les tests qui tournent automatiquement) passe au vert.\n\n👉 **En clair** : c'est le **point de contrôle qualité**. Rien n'entre dans `main` sans avoir été **relu** par au moins une autre personne et sans que les **tests soient verts**. Cela attrape les bugs tôt, diffuse la connaissance dans l'équipe, et garde `main` toujours en bon état.\n\n(À noter : la fonctionnalité *ultrareview* de Claude Code s'inscrit exactement dans cet esprit de relecture avant fusion.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "La pull request : le controle qualite de l'equipe avant d'integrer un changement.",
+          "body": "/images/lessons/depots-distants-collaboration-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "« Push refusé » : que s'est-il passé ?",
+          "body": "Tu tapes `git push` et Git **refuse** avec un message du genre « *updates were rejected because the remote contains work that you do not have locally* ». Pas de panique, c'est une situation banale.\n\n**La cause** : pendant que tu travaillais, **quelqu'un d'autre a poussé des commits** sur `origin`. Le dépôt distant a donc avancé, et ta version locale est **en retard**. Git refuse de pousser par-dessus pour ne pas risquer d'**écraser** le travail des autres, c'est une protection.\n\n**La marche à suivre (sûre)** :\n1. Récupérer d'abord les nouveaux commits distants et remettre les tiens au-dessus : `git pull --rebase` (le `--rebase` rejoue tes commits par-dessus ceux des autres, on détaille le rebase à la leçon suivante).\n2. Résoudre les éventuels conflits (comme vu précédemment).\n3. Repousser : `git push`. Cette fois ça passe.\n\n⚠️ **À ne JAMAIS faire sur une branche partagée** : forcer le push (`git push --force`). Forcer, c'est écraser l'historique distant par le tien, donc **effacer le travail des collègues** qui étaient dessus. Sur une branche partagée, on intègre d'abord, on ne force jamais. (Cette section est marquée « niveau expert » car elle touche à la collaboration, mais la règle est simple : on récupère avant de pousser.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "'Push refuse' : quelqu'un a pousse avant toi ; il faut d'abord recuperer son travail.",
+          "body": "/images/lessons/depots-distants-collaboration-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Ton `git push` est refusé avec le message « updates were rejected because the remote contains work that you do not have locally ». Explique la cause avec tes mots, puis donne la marche à suivre sûre, et dis ce qu'il ne faut surtout pas faire.",
+          "solution": "La cause : le dépôt distant (origin) a reçu de nouveaux commits depuis ta dernière synchronisation, typiquement un collègue a poussé son travail entre-temps. Ta branche locale est donc en RETARD par rapport au distant. Git refuse ton push pour t'empêcher d'écraser ces commits que tu n'as pas encore chez toi : c'est une protection, pas une erreur de ta part. Marche à suivre sûre : (1) récupérer et intégrer d'abord le travail distant, en remettant tes commits par-dessus : git pull --rebase ; (2) s'il y a des conflits (mêmes lignes modifiées des deux côtés), les résoudre, puis git add + poursuivre ; (3) une fois à jour, git push, cette fois il sera accepté. Ce qu'il ne faut SURTOUT PAS faire : git push --force sur une branche partagée. Forcer écraserait l'historique du distant avec le tien et ferait donc disparaître les commits des collègues, on ne force jamais un push sur une branche que d'autres utilisent. La règle à retenir : on récupère (pull) AVANT de pousser (push)."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Dépôts distants & collaboration",
+          "quizRef": "git-distants-check",
+          "position": 10
+        }
+      ]
+    },
+    {
+      "slug": "corriger-et-reecrire",
+      "title": "Corriger & réécrire l'historique",
+      "position": 6,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux façons d'annuler : revert et reset",
+          "body": "On fait tous des erreurs : un mauvais commit, un changement qu'on regrette. Git propose plusieurs manières d'**annuler**, et il est essentiel de ne pas les confondre car elles n'ont pas les mêmes conséquences.\n\n**`git revert`** crée un **nouveau commit** qui **inverse** un commit passé (il fait l'exact contraire de ce que ce commit avait fait). L'ancien commit **reste dans l'historique** ; on ajoute juste par-dessus un commit « qui l'annule ». 👉 **Analogie** : en comptabilité, on ne gomme pas une écriture fausse, on ajoute une **écriture inverse** pour la corriger, et la trace des deux reste. C'est pour ça que `revert` est **sûr même sur une branche partagée** : on ne réécrit rien, on ajoute.\n\n**`git reset`** est différent : il **déplace la branche en arrière**, comme si les commits d'après n'avaient jamais existé. Là, on **réécrit l'historique**. C'est puissant, mais à **réserver à ton travail local non encore poussé**, sinon tu réécris une histoire que d'autres ont déjà récupérée (on verra pourquoi c'est dangereux).\n\n👉 **Règle simple à retenir** : *revert* pour annuler quelque chose de **déjà partagé** ; *reset* pour corriger quelque chose de **seulement local**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deux facons d'annuler : revert (nouveau commit qui defait) et reset (on recule le pointeur).",
+          "body": "/images/lessons/corriger-et-reecrire-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Les trois niveaux de reset",
+          "codeLanguage": "bash",
+          "body": "# Rappel : HEAD = le commit actuel. HEAD~1 = \"un commit en arrière\".\n# reset défait le dernier commit, mais que fait-il de tes changements ?\n# Ça dépend de l'option :\n\ngit reset --soft HEAD~1\n     # \"soft\" (doux) : défait le commit, mais GARDE tes changements PRÉPARÉS\n     # (dans le staging). Utile pour refaire le commit autrement.\n\ngit reset --mixed HEAD~1\n     # \"mixed\" (par défaut) : défait le commit et retire les changements du staging,\n     # mais les GARDE dans tes fichiers (juste plus préparés).\n\ngit reset --hard HEAD~1\n     # \"hard\" (dur) : défait le commit ET JETTE les changements. ⚠️ DANGER :\n     # le travail non sauvegardé ailleurs est perdu. À utiliser en connaissance de cause.\n\ngit commit --amend\n     # cas fréquent : \"amend\" (amender) corrige le DERNIER commit  - \n     # par ex. rectifier son message ou y ajouter un fichier oublié."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Mettre son travail de côté un instant",
+          "codeLanguage": "bash",
+          "body": "# Situation : tu es en plein milieu d'un changement (pas prêt à committer),\n# et tu dois brusquement faire autre chose (corriger un bug urgent ailleurs).\n\ngit stash\n     # \"stash\" = remise/planque : range tes changements en cours de côté et\n     # te rend un répertoire de travail PROPRE, comme au dernier commit.\n     # 👉 Analogie : tu balaies ton bureau dans un tiroir pour libérer la place.\n\n# ... tu vas régler ton urgence, faire des commits, etc. ...\n\ngit stash pop\n     # \"pop\" = ressortir : récupère les changements que tu avais mis de côté,\n     # tu reprends exactement où tu en étais.\n\ngit cherry-pick <hash>\n     # \"cherry-pick\" = cueillir une cerise : applique UN commit précis (désigné\n     # par son hash) sur ta branche actuelle, sans prendre tout le reste."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le filet de sécurité : le reflog",
+          "body": "Tu as fait un `reset --hard` malheureux et tu crois avoir tout perdu ? **Respire.** Dans la plupart des cas, rien n'est réellement perdu tout de suite.\n\nGit tient un journal secret appelé le **reflog** (contraction de *reference log*, « journal des références ») : il note **tous les déplacements** de `HEAD`, c'est-à-dire chaque endroit où tu es passé. La commande `git reflog` te montre cette liste.\n\nTu y retrouves le **hash** (l'identifiant) du commit que tu croyais disparu, et tu peux y **revenir** avec `git reset --hard <ce-hash>`.\n\n👉 **Analogie** : c'est la **corbeille** de ton système, ou le « Ctrl+Z » de dernier recours. Tant que Git n'a pas fait son grand ménage automatique (ça prend des semaines), le commit « perdu » est encore récupérable.\n\nConnaître le reflog change tout : les manipulations d'historique deviennent **beaucoup moins effrayantes** quand on sait qu'un filet est tendu en dessous. (Section « niveau expert », mais c'est surtout un immense soulagement à connaître tôt.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le reflog est le filet de securite : il garde la trace de tes deplacements, meme 'perdus'.",
+          "body": "/images/lessons/corriger-et-reecrire-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Tu dois annuler un commit qui est DÉJÀ poussé sur `main` (une branche que toute l'équipe utilise). Utilises-tu `reset` ou `revert` ? Justifie ton choix en pensant à tes collègues.",
+          "solution": "On utilise revert. Raison : revert crée un NOUVEAU commit qui inverse le commit fautif, sans toucher à l'historique existant. L'histoire de main n'est pas réécrite, elle est juste prolongée d'un commit correcteur. Résultat : tes collègues récupèrent simplement ce commit d'annulation en faisant leur pull habituel, et rien ne casse chez eux. Pourquoi PAS reset ici : reset réécrirait l'historique de main (il ferait comme si le commit fautif n'avait jamais existé). Mais comme main est partagé et déjà récupéré par les autres, pour imposer cette réécriture il faudrait forcer le push (git push --force), ce qui écraserait l'historique commun et casserait les dépôts locaux de tous les collègues (leurs branches ne correspondraient plus). Donc la règle : sur une branche partagée on annule avec revert (on ajoute une correction) ; reset est réservé au travail local pas encore poussé, là où réécrire l'historique ne dérange personne."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Corriger & réécrire",
+          "quizRef": "git-corriger-check",
+          "position": 7
+        }
+      ]
+    },
+    {
+      "slug": "rebase-et-workflows",
+      "title": "Rebase & workflows d'équipe",
+      "position": 7,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le rebase : rejouer ses commits sur une nouvelle base",
+          "body": "On a vu le `merge` pour réunir deux branches. Le **rebase** est une autre façon d'intégrer, qui donne un résultat plus « propre » visuellement. Le mot le dit : *re-base* = **changer la base** de tes commits.\n\nL'idée : au lieu de créer un commit de fusion qui réunit deux histoires, le rebase **reprend tes commits et les rejoue un par un au sommet** d'une base plus récente (par exemple `main` mis à jour). Résultat : un historique **linéaire**, une seule ligne bien droite, comme si tu avais travaillé à partir de la dernière version depuis le début.\n\n👉 **Analogie** : tu as écrit trois paragraphes en te basant sur la version 1 d'un document. Entre-temps, une version 2 est sortie. Plutôt que de « fusionner » maladroitement, tu **réécris tes trois paragraphes par-dessus la version 2**, proprement, dans l'ordre. C'est ça, rebaser.\n\nL'usage le plus courant est `git pull --rebase` (récupérer les commits des autres et remettre les tiens au-dessus, sans commit de fusion). Il existe aussi le **rebase interactif** (`git rebase -i`), un outil puissant pour **faire le ménage** dans tes commits avant de les partager : les regrouper (*squash* = écraser plusieurs commits en un), les réordonner, réécrire leurs messages, ou en supprimer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le rebase rejoue tes commits sur une nouvelle base : un historique lineaire et propre.",
+          "body": "/images/lessons/rebase-et-workflows-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Nettoyer sa branche avant de la proposer",
+          "codeLanguage": "bash",
+          "body": "git fetch origin\n     # récupère l'état à jour du dépôt distant (sans encore l'intégrer).\n\ngit rebase origin/main\n     # rejoue TES commits par-dessus la version à jour de main.\n     # Ta branche est maintenant \"au sommet\" du dernier main : historique propre.\n\ngit rebase -i HEAD~3\n     # \"-i\" = interactif, sur tes 3 derniers commits (HEAD~3).\n     # Git ouvre une liste où tu peux : squash (fusionner des commits),\n     # reword (réécrire un message), réordonner ou supprimer.\n\n# ⚠️ Règle absolue : ne JAMAIS rebaser des commits que tu as DÉJÀ partagés\n# (poussés sur une branche que d'autres utilisent). Voir la section suivante."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "⚠️ La règle d'or du rebase",
+          "body": "Voici sans doute la règle la plus importante de cette leçon :\n\n**Ne rebase jamais des commits déjà poussés et partagés avec d'autres.**\n\nPourquoi ? Souviens-toi : rebaser **réécrit les commits**, chaque commit rejoué reçoit un **nouveau hash** (un nouvel identifiant). Or si tes collègues ont déjà récupéré les anciens commits, ils possèdent une version de l'histoire que tu viens de réécrire. Résultat : deux histoires différentes qui prétendent être la même, des divergences, et des conflits inextricables pour tout le monde.\n\n👉 **Analogie** : c'est comme **réécrire les pages d'un livre que des gens ont déjà photocopié**. Leurs photocopies ne correspondent plus à ton nouvel exemplaire, et personne ne sait plus quelle est la « vraie » version.\n\n**La règle simple, en une phrase** : le rebase, c'est pour **nettoyer ton travail LOCAL avant de le partager** ; une fois que c'est partagé, on intègre avec `merge` (ou via une pull request), jamais en rebasant l'histoire commune."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Regle d'or du rebase : ne jamais reecrire une histoire deja partagee avec les autres.",
+          "body": "/images/lessons/rebase-et-workflows-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Les workflows d'équipe : comment s'organiser à plusieurs",
+          "body": "Un **workflow** (littéralement « flux de travail ») est la **convention** qu'une équipe adopte pour organiser ses branches et ses fusions. Il n'y a pas de « meilleur » absolu ; on choisit selon la taille de l'équipe et le rythme de livraison. Les trois grands modèles :\n\n**Feature branch** (le plus courant) : **une branche par tâche** (fonctionnalité ou correctif), qu'on propose via une pull request vers `main`. Simple, clair, adapté à la plupart des équipes.\n\n**Trunk-based** : tout le monde intègre **très souvent** dans `main` (le « tronc »), avec des branches de très courte durée. Le code pas encore prêt est caché derrière des **feature flags** (des interrupteurs qui activent/désactivent une fonctionnalité). Ce modèle favorise l'intégration et le déploiement continus (CI/CD).\n\n**GitFlow** : un modèle **plus lourd** avec plusieurs branches durables (`develop`, `release`, `hotfix`…). Utile pour des logiciels à **cycles de version formels** (release planifiées), mais souvent trop complexe pour du web moderne à livraison rapide.\n\n👉 **En pratique** : la plupart des équipes web démarrent en *feature branch* et vont vers du *trunk-based* quand elles automatisent bien leurs tests."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les workflows d'equipe (trunk, feature branches, gitflow) organisent le travail a plusieurs.",
+          "body": "/images/lessons/rebase-et-workflows-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Trois outils de pro : conventions de message, tags et bisect",
+          "body": "Trois pratiques qui distinguent un usage professionnel de Git.\n\n**Les Conventional Commits** : une convention pour **préfixer** les messages de commit selon leur nature, `feat:` (nouvelle fonctionnalité), `fix:` (correctif), `refactor:` (réorganisation sans changement de comportement), `docs:`, `test:`, `chore:`… Un historique ainsi normalisé est **lisible d'un coup d'œil** et permet même de générer automatiquement le *changelog* (la liste des nouveautés) et le numéro de version.\n\n**Les tags** : un **tag** (`git tag v1.2.0`) est une **étiquette** posée sur un commit pour marquer une **version publiée**. 👉 Analogie : c'est le marque-page « ici, c'est la version 1.2.0 livrée aux clients », pour la retrouver facilement plus tard.\n\n**git bisect** : un outil pour **traquer le commit qui a introduit un bug**. Il fait une **recherche dichotomique** (par dichotomie = couper en deux à chaque fois) dans l'historique : Git te fait tester un commit du milieu (« le bug est-il là ? »), puis, selon ta réponse, coupe la moitié restante, et recommence. En une poignée d'essais, il isole le commit fautif parmi des centaines. On le détaille dans la dernière leçon. (Section « niveau expert » : ce sont des réflexes qui viennent avec la pratique.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois outils de pro : conventions de message, tags de version, et bisect pour chercher un bug.",
+          "body": "/images/lessons/rebase-et-workflows-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À vous",
+          "body": "Avant d'ouvrir une pull request, ta branche locale (non partagée) contient 6 petits commits brouillons nommés « wip », « wip2 », « fix truc »… Comment présenter à l'équipe un historique propre et lisible ? Et pourquoi est-ce sans danger ici ?",
+          "solution": "On utilise le rebase interactif pour regrouper et nettoyer ces commits : git rebase -i HEAD~6 (les 6 derniers commits). Git ouvre une liste éditable ; on y remplace \"pick\" par \"squash\" (ou \"fixup\") sur les commits qu'on veut fusionner dans le précédent, de façon à condenser les 6 brouillons en un ou deux commits cohérents. On en profite pour réécrire les messages proprement selon la convention (par ex. feat: ajoute l'inscription, fix: corrige la validation de l'e-mail). Résultat : une pull request avec un historique clair, où chaque commit a un sens, au lieu de 6 « wip » illisibles. Pourquoi c'est SANS DANGER ici : la branche n'est PAS encore partagée (personne d'autre ne l'a récupérée). Réécrire l'historique d'une branche purement locale ne gêne personne, c'est exactement l'usage légitime du rebase. La règle d'or (ne pas rebaser du partagé) ne s'applique pas, puisqu'on nettoie AVANT de partager. C'est même la bonne pratique : on soigne son historique en local, puis on propose une PR propre."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Git",
+          "quizRef": "git-essentials"
+        }
+      ]
+    },
+    {
+      "slug": "git-modele-objet",
+      "title": "Git en profondeur : le modèle objet",
+      "position": 8,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Avant de commencer : pourquoi regarder « sous le capot » ?",
+          "body": "Jusqu'ici tu sais **utiliser** Git. Cette leçon (plus avancée) explique **comment il fonctionne à l'intérieur**. Pourquoi s'embêter ? Parce qu'une fois qu'on a compris le mécanisme, Git cesse d'être magique et devient **prévisible** : on sait exactement ce que fait chaque commande, et on n'a plus peur des manipulations. Prends-la comme une leçon « bonus compréhension », tu peux y revenir plus tard si c'est trop tôt.\n\nL'idée centrale, simple : **Git est une petite base de données de « objets »**, où chaque objet est rangé et retrouvé grâce à un identifiant calculé **à partir de son contenu**. On appelle ça un **stockage adressé par contenu** : l'adresse d'un objet, c'est l'empreinte de ce qu'il contient. Conséquence directe (on y revient) : deux choses au contenu identique ont la même adresse, donc sont stockées **une seule fois**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Regarder sous le capot de Git demystifie branches, merges et 'objets perdus'.",
+          "body": "/images/lessons/git-modele-objet-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les quatre types d'objets de Git",
+          "body": "Tout, dans Git, est fait de **quatre types d'objets**. Voyons-les du plus simple au plus complet.\n\n**Le blob** (de *Binary Large OBject*) : c'est **le contenu d'un fichier**, tout seul, sans son nom, sans son emplacement. Juste les octets du fichier.\n\n**Le tree** (« arbre ») : c'est **un répertoire**. Il fait la liste « nom de fichier → blob » (et « nom de sous-dossier → autre tree »). C'est lui qui donne un **nom** et une **place** aux blobs.\n\n**Le commit** : c'est **un instantané** (une version enregistrée). Il contient : un pointeur vers **un tree racine** (la photo de tout le projet à cet instant), un ou des pointeurs vers le/les **commit(s) parent(s)** (le commit précédent), plus l'**auteur**, la **date** et le **message**.\n\n**Le tag annoté** : une **étiquette nommée** (et éventuellement signée) qui pointe vers un objet, typiquement pour marquer une version (`v1.2.0`).\n\n👉 **Analogie** : le **blob** est le *texte* d'une page ; le **tree** est la *table des matières* qui dit quelle page porte quel titre ; le **commit** est une *édition datée* du livre entier, qui référence l'édition précédente. Chacun de ces objets est identifié par le **hash** (l'empreinte) de son contenu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quatre types d'objets : blob (contenu), tree (arborescence), commit (instantane), tag.",
+          "body": "/images/lessons/git-modele-objet-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Ouvrir le capot pour de vrai",
+          "codeLanguage": "bash",
+          "body": "# Ces commandes te laissent INSPECTER les objets. \"cat-file\" = afficher un objet.\n\ngit cat-file -t HEAD\n     # \"-t\" = type : quel type d'objet est HEAD ? -> réponse : commit\n\ngit cat-file -p HEAD\n     # \"-p\" = print (affiche le contenu) : tu vois le tree racine, le parent,\n     # l'auteur et le message de ce commit.\n\ngit cat-file -p HEAD^{tree}\n     # affiche le tree racine du commit : la liste des fichiers (blobs) et sous-dossiers.\n\ngit rev-parse HEAD\n     # affiche le hash complet (l'identifiant) du commit courant."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Branches et HEAD : juste des pointeurs",
+          "body": "Voici la révélation qui démystifie tout le reste. Une **branche n'est pas une copie** du projet. C'est un simple **pointeur** : un minuscule fichier qui contient **le hash d'un commit** (par exemple le fichier `refs/heads/main` contient l'identifiant du dernier commit de `main`). On appelle ces pointeurs des **refs** (références).\n\nEt **HEAD** ? C'est le pointeur qui dit « **où tu te trouves actuellement** », en général, il pointe vers la branche courante.\n\n👉 **Analogie** : imagine tous tes commits comme une chaîne de post-it collés au mur. Une **branche**, c'est juste **un post-it fléché** posé sur l'un d'eux qui dit « dernier commit de main ici ». **HEAD**, c'est le post-it « tu es ici ».\n\nD'un coup, tout s'éclaire :\n- **Créer une branche** = écrire un hash dans un petit fichier → instantané, quasi gratuit.\n- **Committer** = fabriquer un nouvel objet commit et **avancer** le post-it de la branche dessus.\n- **merge** = fabriquer un commit à deux parents.\n- **rebase** = **recréer** des commits (donc de nouveaux hash) sur une autre base.\n- **reset** = simplement **déplacer** le post-it de la branche sur un autre commit.\n\nVoir les branches comme des post-it sur un graphe de commits rend le comportement de Git entièrement **prévisible**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une branche et HEAD ne sont que des pointeurs vers un commit : leger et bon marche.",
+          "body": "/images/lessons/git-modele-objet-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Pourquoi « rien ne se perd » vraiment",
+          "body": "On avait promis, avec le reflog, que rien n'est vraiment perdu. Voici **pourquoi**, maintenant qu'on connaît le modèle.\n\nLes objets de Git sont **immuables** (une fois créés, ils ne changent jamais) et **adressés par contenu**. Quand un `reset` ou un `rebase` « abandonne » un commit, cet objet commit **existe toujours** dans la base de Git, simplement, plus aucun post-it (aucune branche) ne pointe dessus. Il devient orphelin, mais il est bel et bien là, retrouvable par son hash (via le `reflog`). Il ne disparaîtra que bien plus tard, quand le **garbage collector** de Git (le « ramasse-miettes », un nettoyage automatique) fera le ménage des objets vraiment inaccessibles.\n\nDernier détail d'efficacité : pour ne pas gaspiller d'espace, Git regroupe et compresse ses objets dans des **packfiles** (des fichiers « paquets » qui stockent les différences entre objets proches). C'est transparent pour toi.\n\n👉 **La vraie leçon** : comprendre le modèle objet, c'est **arrêter de prier devant Git**. On sait ce que chaque commande fait au graphe, donc on manipule en confiance. (Section « niveau expert », un vrai déclic quand il arrive.)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "Rien ne se perd vraiment : tant qu'un objet est reference (reflog), on peut le retrouver.",
+          "body": "/images/lessons/git-modele-objet-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Le graphe des objets, en image",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    HEAD[\"HEAD (tu es ici)\"] --> main\n    main[\"branche main<br/>(un pointeur)\"] --> C2\n    C2[\"commit C2<br/>parent = C1\"] --> C1[\"commit C1<br/>(premier commit)\"]\n    C2 --> T[\"tree (dossier)<br/>liste nom → contenu\"]\n    T --> B1[\"blob<br/>contenu de app.txt\"]\n    T --> B2[\"blob<br/>contenu de README.md\"]\n    C1 -.-> T0[\"tree initial\"]",
+          "position": 9
+        },
+        {
+          "type": "EXERCISE",
+          "position": 10,
+          "title": "À vous",
+          "body": "Tu ajoutes dans ton projet deux fichiers situés à des endroits différents mais dont le CONTENU est exactement identique. Combien de blobs Git crée-t-il pour stocker leur contenu, et pourquoi ? Qu'est-ce qui, dans les trees, les distingue quand même ?",
+          "solution": "Git ne crée qu'UN SEUL blob. Raison : Git adresse ses objets par le hash de leur CONTENU, pas par leur nom ni leur chemin. Deux fichiers au contenu identique produisent donc exactement le même hash, donc le même blob. Git le stocke une seule fois et le référence deux fois. C'est la « déduplication » naturelle du stockage adressé par contenu : le même contenu n'est jamais stocké en double, ce qui rend Git très économe (c'est aussi pour ça qu'un fichier non modifié entre deux commits n'est pas re-stocké). Ce qui distingue quand même les deux fichiers : ce ne sont pas les blobs, mais les TREES. Souviens-toi qu'un tree est un répertoire qui associe des NOMS et des EMPLACEMENTS à des blobs. Les deux fichiers apparaissent donc dans leurs trees respectifs (ou à deux entrées du même tree) sous des noms/chemins différents, mais pointant tous les deux vers l'unique blob partagé. En résumé : un seul blob pour le contenu, deux entrées de tree pour les deux noms/emplacements."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz, Le modèle objet (avancé)",
+          "quizRef": "git-objet-check",
+          "position": 11
+        }
+      ]
+    },
+    {
+      "slug": "git-outillage-avance-securite",
+      "title": "Outillage avancé & sécurité",
+      "position": 9,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Trois outils pratiques : worktrees, hooks, rerere",
+          "body": "Cette dernière leçon rassemble des outils qui rendent le quotidien plus efficace (et plus sûr). Pas besoin de tout retenir : sache qu'ils existent, tu y reviendras au besoin.\n\n**Les worktrees** (`git worktree add`). Normalement, un dépôt n'a qu'un seul dossier de travail, sur une seule branche à la fois. Un **worktree** (« arbre de travail ») te permet d'avoir **plusieurs branches ouvertes en parallèle**, dans des dossiers séparés, sans re-cloner le projet. 👉 Cas typique : tu es en plein développement et un bug urgent tombe ; au lieu de tout mettre de côté (stash) et changer de branche, tu ouvres un second worktree pour corriger le bug **à côté**, puis tu reviens. (C'est d'ailleurs ce que Claude Code utilise pour isoler ses agents.)\n\n**Les hooks** (« crochets »). Ce sont des **scripts que Git déclenche automatiquement** à certains moments, par exemple **avant** chaque commit ou push. Usage classique : lancer le formatage, le *linter* (vérificateur de style) ou les tests **avant** de committer, pour empêcher du code cassé d'entrer. On les gère souvent avec un outil dédié nommé `pre-commit`.\n\n**Le rerere** (*reuse recorded resolution*, « réutiliser une résolution enregistrée »). Une fois activé, il **mémorise comment tu as résolu un conflit** et le rejoue automatiquement si **le même conflit revient** plus tard. Un gain de temps quand on fait beaucoup de rebases."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Worktrees, hooks et rerere : trois outils pratiques pour fluidifier le quotidien.",
+          "body": "/images/lessons/git-outillage-avance-securite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Signer ses commits : prouver qui a écrit quoi",
+          "body": "Voici un fait surprenant : le champ « auteur » d'un commit est **librement modifiable**. Rien n'empêche quelqu'un de créer un commit en mettant **ton nom et ton e-mail** comme auteur. Par défaut, donc, **rien ne prouve** vraiment qui a écrit un commit, c'est juste du texte déclaratif.\n\nLa parade est la **signature de commit**. En signant, tu attaches à ton commit une **preuve cryptographique** de ton identité (via une clé **GPG** ou **SSH**, ce sont des systèmes de clés qui prouvent « c'est bien moi »). Les plateformes comme GitHub affichent alors un badge **« Verified »** sur tes commits.\n\n👉 **Pourquoi ça compte** : sur un projet sensible, exiger des commits signés est une **défense concrète** contre l'usurpation d'identité et l'injection de code malveillant par un tiers qui se ferait passer pour un membre de confiance. C'est de la sécurité de la chaîne de production logicielle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Signer ses commits (GPG/SSH) prouve qui a reellement ecrit quoi.",
+          "body": "/images/lessons/git-outillage-avance-securite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Urgence : un secret a fuité dans l'historique",
+          "codeLanguage": "bash",
+          "body": "# Rappel crucial : un secret (mot de passe, clé d'API) committé RESTE dans\n# l'historique POUR TOUJOURS, même si un commit suivant le \"supprime\"\n# (Git garde tout l'historique). Voici la marche à suivre :\n\n# 1) LE PLUS IMPORTANT : considérer le secret comme COMPROMIS et le CHANGER\n#    (le \"faire tourner\" / rotation) immédiatement. Un secret publié une fois\n#    doit être révoqué : c'est ça, la vraie protection.\n\n# 2) Le retirer de tout l'historique (réécrit tous les commits concernés) :\ngit filter-repo --path .env --invert-paths\n     # \"filter-repo\" réécrit l'historique pour en effacer le fichier .env partout.\n\n# 3) Comme l'historique a été réécrit : push forcé COORDONNÉ avec l'équipe,\n#    et tout le monde re-clone le dépôt.\n\n# ⚠️ À retenir : la ROTATION du secret (étape 1) est la vraie parade.\n# Nettoyer l'historique (étapes 2-3) est secondaire  -  le secret a déjà été exposé."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Retrouver le commit fautif : git bisect",
+          "body": "Un bug est apparu, mais **quand** ? Parmi des centaines de commits, lequel l'a introduit ? Les chercher un par un serait interminable. **`git bisect`** fait ça intelligemment par **recherche dichotomique** (couper l'intervalle en deux à chaque étape).\n\nLe principe : tu indiques à Git un commit **ancien où tout allait bien** (`good`) et un commit **récent où le bug est présent** (`bad`). Git se place alors sur le commit du **milieu** et te demande de tester : « bon ou mauvais ? ». Selon ta réponse, il **élimine la moitié** de l'intervalle et recommence. En quelques essais seulement, il isole le commit coupable.\n\n👉 **Le chiffre qui impressionne** : pour **300 commits**, la dichotomie trouve le fautif en environ **9 essais** (parce que 2⁹ ≈ 500). C'est le pouvoir du « couper en deux » à répétition.\n\nEncore mieux : `git bisect run <script>` **automatise** tout. Tu fournis un script (typiquement le test qui échoue) qui renvoie « 0 si le commit est bon, autre chose si mauvais », et Git déroule seul toute la recherche jusqu'au commit fautif. Couplé à **`git blame`** (qui affiche, pour chaque ligne d'un fichier, dans quel commit elle a été modifiée et par qui) et à un historique de **petits commits bien nommés**, c'est l'arsenal du débogage, la vraie raison pour laquelle on soigne ses commits depuis le début. (Section « niveau expert ».)"
+        },
+        {
+          "type": "IMAGE",
+          "title": "git bisect trouve le commit fautif par dichotomie, meme dans un long historique.",
+          "body": "/images/lessons/git-outillage-avance-securite-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un test qui passait il y a environ 300 commits échoue aujourd'hui, et personne ne sait quel commit l'a cassé. Quelle commande Git permet de trouver le coupable efficacement, comment fonctionne-t-elle, et en combien d'étapes environ ?",
+          "solution": "On utilise git bisect, qui fait une recherche dichotomique (par moitié) dans l'historique. Fonctionnement : on démarre avec git bisect start, on marque le commit actuel comme mauvais (git bisect bad) et un commit ancien où le test passait comme bon (git bisect good <hash-ancien>). Git se place alors automatiquement sur le commit du MILIEU de l'intervalle et nous demande de le tester : on lance le test, puis on répond git bisect good ou git bisect bad selon le résultat. À chaque réponse, Git élimine la MOITIÉ des commits restants et se place au milieu de la moitié qui contient encore le bug. On répète jusqu'à ce qu'il ne reste qu'un commit : c'est le coupable. Nombre d'étapes : environ log₂(300) ≈ 9 tests seulement (au lieu de 300 !), parce qu'on divise l'intervalle par deux à chaque fois. Encore mieux : git bisect run <script-de-test> automatise entièrement le processus, on fournit un script qui renvoie 0 si le commit est bon et une valeur non nulle s'il est mauvais, et Git déroule seul toute la dichotomie et affiche directement le commit qui a introduit la régression. C'est spectaculairement efficace, et ça marche d'autant mieux que les commits sont petits et ciblés (on identifie précisément le changement fautif)."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "Pour approfondir Git à ton rythme :\n- **Pro Git** (Scott Chacon & Ben Straub), le livre de référence, **gratuit** en ligne sur git-scm.com/book (en français aussi). Le chapitre 10 « Git Internals » reprend en détail le modèle objet vu ici.\n- **Learn Git Branching** (learngitbranching.js.org), un site interactif qui **visualise** branches, merge et rebase pendant que tu tapes les commandes : idéal pour ancrer les concepts.\n- La documentation de `git filter-repo` (purger l'historique) et le projet `pre-commit` (gérer les hooks).\n- Les guides GitHub/GitLab sur la **signature des commits** (GPG/SSH).\n\n👉 Le meilleur apprentissage reste la pratique : crée un dépôt de test et expérimente sans crainte, souviens-toi du reflog, ton filet de sécurité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir Git.",
+          "body": "/images/lessons/git-outillage-avance-securite-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Git (niveau expert)",
+          "quizRef": "git-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "ref": "record-patterns-en-pratique",
+  "node": "record-patterns",
+  "lesson": "en-pratique",
+  "title": "Quiz : en pratique",
+  "description": "Traiter une hiérarchie de formes ou d'évènements par déconstruction.",
+  "questions": [
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu traites une interface sealed Forme et chaque forme est un record. Quel intérêt d'un switch avec record patterns sur une telle hiérarchie ?",
+      "justification": "sealed rend le switch exhaustif (pas besoin de default) et le record pattern lit les composants au même endroit que le choix du cas.",
+      "position": 0,
+      "options": [
+        { "label": "Le switch couvre tous les cas sans default et lit les composants directement", "correct": true, "position": 0 },
+        { "label": "Il faut quand même un default et des accesseurs manuels", "correct": false, "position": 1 },
+        { "label": "On ne peut pas déconstruire un record qui implémente une interface", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour record Message(String utilisateur, String texte) implements Evenement, quelle branche lit les deux champs ?",
+      "justification": "Le record pattern déconstruit le record : case Message(var user, var texte) donne les deux composants.",
+      "position": 1,
+      "options": [
+        { "label": "case Message(var user, var texte) -> ...", "correct": true, "position": 0 },
+        { "label": "case Message m -> m.get(0) ...", "correct": false, "position": 1 },
+        { "label": "case Message[user, texte] -> ...", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si l'interface est sealed et que le switch couvre tous ses types avec des record patterns, un default n'est pas nécessaire.",
+      "justification": "Vrai : sealed garantit la liste fermée des types, donc le compilateur sait que le switch est exhaustif.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

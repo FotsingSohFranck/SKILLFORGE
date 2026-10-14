@@ -1,0 +1,123 @@
+{
+  "node": "locals-outputs",
+  "lessons": [
+    {
+      "slug": "locals",
+      "title": "Les valeurs locales",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Nommer et réutiliser des expressions",
+          "body": "Avant tout, un mot de contexte. Avec **Terraform** (l'outil qui construit ton infrastructure à partir de simples fichiers texte), tu écris ta configuration dans des fichiers. Un **module** est simplement un **dossier** contenant ces fichiers, un bloc réutilisable qui décrit un morceau d'infrastructure.\n\nDans un module, tu manipules deux sortes de valeurs qu'il ne faut surtout pas confondre.\n\nUne **variable d'entrée** (le bloc `variable`) est un **réglage fourni de l'extérieur** : la personne qui utilise ton module lui donne une valeur (la région, la taille d'une machine). C'est un bouton de réglage exposé vers l'extérieur.\n\nUne **valeur locale** (le bloc `locals`, au pluriel) est une **variable interne** que tu calcules toi-même **dans** ton code, à partir des variables ou d'autres expressions. Personne de l'extérieur ne peut la changer.\n\n👉 **Analogie** : pense à une recette de cuisine. La variable d'entrée, c'est un **ingrédient que le client apporte** (il choisit le poisson). La valeur locale, c'est une **préparation que tu fais toi-même en cuisine** (ta sauce maison, mélangée une fois puis réutilisée dans trois plats). Le client ne touche pas à ta sauce.\n\nÀ quoi sert un local concrètement ? À écrire une **expression** (un calcul, un assemblage de texte) **une seule fois**, à lui donner un nom, puis à la réutiliser partout via `local.nom`. On évite ainsi de **répéter** le même calcul : c'est le principe **DRY** (de l'anglais *Don't Repeat Yourself*, « ne te répète pas »). Exemple typique : tu veux coller les mêmes étiquettes (des **tags**, de petites paires clé/valeur qui décrivent une ressource, par exemple `Environment = \"prod\"`) sur toutes tes machines. Plutôt que de recopier la liste dix fois, tu la définis une fois dans un local et tu écris `local.common_tags` à chaque endroit. Si la convention change, tu ne corriges qu'à un seul endroit.\n\nEn résumé : **variable** = ce que l'appelant fournit (entrée configurable) ; **local** = ce que l'auteur calcule et factorise en interne (non modifiable de l'extérieur)."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Locals pour des tags communs",
+          "codeLanguage": "hcl",
+          "body": "locals {\n  # Convention de tags appliquée partout (principe DRY)\n  common_tags = {\n    Project     = var.project\n    Environment = var.environment\n    ManagedBy   = \"terraform\"\n  }\n  # Un préfixe de nommage réutilisable, ex. \"boutique-prod\"\n  name_prefix = \"${var.project}-${var.environment}\"\n}\n\nresource \"aws_instance\" \"web\" {\n  # ...\n  # merge(...) fusionne deux maps : ici les tags communs + un tag Name propre.\n  tags = merge(local.common_tags, { Name = \"${local.name_prefix}-web\" })\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 2,
+          "title": "À vous",
+          "body": "Quelle est la différence entre une variable d'entrée (`variable`) et une valeur locale (`local`), et dans quel cas utiliser chacune ?",
+          "solution": "La différence tient à leur ORIGINE et à qui les contrôle. Une variable d'entrée (variable) est un PARAMÈTRE fourni de l'EXTÉRIEUR : c'est l'interface du module/configuration avec celui qui l'utilise. Sa valeur vient de l'appelant (fichier tfvars, -var, TF_VAR_, valeur par défaut, ou l'appelant du module) ; elle sert à rendre le code configurable/réutilisable (région, taille, environnement...). Une valeur locale (local) est un CALCUL INTERNE au module, défini et contrôlé par l'AUTEUR du code : elle nomme une expression pour la réutiliser, éviter la répétition (DRY), centraliser une convention (tags communs, préfixe de nommage) ou clarifier une expression complexe. On ne peut PAS la surcharger de l'extérieur, elle n'est pas une entrée. Quand utiliser chacune : (1) variable → dès qu'une valeur doit pouvoir changer selon qui utilise le code ou selon l'environnement (ce sont les « boutons de réglage » exposés à l'utilisateur du module) ; typiquement region, instance_type, environment, un CIDR, etc. (2) local → pour des valeurs DÉRIVÉES ou des constantes internes, calculées à partir des variables et/ou d'autres locals, réutilisées à plusieurs endroits : par exemple des common_tags construits à partir de var.project et var.environment, un name_prefix, ou le résultat d'une expression compliquée qu'on ne veut écrire qu'une fois. Règle mnémotechnique : variable = ce que l'appelant fournit (entrée configurable) ; local = ce que l'auteur calcule/factorise en interne (non configurable de l'extérieur). Bien souvent, on combine les deux : les variables apportent les valeurs brutes de l'extérieur, et les locals les transforment/composent en valeurs prêtes à l'emploi utilisées dans les ressources."
+        },
+        {
+          "type": "QUIZ",
+          "position": 3,
+          "title": "Quiz, Les valeurs locales",
+          "quizRef": "locals-outputs-locals-check"
+        }
+      ]
+    },
+    {
+      "slug": "outputs-et-sensitive",
+      "title": "Outputs & données sensibles",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Exposer des valeurs vers l'extérieur",
+          "body": "Un **output** (le bloc `output`, « sortie » en anglais) sert à **faire ressortir une valeur** une fois que Terraform a fini de construire ton infrastructure.\n\nPetit rappel : l'**apply** est l'étape où Terraform **crée réellement** les ressources décrites dans ton code (la commande `terraform apply`). Beaucoup de valeurs ne sont connues **qu'après** cette étape : l'adresse d'un serveur, l'identifiant d'un réseau. L'output est le moyen de les récupérer.\n\nIl a deux usages.\n\n**1. Informer.** Afficher à l'écran, à la fin d'un déploiement, des valeurs utiles : par exemple l'**URL** (l'adresse web) d'un **load balancer** (un « répartiteur de charge », la machine qui distribue le trafic entre plusieurs serveurs), ou l'**adresse IP** (le numéro qui identifie une machine sur le réseau) d'un serveur. La commande `terraform output` les réaffiche à la demande.\n\n**2. Composer des modules (l'usage le plus important).** Rappel : un **module** est un dossier de configuration réutilisable. On les emboîte : un module **parent** (celui qui appelle) utilise un module **enfant** (celui qui est appelé). Le module enfant **expose** certaines de ses valeurs via des outputs, et le parent les **récupère** avec la notation `module.nom_du_module.nom_de_l_output` (par exemple `module.reseau.vpc_id`).\n\nUn **VPC** (*Virtual Private Cloud*, « réseau privé virtuel ») est ton réseau privé isolé dans le cloud ; son identifiant est justement le genre de valeur qu'un module réseau expose pour que d'autres modules s'y raccordent.\n\n👉 **Analogie** : un module, c'est comme un **appareil électrique**. Les **variables d'entrée** sont ses **prises femelles** (ce qu'on lui branche en entrée) et les **outputs** sont ses **fiches mâles** (ce qu'il fournit en sortie). Pour relier deux appareils, tu branches la sortie de l'un dans l'entrée de l'autre : le module réseau sort un `vpc_id`, le module applicatif le prend en entrée. Les outputs sont donc l'**interface de sortie** d'un module, exactement comme les variables sont son interface d'entrée."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 1,
+          "title": "Comment deux modules se branchent l'un à l'autre",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n    subgraph enfant[\"Module enfant (reseau)\"]\n        R[\"Ressource VPC\"] --> O[\"output vpc_id\"]\n    end\n    subgraph parent[\"Module parent (application)\"]\n        V[\"variable vpc_id\"] --> A[\"Ressource serveur\"]\n    end\n    O -->|\"module.reseau.vpc_id\"| V"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Sensitive & preconditions",
+          "body": "Deux raffinements utiles autour des outputs.\n\n**`sensitive = true`.** Quand tu ajoutes cette option à un output (ou à une variable), Terraform **masque sa valeur à l'affichage** : dans le terminal (la **CLI**, *Command Line Interface*, l'interface en ligne de commande) et dans les **logs** (les journaux de texte que l'outil écrit pendant son exécution), la valeur n'apparaît plus, remplacée par `(sensitive value)`. C'est fait pour ne pas étaler à l'écran un mot de passe ou un **token** (un jeton, une longue chaîne secrète qui sert de clé d'accès à un service).\n\n⚠️ Attention à un piège très fréquent : `sensitive` **cache l'affichage**, mais la valeur reste **en clair dans le state**. Le **state** (le « fichier d'état ») est le fichier où Terraform note tout ce qu'il a créé et les valeurs associées, pour s'y retrouver au lancement suivant. Le secret y est donc bien lisible ; il faudra protéger ce fichier (on le voit plus loin dans le parcours).\n\n👉 **Analogie** : `sensitive`, c'est comme les **astérisques à la place d'un mot de passe** quand tu le tapes sur un site. À l'écran tu vois `••••••`, mais le mot de passe réel est bel et bien envoyé et stocké quelque part. Masquer l'affichage n'est pas chiffrer.\n\n**Les preconditions.** Une **precondition** (« condition préalable ») est une **vérification que tu poses avant l'apply** : Terraform contrôle qu'une hypothèse est vraie *avant* de construire, et s'arrête immédiatement avec un message clair si ce n'est pas le cas. On l'écrit dans un bloc `lifecycle` (le bloc qui règle le « cycle de vie » d'une ressource) via une sous-section `precondition`. Exemples : « le réseau a bien au moins 2 sous-réseaux » ou « cette **AMI** est bien dans la bonne région » (une **AMI**, *Amazon Machine Image*, est le modèle d'image, en quelque sorte le « système préinstallé », à partir duquel une machine AWS démarre).\n\n👉 **Analogie** : c'est la **checklist du pilote avant décollage**. On vérifie les hypothèses critiques au sol ; si quelque chose cloche, on ne décolle pas, plutôt que de découvrir le problème en vol. Cela **échoue tôt** (*fail fast*), avec un message qui dit précisément quoi corriger, comme les validations de variables mais appliquées à des valeurs calculées."
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Outputs, sensitive & precondition",
+          "codeLanguage": "hcl",
+          "body": "output \"load_balancer_url\" {\n  description = \"URL publique de l'application\"\n  value       = aws_lb.main.dns_name\n}\n\noutput \"db_password\" {\n  value     = aws_db_instance.main.password\n  sensitive = true          # masqué à l'affichage (mais présent dans le state)\n}\n\n# Vérifier une hypothèse avant l'apply\nresource \"aws_instance\" \"web\" {\n  # ...\n  lifecycle {\n    precondition {\n      condition     = data.aws_ami.selected.architecture == \"x86_64\"\n      error_message = \"L'AMI doit être x86_64.\"\n    }\n  }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Une équipe marque un output contenant un mot de passe avec `sensitive = true` et conclut : « Le mot de passe est maintenant sécurisé. » Où se trompe-t-elle, et que faut-il faire en plus ?",
+          "solution": "Elle se trompe en confondant « masqué à l'affichage » et « sécurisé ». sensitive = true empêche seulement Terraform d'AFFICHER la valeur en clair dans les sorties de la CLI, les logs de plan/apply et la commande terraform output (elle apparaît comme (sensitive value)). C'est utile pour éviter d'exposer le secret à l'écran ou dans les logs de CI. MAIS la valeur reste stockée EN CLAIR dans le fichier d'état (state) : Terraform doit connaître la valeur réelle pour gérer la ressource, donc elle est écrite telle quelle dans le state (qui contient d'ailleurs souvent bien d'autres données sensibles : mots de passe générés, clés, etc.). Quiconque a accès au fichier d'état peut donc lire le mot de passe, malgré le sensitive. sensitive ne « sécurise » donc pas le secret, il réduit seulement son exposition dans les affichages. Ce qu'il faut faire EN PLUS : protéger le fichier d'état lui-même. (1) Utiliser un backend distant qui CHIFFRE l'état au repos (S3 avec chiffrement, Terraform Cloud/HCP, etc.) plutôt qu'un state local en clair sur disque. (2) Restreindre STRICTEMENT l'accès au state (IAM/ACL sur le bucket, permissions du backend) : seuls les acteurs autorisés (et la CI) doivent pouvoir le lire. (3) Activer le verrouillage d'état (state locking) et le chiffrement en transit. (4) Ne jamais committer un state local dans Git, et l'ajouter au .gitignore. (5) Idéalement, ne pas laisser Terraform gérer/matérialiser les secrets du tout quand c'est possible : les stocker dans un gestionnaire de secrets (Vault, Secrets Manager) et n'en manipuler que des références, pour limiter ce qui atterrit dans le state. En résumé : sensitive masque l'affichage, il ne chiffre pas le secret ; la vraie protection passe par la sécurisation du fichier d'état (backend chiffré, accès restreint) et, mieux, par l'externalisation des secrets."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Locals & outputs",
+          "quizRef": "locals-outputs-check"
+        }
+      ]
+    },
+    {
+      "slug": "locals-transformations-et-ephemeral",
+      "title": "Transformations & sorties avancées",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Composer des structures avec les locals & for",
+          "body": "Les **locals** deviennent vraiment puissants une fois associés aux **for expressions**. Une **for expression** est une **boucle** qui parcourt une collection (une liste, une map) pour en **fabriquer une nouvelle** : « pour chaque élément de la collection de départ, produis ceci ». C'est l'atelier de **transformation de données** de Terraform.\n\nQuelques mots de vocabulaire d'abord.\n- Une **liste** est une suite ordonnée de valeurs, par exemple `[\"a\", \"b\", \"c\"]`.\n- Une **map** est une collection de paires clé → valeur, par exemple `{ web = 1, db = 2 }` (tu retrouves une valeur par sa clé, pas par sa position).\n- **`flatten`** est une fonction qui **aplatit** une liste de listes imbriquées en une seule liste plate : `[[1, 2], [3]]` devient `[1, 2, 3]`.\n\nDans un local, on **construit** ainsi des structures prêtes à l'emploi : aplatir une liste imbriquée, transformer une liste d'objets en map indexée par une clé, filtrer, fusionner.\n\nLe pattern le plus courant : préparer dans un local une **map**, puis la passer à un **`for_each`**. Le `for_each` est le mécanisme qui crée **une ressource par entrée** d'une map (ou d'un ensemble) : donne-lui une map de trois entrées, il crée trois ressources. Exemple concret : à partir d'une liste d'applications et d'une liste de **zones de disponibilité** (*availability zones*, les centres de données physiquement séparés d'une même région cloud), tu génères **toutes les combinaisons** application par zone, puis tu déploies une machine pour chacune.\n\n👉 **Analogie** : le local, c'est la **mise en place du cuisinier**. Avant le coup de feu, il lave, coupe et range tous ses ingrédients dans des bacs étiquetés. Ensuite, le service (le `for_each`) est rapide et sans erreur, parce que tout est déjà prêt. On **transforme** dans les locals, on **consomme** dans les ressources : la logique de calcul est centralisée à un seul endroit, et les ressources restent courtes et lisibles."
+        },
+        {
+          "type": "CODE",
+          "position": 1,
+          "title": "Aplatir & indexer dans un local",
+          "codeLanguage": "hcl",
+          "body": "locals {\n  # produire toutes les combinaisons app x zone, en une map à clé unique\n  deployments = {\n    for pair in flatten([\n      for app in var.apps : [\n        for az in var.zones : { app = app, az = az }\n      ]\n    ]) : \"${pair.app}-${pair.az}\" => pair\n  }\n}\n\nresource \"aws_instance\" \"srv\" {\n  for_each          = local.deployments      # une instance par combinaison\n  availability_zone = each.value.az\n  tags = { Name = each.key }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ephemeral : des valeurs qui ne touchent pas le state (niveau expert)",
+          "body": "Une nouveauté majeure pour les secrets (à partir de **Terraform 1.10**) : les valeurs **ephemeral** (« éphémères »).\n\nLe mot dit tout : une valeur éphémère **ne vit que le temps de l'exécution**, puis **disparaît**. Surtout, elle n'est **jamais écrite** dans le **state** (le fichier d'état, qui garde en clair ce que Terraform a créé) **ni dans le plan**. Le **plan** est l'aperçu que Terraform calcule avant d'agir : la liste de ce qu'il compte créer, modifier ou supprimer (la commande `terraform plan`).\n\nCette famille regroupe trois choses : des **variables** éphémères, des **outputs** éphémères, et des **ephemeral resources** (des ressources éphémères, un bloc qui va **lire** une donnée le temps de l'exécution sans jamais la conserver, par exemple interroger un gestionnaire de secrets).\n\nC'est la réponse au vieux problème « le secret finit en clair dans le state ». Le scénario : tu lis un mot de passe via une ephemeral resource, tu l'utilises pendant l'apply (tu le passes à un **provider**, le composant qui parle concrètement à un service comme AWS ou une base de données), et il **ne laisse aucune trace persistante**. Un **ephemeral output** permet en plus de transmettre une valeur sensible d'un module enfant à son parent **sans la stocker**.\n\n👉 **Analogie** : compare un **code de carte bancaire à usage unique** (valable une fois, puis périmé, plus rien à voler ensuite) à un **mot de passe écrit sur un post-it** collé sous ton clavier (caché aux regards, mais toujours là pour qui soulève le clavier). `ephemeral`, c'est le code à usage unique : rien ne reste. `sensitive`, c'est le post-it caché : la valeur est masquée à l'écran mais toujours stockée dans le state.\n\nC'est l'évolution qui permet enfin de manipuler des secrets dans Terraform **sans** les exposer dans le state, un vrai progrès de sécurité qu'un profil expert connaît et adopte."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À vous",
+          "body": "Un module doit lire un mot de passe depuis un gestionnaire de secrets et le passer à un provider de base de données, mais l'équipe veut éviter que ce mot de passe n'atterrisse dans le fichier d'état. Quelle fonctionnalité récente de Terraform répond à ce besoin, et en quoi diffère-t-elle d'un simple `sensitive` ?",
+          "solution": "La fonctionnalité est celle des valeurs ÉPHÉMÈRES (ephemeral), introduites dans Terraform 1.10+ : ephemeral resources, ephemeral variables et ephemeral outputs. Le besoin décrit, lire un secret et l'utiliser pendant l'apply sans qu'il soit persistant dans le state, est précisément ce que les ephemerals résolvent. Concrètement, on lit le mot de passe via une ephemeral resource (par exemple une ressource éphémère qui interroge le gestionnaire de secrets), on l'utilise le temps de l'exécution (le passer à la configuration du provider de base de données), et cette valeur N'EST JAMAIS écrite dans le fichier d'état ni dans le plan : elle n'existe qu'en mémoire pendant l'opération, puis disparaît. Différence FONDAMENTALE avec sensitive : (1) sensitive = true ne fait que MASQUER l'affichage de la valeur dans la CLI, les logs et terraform output, mais la valeur est TOUJOURS STOCKÉE EN CLAIR dans le state (Terraform la conserve pour gérer la ressource). sensitive réduit l'exposition à l'écran, il ne protège pas le secret dans le state. (2) ephemeral va bien plus loin : la valeur n'est tout simplement PAS PERSISTÉE, ni dans le state, ni dans le plan. C'est une garantie de non-stockage, pas seulement de non-affichage. Autrement dit : sensitive = « je ne l'affiche pas mais je le garde en clair dans le state » ; ephemeral = « je ne le garde nulle part de façon persistante, il ne vit que le temps de l'exécution ». Pour le besoin exprimé (ne pas laisser le mot de passe dans le state), sensitive est INSUFFISANT ; ce sont les ephemerals qui répondent réellement. Un ephemeral output permet en plus de transmettre cette valeur sensible d'un module à son appelant sans la stocker. C'est un progrès de sécurité important : enfin manipuler des secrets dans Terraform sans les exposer dans le state. On combine idéalement avec l'externalisation des secrets (gestionnaire de secrets) et la protection du state pour ce qui doit malgré tout y figurer. À noter : les ephemerals sont récents (1.10+) et le support par les providers/ressources évolue, mais c'est la direction moderne pour les secrets en Terraform."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Quiz, Transformations & sorties avancées (expert)",
+          "quizRef": "locals-ephemeral-expert"
+        }
+      ]
+    }
+  ]
+}

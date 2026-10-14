@@ -1,0 +1,96 @@
+{
+  "ref": "oop-pecs-expert-check",
+  "node": "oop-constructs",
+  "lesson": "variance-generiques-pecs",
+  "title": "Quiz, Variance & PECS (expert)",
+  "description": "Invariance des génériques, wildcards extends/super, règle PECS, type erasure.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "`List<Integer>` est un sous-type de `List<Number>` en Java.",
+      "justification": "Faux : les génériques sont invariants. Sinon on pourrait écrire un Double dans une liste d'Integer via la référence élargie. Les wildcards bornés rouvrent le sous-typage de façon sûre.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que dit la règle PECS ?",
+      "justification": "Producer Extends, Consumer Super : `? extends T` pour une source qu'on lit, `? super T` pour une cible qu'on écrit.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Producer Extends, Consumer Super : extends pour lire, super pour écrire",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Public Extends, Class Super",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parent Extends, Child Super",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne peut-on pas ajouter d'élément (sauf null) dans une `List<? extends Number>` ?",
+      "justification": "Le type exact est inconnu (ce peut être List<Integer> ou List<Double>) ; le compilateur interdit l'écriture pour préserver la sûreté, un producteur se lit, ne s'écrit pas.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le type exact est inconnu, donc l'écriture est interdite pour rester sûr",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Parce que la liste est immuable",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Parce que Number est abstrait",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est une conséquence du type erasure à l'exécution ?",
+      "justification": "Le paramètre de type est effacé : `instanceof List<String>` est interdit, `new T[]` impossible, et deux surcharges f(List<String>)/f(List<Integer>) ne compilent pas (même signature effacée).",
+      "position": 3,
+      "options": [
+        {
+          "label": "`instanceof List<String>` est interdit et deux surcharges génériques identiques après effacement ne compilent pas",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les génériques ralentissent le runtime",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le type est disponible partout à l'exécution",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

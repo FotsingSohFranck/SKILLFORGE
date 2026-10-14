@@ -1,0 +1,96 @@
+{
+  "ref": "real-time-polling-check",
+  "node": "real-time",
+  "lesson": "le-polling",
+  "title": "Quiz, Le polling",
+  "description": "HTTP requête/réponse, short polling, long polling, latence.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En HTTP requête/réponse classique, le serveur peut envoyer spontanément un message au client sans que celui-ci l'ait demandé.",
+      "justification": "Faux : en HTTP, c'est toujours le client qui demande et le serveur qui répond. Le serveur ne parle jamais le premier, d'où le besoin de polling ou de protocoles dédiés.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi le short polling est-il considéré comme gaspilleur ?",
+      "justification": "Il envoie beaucoup de requêtes qui répondent « rien de nouveau » (réseau et serveur consommés pour rien) et ajoute une latence égale à l'intervalle.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il envoie beaucoup de requêtes qui répondent « rien de nouveau »",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il maintient une connexion bidirectionnelle coûteuse",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il nécessite d'installer WebRTC",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte le long polling par rapport au short polling ?",
+      "justification": "Le serveur garde la requête ouverte et répond dès qu'un événement survient (ou au timeout), ce qui réduit le trafic inutile et la latence.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Le serveur garde la requête ouverte et répond dès qu'un événement survient",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il rend la connexion bidirectionnelle comme un WebSocket",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il supprime totalement le besoin d'envoyer des requêtes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Avec un short polling toutes les 5 secondes, quelle est la latence maximale avant qu'une nouvelle information s'affiche ?",
+      "justification": "Au pire, la latence vaut l'intervalle de sondage : une info tout juste manquée attendra le prochain tour, soit jusqu'à 5 secondes.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Jusqu'à 5 secondes (l'intervalle de sondage)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "0 seconde, c'est toujours instantané",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Exactement 1 seconde dans tous les cas",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

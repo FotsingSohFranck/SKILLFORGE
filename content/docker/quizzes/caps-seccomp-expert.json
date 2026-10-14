@@ -1,0 +1,119 @@
+{
+  "ref": "caps-seccomp-expert",
+  "node": "container-security",
+  "lesson": "capabilities-seccomp-lsm",
+  "title": "Capabilities, seccomp & LSM, expert",
+  "description": "Jeu de capabilities par défaut, cap-drop, seccomp, AppArmor/SELinux, userns-remap.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la démarche de durcissement des capabilities ?",
+      "justification": "--cap-drop ALL puis --cap-add ciblé : partir de zéro et n'ajouter que le strict nécessaire (souvent aucune).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Retirer toutes les capabilities, n'ajouter que le nécessaire",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter toutes les capabilities par sécurité",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Toujours utiliser --privileged",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que filtre le profil seccomp appliqué par défaut par Docker ?",
+      "justification": "Il bloque une quarantaine de syscalls dangereux (mount, reboot, chargement de modules...) ; le désactiver ouvre la porte.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Une quarantaine de syscalls dangereux",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Les ports réseau",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Les variables d'environnement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait --privileged sur le plan des protections ?",
+      "justification": "Il accorde toutes les capabilities, désactive seccomp et les LSM, donne accès aux devices, quasi équivalent à root sur l'hôte.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Il désactive quasiment toutes les protections (caps, seccomp, LSM)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il ajoute juste une permission fichier",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il chiffre le conteneur",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le user namespace remapping (userns-remap) ?",
+      "justification": "Il mappe root du conteneur vers un uid non privilégié de l'hôte : une évasion débouche sur un utilisateur impuissant.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Mappe root du conteneur vers un uid sans droits sur l'hôte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Donne root sur l'hôte au conteneur",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Supprime les capabilities du noyau",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Capabilities réduites, seccomp et LSM (AppArmor/SELinux) sont trois couches de défense complémentaires au niveau des appels système et des accès.",
+      "justification": "Vrai : c'est la défense en profondeur ; chaque couche limite ce que les autres n'ont pas contenu.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "ref": "compose-advanced-pid1-expert",
+  "node": "running-containers",
+  "lesson": "compose-avance-et-pid1",
+  "title": "Compose avancé & PID 1, expert",
+  "description": "Profiles, override, extends, compose watch, init/tini, zombies.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi servent les profiles dans Compose ?",
+      "justification": "À n'activer certains services (outils, debug) que sur demande (--profile), gardant le stack de base léger.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Activer certains services seulement à la demande",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Chiffrer les variables d'environnement",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Construire des images multi-arch",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `compose.override.yaml` ?",
+      "justification": "Il est fusionné automatiquement par-dessus compose.yaml, pattern standard pour la config de dev (bind mounts, debug).",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il est fusionné automatiquement au-dessus du compose.yaml de base",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il remplace entièrement le compose.yaml",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il est ignoré par Docker",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `docker compose watch` ?",
+      "justification": "Il synchronise le code ou reconstruit le service à la volée quand des fichiers changent (sync/rebuild), hot reload moderne.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Synchronise/reconstruit un service quand les fichiers changent",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Surveille l'utilisation CPU",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Affiche les logs uniquement",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ajouter un init (`--init` / tini) quand un conteneur lance des sous-processus ?",
+      "justification": "Un init léger joue le rôle de PID 1 : il récolte les zombies et propage les signaux (arrêt gracieux).",
+      "position": 3,
+      "options": [
+        {
+          "label": "Pour récolter les zombies et propager les signaux (PID 1 correct)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Pour accélérer le démarrage",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Pour réduire la taille de l'image",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une application lancée comme PID 1 qui ne récolte pas ses enfants peut laisser s'accumuler des processus zombies.",
+      "justification": "Vrai : reaper les orphelins est le devoir de PID 1 ; une app non conçue pour cela laisse les zombies s'accumuler.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

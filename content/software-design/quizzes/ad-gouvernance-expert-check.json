@@ -1,0 +1,96 @@
+{
+  "ref": "ad-gouvernance-expert-check",
+  "node": "architecture-decisions",
+  "lesson": "gouverner-evolution-madr-radar-fitness",
+  "title": "Quiz, Gouverner l'évolution (MADR, radar, fitness) (expert)",
+  "description": "ADR vs MADR, tech radar (4 anneaux), fitness functions et leurs axes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'ajoute le format MADR à un ADR Nygard classique ?",
+      "justification": "Les options considérées, les critères de décision et les pros/cons de chaque option, on documente pourquoi CELLE-CI plutôt que les autres, pas seulement la décision.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Les options considérées, les critères et les pros/cons de chaque option",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "La signature du PDG",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Le code source complet",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie l'anneau « Hold » d'un Tech Radar ?",
+      "justification": "À éviter pour de nouveaux usages (obsolète ou risqué). Adopt = standard par défaut, Trial = à essayer sur du non-critique, Assess = à prototyper.",
+      "position": 1,
+      "options": [
+        {
+          "label": "À éviter pour de nouveaux usages",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "À adopter immédiatement partout",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "En pause temporaire de quelques jours",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle fitness function verrouille la règle des dépendances hexagonale (domaine sans Spring/R2DBC) ?",
+      "justification": "Une fitness function statique avec ArchUnit, exécutée en CI, qui casse le build si le domaine importe web/R2DBC, elle empêche l'érosion de la règle des dépendances.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un test ArchUnit (statique, en CI) vérifiant les imports interdits du domaine",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une relecture manuelle annuelle",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un commentaire // ne pas importer Spring",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Documenter une décision d'architecture (ADR) suffit à empêcher son érosion dans le code.",
+      "justification": "Faux : une décision seulement documentée s'érode (ex. import Spring dans le domaine). Il faut la verrouiller de façon exécutable via des fitness functions qui cassent le build.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "ref": "pp-railway-expert-check",
+  "node": "programming-paradigms",
+  "lesson": "erreurs-fonctionnelles-railway",
+  "title": "Quiz, Erreurs fonctionnelles & railway (expert)",
+  "description": "Option/Result/Either, railway-oriented programming, exception vs valeur, validation accumulative.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que modélise un type `Either<L, R>` (ou `Result`) par rapport à `Optional` ?",
+      "justification": "Optional modélise l'absence (0/1 valeur) ; Either/Result modélise succès OU erreur en portant l'information d'erreur (Left) à côté du succès (Right).",
+      "position": 0,
+      "options": [
+        {
+          "label": "Succès OU erreur, en rendant l'erreur explicite dans le type (vs simple absence pour Optional)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Exactement la même chose qu'Optional",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Une liste de résultats",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un pipeline railway, que fait `flatMap` quand l'étape précédente est déjà une erreur ?",
+      "justification": "Le rail erreur court-circuite : l'étape est sautée et l'erreur est propagée jusqu'au bout sans être exécutée.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Il court-circuite : l'étape est sautée, l'erreur file jusqu'à la fin",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Il relance l'étape jusqu'à réussite",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Il lève une exception",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une erreur métier ATTENDUE (email invalide), quel mécanisme privilégier ?",
+      "justification": "Une erreur métier attendue est un résultat normal : un Result/Either typé la rend visible et force son traitement, sans détourner les exceptions comme flot de contrôle.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Un Result/Either typé (l'échec est une valeur du domaine)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une exception technique remontée en 500",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Retourner null",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "On veut cumuler toutes les erreurs de validation (« email invalide ET âge manquant ») plutôt que s'arrêter à la première. Que faut-il ?",
+      "justification": "flatMap court-circuite à la première erreur ; pour accumuler, on utilise une validation applicative/accumulative qui valide les champs indépendamment puis combine la liste des erreurs.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Une validation applicative/accumulative qui combine les erreurs indépendantes",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Un simple flatMap séquentiel",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Un try/catch autour de tout",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    }
+  ]
+}

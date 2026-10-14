@@ -1,0 +1,119 @@
+{
+  "ref": "container-by-hand-expert",
+  "node": "namespaces-cgroups-union",
+  "lesson": "conteneur-a-la-main",
+  "title": "Conteneur à la main, expert",
+  "description": "unshare, chroot, nsenter, débogage d'images minimales.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande crée de nouveaux namespaces pour une commande, sans Docker ?",
+      "justification": "unshare crée de nouveaux namespaces (PID, NET, MNT...) ; combiné à chroot, on obtient l'essence d'un conteneur.",
+      "position": 0,
+      "options": [
+        {
+          "label": "unshare",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "docker build",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "chmod",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert chroot (ou pivot_root) dans la fabrication d'un conteneur à la main ?",
+      "justification": "Changer la racine du système de fichiers vers un mini-rootfs, isolant ce que le processus voit du système de fichiers.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Changer la racine du système de fichiers vers un rootfs isolé",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Limiter la mémoire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Publier un port",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment déboguer le réseau d'un conteneur distroless (sans shell ni tcpdump) sans reconstruire l'image ?",
+      "justification": "nsenter depuis l'hôte entre dans le namespace réseau du conteneur et y lance un tcpdump de l'hôte.",
+      "position": 2,
+      "options": [
+        {
+          "label": "nsenter dans le namespace réseau du conteneur, avec les outils de l'hôte",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Ajouter tcpdump au Dockerfile et reconstruire",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "C'est impossible",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Fabriquer un conteneur avec unshare + chroot + cgroups démontre quoi ?",
+      "justification": "Qu'un conteneur n'est qu'une combinaison de fonctionnalités du noyau (isolation de vue, rootfs, limites), Docker automatise cela.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Qu'un conteneur n'est qu'une combinaison de fonctionnalités du noyau",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Que Docker est inutile",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Qu'un conteneur est une VM",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "nsenter permet d'exécuter des outils de l'hôte à l'intérieur des namespaces d'un conteneur existant, ce qui sous-tend les conteneurs de débogage éphémères.",
+      "justification": "Vrai : c'est le principe de docker debug / kubectl debug, inspecter un conteneur minimal sans y installer d'outils.",
+      "position": 4,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

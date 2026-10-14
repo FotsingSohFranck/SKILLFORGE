@@ -1,0 +1,52 @@
+{
+  "ref": "orms-mapping-check",
+  "node": "orms",
+  "lesson": "mapping-et-frontieres",
+  "title": "Quiz : Mapping & frontières",
+  "description": "Entité de persistance vs modèle de domaine, et le port comme frontière.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre l'entité de persistance et le modèle de domaine ?",
+      "justification": "L'entité de persistance est l'objet technique qui reflète une ligne de table (dans l'adaptateur) ; le modèle de domaine est l'objet métier pur, sans dépendance technique.",
+      "position": 0,
+      "options": [
+        { "label": "L'entité reflète une ligne de table (technique) ; le domaine est l'objet métier pur, sans dépendance technique", "correct": true, "position": 0 },
+        { "label": "Il n'y a aucune différence : ce sont deux noms pour le même objet", "correct": false, "position": 1 },
+        { "label": "Le domaine contient les annotations de base, l'entité n'en a pas", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'un « port » dans cette architecture ?",
+      "justification": "Un port est une interface définie par le domaine (méthodes métier renvoyant des types du domaine), implémentée par un adaptateur technique.",
+      "position": 1,
+      "options": [
+        { "label": "Une interface définie par le domaine, implémentée par un adaptateur technique", "correct": true, "position": 0 },
+        { "label": "Un numéro de connexion réseau vers la base de données", "correct": false, "position": 1 },
+        { "label": "Une table spéciale qui stocke les objets du domaine", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ne pas exposer l'entité de persistance comme type de retour des use cases ?",
+      "justification": "Cela couplerait le domaine et la couche web au schéma de la base et à l'ORM : tout changement de table se propagerait partout et le domaine ne serait plus testable sans base.",
+      "position": 2,
+      "options": [
+        { "label": "Cela couplerait le métier au schéma de la base et à l'ORM, et casserait la frontière", "correct": true, "position": 0 },
+        { "label": "Parce que l'entité est trop lente à sérialiser en JSON", "correct": false, "position": 1 },
+        { "label": "Parce que l'ORM interdit techniquement de retourner ses entités", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le modèle de domaine doit dépendre directement de l'ORM pour fonctionner.",
+      "justification": "Faux. Le domaine reste pur : il dépend d'un port (interface), pas de l'ORM. C'est ce découplage qui le rend testable sans base.",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

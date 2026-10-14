@@ -1,0 +1,41 @@
+{
+  "ref": "virtual-threads-pieges",
+  "node": "virtual-threads",
+  "lesson": "pieges",
+  "title": "Quiz : pièges",
+  "description": "Calcul CPU sans gain, pinning dans synchronized, et interdiction de les mettre en pool.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel cas les threads virtuels n'apportent ils aucun gain ?",
+      "justification": "Pour un calcul pur (CPU-bound) sans attente, il n'y a aucun blocage à exploiter : la vitesse reste bornée par le nombre de cœurs.",
+      "position": 0,
+      "options": [
+        { "label": "Pour une tâche de calcul pur qui n'attend jamais (CPU-bound)", "correct": true, "position": 0 },
+        { "label": "Pour une tâche qui attend souvent le réseau", "correct": false, "position": 1 },
+        { "label": "Pour une tâche qui interroge une base de données", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le pinning (épinglage) d'un thread virtuel ?",
+      "justification": "Le pinning survient par exemple quand un thread virtuel se bloque dans un bloc synchronized : il reste collé à son porteur, qui est immobilisé pour rien.",
+      "position": 1,
+      "options": [
+        { "label": "Un thread virtuel bloqué qui reste collé à son porteur sans pouvoir se démonter", "correct": true, "position": 0 },
+        { "label": "Un thread virtuel qui se duplique automatiquement sur plusieurs porteurs", "correct": false, "position": 1 },
+        { "label": "La destruction d'un thread virtuel dès qu'il attend trop longtemps", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il faut mettre les threads virtuels dans un pool de taille fixe pour les réutiliser, comme les threads plateforme.",
+      "justification": "Faux : les threads virtuels sont quasi gratuits, on en crée un neuf par tâche. Les mettre en pool les rationne et annule leur intérêt.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

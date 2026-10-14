@@ -1,0 +1,10 @@
+{
+  "node": "architecture-decisions",
+  "lesson": "penser-en-architecte",
+  "title": "Rédiger une ADR",
+  "statement": "L'équipe vient de trancher : pour stocker les fichiers uploadés par les apprenants (PDF, images), on utilisera un service de stockage objet (type S3) plutôt que de les mettre en base de données. Rédige une ADR minimale qui documente cette décision. Utilise les cinq rubriques vues en cours : Titre, Statut, Contexte, Décision, Conséquences. Dans les Conséquences, donne au moins un point gagné (+) et un point perdu (-), car toute décision est un compromis.",
+  "skeleton": "# ADR-012 : ...\n\n## Statut\n\n## Contexte\n\n## Décision\n\n## Conséquences\n+ \n- \n",
+  "solution": "# ADR-012 : Stockage des fichiers uploadés via un stockage objet (pas en base)\n\n## Statut\nAccepté, 2026-07-28\n\n## Contexte\nLes apprenants envoient des fichiers (PDF, images) parfois volumineux. La base de données PostgreSQL est optimisée pour des données relationnelles, pas pour de gros binaires : les y stocker gonflerait la base, ralentirait les sauvegardes et compliquerait la montée en charge. Attributs de qualité prioritaires : scalabilité du stockage, performance des requêtes en base, coût.\n\n## Décision\nStocker les fichiers dans un service de stockage objet (compatible S3). La base ne conserve que les métadonnées (identifiant, nom, taille, URL de l'objet).\n\n## Conséquences\n+ La base reste légère et rapide, ses sauvegardes restent courtes ; le stockage objet passe l'échelle et coûte moins cher au Go.\n+ On peut servir les fichiers directement depuis le stockage, sans surcharger l'application.\n- On introduit une dépendance et une infrastructure supplémentaires (le service de stockage à exploiter et sécuriser).\n- La cohérence n'est plus transactionnelle : si l'insertion des métadonnées échoue après l'upload du fichier, il faut gérer le nettoyage de l'orphelin.",
+  "keyPoints": ["Statut", "Contexte", "Décision", "Conséquences", "stockage objet"],
+  "language": "markdown"
+}

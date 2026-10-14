@@ -1,0 +1,10 @@
+{
+  "node": "design-principles",
+  "lesson": "domain-driven-design",
+  "title": "Modéliser un value object Email",
+  "statement": "Modélise une adresse e-mail comme un value object immuable en Java. Crée un `record Email(String value)` qui valide, à la construction, que la valeur n'est pas nulle et contient un caractère '@' ; sinon, lève une `IllegalArgumentException`. Le record garantit gratuitement l'immuabilité et l'égalité par valeur, ce qui correspond exactement à un value object DDD.",
+  "skeleton": "// Complète le value object Email (record immuable, validé à la construction)\npublic record Email(String value) {\n    public Email {\n        // TODO: valider (non nul, contient '@'), sinon lever IllegalArgumentException\n    }\n}\n",
+  "solution": "public record Email(String value) {\n    public Email {\n        if (value == null || !value.contains(\"@\")) {\n            throw new IllegalArgumentException(\"Adresse e-mail invalide\");\n        }\n    }\n}",
+  "keyPoints": ["record Email", "value == null", "contains(\"@\")", "throw new IllegalArgumentException"],
+  "language": "java"
+}

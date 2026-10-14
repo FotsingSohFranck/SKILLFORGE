@@ -1,0 +1,96 @@
+{
+  "slug": "aws",
+  "title": "AWS",
+  "summary": "Le cloud AWS pour développeurs : identités, calcul, réseau, stockage, bases et bonnes pratiques.",
+  "kind": "TRACK",
+  "position": 9,
+  "phases": [
+    { "title": "Fondamentaux", "position": 0 },
+    { "title": "Calcul & réseau", "position": 1 },
+    { "title": "Stockage & bases", "position": 2 },
+    { "title": "Exploitation & bonnes pratiques", "position": 3 }
+  ],
+  "nodes": [
+    {
+      "slug": "cloud-basics",
+      "title": "Le modèle cloud",
+      "summary": "Régions, zones, responsabilité partagée.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 45,
+      "position": 0
+    },
+    {
+      "slug": "iam",
+      "title": "IAM & identités",
+      "summary": "Qui a le droit de faire quoi, au plus juste.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "compute",
+      "title": "Calcul : EC2, Lambda, conteneurs",
+      "summary": "Choisir le bon service d'exécution.",
+      "phase": "Calcul & réseau",
+      "importance": "CORE",
+      "estimatedMinutes": 75,
+      "position": 0
+    },
+    {
+      "slug": "networking",
+      "title": "Réseau : VPC",
+      "summary": "Isoler et connecter ses ressources.",
+      "phase": "Calcul & réseau",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "storage",
+      "title": "Stockage : S3 & EBS",
+      "summary": "Objets et blocs, deux stockages, deux usages.",
+      "phase": "Stockage & bases",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "databases",
+      "title": "Bases managées : RDS & DynamoDB",
+      "summary": "Relationnel géré ou NoSQL à l'échelle.",
+      "phase": "Stockage & bases",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "observability-cost",
+      "title": "Observabilité & coûts",
+      "summary": "Surveiller, et maîtriser la facture.",
+      "phase": "Exploitation & bonnes pratiques",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 0
+    },
+    {
+      "slug": "well-architected",
+      "title": "Well-Architected",
+      "summary": "Cinq piliers pour concevoir sur le cloud.",
+      "phase": "Exploitation & bonnes pratiques",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 45,
+      "position": 1
+    }
+  ],
+  "edges": [
+    { "source": "cloud-basics", "target": "iam", "kind": "PREREQ" },
+    { "source": "iam", "target": "compute", "kind": "PREREQ" },
+    { "source": "cloud-basics", "target": "networking", "kind": "PREREQ" },
+    { "source": "compute", "target": "storage", "kind": "PREREQ" },
+    { "source": "storage", "target": "databases", "kind": "PREREQ" },
+    { "source": "compute", "target": "observability-cost", "kind": "PREREQ" },
+    { "source": "observability-cost", "target": "well-architected", "kind": "PREREQ" }
+  ]
+}

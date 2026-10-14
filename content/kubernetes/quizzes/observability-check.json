@@ -1,0 +1,63 @@
+{
+  "ref": "observability-check",
+  "node": "observability",
+  "lesson": "traces-et-piliers",
+  "title": "Logs, métriques & traces",
+  "description": "Logs centralisés, metrics-server/Prometheus, traces, percentiles/SLO.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi centraliser les logs en Kubernetes ?",
+      "justification": "Les pods sont éphémères : leurs logs disparaissent à la suppression ; un DaemonSet de collecte les exporte vers une plateforme durable.",
+      "position": 0,
+      "options": [
+        { "label": "Les pods éphémères perdent leurs logs ; il faut les exporter/conserver", "correct": true, "position": 0 },
+        { "label": "Pour accélérer les pods", "correct": false, "position": 1 },
+        { "label": "Pour chiffrer le réseau", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant fournit les métriques CPU/mémoire de base pour `kubectl top` et l'HPA ?",
+      "justification": "metrics-server : le minimum vital ; pour l'observabilité complète, on ajoute Prometheus (scrape, PromQL, alertes) + Grafana.",
+      "position": 1,
+      "options": [
+        { "label": "metrics-server", "correct": true, "position": 0 },
+        { "label": "etcd", "correct": false, "position": 1 },
+        { "label": "kube-proxy", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel pilier d'observabilité localise où la latence se concentre à travers plusieurs services ?",
+      "justification": "Les traces distribuées suivent une requête de bout en bout (contexte propagé) et attribuent le temps à chaque étape.",
+      "position": 2,
+      "options": [
+        { "label": "Les traces distribuées", "correct": true, "position": 0 },
+        { "label": "Les logs d'un seul pod", "correct": false, "position": 1 },
+        { "label": "Le nombre de répliques", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour refléter l'expérience réelle de latence, quelle métrique privilégier ?",
+      "justification": "Les percentiles hauts (P95/P99) : la moyenne masque la traîne lente, amplifiée quand une requête traverse plusieurs services.",
+      "position": 3,
+      "options": [
+        { "label": "Les percentiles P95/P99", "correct": true, "position": 0 },
+        { "label": "La latence moyenne", "correct": false, "position": 1 },
+        { "label": "La latence minimale", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Définir des SLO et alerter sur le burn rate de l'error budget donne des alertes plus actionnables que d'alerter sur chaque pic.",
+      "justification": "Vrai : le burn rate relie l'alerte à la menace réelle pour le SLO (donc les utilisateurs), en multi-fenêtres, réduisant le bruit.",
+      "position": 4,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

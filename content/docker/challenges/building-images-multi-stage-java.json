@@ -1,0 +1,10 @@
+{
+  "node": "building-images",
+  "lesson": "multi-stage-builds",
+  "title": "Écrire l'étape finale d'un build multi-stage Java",
+  "statement": "La première étape (build avec Maven + JDK) est déjà écrite ci-dessous et produit `/app/target/app.jar`. Ajoute la SECONDE étape : elle doit repartir d'une image d'exécution minimale (`eclipse-temurin:21-jre`), copier UNIQUEMENT le jar depuis l'étape `build` avec `COPY --from=build`, puis lancer l'application avec un `ENTRYPOINT` en forme exec. L'image finale ne doit contenir ni Maven ni le JDK.",
+  "skeleton": "# Étape 1 : build (déjà fournie)\nFROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /app\nCOPY pom.xml .\nRUN mvn -q dependency:go-offline\nCOPY src ./src\nRUN mvn -q package -DskipTests\n\n# Étape 2 : à toi de l'écrire (image minimale + copie du jar + démarrage)\n",
+  "solution": "# Étape 1 : build (déjà fournie)\nFROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /app\nCOPY pom.xml .\nRUN mvn -q dependency:go-offline\nCOPY src ./src\nRUN mvn -q package -DskipTests\n\n# Étape 2 : image d'exécution minimale\nFROM eclipse-temurin:21-jre\nWORKDIR /app\nCOPY --from=build /app/target/app.jar app.jar\nEXPOSE 8080\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]",
+  "keyPoints": ["FROM eclipse-temurin:21-jre", "COPY --from=build", "app.jar", "ENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]"],
+  "language": "dockerfile"
+}

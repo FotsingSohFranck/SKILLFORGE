@@ -1,0 +1,228 @@
+{
+  "node": "var-inference",
+  "lessons": [
+    {
+      "slug": "le-probleme-des-types-verbeux",
+      "title": "Le problème des types verbeux",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Déclarer une variable, deux fois le même type",
+          "position": 0,
+          "body": "En Java, pour créer une **variable locale** (une variable qui vit à l'intérieur d'une méthode), on écrit d'abord son **type**, puis son nom, puis sa valeur. Le type, c'est la nature de ce que contient la variable : un nombre entier (`int`), du texte (`String`), une liste, etc.\n\nLe souci : quand on crée un objet avec `new`, on répète souvent le type deux fois, à gauche et à droite du signe égal. Pour des types simples ça va, mais pour des types longs avec des **génériques** (les chevrons `<...>` qui précisent ce qu'une collection contient, par exemple `List<Integer>` = une liste d'entiers), la ligne devient vite illisible.\n\n👉 C'est comme écrire sur une étiquette de bocal \"bocal de confiture de fraises\" puis, juste à coté, recoller la même étiquette \"confiture de fraises\". La deuxième fois n'apporte rien de neuf."
+        },
+        {
+          "type": "CODE",
+          "title": "Quand le type mange toute la ligne",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Le type est écrit à gauche ET répété à droite dans le new.\nMap<String, List<Integer>> notesParEleve = new HashMap<String, List<Integer>>();\n\n// Un autre exemple : le type long cache l'essentiel (le nom et l'intention).\nList<Map<String, String>> lignes = new ArrayList<Map<String, String>>();\n\n// Pour un itérateur, c'est encore pire.\nIterator<Map.Entry<String, List<Integer>>> it = notesParEleve.entrySet().iterator();"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce qu'on aimerait : dire le type une seule fois",
+          "position": 2,
+          "body": "Dans la ligne `Map<String, List<Integer>> notes = new HashMap<...>();`, le type à droite du `new` suffirait à comprendre ce que contient la variable. Le répéter à gauche alourdit sans rien apprendre au lecteur.\n\nL'idéal serait de laisser le compilateur **déduire** le type à partir de la valeur, pour qu'on l'écrive une seule fois. **Déduire** veut dire : trouver tout seul une information à partir d'indices, sans qu'on la donne explicitement.\n\n👉 Si je te montre un objet rond, orange, avec une peau à éplucher, tu en déduis \"une orange\" sans que j'aie besoin de le préciser. Java peut faire pareil avec les types."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Repère la répétition",
+          "position": 3,
+          "body": "Dans la ligne `Map<String, List<Integer>> notes = new HashMap<String, List<Integer>>();`, quelle partie est strictement répétée de part et d'autre du signe égal ? Combien de caractères pourrait on économiser en l'écrivant une seule fois ?",
+          "solution": "La partie répétée est le type générique complet : Map/HashMap mis à part, le contenu entre chevrons, String, List, Integer, apparait des deux cotés. Toute la partie à gauche (Map<String, List<Integer>>) ne fait que redire ce que le new à droite dit déjà. On pourrait remplacer le coté gauche par un simple mot clé qui demande au compilateur de déduire le type, ce qui économise ici une trentaine de caractères et, surtout, rend l'intention plus lisible."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : le problème des types verbeux",
+          "position": 4,
+          "quizRef": "var-inference-le-probleme-des-types-verbeux"
+        }
+      ]
+    },
+    {
+      "slug": "declarer-avec-var",
+      "title": "Déclarer avec var",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le mot clé var",
+          "position": 0,
+          "body": "Depuis Java 10, on peut remplacer le type d'une variable locale par le mot clé **var**. C'est ce qu'on appelle l'**inférence de type locale** (en anglais *local variable type inference*) : *inférence* est le nom savant de la déduction, et *locale* rappelle que ça ne marche que pour les variables à l'intérieur d'une méthode.\n\nConcrètement, tu écris `var` à la place du type, et le compilateur regarde la valeur à droite du signe égal pour déterminer le type, tout seul.\n\n👉 `var` n'est pas un mot qui dit \"je ne connais pas le type\". C'est un mot qui dit \"regarde à droite, le type est évident, inutile que je le réécrive\"."
+        },
+        {
+          "type": "CODE",
+          "title": "Avant / après avec var",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Avant : le type est écrit deux fois.\nMap<String, List<Integer>> notes = new HashMap<String, List<Integer>>();\n\n// Après : var laisse le compilateur déduire le type depuis la droite.\nvar notes2 = new HashMap<String, List<Integer>>();\n\n// Cas simples, tout aussi valables.\nvar message = \"Bonjour\";      // déduit : String\nvar total = 42;               // déduit : int\nvar prix = 19.99;             // déduit : double\nvar actif = true;             // déduit : boolean"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Point clé : var ne change PAS le typage",
+          "position": 2,
+          "body": "C'est le point le plus important de toute cette leçon. Avec `var`, la variable a **un type bien précis, fixé une fois pour toutes au moment de la compilation**. Java reste un langage **statiquement typé**, c'est à dire que chaque variable a un type connu et vérifié avant même que le programme tourne.\n\n`var message = \"Bonjour\";` crée une variable de type `String`, exactement comme si tu avais écrit `String message = \"Bonjour\";`. Tu ne pourras jamais lui mettre un nombre ensuite : `message = 42;` sera refusé par le compilateur.\n\n👉 `var` n'est PAS du **typage dynamique** (un style, comme en Python ou JavaScript, où une variable peut changer de type pendant l'exécution). Avec `var`, le type est déduit à la compilation puis gravé dans le marbre. C'est juste une écriture plus courte, pas une magie qui assouplit les types."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Comment le compilateur déduit le type",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"var notes = new HashMap<String, Integer>()\"] --> B[\"Le compilateur lit la valeur à droite\"]\n    B --> C[\"Type de la valeur : HashMap<String, Integer>\"]\n    C --> D[\"Type de notes fixé à la COMPILATION\"]\n    D --> E[\"Type gravé : impossible de changer ensuite\"]\n    E --> F[\"Java reste statiquement typé\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Devine le type déduit",
+          "position": 4,
+          "body": "Pour chaque ligne, quel type le compilateur déduit il ? 1) var n = 10; 2) var s = \"abc\"; 3) var d = 3.5; 4) var liste = new ArrayList<String>();",
+          "solution": "1) int (un littéral entier sans décimale est un int). 2) String (texte entre guillemets). 3) double (un nombre à virgule est un double par défaut). 4) ArrayList<String> (le type exact de l'objet créé à droite). Dans les quatre cas, le type est fixé définitivement à la compilation : var ne fait que l'écrire à ta place, il ne rend rien dynamique."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : déclarer avec var",
+          "position": 5,
+          "quizRef": "var-inference-declarer-avec-var"
+        }
+      ]
+    },
+    {
+      "slug": "ou-var-est-interdit",
+      "title": "Où var est interdit",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "var a besoin d'une valeur à droite, tout de suite",
+          "position": 0,
+          "body": "Puisque `var` déduit le type à partir de la valeur, il lui faut obligatoirement une valeur au moment de la déclaration. Sans valeur, le compilateur n'a aucun indice, donc il refuse.\n\nDeux interdits qui découlent de ça :\n\n1. Pas de déclaration sans initialisation : `var x;` est refusé (rien à droite, aucun type déductible).\n2. Pas avec `null` seul : `var x = null;` est refusé, car `null` ne désigne aucun type précis (c'est l'absence d'objet, ça pourrait être n'importe quel type).\n\n👉 `var` est comme un devineur qui a besoin d'au moins un indice. Pas d'indice (pas de valeur), ou un indice vide (`null`), et il ne peut rien deviner."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "var, c'est seulement pour les variables locales",
+          "position": 1,
+          "body": "Le mot *locale* dans \"inférence de type locale\" est une vraie limite. `var` ne s'utilise QUE pour une **variable locale**, c'est à dire déclarée dans le corps d'une méthode.\n\nIl est donc interdit pour :\n\n- Les **champs** d'une classe (les variables déclarées au niveau de la classe, qui décrivent son état).\n- Les **paramètres** d'une méthode (les valeurs qu'on lui passe entre parenthèses).\n- Le **type de retour** d'une méthode (le type de ce qu'elle renvoie).\n\nPour ces trois cas, le type doit toujours être écrit explicitement. La raison : ces éléments font partie du \"contrat\" visible d'une classe, et un contrat doit être lisible sans deviner."
+        },
+        {
+          "type": "CODE",
+          "title": "Les cas refusés par le compilateur",
+          "position": 2,
+          "codeLanguage": "java",
+          "body": "// INTERDIT : pas de valeur, aucun type déductible.\n// var x;\n\n// INTERDIT : null ne désigne aucun type précis.\n// var y = null;\n\nclass Compte {\n    // INTERDIT : var sur un champ.\n    // var solde = 0;\n    int solde = 0; // correct : type explicite\n\n    // INTERDIT : var sur un paramètre et sur le type de retour.\n    // var calculer(var montant) { ... }\n    int calculer(int montant) { // correct : types explicites\n        var resultat = solde + montant; // OK : variable LOCALE\n        return resultat;\n    }\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Autorisé ou interdit",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Je veux écrire var ici\"] --> B{\"Variable locale, dans une méthode ?\"}\n    B -->|Non, champ/paramètre/retour| C[\"INTERDIT : écris le type\"]\n    B -->|Oui| D{\"Une valeur à droite, et non null ?\"}\n    D -->|Non| E[\"INTERDIT : rien à déduire\"]\n    D -->|Oui| F[\"AUTORISÉ : var déduit le type\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Légal ou pas ?",
+          "position": 4,
+          "body": "Dis si chaque usage de var est autorisé. 1) Dans une méthode : var liste = new ArrayList<String>(); 2) Comme champ d'une classe : var compteur = 0; 3) Comme paramètre : void afficher(var texte) { } 4) Dans une méthode : var vide = null;",
+          "solution": "1) Autorisé : variable locale avec une valeur déductible. 2) Interdit : var ne s'utilise pas pour un champ de classe. 3) Interdit : var ne s'utilise pas pour un paramètre de méthode. 4) Interdit : null ne désigne aucun type, le compilateur ne peut rien déduire. Retiens : var seulement pour une variable locale, avec une vraie valeur à droite."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : où var est interdit",
+          "position": 5,
+          "quizRef": "var-inference-ou-var-est-interdit"
+        }
+      ]
+    },
+    {
+      "slug": "lisible-ou-pas",
+      "title": "Lisible ou pas",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "var aide quand le type est évident à droite",
+          "position": 0,
+          "body": "`var` est un outil de lisibilité, pas une règle à appliquer partout. La bonne question à se poser : en lisant la ligne, le type saute il aux yeux ?\n\nQuand la valeur à droite est un `new TypeClair<...>()` ou un littéral évident (`\"texte\"`, `42`), le type est visible sans effort, et `var` enlève juste la répétition. Dans ce cas, il rend le code plus clair.\n\n👉 Si l'étiquette à droite dit déjà tout, `var` évite de la recopier à gauche. Gain net de lisibilité."
+        },
+        {
+          "type": "CODE",
+          "title": "Bon usage : le type reste évident",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "// Le type crève les yeux à droite : var est parfait.\nvar clients = new ArrayList<Client>();     // clairement une ArrayList<Client>\nvar reponse = \"Commande acceptee\";          // clairement un String\nvar lignes = Files.readAllLines(chemin);    // le nom de méthode dit List<String>\n\n// Boucle sur une Map : le type long disparait, le code respire.\nvar notes = new HashMap<String, Integer>();\nfor (var entree : notes.entrySet()) {\n    System.out.println(entree.getKey() + \" : \" + entree.getValue());\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "var nuit quand il cache une information utile",
+          "position": 2,
+          "body": "À l'inverse, `var` devient un piège quand le type n'est PAS évident à la lecture. Si la valeur à droite est un appel de méthode au nom vague, le lecteur ne sait plus à quoi il a affaire.\n\n`var r = service.traiter(x);` : impossible de savoir si `r` est un nombre, un texte, une liste... Ici, écrire le type explicite (`Facture r = ...`) aide le lecteur. De même, `var` peut cacher un piège subtil : `var n = 0;` donne un `int`, pas un `long` ni un `double`, ce qui peut surprendre.\n\n👉 Quand le type est une information que le lecteur doit connaitre pour comprendre la suite, le masquer avec `var` dessert tout le monde. Préfère alors le type écrit."
+        },
+        {
+          "type": "CODE",
+          "title": "Mauvais usage : le type devient un mystère",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "// MAUVAIS : impossible de deviner le type de r en lisant la ligne.\nvar r = service.traiter(commande);\n// On gagnerait en clarté avec le type explicite :\nFacture r2 = service.traiter(commande);\n\n// PIÈGE : var sur un littéral numérique donne le type par défaut.\nvar n = 0;        // c'est un int, PAS un long\nvar f = 0;        // c'est un int, PAS un double\n// Si tu voulais un long ou un double, écris le explicitement ou adapte le littéral :\nlong vraiLong = 0;\nvar vraiDouble = 0.0;  // 0.0 force bien un double"
+        },
+        {
+          "type": "EXERCISE",
+          "title": "var ou type explicite ?",
+          "position": 4,
+          "body": "Pour chaque ligne, dis si var est un bon choix ou s'il vaut mieux écrire le type. 1) var total = new BigDecimal(\"10.50\"); 2) var x = calcul(a, b); 3) var nom = \"Ana\"; 4) var resultat = repo.chercher(id);",
+          "solution": "1) var est bon : le new BigDecimal(...) rend le type évident. 3) var est bon : un littéral texte, type String évident. 2) et 4) : mieux vaut écrire le type, car calcul(...) et chercher(...) ont des noms qui ne révèlent pas le type renvoyé ; le lecteur devrait deviner. Règle : var quand la droite montre le type, type explicite quand elle le cache."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : lisible ou pas",
+          "position": 5,
+          "quizRef": "var-inference-lisible-ou-pas"
+        }
+      ]
+    },
+    {
+      "slug": "var-et-boucles",
+      "title": "var et boucles",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "var dans les boucles for",
+          "position": 0,
+          "body": "Les boucles sont un terrain idéal pour `var`, car la variable y est toujours locale et sa valeur de départ rend le type évident.\n\nDans une boucle `for` classique (celle avec un compteur qui augmente), on écrit `for (var i = 0; ...)` : `i` est déduit comme `int` à partir de `0`.\n\nDans une boucle **for-each** (celle qui parcourt chaque élément d'une collection, lue \"pour chaque\"), `var` déduit le type de l'élément à partir de la collection parcourue. C'est là que `var` brille le plus, car il efface les types génériques longs.\n\n👉 Dans une boucle, tu te concentres sur ce que tu fais à chaque tour, pas sur la plomberie du type. `var` te laisse regarder l'essentiel."
+        },
+        {
+          "type": "CODE",
+          "title": "var dans for et for-each",
+          "position": 1,
+          "codeLanguage": "java",
+          "body": "var notes = new HashMap<String, List<Integer>>();\n\n// Boucle for classique : i est déduit int depuis 0.\nfor (var i = 0; i < 10; i++) {\n    System.out.println(i);\n}\n\n// Boucle for-each : sans var, le type de l'élément est long et répétitif.\nfor (Map.Entry<String, List<Integer>> e : notes.entrySet()) {\n    System.out.println(e.getKey());\n}\n\n// Avec var : même boucle, bien plus lisible. Le type de e est déduit.\nfor (var e : notes.entrySet()) {\n    System.out.println(e.getKey());\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "var dans un try-with-resources",
+          "position": 2,
+          "body": "Le **try-with-resources** est une forme de `try` qui ouvre une **ressource** (quelque chose qu'il faut fermer après usage, comme un fichier ou une connexion) et la ferme automatiquement à la fin, même en cas d'erreur. On déclare la ressource entre parenthèses après `try`.\n\n`var` fonctionne aussi là : `try (var fichier = ...)`. La ressource est une variable locale avec une valeur à droite, donc le type se déduit sans souci, et on évite de réécrire un nom de type souvent long.\n\n👉 Que ce soit dans un `for`, un `for-each` ou un `try-with-resources`, la règle est la même : variable locale + valeur claire à droite = `var` est à l'aise."
+        },
+        {
+          "type": "CODE",
+          "title": "var avec une ressource à fermer",
+          "position": 3,
+          "codeLanguage": "java",
+          "body": "// Sans var : le type BufferedReader est écrit en entier.\ntry (BufferedReader lecteur = new BufferedReader(new FileReader(\"data.txt\"))) {\n    System.out.println(lecteur.readLine());\n}\n\n// Avec var : le new à droite montre déjà le type, la ressource est fermée pareil.\ntry (var lecteur = new BufferedReader(new FileReader(\"data.txt\"))) {\n    System.out.println(lecteur.readLine());\n}\n// Dans les deux cas, lecteur a un type fixé à la compilation (BufferedReader)."
+        },
+        {
+          "type": "EXERCISE",
+          "title": "Réécris avec var",
+          "position": 4,
+          "body": "Réécris cette boucle en utilisant var à la place des types explicites, sans changer le comportement : List<String> noms = new ArrayList<>(); for (int i = 0; i < noms.size(); i++) { String n = noms.get(i); System.out.println(n); }",
+          "solution": "var noms = new ArrayList<String>();\nfor (var i = 0; i < noms.size(); i++) {\n    var n = noms.get(i);\n    System.out.println(n);\n}\n\nIci i reste un int et n reste un String : var ne change pas les types, il les déduit. Note que pour noms on écrit new ArrayList<String>() au lieu de new ArrayList<>(), car avec var il n'y a plus de type à gauche pour renseigner le contenu générique."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Quiz : var et boucles",
+          "position": 5,
+          "quizRef": "var-inference-var-et-boucles"
+        }
+      ]
+    }
+  ]
+}

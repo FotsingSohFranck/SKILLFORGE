@@ -1,0 +1,10 @@
+{
+  "node": "developer-experience",
+  "lesson": "debug-et-tests",
+  "title": "Pourquoi le port de debug ne doit pas partir en production",
+  "statement": "Un collègue veut réutiliser telle quelle son image de développement (avec bind mount du code, hot reload et port de débogage ouvert) pour la mettre en production, « pour aller plus vite ». Explique-lui en quelques phrases pourquoi c'est une mauvaise idée, et quelle est la bonne pratique. Mentionne la notion de faille de sécurité et la séparation des configurations dev / prod.",
+  "skeleton": "Écris ta réponse ici (raisonnement).",
+  "solution": "C'est une mauvaise idée car les commodités de développement sont des failles de sécurité en production. Un port de débogage laissé ouvert offre à un attaquant un canal pour exécuter du code ou inspecter l'application ; un bind mount du code monte des fichiers de l'extérieur dans le conteneur en production, ce qui est une porte d'entrée supplémentaire ; et une image de dev bourrée d'outils augmente la surface d'attaque et le poids de l'image. La bonne pratique est de séparer les configurations : garder les commodités de dev dans un fichier à part (souvent un compose.override.yaml appliqué seulement en local) et livrer un Dockerfile de production épuré (multi-stage, utilisateur non-root, aucun outil de debug). On conserve la parité dev/prod au sens du 12-factor, c'est-à-dire les mêmes services aux mêmes versions (même PostgreSQL, même Redis) des deux côtés, mais SANS embarquer en production les commodités de développement.",
+  "keyPoints": ["faille de sécurité", "port de débogage", "compose.override", "non-root", "parité dev/prod", "multi-stage"],
+  "language": "text"
+}

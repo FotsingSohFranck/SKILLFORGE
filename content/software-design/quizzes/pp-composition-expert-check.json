@@ -1,0 +1,96 @@
+{
+  "ref": "pp-composition-expert-check",
+  "node": "programming-paradigms",
+  "lesson": "composition-currying",
+  "title": "Quiz, Composition & currying (expert)",
+  "description": "andThen/compose, currying, application partielle, fonctions vs classes-stratégies.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait l'application partielle ?",
+      "justification": "Elle fixe une partie des arguments d'une fonction pour en produire une plus spécialisée (ex. applyTax(0.20) → applyVat), sans dupliquer la logique.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Fixer certains arguments pour obtenir une fonction spécialisée",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Exécuter une fonction sur la moitié d'une liste",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Diviser une classe en deux",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En Java, `f.andThen(g)` produit une fonction qui fait quoi ?",
+      "justification": "andThen applique f puis g (g après f) ; compose ferait l'inverse (f après g).",
+      "position": 1,
+      "options": [
+        {
+          "label": "D'abord f, puis g sur le résultat",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "D'abord g, puis f",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "f et g en parallèle",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Cinq classes `Discount` ne différant que par un pourcentage : quelle approche fonctionnelle les remplace ?",
+      "justification": "Une fabrique curryfiée `percentOff(rate)` capture le taux (closure) et produit chaque remise par application partielle, cinq valeurs Function, plus cinq classes.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Une fabrique curryfiée `percentOff(rate)` produisant les remises par application partielle",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Une seule grosse classe avec un switch",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Cinq interfaces distinctes",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On devrait toujours remplacer une stratégie par une lambda, même quand elle a un état ou des dépendances injectées.",
+      "justification": "Faux : quand la stratégie porte un état, des dépendances (repository), des métadonnées ou plusieurs opérations, un type nommé/objet géré par le conteneur reste plus clair. La composition est un outil, pas un dogme.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": false,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": true,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}

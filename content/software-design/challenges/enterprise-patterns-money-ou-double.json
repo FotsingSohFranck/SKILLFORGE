@@ -1,0 +1,10 @@
+{
+  "node": "enterprise-patterns",
+  "lesson": "impedance-active-record-acl",
+  "title": "Pourquoi pas un double pour l'argent ?",
+  "statement": "Un collègue stocke les prix de la boutique dans des variables `double` (par exemple `double prix = 19.99;`). En quelques phrases : (1) explique pourquoi représenter de l'argent par un `double` est une erreur, (2) nomme le pattern d'entreprise qui règle le problème, et (3) liste ce que cet objet doit garantir.",
+  "skeleton": "1) Le problème du double : ...\n2) Le pattern qui règle ça : ...\n3) Ce que l'objet doit garantir : ...",
+  "solution": "(1) Le `double` est un nombre à virgule flottante binaire : il est imprécis par nature. En machine, `0.1 + 0.2` ne vaut pas exactement `0.3`, et ces micro-erreurs d'arrondi s'accumulent sur des montants financiers jusqu'à provoquer de vrais écarts comptables (facturation, comptabilité). De plus, un `double` nu ne porte aucune information de devise (rien n'empêche d'additionner des euros et des dollars) ni les règles d'arrondi propres à l'argent. (2) Le pattern est **Money** : un **Value Object** dédié à l'argent. (3) Ce `Money` doit garantir : un montant stocké dans la plus petite unité (les centimes) en entier ou en `BigDecimal` (jamais en `double`) ; une devise attachée au montant ; l'immuabilité (on ne modifie pas un `Money`, on en crée un nouveau) ; une arithmétique encapsulée (add, subtract, multiply) avec des règles d'arrondi explicites ; et l'interdiction d'opérer entre deux devises différentes (10 € + 5 $ doit lever une erreur, pas produire un résultat faux). Ainsi les erreurs d'arrondi et les mélanges de devises deviennent impossibles par construction.",
+  "keyPoints": ["arrondi", "Money", "value object", "immuable", "devise"],
+  "language": "text"
+}

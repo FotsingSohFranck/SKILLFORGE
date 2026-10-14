@@ -1,0 +1,41 @@
+{
+  "ref": "streams-modernes-stream-tolist",
+  "node": "streams-modernes",
+  "lesson": "stream-tolist",
+  "title": "Quiz : Stream.toList",
+  "description": "La méthode toList() et son caractère non modifiable.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La liste renvoyée par Stream.toList() est non modifiable.",
+      "justification": "Vrai : Stream.toList() (Java 16+) renvoie une liste non modifiable. Tout add, remove ou set lève UnsupportedOperationException.",
+      "position": 0,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'avantage principal de .toList() par rapport à .collect(Collectors.toList()) ?",
+      "justification": "toList() est plus concis et n'exige aucun collecteur ni import de Collectors. Son autre particularité est de renvoyer une liste non modifiable.",
+      "position": 1,
+      "options": [
+        { "label": "Il est plus concis et évite l'import de Collectors", "correct": true, "position": 0 },
+        { "label": "Il rend le stream modifiable", "correct": false, "position": 1 },
+        { "label": "Il exécute le pipeline en parallèle automatiquement", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "SCENARIO",
+      "prompt": "Tu remplaces collect(Collectors.toList()) par toList(), puis un appel resultat.add(x) plus loin plante. Quelle correction est correcte ?",
+      "justification": "La liste de toList() est non modifiable ; pour pouvoir y ajouter, on recopie dans une liste modifiable, par exemple new ArrayList<>(resultat).",
+      "position": 2,
+      "options": [
+        { "label": "Recopier le résultat dans new ArrayList<>(resultat) avant d'ajouter", "correct": true, "position": 0 },
+        { "label": "Ajouter .parallel() avant toList()", "correct": false, "position": 1 },
+        { "label": "Remplacer toList() par count()", "correct": false, "position": 2 }
+      ]
+    }
+  ]
+}

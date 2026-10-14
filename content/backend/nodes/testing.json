@@ -1,0 +1,350 @@
+{
+  "node": "testing",
+  "lessons": [
+    {
+      "slug": "la-pyramide-des-tests",
+      "title": "La pyramide des tests",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Trois niveaux, trois objectifs",
+          "body": "Un **test**, c'est un petit bout de code dont le seul rôle est de vérifier qu'un autre bout de code fait bien ce qu'on attend de lui. Tu lui donnes une entrée connue, tu regardes le résultat, et tu vérifies qu'il est correct.\n\n👉 **Analogie** : c'est le **contrôle qualité en bout de chaîne** dans une usine. Une pièce sort, un inspecteur vérifie qu'elle a la bonne taille avant de l'emballer. Si elle est défectueuse, l'alarme sonne tout de suite, pas chez le client.\n\nOn ne teste pas tout de la même manière : il existe **trois niveaux**, du plus fin au plus large.\n\n- **Le test unitaire** : il vérifie **une seule brique isolée** de ton code (par exemple une fonction qui calcule un total). Il ne touche ni à la base de données ni au réseau. Résultat : il est **très rapide** (quelques millisecondes) et on en écrit **beaucoup**. Exemple : vérifier que `additionne(2, 3)` renvoie bien `5`.\n- **Le test d'intégration** : il vérifie que **plusieurs morceaux fonctionnent ensemble**, avec de vraies dépendances (par exemple le chemin contrôleur puis service puis base de données). Il est **plus lent** (il démarre une vraie base) et on en écrit **quelques-uns**. Exemple : envoyer une requête d'inscription et vérifier que la ligne apparaît vraiment en base.\n- **Le test end-to-end** (bout en bout, souvent abrégé **e2e**) : il vérifie **le système complet**, comme un vrai utilisateur qui cliquerait dans le navigateur. Il est **coûteux et lent**, et on en garde **très peu**. Exemple : ouvrir la page, remplir le formulaire, cliquer, et vérifier que le tableau de bord s'affiche.\n\nLa **pyramide des tests** est une règle de dosage : **beaucoup** d'unitaires à la base, **quelques** intégrations au milieu, **très peu** d'e2e au sommet. 👉 **Analogie** : comme une vraie pyramide, la base large (rapide, pas chère) porte tout le reste, et le sommet demeure étroit.\n\nFaire l'inverse (plein d'e2e, peu d'unitaires) porte un surnom : l'**anti-pattern du « cornet de glace »** (la pyramide renversée, avec une grosse boule en haut). Un *anti-pattern*, c'est une solution répandue mais mauvaise. Ici, elle donne une suite de tests **lente** (chaque test prend des secondes) et **fragile** (le moindre détail d'affichage casse tout)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La pyramide des tests : beaucoup d'unitaires, moins d'integration, peu de bout-en-bout.",
+          "body": "/images/lessons/la-pyramide-des-tests-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi tester",
+          "body": "Les tests ne **prouvent pas** qu'un logiciel est sans bug (c'est impossible). Mais ils **verrouillent** le comportement : un test qui passe au vert aujourd'hui **échouera** demain si une modification casse ce que tu avais mis en place. Il te prévient donc avant que le problème n'arrive chez l'utilisateur.\n\nDeux mots reviennent tout le temps, définissons-les.\n\n**Une régression** : c'est quand une chose qui **marchait** se remet à **casser** à cause d'un changement fait ailleurs. Exemple : tu ajoutes une remise sur les paniers, et sans le vouloir tu casses le calcul de la TVA. Le test de la TVA, lui, passe au rouge immédiatement et t'alerte.\n\n**Le refactoring** : c'est **réorganiser** le code (le rendre plus clair, plus simple) **sans changer** ce qu'il fait. C'est risqué à mains nues, car on peut casser un détail sans s'en rendre compte.\n\n👉 **Analogie** : les tests sont un **filet de sécurité** sous un trapéziste. Le filet ne l'empêche pas de tenter des figures, au contraire : c'est **parce que** le filet est là qu'il ose. Sans tests, tu modifies ton code **à l'aveugle**, en croisant les doigts. Avec des tests, tu changes, tu lances la suite, et le vert te dit « tout va bien ».\n\nEn bonus, un test est aussi une **documentation vivante** : en le lisant, on comprend ce que le code est censé faire, avec des exemples concrets qui, eux, ne mentent jamais (contrairement à un commentaire oublié)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Pourquoi tester : un filet de securite qui donne la confiance pour changer le code.",
+          "body": "/images/lessons/la-pyramide-des-tests-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "La pyramide, visualisée",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n    A[\"Sommet : tests end-to-end (e2e), tres peu, lents et coûteux\"]\n    B[\"Milieu : tests d'integration, quelques-uns, vraie base, plus lents\"]\n    C[\"Base : tests unitaires, beaucoup, rapides et isoles\"]\n    A --> B\n    B --> C"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Une équipe a surtout des tests end-to-end lents et instables, peu d'unitaires. Quel anti-pattern, et quel rééquilibrage viser ?",
+          "solution": "L'anti-pattern du \"cornet de glace\" (inverse de la pyramide) : trop d'e2e lents/fragiles, trop peu d'unitaires. Rééquilibrer : beaucoup d'unitaires rapides sur la logique, quelques tests d'intégration sur les scénarios critiques, très peu d'e2e. La suite devient rapide, fiable et informative."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : La pyramide des tests",
+          "quizRef": "testing-pyramide-check"
+        }
+      ]
+    },
+    {
+      "slug": "tests-unitaires",
+      "title": "Tests unitaires",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Isoler la logique",
+          "body": "Un **test unitaire** vérifie **une unité** de ton code, c'est-à-dire un petit morceau isolé : le plus souvent une **règle métier** (une fonction qui calcule, valide ou décide). Point crucial : il s'exécute **sans** base de données ni réseau. Du coup il est **rapide** (quelques millisecondes) et **déterministe** : il donne **toujours le même résultat** pour la même entrée, sans dépendre de l'extérieur.\n\n👉 **Analogie** : tu testes une **ampoule** seule, sur un petit banc d'essai, avant de la monter dans le lustre. Pas besoin d'allumer toute la maison pour savoir si l'ampoule marche.\n\nUn test unitaire suit presque toujours la même structure en trois temps, résumée par les initiales **AAA** :\n- **Arrange** (préparer) : tu mets en place les données et l'objet à tester.\n- **Act** (agir) : tu exécutes l'action que tu veux vérifier.\n- **Assert** (vérifier) : tu contrôles que le résultat est bien celui attendu.\n\nExemple concret. *Arrange* : je crée un panier avec un article à 10 euros. *Act* : j'appelle `panier.total()`. *Assert* : je vérifie que le total vaut bien 10 euros.\n\nOn teste ici le **domaine pur** : le cœur métier de l'application, **sans code technique** (pas de Spring, pas de SQL). C'est justement là que l'**architecture hexagonale** de cette plateforme aide : le domaine est écrit sans dépendance technique, donc il se teste **trivialement**, sans rien démarrer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le test unitaire isole une unite de logique et la verifie, vite et sans dependances.",
+          "body": "/images/lessons/tests-unitaires-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un test unitaire (JUnit)",
+          "codeLanguage": "java",
+          "body": "@Test\nvoid greet_rejette_un_nom_vide() {\n    var greeter = new Greeter();\n    assertThrows(IllegalArgumentException.class,\n        () -> greeter.greet(\"  \"));\n}\n\n@Test\nvoid additionne_deux_montants() {\n    var total = new Money(100, \"EUR\").add(new Money(50, \"EUR\"));\n    assertEquals(150, total.cents());\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Mocks : à doser (niveau expert)",
+          "body": "Parfois, l'unité que tu veux tester a **besoin** d'autre chose pour fonctionner : par exemple un service qui envoie des e-mails, ou un accès à la base. Or on ne veut ni envoyer de vrais e-mails ni démarrer une base dans un test unitaire. La solution : remplacer cette dépendance par un **double**.\n\nUn **double** de test, c'est un **objet de remplacement** qui imite une vraie dépendance, mais en version factice et contrôlée. Les deux plus courants portent des noms précis :\n- un **stub** : il renvoie des **réponses prédéfinies** (« quand on te demande l'utilisateur 42, réponds toujours ceci »).\n- un **mock** : un double **pré-programmé avec des attentes** que le test vérifie (« je m'attends à ce que la méthode `envoyer()` soit appelée exactement une fois »).\n\n👉 **Analogie** : au cinéma, une **doublure** (cascadeur) remplace l'acteur pour une scène dangereuse. De loin on ne voit pas la différence, mais ce n'est pas le vrai acteur : c'est un substitut mis là pour la scène.\n\nAttention, c'est un outil à **doser**. Si tu remplaces **tout** par des mocks, ton test ne vérifie plus le **comportement** (le résultat obtenu) mais la **mécanique interne** (quels appels sont faits, dans quel ordre). Résultat : au moindre *refactoring*, même si le code marche toujours, le test casse. On dit qu'il devient **fragile**.\n\n👉 **La bonne règle** : on remplace seulement les vraies **frontières** du système (les entrées-sorties : base, réseau, services externes), **pas** la logique interne. Un bon test décrit un comportement observable (« pour ce panier, le total est correct »), pas une plomberie interne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les mocks s'utilisent a dose mesuree : trop de mocks teste le mock, pas le code.",
+          "body": "/images/lessons/tests-unitaires-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À vous",
+          "body": "Faut-il un test unitaire ou d'intégration pour vérifier le calcul d'un pourcentage de progression ? Et pour vérifier qu'une contrainte d'unicité en base bloque un doublon ?",
+          "solution": "Le calcul de pourcentage = unitaire (logique pure, sans base). La contrainte d'unicité = intégration : c'est un comportement de la base réelle qu'un mock ne peut pas prouver ; on le teste contre une vraie base (Testcontainers)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Quiz : Tests unitaires",
+          "quizRef": "testing-unitaires-check"
+        }
+      ]
+    },
+    {
+      "slug": "tests-integration",
+      "title": "Tests d'intégration",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Tester l'assemblage réel",
+          "body": "Un **test d'intégration** vérifie que **plusieurs couches de l'application fonctionnent ensemble**, avec de **vraies dépendances** cette fois : le vrai SQL exécuté sur une vraie base, le vrai *mapping* (la conversion entre une ligne de table et un objet Java), le vrai routage HTTP (l'URL qui déclenche la bonne fonction).\n\n👉 **Analogie** : après avoir testé chaque instrument seul (les tests unitaires), tu fais **répéter l'orchestre au complet**. Chaque musicien jouait juste dans son coin, mais est-ce que l'ensemble sonne bien **ensemble** ? C'est une autre question, et c'est celle-là qu'on vérifie ici.\n\nL'intérêt : il **attrape ce que l'unitaire ne peut pas voir**. Par exemple une requête SQL mal écrite, une **contrainte** oubliée en base (une règle du type « cet e-mail doit être unique »), ou un *mapping* erroné entre la table et l'objet. Un test unitaire, qui n'utilise pas la vraie base, passerait sans rien remarquer.\n\nLe prix à payer : c'est **plus lent** (il faut démarrer de vraies dépendances). On en garde donc **peu**, mais bien choisis : sur les **scénarios critiques** (l'inscription, le paiement, la reprise de progression), là où une panne ferait vraiment mal."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le test d'integration verifie l'assemblage reel : code, base, framework ensemble.",
+          "body": "/images/lessons/tests-integration-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Testcontainers : une vraie base jetable",
+          "body": "Comment faire tourner un test contre une **vraie** base de données, sans installer PostgreSQL sur chaque machine ni partager une base commune (fragile et polluée par les tests des autres) ? Réponse : **Testcontainers**.\n\nD'abord, un mot à définir. Un **conteneur** (au sens Docker) est une **boîte isolée et jetable** qui contient un logiciel prêt à tourner (ici PostgreSQL) avec tout ce qu'il lui faut. On le démarre en quelques secondes, on l'utilise, on le jette.\n\n**Testcontainers** est une librairie qui **démarre automatiquement** une vraie base PostgreSQL dans un conteneur **le temps du test**, puis la **détruit** à la fin. Chaque exécution part donc d'une base **propre et neuve**.\n\n👉 **Analogie** : c'est de la **vaisselle jetable** pour tes tests. Tu sors une assiette neuve, tu t'en sers, tu la jettes. Aucun risque qu'elle soit sale à cause du repas précédent, et rien à laver.\n\nGros avantage : tu testes le comportement **réel** de la base (les vrais types de colonnes, les vraies contraintes, les vraies transactions), sans **mock trompeur** (qui imiterait ce que tu *crois* que la base fait) ni base partagée instable. C'est exactement l'approche de cette plateforme : chaque test d'intégration tourne contre **PostgreSQL 18** en conteneur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Testcontainers lance une vraie base jetable le temps du test : fidele a la prod.",
+          "body": "/images/lessons/tests-integration-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Des tests fiables (niveau expert)",
+          "body": "Un bon test doit avoir deux qualités, définissons-les.\n\n**Déterministe** : il donne **toujours le même verdict** pour le même code (toujours vert, ou toujours rouge). Il ne dépend ni de l'heure, ni du hasard, ni de l'ordre dans lequel les tests tournent.\n\n**Isolé** : il ne dépend pas des autres tests. Il ne laisse pas de traces (données, fichiers) qui viendraient perturber le test suivant.\n\nLe cauchemar, c'est le test **flaky** (« instable », « capricieux ») : un test qui **passe parfois et échoue parfois** sans qu'on ait rien changé. 👉 **Analogie** : c'est comme un **détecteur de fumée qui sonne au hasard**. Au bout de trois fausses alertes, tu enlèves la pile. Sauf que le jour d'un vrai incendie, plus personne n'écoute. Un test flaky est **pire qu'absent** : il détruit la **confiance** dans toute la suite, et on finit par ignorer ses alertes, y compris les vraies.\n\nLes causes classiques d'un test flaky, et leur remède :\n- **l'ordre d'exécution** ou un **état partagé** qui fuit d'un test à l'autre : on **isole** les données (un schéma ou une transaction propre par test) ;\n- **l'horloge** (le temps réel) ou l'**aléa** (un tirage au hasard) non maîtrisés : on **injecte** le temps et le hasard pour les contrôler ;\n- une **dépendance réseau** instable : on la remplace par un conteneur local (Testcontainers)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des tests fiables : isoles, deterministes, independants de l'ordre d'execution.",
+          "body": "/images/lessons/tests-integration-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À vous",
+          "body": "Pourquoi tester contre une vraie base (Testcontainers) plutôt qu'avec un mock de la base pour un test d'intégration de repository ?",
+          "solution": "Un mock de la base reproduit ce qu'on IMAGINE de son comportement, pas le vrai : il ne détecte ni un SQL invalide, ni une contrainte violée, ni un mapping erroné. Testcontainers exécute le SQL réel sur un vrai PostgreSQL jetable : le test reflète la production. Le mock donnerait un faux sentiment de sécurité."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Quiz : Tests d'intégration",
+          "quizRef": "testing-integration-check"
+        }
+      ]
+    },
+    {
+      "slug": "tdd",
+      "title": "Test-Driven Development",
+      "position": 3,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le cycle rouge-vert-refactor",
+          "body": "Le **TDD** (de l'anglais *Test-Driven Development*, « développement piloté par les tests ») **inverse l'ordre** habituel : au lieu d'écrire le code puis le test, tu écris le **test d'abord**.\n\nLe cycle se déroule en trois temps, souvent appelés **rouge-vert-refactor** :\n1. **Rouge** : tu écris un test pour un comportement qui **n'existe pas encore**. Forcément, il **échoue** (la barre est rouge) puisque le code n'est pas là.\n2. **Vert** : tu écris **le minimum** de code de production pour faire **passer** ce test (la barre devient verte). Pas plus que nécessaire.\n3. **Refactor** : maintenant que c'est vert, tu **nettoies** le code (le rends plus clair, supprimes les répétitions) **en gardant le vert**. Le *refactoring*, rappelons-le, c'est améliorer la forme sans changer le comportement.\n\nPuis tu recommences, par **tout petits pas**.\n\n👉 **Analogie** : c'est comme **dessiner le contour avant de colorier**. Le test rouge trace d'abord la forme exacte de ce que tu veux (le contour), et le code de production vient ensuite « remplir » juste ce qu'il faut pour rester dans les lignes.\n\nCe rythme produit un code **guidé par l'usage réel** (tu écris d'abord comment tu veux t'en servir), **couvert par construction** (chaque ligne existe pour satisfaire un test), et souvent d'un **design plus simple** (tu n'écris que le strict nécessaire, jamais de code « au cas où »)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cycle TDD : rouge (test qui echoue), vert (code minimal), refactor (nettoyer).",
+          "body": "/images/lessons/tdd-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ce que le TDD apporte (et n'apporte pas)",
+          "body": "Une idée fausse répandue : le TDD ne serait qu'une **façon de tester**. En réalité, c'est surtout une technique de **conception** (de *design*). En écrivant le test en premier, tu es **obligé de réfléchir à comment on utilise** ton code **avant** de l'écrire. Or penser d'abord à l'usage clarifie l'**API** (la « façade » par laquelle on appelle ton code : les noms de méthodes, leurs paramètres, ce qu'elles renvoient).\n\n👉 **Analogie** : c'est **écrire le mode d'emploi avant de fabriquer l'appareil**. Forcément, tu conçois alors un appareil **facile à utiliser**, puisque tu t'es mis à la place de l'utilisateur d'abord.\n\nMais soyons honnêtes sur ses **limites**. Le TDD ne **garantit pas** l'absence de bugs, et il ne **remplace pas** la réflexion d'architecture (le TDD te fait bien concevoir une brique, pas forcément le bâtiment entier). Ce n'est pas non plus **obligatoire partout** : sur du code trivial, il apporte peu. En revanche, sur une **logique métier riche** (des règles, des cas limites, des calculs), il donne beaucoup de **confiance** et un filet de sécurité **dense**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le TDD guide la conception et documente ; il ne remplace pas la reflexion ni les autres tests.",
+          "body": "/images/lessons/tdd-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À vous",
+          "body": "Dans le cycle TDD, pourquoi écrit-on d'abord un test qui échoue, avant tout code de production ?",
+          "solution": "Pour vérifier que le test teste vraiment quelque chose (un test qui ne passe jamais au rouge pourrait être vide/faux), pour clarifier le comportement attendu avant de coder, et pour n'écrire que le code strictement nécessaire à le faire passer. Le rouge d'abord garantit que le vert a un sens."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Quiz, Tests",
+          "quizRef": "testing-check"
+        }
+      ]
+    },
+    {
+      "slug": "property-based-mutation-testing",
+      "title": "Property-based & mutation testing",
+      "position": 4,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La couverture ment",
+          "body": "Voici un mot que tu entendras souvent : le **taux de couverture** (en anglais *code coverage*). C'est un pourcentage qui mesure **quelle proportion de ton code a été exécutée** par les tests. 80 % de couverture veut dire que 80 % des lignes ont été « traversées » au moins une fois pendant les tests.\n\nLe piège, c'est de confondre **exécuté** et **vérifié**. La couverture compte les lignes **parcourues**, pas les comportements **réellement contrôlés**. 👉 **Analogie** : un vigile qui **fait sa ronde** dans toutes les pièces (couverture à 100 %) mais qui **ne regarde jamais** si les fenêtres sont fermées. Il est passé partout, et pourtant il n'a rien vérifié.\n\nConcrètement, on peut atteindre **100 % de couverture avec zéro assertion utile** : des tests qui appellent le code, ne plantent pas, mais ne **vérifient** rien du résultat. La barre est verte, la couverture est parfaite, et pourtant rien n'est protégé.\n\nLa couverture reste un indicateur d'**absence** utile : ce qui **n'est pas** couvert est presque sûrement risqué (personne n'a testé ce chemin). Mais ce n'est **jamais** une preuve de **qualité**. Un développeur expérimenté s'en méfie comme **objectif chiffré** : viser « 100 % à tout prix » pousse à écrire des tests **décoratifs** qui gonflent le chiffre sans tester l'intention."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La couverture ment : 100% de lignes couvertes ne veut pas dire 100% de comportements testes.",
+          "body": "/images/lessons/property-based-mutation-testing-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Mutation testing : qui teste les tests ?",
+          "body": "Si la couverture ne dit pas si mes tests sont **bons**, qu'est-ce qui le dit ? Une technique répond exactement à la question « **mes tests valent-ils quelque chose ?** » : le **mutation testing** (« test par mutation » ; outils **PIT / Pitest** en Java).\n\nLe principe est malin. L'outil **introduit volontairement des bugs** dans une copie de ton code, un par un : il remplace un `+` par un `-`, un `>` par un `>=`, ou supprime un appel de méthode. Chacun de ces sabotages s'appelle un **mutant**. Puis il lance tes tests. La question : **au moins un test passe-t-il au rouge** face à ce bug ?\n- Si oui, le mutant est « **tué** » : tes tests ont détecté le sabotage, bravo.\n- Si **aucun test** ne bronche, le mutant **survit** : cela révèle un **trou**, un test manquant ou une assertion trop faible.\n\n👉 **Analogie** : pour vérifier que ton **alarme** marche vraiment, tu **simules un cambriolage**. Si l'alarme sonne, elle protège. Si tu peux entrer par la fenêtre sans qu'elle bronche, elle ne sert à rien, peu importe qu'elle soit branchée « partout ».\n\nLe **score de mutation** (le pourcentage de mutants tués) est une mesure de qualité **bien plus honnête** que la couverture : il évalue le **pouvoir de détection réel** de ta suite de tests, pas seulement les lignes parcourues."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le mutation testing introduit des bugs pour verifier que les tests les attrapent : qui teste les tests ?",
+          "body": "/images/lessons/property-based-mutation-testing-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Property-based testing : tester des invariants",
+          "body": "Le test classique donne **quelques exemples choisis à la main** : « `2 + 3` doit valoir `5` ». Utile, mais on ne teste que les cas **auxquels on a pensé**, et on oublie souvent les cas limites.\n\nLe **property-based testing** (« test par propriétés » ; outil **jqwik** en Java, inspiré de **QuickCheck**) prend le problème autrement. Au lieu d'exemples, tu décris une **propriété** : une règle qui doit rester **vraie quelle que soit l'entrée**. L'outil génère alors **des centaines d'entrées aléatoires** et vérifie que la propriété tient pour **toutes**.\n\nExemples de propriétés :\n- « **décoder(encoder(x)) == x** » : encoder puis décoder doit redonner la valeur de départ, pour n'importe quel `x`.\n- « trier une liste **conserve sa taille** et la rend **ordonnée** », pour n'importe quelle liste.\n- « le total d'un panier est **le même quel que soit l'ordre** des articles ».\n\n👉 **Analogie** : au lieu de goûter **trois plats** au hasard pour juger un buffet, tu énonces une **règle générale** (« tout plat doit être servi chaud ») et un inspecteur teste **des centaines de plats** pour tenter de la prendre en défaut.\n\nCerise sur le gâteau : quand une entrée fait échouer la propriété, l'outil **réduit** (en anglais *shrink*) automatiquement ce contre-exemple jusqu'au **plus petit** cas qui échoue encore (par exemple « la liste `[0]` suffit à casser »), ce qui rend le bug facile à comprendre. Cette approche déniche les **cas limites** que l'esprit humain oublie : liste vide, nombre négatif, débordement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le property-based testing verifie des invariants sur des milliers d'entrees generees.",
+          "body": "/images/lessons/property-based-mutation-testing-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Nommer ses doubles correctement (niveau expert)",
+          "body": "On a vu le mot **mock**. En pratique, beaucoup de gens l'emploient à tort pour **n'importe quel** double de test. Or il existe une **taxonomie** précise (une classification, due à Meszaros et popularisée par Fowler) qu'un professionnel gagne à connaître :\n- **dummy** : un objet **de remplissage**, passé pour satisfaire une signature mais **jamais utilisé** (par exemple un paramètre obligatoire dont ce test ne se sert pas).\n- **stub** : il **renvoie des réponses prédéfinies** (« réponds toujours ceci »).\n- **spy** (« espion ») : un stub qui **enregistre en plus** comment on l'a appelé (combien de fois, avec quels arguments), pour le vérifier après coup.\n- **mock** : un double **pré-programmé avec des attentes** qui sont **vérifiées** (« la méthode `envoyer()` **doit** être appelée une fois, sinon le test échoue »).\n- **fake** : une **vraie implémentation, mais allégée** (par exemple une base de données **en mémoire** au lieu de la vraie).\n\n👉 **Analogie** : au **théâtre**, tous ne sont pas de simples « figurants ». Il y a le **mannequin** posé dans le décor (dummy), le **panneau** qui affiche une réplique fixe (stub), le **régisseur** qui note tout en coulisses (spy), la **doublure** qui doit dire un texte précis (mock), et la **maquette fonctionnelle** d'un objet réel (fake).\n\nCette précision **guide le style de test**. L'école dite **classiciste** (ou « de Chicago ») teste plutôt l'**état** (le résultat obtenu) avec de vrais objets ou des *fakes*. L'école **londonienne** teste plutôt les **interactions** (les appels échangés) avec des *mocks*. Savoir lequel tu emploies, et pourquoi, évite d'écrire des tests inutilement **fragiles**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Nommer correctement ses doubles (stub, mock, fake, spy) clarifie l'intention des tests.",
+          "body": "/images/lessons/property-based-mutation-testing-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À vous",
+          "body": "Une équipe est fière de ses 95 % de couverture, mais des bugs passent régulièrement en production. Quelle technique révélerait la vraie qualité de leurs tests, et comment ?",
+          "solution": "Le mutation testing (ex. PIT) : il injecte des mutations dans le code (inverser une condition, changer un opérateur, supprimer un appel) et vérifie qu'au moins un test échoue pour chaque mutation. Si beaucoup de mutants 'survivent' (tous les tests passent malgré le bug injecté), c'est que les tests exécutent le code sans vraiment vérifier son comportement, d'où les 95 % de couverture mais des bugs qui passent. Le score de mutation mesure le pouvoir de détection réel, contrairement à la couverture qui ne mesure que l'exécution."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Quiz : Property-based & mutation testing",
+          "quizRef": "testing-mutation-check"
+        }
+      ]
+    },
+    {
+      "slug": "tester-reactif-discipline-suite",
+      "title": "Tester le réactif & la discipline de suite",
+      "position": 5,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "On ne teste pas un Mono avec un assertEquals",
+          "body": "Cette plateforme est **réactive** : elle utilise WebFlux et Reactor. Un mot à clarifier. Un code **réactif** ne renvoie pas tout de suite une valeur, mais une **promesse de valeur(s) à venir**, qui arriveront de façon **asynchrone** (plus tard, sans bloquer le programme). En Reactor, cette promesse s'appelle un **`Mono`** (zéro ou une valeur) ou un **`Flux`** (zéro à plusieurs valeurs).\n\n👉 **Analogie** : un `Mono`, ce n'est pas le **plat** posé devant toi, c'est le **ticket de commande** qui annonce « ton plat arrivera bientôt ». Vérifier un ticket avec un simple `assertEquals` n'a aucun sens : il faut **attendre le plat** et le goûter quand il arrive.\n\nDu coup, tester un `Mono`/`Flux` demande un outil dédié : le **`StepVerifier`**. Il **s'abonne** au flux (comme un vrai consommateur le ferait en production), puis vérifie **la séquence d'événements** attendue : les valeurs émises, dans le bon **ordre**, la **complétion** (le flux se termine normalement) ou l'**erreur** attendue. Et tout cela **sans `.block()`**.\n\nPourquoi cette interdiction du `.block()` ? Parce que `block()` **force** le programme à **attendre bêtement** la valeur, ce qui **sort du modèle réactif**, masque des bugs de *timing* (de synchronisation), et viole la règle d'or de cette plateforme (« jamais de `.block()` dans le runtime »). Un test qui utilise `block()` n'exerce donc **pas** le code comme il tourne vraiment en production. Le `StepVerifier`, lui, teste le flux **tel qu'il vit réellement** : de façon asynchrone."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On ne teste pas un Mono avec un assertEquals : StepVerifier verifie un flux reactif.",
+          "body": "/images/lessons/tester-reactif-discipline-suite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "StepVerifier & temps virtuel",
+          "codeLanguage": "java",
+          "body": "@Test\nvoid emet_puis_complete() {\n    Flux<Integer> flux = Flux.just(1, 2, 3).filter(n -> n > 1);\n    StepVerifier.create(flux)\n        .expectNext(2, 3)\n        .verifyComplete();\n}\n\n@Test\nvoid delai_sans_attente_reelle() {\n    // Temps VIRTUEL : teste un délai d'1h en millisecondes\n    StepVerifier.withVirtualTime(() -> Mono.delay(Duration.ofHours(1)))\n        .thenAwait(Duration.ofHours(1))\n        .expectNextCount(1)\n        .verifyComplete();\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Des données de test lisibles",
+          "body": "Quand un test passe dix lignes à **construire des objets** compliqués avant même de tester quoi que ce soit, il devient **illisible** et **fragile** (le moindre champ ajouté au modèle casse des centaines de tests). Deux patterns règlent ce problème.\n\n**Le test data builder** (« constructeur de données de test ») : une petite fabrique fluide comme `aUser().withEmail(\"a@b.c\").build()`. L'astuce : elle part de **valeurs par défaut déjà valides**, et tu ne **précises que ce qui compte pour CE test**. Si tu testes la validation de l'e-mail, tu ne renseignes que l'e-mail, le reste est rempli automatiquement.\n\n**L'object mother** (« la mère des objets ») : des fabriques **nommées** qui livrent des cas types tout prêts, comme `Users.admin()` ou `Users.apprenantSansAbonnement()`.\n\n👉 **Analogie** : au lieu de **cuisiner tous les ingrédients à partir de zéro** à chaque test, tu pars d'une **pâte toute prête** que tu **personnalises** juste avec la garniture qui t'intéresse aujourd'hui.\n\nRésultat : le corps du test dit **quoi** est testé (l'intention), pas **comment** fabriquer les données (la plomberie). Et quand le modèle évolue (un champ ajouté), tu corriges **la fabrique à un seul endroit** au lieu de 200 tests."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des donnees de test lisibles (builders, fixtures) rendent les tests comprehensibles.",
+          "body": "/images/lessons/tester-reactif-discipline-suite-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Tuer les tests flaky & savoir ne pas tester (niveau expert)",
+          "body": "On l'a dit : un test **flaky** (qui échoue par intermittence, sans raison apparente) **détruit la confiance**. On finit par relancer « pour voir » ou par ignorer les échecs, y compris les **vrais**. Il faut donc les **traquer** et éliminer leurs causes récurrentes :\n- le **temps réel** (un test qui dépend de l'heure ou d'un délai) : on **injecte une horloge** contrôlable au lieu de lire l'heure système ;\n- l'**aléa** non fixé (un tirage au hasard) : on fixe la **graine** (*seed*) pour rendre le hasard reproductible ;\n- l'**ordre** des tests ou un **état partagé** qui fuit : on **isole** chaque test ;\n- la **concurrence** (plusieurs choses en parallèle) : on utilise des **attentes actives** (« attends que la condition soit vraie ») plutôt qu'un `sleep` fixe qui marche « parfois » ;\n- les **dépendances réseau** distantes : on les remplace par un conteneur local (**Testcontainers**).\n\n👉 **Analogie** : un test flaky, c'est une **voiture qui démarre un jour sur deux**. Tu ne cherches pas à « réessayer jusqu'à ce que ça marche » : tu **trouves la vraie panne** (batterie, bougie) et tu la répares.\n\nDiscipline complémentaire, tout aussi importante : savoir **ne pas tester**. Inutile de tester du code **trivial** (un simple *getter* qui renvoie un champ), le **framework** lui-même (ce n'est pas ton rôle), ou de **redupliquer en unitaire** ce qu'un test d'intégration couvre déjà. Chaque test a un coût d'entretien : la suite doit rester **rapide** pour être lancée **souvent**, sinon plus personne ne l'exécute."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tuer les tests flaky et savoir ne pas tester l'evident : une suite saine reste rapide et fiable.",
+          "body": "/images/lessons/tester-reactif-discipline-suite-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À vous",
+          "body": "Un développeur teste une méthode réactive qui renvoie un `Mono<User>` en faisant `mono.block()` puis un `assertEquals`. Pourquoi est-ce un mauvais test dans une pile WebFlux, et par quoi le remplacer ?",
+          "solution": "block() force la synchronisation : il sort du modèle réactif, peut masquer des problèmes de timing/backpressure/erreurs asynchrones, et va à l'encontre de la règle 'jamais de block()' (c'est un test qui n'exerce pas le code comme il tourne en production). On remplace par StepVerifier.create(mono).expectNext(userAttendu).verifyComplete() (ou .expectError(...) pour un cas d'erreur), qui s'abonne réellement au flux et vérifie la séquence d'événements de façon asynchrone. Pour les délais, StepVerifier.withVirtualTime évite d'attendre le temps réel."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Pour aller plus loin",
+          "body": "Références pour creuser le sujet : *Growing Object-Oriented Software, Guided by Tests* (Freeman et Pryce), le livre de référence de l'école londonienne du TDD ; *xUnit Test Patterns* (Meszaros), qui détaille la taxonomie des doubles et les *smells* (les « odeurs », signes de mauvais tests) ; la documentation **Reactor** section *Testing* (`StepVerifier`, `TestPublisher`, `withVirtualTime`) ; **PIT / Pitest** pour le mutation testing et **jqwik** pour le property-based en Java ; *Working Effectively with Legacy Code* (Feathers) pour apprendre à tester du code existant non testé. Article court et éclairant : « Test Desiderata » (Kent Beck), sur les propriétés qui font un bon test."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des ressources pour approfondir les tests.",
+          "body": "/images/lessons/tester-reactif-discipline-suite-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Quiz, Tests (niveau expert)",
+          "quizRef": "testing-expert"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "ref": "java-language-memoire-check",
+  "node": "java-language",
+  "lesson": "modele-memoire-concurrence-avancee",
+  "title": "Quiz : modèle mémoire & concurrence avancée",
+  "description": "JMM, visibilité, volatile, verrous et CAS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un thread peut-il ne pas voir la valeur écrite par un autre thread ?",
+      "justification": "À cause des caches CPU et du réordonnancement : sans relation happens-before, l'écriture n'est pas garantie visible par l'autre thread.",
+      "position": 0,
+      "options": [
+        { "label": "À cause des caches CPU et du réordonnancement, faute de relation happens-before", "correct": true, "position": 0 },
+        { "label": "Parce que Java efface les variables au hasard", "correct": false, "position": 1 },
+        { "label": "Parce que les threads ne partagent jamais de mémoire", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le mot-clé `volatile` ?",
+      "justification": "Il garantit la visibilité d'une variable entre threads : chaque lecture voit la dernière écriture, sans rester coincée dans un cache.",
+      "position": 1,
+      "options": [
+        { "label": "Garantir la visibilité d'une variable entre threads", "correct": true, "position": 0 },
+        { "label": "Rendre une variable immuable", "correct": false, "position": 1 },
+        { "label": "Accélérer l'accès à la variable", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le CAS (compare-and-swap) utilisé par les classes Atomic* ?",
+      "justification": "Une mise à jour lock-free : elle n'agit que si la valeur n'a pas changé, sinon elle réessaie. Pas de blocage, très performant sous contention modérée.",
+      "position": 2,
+      "options": [
+        { "label": "Une mise à jour lock-free qui n'agit que si la valeur n'a pas changé, sinon réessaie", "correct": true, "position": 0 },
+        { "label": "Un verrou qui bloque tous les autres threads", "correct": false, "position": 1 },
+        { "label": "Une copie de sauvegarde de la variable", "correct": false, "position": 2 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un service, il vaut mieux passer par un ExecutorService (pool) que de créer des threads « à la main ».",
+      "justification": "Vrai : un ExecutorService gère la réserve de threads, répartit les tâches et s'arrête proprement (shutdown/awaitTermination).",
+      "position": 3,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

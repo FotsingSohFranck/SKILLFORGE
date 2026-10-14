@@ -1,0 +1,10 @@
+{
+  "node": "building-for-scale",
+  "lesson": "strategies-de-resilience",
+  "title": "Un appel externe résilient (timeout + retry avec backoff)",
+  "statement": "Tu appelles une API tierce parfois lente ou instable avec un `WebClient` réactif. Rends cet appel résilient : (1) borne-le par un **timeout** de 2 secondes avec `.timeout(Duration.ofSeconds(2))` ; (2) ajoute jusqu'à 3 **retries** avec **backoff** exponentiel ET **jitter** via `.retryWhen(Retry.backoff(3, Duration.ofMillis(200)).jitter(0.5))`. L'ordre compte : le timeout s'applique à chaque tentative, puis le retryWhen relance en cas d'échec.",
+  "skeleton": "Mono<String> appelResilient(WebClient client) {\n    return client.get()\n            .uri(\"/data\")\n            .retrieve()\n            .bodyToMono(String.class)\n            // 1) borne chaque tentative par un timeout\n            // 2) réessaie avec backoff + jitter\n            ;\n}",
+  "solution": "Mono<String> appelResilient(WebClient client) {\n    return client.get()\n            .uri(\"/data\")\n            .retrieve()\n            .bodyToMono(String.class)\n            .timeout(Duration.ofSeconds(2))\n            .retryWhen(Retry.backoff(3, Duration.ofMillis(200)).jitter(0.5));\n}",
+  "keyPoints": [".timeout(", "retryWhen(", "Retry.backoff(", ".jitter("],
+  "language": "java"
+}

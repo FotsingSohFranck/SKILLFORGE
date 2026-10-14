@@ -1,0 +1,96 @@
+{
+  "ref": "boundaries-expert-check",
+  "node": "boundaries-policy-detail",
+  "lesson": "clean-architecture-cercles-et-franchissement",
+  "title": "Quiz, Clean Architecture (expert)",
+  "description": "Cercles concentriques, règle des dépendances, franchissement, Main.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans les cercles de la Clean Architecture, du centre vers le bord, l'ordre est… ?",
+      "justification": "Entities → Use Cases → Interface Adapters → Frameworks & Drivers : du plus stable/métier au plus volatil/détail.",
+      "position": 0,
+      "options": [
+        {
+          "label": "Entities → Use Cases → Interface Adapters → Frameworks",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Base → UI → Use Cases → Entities",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "Frameworks → Entities → Base → UI",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment concilier « le use case lit la base » avec « il n'en dépend pas dans le code » ?",
+      "justification": "Le flux de contrôle sort vers la base, mais l'inversion de dépendance fait pointer la dépendance de code vers l'intérieur : le use case définit un port, l'adaptateur l'implémente.",
+      "position": 1,
+      "options": [
+        {
+          "label": "Le use case définit un port ; l'adaptateur l'implémente (dépendance inversée)",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Le use case importe directement la classe Postgres",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "On supprime la base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que doit-on faire traverser une frontière entre cercles ?",
+      "justification": "Uniquement des structures de données simples (DTO/records), jamais une entité de domaine ni de persistance, et dans le sens de la règle des dépendances.",
+      "position": 2,
+      "options": [
+        {
+          "label": "Des structures de données simples (DTO), pas des entités du domaine",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "L'entité de persistance annotée ORM",
+          "correct": false,
+          "position": 1
+        },
+        {
+          "label": "La connexion à la base",
+          "correct": false,
+          "position": 2
+        }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En « Screaming Architecture », l'arborescence de premier niveau devrait révéler le métier (enrollment, catalog…) plutôt que la technique (controllers, models…).",
+      "justification": "Vrai : l'architecture doit crier son usage, pas ses matériaux ; le composant Main, lui, câble les détails concrets au démarrage.",
+      "position": 3,
+      "options": [
+        {
+          "label": "Vrai",
+          "correct": true,
+          "position": 0
+        },
+        {
+          "label": "Faux",
+          "correct": false,
+          "position": 1
+        }
+      ]
+    }
+  ]
+}
