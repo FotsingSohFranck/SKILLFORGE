@@ -101,24 +101,37 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Groupe d'items (ex : Accueil/Catalogue), séparés par un filet. */
+.group {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-1);
 }
 
-/* Surlignage de sélection qui glisse entre les items.
-   top = index actif x pas (hauteur de ligne 35 + gap 4 = 39px). On anime --active-index
-   (enregistrée @property, posée sur CET élément) ; top suit -> glissement fluide. */
+/* Filet de séparation entre groupes de navigation. */
+.sep {
+  height: 1px;
+  margin: 0 var(--space-2);
+  background: var(--color-border);
+}
+
+/* Surlignage de sélection qui glisse entre les items. On MESURE la position du lien actif
+   (--ind-top / --ind-h posées en inline) : robuste aux séparateurs et aux hauteurs variables. */
 .navIndicator {
   position: absolute;
   left: 0;
   right: 0;
-  height: 35px;
-  top: calc(var(--active-index, 0) * 39px);
+  top: var(--ind-top, 0);
+  height: var(--ind-h, 35px);
   border-radius: var(--radius-sm);
   background: var(--color-primary-soft);
   opacity: 0;
   pointer-events: none;
   z-index: 0;
-  transition: --active-index var(--dur-slow) var(--ease-spring),
+  transition: top var(--dur-slow) var(--ease-spring), height var(--dur-slow) var(--ease-spring),
     opacity var(--dur-fast) var(--ease-standard);
 }
 .navIndicator[data-visible='true'] {
@@ -195,6 +208,14 @@
     gap: var(--space-1);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+  /* En barre horizontale, les groupes s'alignent en ligne et les filets disparaissent. */
+  .group {
+    flex-direction: row;
+    gap: var(--space-1);
+  }
+  .sep {
+    display: none;
   }
   .link {
     white-space: nowrap;

@@ -1,9 +1,10 @@
+import { Fragment, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/authStore'
 import { CommandPalette } from '../components/CommandPalette'
 import { Confetti } from '../components/Confetti'
-import { IconBook, IconHome, IconSearch, IconShield, IconUser } from '../components/icons'
+import { IconBook, IconHome, IconPaths, IconSearch, IconShield, IconUser } from '../components/icons'
 import { OnboardingTour } from '../components/OnboardingTour'
 import { ToastViewport } from '../components/toast/ToastViewport'
 import { Header } from './Header'
@@ -18,9 +19,15 @@ interface NavItem {
   end?: boolean
 }
 
-const NAV: NavItem[] = [
+/** Groupes de navigation, séparés par un filet dans la barre latérale. */
+const NAV_MAIN: NavItem[] = [
   { to: '/', label: 'Accueil', icon: (a) => <IconHome size={18} filled={a} />, end: true },
   { to: '/catalogue', label: 'Catalogue', icon: (a) => <IconBook size={18} filled={a} /> },
+]
+const NAV_LEARN: NavItem[] = [
+  { to: '/mes-parcours', label: 'Mes parcours', icon: (a) => <IconPaths size={18} filled={a} /> },
+]
+const NAV_ACCOUNT: NavItem[] = [
   { to: '/profile', label: 'Profil', icon: (a) => <IconUser size={18} filled={a} /> },
 ]
 
@@ -28,24 +35,33 @@ function linkClass({ isActive }: { isActive: boolean }): string {
   return [styles.link, 'sf-pressable', isActive ? styles.active : ''].filter(Boolean).join(' ')
 }
 
-/**
- * Index de l'item de nav actif (ordre : Accueil, Catalogue, Profil, Admin), ou -1 si la route
- * ne correspond a aucun item. Pilote l'indicateur de sélection glissant via --active-index,
- * posé DIRECTEMENT sur l'indicateur (variable enregistrée @property -> transition fluide).
- */
-function navActiveIndex(pathname: string): number {
-  if (pathname === '/') return 0
-  if (pathname.startsWith('/catalogue')) return 1
-  if (pathname.startsWith('/profile')) return 2
-  if (pathname.startsWith('/admin')) return 3
-  return -1
-}
-
 /** Cadre applicatif privé : barre latérale + en-tête + zone de contenu (Outlet). */
 export function AppLayout() {
   const isAdmin = useAuth((s) => s.hasRole('ADMIN'))
   const location = useLocation()
-  const activeIndex = navActiveIndex(location.pathname)
+  const navRef = useRef<HTMLElement>(null)
+  // Indicateur de sélection glissant : on MESURE la position réelle du lien actif (robuste aux
+  // séparateurs et au nombre variable d'items) plutôt que de calculer un index x pas fixe.
+  const [indicator, setIndicator] = useState({ top: 0, height: 0, visible: false })
+
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const active = nav.querySelector<HTMLElement>(`a.${styles.active}`)
+    if (active) {
+      setIndicator({ top: active.offsetTop, height: active.offsetHeight, visible: true })
+    } else {
+      setIndicator((prev) => ({ ...prev, visible: false }))
+    }
+  }, [location.pathname, isAdmin])
+
+  const accountGroup = isAdmin
+    ? [
+        ...NAV_ACCOUNT,
+        { to: '/admin', label: 'Admin', icon: (a: boolean) => <IconShield size={18} filled={a} /> },
+      ]
+    : NAV_ACCOUNT
+  const groups: NavItem[][] = [NAV_MAIN, NAV_LEARN, accountGroup]
 
   return (
     <div className={styles.shell}>
@@ -76,33 +92,32 @@ export function AppLayout() {
           <kbd className={styles.kbd}>Ctrl K</kbd>
         </button>
 
-        <nav className={styles.nav}>
+        <nav className={styles.nav} ref={navRef}>
           <span
             className={styles.navIndicator}
-            data-visible={activeIndex >= 0}
+            data-visible={indicator.visible}
             aria-hidden="true"
-            style={{ '--active-index': Math.max(0, activeIndex) } as CSSProperties}
+            style={
+              { '--ind-top': `${indicator.top}px`, '--ind-h': `${indicator.height}px` } as CSSProperties
+            }
           />
-          {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
-              {({ isActive }) => (
-                <>
-                  {item.icon(isActive)}
-                  <span>{item.label}</span>
-                </>
-              )}
-            </NavLink>
+          {groups.map((group, groupIndex) => (
+            <Fragment key={groupIndex}>
+              {groupIndex > 0 && <div className={styles.sep} aria-hidden="true" />}
+              <div className={styles.group}>
+                {group.map((item) => (
+                  <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
+                    {({ isActive }) => (
+                      <>
+                        {item.icon(isActive)}
+                        <span>{item.label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </Fragment>
           ))}
-          {isAdmin && (
-            <NavLink to="/admin" className={linkClass}>
-              {({ isActive }) => (
-                <>
-                  <IconShield size={18} filled={isActive} />
-                  <span>Admin</span>
-                </>
-              )}
-            </NavLink>
-          )}
         </nav>
 
         <SidebarProgress />

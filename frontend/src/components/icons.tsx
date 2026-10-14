@@ -239,6 +239,24 @@ export const IconSearch = (p: IconProps) =>
     </>
   ) })
 
+/** Mes parcours (barres décroissantes = progression des parcours). Variante pleine à l'état actif. */
+export const IconPaths = ({ filled, ...p }: IconProps) =>
+  filled
+    ? solid({ ...p, children: (
+        <>
+          <rect x="3" y="5" width="18" height="3" rx="1.5" />
+          <rect x="3" y="10.5" width="12" height="3" rx="1.5" />
+          <rect x="3" y="16" width="8" height="3" rx="1.5" />
+        </>
+      ) })
+    : base({ ...p, children: (
+        <>
+          <path d="M4 6.5h16" />
+          <path d="M4 12h11" />
+          <path d="M4 17.5h7" />
+        </>
+      ) })
+
 /** Œil (afficher le mot de passe). */
 export const IconEye = (p: IconProps) =>
   base({ ...p, children: (

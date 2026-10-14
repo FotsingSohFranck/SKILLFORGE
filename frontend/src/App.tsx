@@ -20,6 +20,7 @@ import { ChallengePage } from './pages/ChallengePage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ExamPage } from './pages/ExamPage'
 import { LessonPage } from './pages/LessonPage'
+import { MyPathsPage } from './pages/MyPathsPage'
 import { NodePage } from './pages/NodePage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RoadmapPage } from './pages/RoadmapPage'
@@ -27,7 +28,7 @@ import { AdminPage, NotFoundPage } from './pages'
 
 /** Sections de premier niveau (atteintes par la barre latérale) : ce sont des pairs. */
 function isPeer(path: string): boolean {
-  return path === '/' || /^\/(catalogue|profile|admin)$/.test(path)
+  return path === '/' || /^\/(catalogue|mes-parcours|profile|admin)$/.test(path)
 }
 
 /** Profondeur hiérarchique d'une route, pour décider du sens du push (avant/arrière). */
@@ -122,6 +123,7 @@ function AnimatedRoutes() {
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="catalogue" element={<CataloguePage />} />
+          <Route path="mes-parcours" element={<MyPathsPage />} />
           <Route path="roadmaps/:slug" element={<RoadmapPage />} />
           <Route path="nodes/:id" element={<NodePage />} />
           <Route path="lessons/:id" element={<LessonPage />} />

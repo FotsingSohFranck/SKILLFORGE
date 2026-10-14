@@ -883,13 +883,34 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
+- 🔄 **SF-85 — Barre latérale en sections + hubs réels** — *1er item : « Mes parcours »*
+  - Constat (validé avec le PO) : sidebar trop maigre (Accueil/Catalogue/Profil) ; des fonctionnalités
+    réelles (parcours en cours, examens blancs, certificats) n'avaient **aucune porte d'entrée** dans la nav.
+  - Découpage validé : **SF-85** Mes parcours (front), **SF-86** Certificats (front), **SF-87** Examens
+    blancs (backend `evaluation` : nouvel endpoint `GET /exams` + front). Ordre choisi pour **zéro lien mort**
+    à chaque incrément et isoler le seul item backend en dernier.
+  - ✅ **SF-85 — Sidebar en sections + hub « Mes parcours »** (front seul)
+    - Nav réorganisée en **3 groupes séparés par un filet** : `Accueil/Catalogue` · `Mes parcours` · `Profil/(Admin)`.
+    - Indicateur de sélection glissant refait : on **mesure** la position du lien actif (`--ind-top`/`--ind-h`
+      via `useLayoutEffect`) au lieu d'un index × pas fixe -> robuste aux séparateurs et au nombre d'items.
+      Suppression du `@property --active-index` (devenu mort).
+    - Nouvelle page **`/mes-parcours`** (`MyPathsPage`) : sections **En cours** / **Terminés**, cartes avec
+      couverture, anneau de progression, reprise (`Continuer`/`Commencer`) ou `Voir mon certificat`.
+      Données réelles via `listEnrollments()` + `listRoadmaps()` (aucun backend ajouté). Route marquée **pair**
+      (transitions façon onglets). Nouvelle icône `IconPaths` (outline + variante pleine à l'état actif).
+    - Vérifié en direct (compte apprenti de démo) : nav Accueil/Catalogue│Mes parcours│Profil, indicateur qui
+      glisse, page « En cours » avec 2 parcours. Fichiers : `AppLayout.tsx` (+ `.module.css`), `MyPathsPage.tsx`
+      (+ `.module.css`), `App.tsx`, `icons.tsx`, `global.css`.
+  - ⏳ SF-86 (Certificats), SF-87 (Examens blancs) : non commencés.
+
 - ✅ **SF-84 — Refonte de la page de connexion (layout 2 colonnes + image)** — **TERMINÉ**
   - Analyse : page de connexion correcte mais plate / en retrait de l'identité du produit.
   - `AuthPage` : layout **2 colonnes** (formulaire à gauche, **panneau image hero** monochrome + voile
     + accroche à droite ; masqué < 900px), **logo** (hexagone) au-dessus du titre, séparateur +
     bouton **« Créer un compte »** (ghost) distinct du CTA primaire.
-  - `LoginForm` : **afficher/masquer le mot de passe**.
-  - Vérifié en direct. Fichiers : `AuthPage.tsx` (+ `.module.css`), `LoginForm.tsx`.
+  - `LoginForm` : **afficher/masquer le mot de passe**. *(Affiné ensuite : œil **intégré au champ** via le
+    composant `Input`, donc actif sur TOUS les champs mot de passe — connexion, inscription, changement, reset.)*
+  - Vérifié en direct. Fichiers : `AuthPage.tsx` (+ `.module.css`), `LoginForm.tsx`, `Input.tsx`/`Input.module.css`, `icons.tsx`.
 
 - ✅ **SF-83 — Hero d'accueil (image de bienvenue façon Apple) sur le dashboard** — **TERMINÉ**
   - Recherche : principe hero Apple (grande image forte + titre + accroche, pleine largeur).
