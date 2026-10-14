@@ -61,7 +61,10 @@ export function AppLayout() {
         { to: '/admin', label: 'Admin', icon: (a: boolean) => <IconShield size={18} filled={a} /> },
       ]
     : NAV_ACCOUNT
-  const groups: NavItem[][] = [NAV_MAIN, NAV_LEARN, accountGroup]
+  // Tant que le groupe « apprentissage » n'a qu'un item (Mes parcours), on le fusionne avec le
+  // groupe principal : un item seul entre deux filets serait déséquilibré. Il redeviendra un groupe
+  // distinct quand les hubs Examens blancs / Certificats l'étofferont (SF-86/87).
+  const groups: NavItem[][] = [[...NAV_MAIN, ...NAV_LEARN], accountGroup]
 
   return (
     <div className={styles.shell}>

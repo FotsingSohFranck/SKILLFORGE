@@ -890,7 +890,9 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     blancs (backend `evaluation` : nouvel endpoint `GET /exams` + front). Ordre choisi pour **zéro lien mort**
     à chaque incrément et isoler le seul item backend en dernier.
   - ✅ **SF-85 — Sidebar en sections + hub « Mes parcours »** (front seul)
-    - Nav réorganisée en **3 groupes séparés par un filet** : `Accueil/Catalogue` · `Mes parcours` · `Profil/(Admin)`.
+    - Nav réorganisée en **groupes séparés par un filet** : pour l'instant `Accueil/Catalogue/Mes parcours`
+      · `Profil/(Admin)` (un seul filet — un item seul entre deux filets serait déséquilibré). Le groupe
+      « apprentissage » (Mes parcours / Examens / Certificats) sera isolé quand SF-86/87 l'étofferont.
     - Indicateur de sélection glissant refait : on **mesure** la position du lien actif (`--ind-top`/`--ind-h`
       via `useLayoutEffect`) au lieu d'un index × pas fixe -> robuste aux séparateurs et au nombre d'items.
       Suppression du `@property --active-index` (devenu mort).
