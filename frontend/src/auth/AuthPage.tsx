@@ -16,7 +16,7 @@ export function AuthPage() {
         <div className={styles.topbar}>
           <ThemeToggle />
         </div>
-        <div className={styles.center}>
+        <div className={`${styles.center} sf-stagger`}>
           <div className={styles.brand}>
             <span className={styles.logo} aria-hidden="true">
               <svg viewBox="0 0 24 24" width="42" height="42" fill="none">
@@ -58,7 +58,7 @@ export function AuthPage() {
         <img className={styles.imagePanelImg} src="/images/hero-home.jpg" alt="" />
         <div className={styles.imagePanelScrim} />
         <p className={styles.imagePanelQuote}>
-          Apprends le backend pas à pas — du premier concept jusqu'au niveau pro.
+          Apprends le backend pas à pas, du premier concept jusqu'au niveau pro.
         </p>
       </aside>
     </div>
