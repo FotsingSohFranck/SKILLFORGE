@@ -883,6 +883,14 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
+- ✅ **SF-84 — Refonte de la page de connexion (layout 2 colonnes + image)** — **TERMINÉ**
+  - Analyse : page de connexion correcte mais plate / en retrait de l'identité du produit.
+  - `AuthPage` : layout **2 colonnes** (formulaire à gauche, **panneau image hero** monochrome + voile
+    + accroche à droite ; masqué < 900px), **logo** (hexagone) au-dessus du titre, séparateur +
+    bouton **« Créer un compte »** (ghost) distinct du CTA primaire.
+  - `LoginForm` : **afficher/masquer le mot de passe**.
+  - Vérifié en direct. Fichiers : `AuthPage.tsx` (+ `.module.css`), `LoginForm.tsx`.
+
 - ✅ **SF-83 — Hero d'accueil (image de bienvenue façon Apple) sur le dashboard** — **TERMINÉ**
   - Recherche : principe hero Apple (grande image forte + titre + accroche, pleine largeur).
   - Image Pexels choisie (MacBook + code, lumière douce, paysage) -> `frontend/public/images/hero-home.jpg`

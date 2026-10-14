@@ -10,6 +10,7 @@ export function LoginForm() {
   const login = useAuth((s) => s.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -38,14 +39,30 @@ export function LoginForm() {
         onChange={(e) => setEmail(e.target.value)}
         placeholder="vous@exemple.dev"
       />
-      <Input
-        label="Mot de passe"
-        type="password"
-        autoComplete="current-password"
-        required
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+        <Input
+          label="Mot de passe"
+          type={showPw ? 'text' : 'password'}
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPw((v) => !v)}
+          style={{
+            alignSelf: 'flex-end',
+            background: 'none',
+            border: 'none',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            fontSize: 'var(--text-sm)',
+          }}
+        >
+          {showPw ? 'Masquer' : 'Afficher'} le mot de passe
+        </button>
+      </div>
       <Button type="submit" variant="primary" disabled={loading}>
         {loading ? 'Connexion…' : 'Se connecter'}
       </Button>
