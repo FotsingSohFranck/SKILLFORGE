@@ -883,6 +883,15 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
+- ✅ **Maintenance — Tests `iam` + préparation mise en public (MIT)** — **TERMINÉ**
+  - Correctif : `AuthIntegrationTest` (module `iam`) ne chargeait plus le contexte depuis l'ajout du
+    « mot de passe oublié » — `JavaMailPasswordResetMailer` exige un bean `JavaMailSender` absent du
+    contexte de test. Ajout d'un **hôte mail fictif** dans `iam/src/test/resources/application.yml`
+    (aucun email n'est envoyé par ces tests). Build complet re-vérifié **vert** (10 modules, 0 échec).
+  - Mise en public : ajout **`LICENSE` (MIT)**, **`.gitattributes`** (`text=auto`, images en binaire),
+    section **Licence** + note « identifiants de démo = instance locale uniquement » dans le README.
+  - Dépôt propre : aucun secret suivi, `.env` jamais commité, plus gros fichier 964 Ko. **Aucun remote** encore.
+
 - 🔄 **SF-85 — Barre latérale en sections + hubs réels** — *1er item : « Mes parcours »*
   - Constat (validé avec le PO) : sidebar trop maigre (Accueil/Catalogue/Profil) ; des fonctionnalités
     réelles (parcours en cours, examens blancs, certificats) n'avaient **aucune porte d'entrée** dans la nav.

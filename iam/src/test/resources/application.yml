@@ -1,4 +1,11 @@
 # Configuration de test IAM : secret JWT déterministe (>= 32 octets) pour les tests d'intégration.
+spring:
+  # Hôte mail fictif : fait créer le bean JavaMailSender (requis par JavaMailPasswordResetMailer)
+  # au chargement du contexte. Aucun test n'envoie d'email, donc aucune connexion SMTP n'est tentée.
+  mail:
+    host: localhost
+    port: 1025
+
 skillforge:
   security:
     jwt:
