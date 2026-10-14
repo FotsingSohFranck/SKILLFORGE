@@ -17,12 +17,13 @@ Le plus simple : PostgreSQL 18 + backend + frontend en une commande.
 
 ```bash
 cp .env.example .env          # ajustez ports / secret si besoin
-docker compose up --build     # Postgres 18 + backend WebFlux + front (Nginx)
+docker compose up --build     # Postgres 18 + Mailpit + backend WebFlux + front (Nginx)
 ```
 
 - **Front** : http://localhost:8081 (SPA React, proxy `/api` → backend)
 - **API** : http://localhost:8080/api/v1/…
 - **OpenAPI / Swagger UI** : http://localhost:8080/swagger-ui.html
+- **Mailpit** (boîte mail de dev — emails de réinitialisation de mot de passe) : http://localhost:8025
 
 Flyway applique les migrations et le **seed** au démarrage : la plateforme est immédiatement
 explorable (comptes de démo ci-dessous, parcours « Découverte du backend »). Pour charger du
@@ -50,7 +51,7 @@ mvn -pl app -am -DskipTests install   # build rapide de l'app
      -e POSTGRES_DB=skillforge -e POSTGRES_USER=skillforge -e POSTGRES_PASSWORD=skillforge \
      -p 5432:5432 postgres:18
    ```
-2. Lancer l'application (Flyway applique `V1..V8` au démarrage) :
+2. Lancer l'application (Flyway applique `V1..V11` au démarrage) :
    ```bash
    java -jar app/target/skillforge.jar
    # ou : mvn -pl app spring-boot:run
@@ -102,6 +103,26 @@ curl -s -X POST http://localhost:8080/api/v1/auth/register \
 # Rafraîchir / se déconnecter
 curl -s -X POST http://localhost:8080/api/v1/auth/refresh -H 'Content-Type: application/json' -d '{"refreshToken":"<REFRESH>"}'
 curl -s -X POST http://localhost:8080/api/v1/auth/logout  -H 'Content-Type: application/json' -d '{"refreshToken":"<REFRESH>"}'
+```
+
+### Mot de passe (changement + réinitialisation)
+Flux « mot de passe oublié » par email (le mail arrive dans **Mailpit**, http://localhost:8025) et
+changement de mot de passe pour un compte connecté. Réponse neutre côté `forgot` (aucune fuite
+d'existence de compte) ; tokens de réinitialisation à usage unique.
+
+```bash
+# Mot de passe oublié -> envoie un lien par email (visible dans Mailpit). Réponse 204, neutre.
+curl -s -X POST http://localhost:8080/api/v1/auth/password/forgot \
+  -H 'Content-Type: application/json' -d '{"email":"learner@skillforge.dev"}'
+
+# Réinitialiser avec le token reçu dans l'email
+curl -s -X POST http://localhost:8080/api/v1/auth/password/reset \
+  -H 'Content-Type: application/json' -d '{"token":"<TOKEN>","newPassword":"nouveauMotDePasse123"}'
+
+# Changer son mot de passe (compte connecté)
+curl -s -X PATCH http://localhost:8080/api/v1/auth/password \
+  -H "Authorization: Bearer <ACCESS>" -H 'Content-Type: application/json' \
+  -d '{"currentPassword":"Skillforge123!","newPassword":"nouveauMotDePasse123"}'
 ```
 
 > `SF_JWT_SECRET` doit être surchargé hors dev (≥ 32 octets).

@@ -6,7 +6,12 @@
 - reprend et unifie les capacités des 3 mini-plateformes précédentes (apprendre l'architecture ; préparer les certifications Docker/Kubernetes ; former un développeur backend Java) ;
 - fait passer l'utilisateur de **débutant à professionnel** ;
 - **Backend :** Java 21, architecture **hexagonale**, Spring Boot **4.1** (Spring Framework 7), **WebFlux** (réactif), **R2DBC**, **PostgreSQL 18** avec **UUID v7** en clés primaires ;
-- **Frontend :** React, palette **violet / bleu / blanc**.
+- **Frontend :** React, **design monochrome sobre « inspiration Apple »** — neutres gris + accent quasi-noir, surfaces en verre (glassmorphism), mode clair/sombre, WCAG AA.
+
+> **Note (document à jour).** Cette série de prompts a servi à **construire** la plateforme, aujourd'hui réalisée. Deux écarts par rapport au plan initial, décidés en cours de route :
+> - **Design** : la palette « violet / bleu / blanc » a été abandonnée (jugée « trop IA ») au profit d'un **monochrome sobre inspiration Apple** — neutres gris (valeurs Apple) + accent **quasi-noir `#1d1d1f`**, surfaces en **verre (glassmorphism)** pour le chrome, cartes de contenu **opaques**, mode clair/sombre, WCAG AA.
+> - **Coloration syntaxique** : `react-syntax-highlighter` a été remplacé par **Prism.js** (intégration directe).
+> Le reste (stack, architecture hexagonale, contenu des parcours, gamification, images pédagogiques) est conforme au plan.
 
 ---
 
@@ -51,7 +56,7 @@ avec examens blancs, et un parcours transverse "Développeur Backend Java".
 CONTRAINTES TECHNIQUES (à respecter dans toute la spec) :
 - Backend : Java 21, architecture hexagonale, Spring Boot 4.1 (Spring Framework 7),
   WebFlux réactif, R2DBC, PostgreSQL 18 (UUID v7 en clés primaires).
-- Frontend : React, palette violet / bleu / blanc.
+- Frontend : React, design monochrome sobre (inspiration Apple) : neutres gris + accent quasi-noir, verre (glassmorphism), mode clair/sombre.
 - 100% exécutable en local (Docker Compose).
 
 TÂCHE : produis un DOCUMENT DE SPÉCIFICATION structuré et complet, servant
@@ -352,20 +357,23 @@ LIVRABLE
 
 # TRACK 3 — Frontend React
 
-## PROMPT 10 — Design system React (violet / bleu / blanc)
+## PROMPT 10 — Design system React (monochrome sobre, inspiration Apple)
 
 ```
 Crée le DESIGN SYSTEM d'une application React pour la plateforme. UI en FRANÇAIS.
 
 CONTRAINTES
-- Palette : violet + bleu + blanc (définis les tokens : primaire violet,
-  secondaire bleu, surfaces blanches/claires, + variantes sombres). Contrastes
-  accessibles (WCAG AA).
+- Palette : MONOCHROME sobre, inspiration Apple (définis les tokens) : neutres gris
+  (valeurs Apple : fond #f5f5f7, texte #1d1d1f, gris #6e6e73, bordure #d2d2d7),
+  accent quasi-noir (#1d1d20 clair / quasi-blanc en sombre), + variantes sombres.
+  PAS de violet/bleu vif (« trop IA »). Contrastes accessibles (WCAG AA).
+- Surfaces en VERRE (glassmorphism) pour le chrome (barre latérale, en-tête, popovers),
+  cartes de contenu OPAQUES (jamais de verre sur verre).
 - Style sobre, moderne, orienté lecture longue (belle typographie, largeur de texte
-  maîtrisée), mode clair/sombre.
+  maîtrisée ~66 caractères), mode clair/sombre.
 - Stack front : React + Vite + React Router + un client HTTP (fetch/axios) + gestion
   d'état légère (Context/Zustand). Coloration syntaxique (Java, SQL, YAML, bash,
-  Rust) via react-syntax-highlighter.
+  Rust) via Prism.js (intégration directe).
 
 LIVRABLE
 - Tokens de design (CSS variables / thème) : couleurs, typographie, espacements,
