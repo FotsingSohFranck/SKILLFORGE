@@ -883,6 +883,14 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
+- ✅ **SF-83 — Hero d'accueil (image de bienvenue façon Apple) sur le dashboard** — **TERMINÉ**
+  - Recherche : principe hero Apple (grande image forte + titre + accroche, pleine largeur).
+  - Image Pexels choisie (MacBook + code, lumière douce, paysage) -> `frontend/public/images/hero-home.jpg`
+    (2200px). Traitée en **monochrome** (grayscale) pour l'identité, voile dégradé pour la lisibilité.
+  - `DashboardPage` : section `hero` (image + scrim + « Bonjour <nom> » + accroche superposés),
+    coins arrondis, bordure, cohérente avec les cartes. Remplace le simple `<h1>`.
+  - Vérifié en direct. Fichiers : `DashboardPage.tsx` (+ `.module.css`), `hero-home.jpg`, `credits.json`.
+
 - ✅ **SF-81 — Images dans les parcours (bannières page parcours + page nœud)** — **TERMINÉ**
   - `TrackCover` : variante `tall` (héro 240px) ajoutée.
   - **Page parcours** (`RoadmapPage`) : bannière HÉRO (slot `media` de la Card d'en-tête), slug direct.

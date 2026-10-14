@@ -40,7 +40,16 @@ export function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Bonjour {user?.displayName}</h1>
+      <section className={styles.hero}>
+        <img className={styles.heroImg} src="/images/hero-home.jpg" alt="" loading="eager" />
+        <div className={styles.heroScrim} aria-hidden="true" />
+        <div className={styles.heroText}>
+          <h1 className={styles.heroTitle}>Bonjour {user?.displayName}</h1>
+          <p className={styles.heroSubtitle}>
+            Ton parcours de débutant à pro, une leçon à la fois.
+          </p>
+        </div>
+      </section>
       <ResumeBanner />
 
       <AsyncSection state={state}>
