@@ -239,6 +239,26 @@ export const IconSearch = (p: IconProps) =>
     </>
   ) })
 
+/** Œil (afficher le mot de passe). */
+export const IconEye = (p: IconProps) =>
+  base({ ...p, children: (
+    <>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ) })
+
+/** Œil barré (masquer le mot de passe). */
+export const IconEyeOff = (p: IconProps) =>
+  base({ ...p, children: (
+    <>
+      <path d="M10.6 10.6a3 3 0 0 0 4.2 4.2" />
+      <path d="M9.9 4.6A11 11 0 0 1 12 4.5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-3.1 3.9" />
+      <path d="M6.1 6.1A18.5 18.5 0 0 0 2 12s3.5 7 10 7a11 11 0 0 0 3.9-.7" />
+      <path d="M3 3l18 18" />
+    </>
+  ) })
+
 /** Déconnexion. */
 export const IconLogout = (p: IconProps) =>
   base({ ...p, children: (
