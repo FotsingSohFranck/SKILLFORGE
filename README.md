@@ -82,6 +82,10 @@ Le profil `docker` (utilisé par Docker Compose en SF-41) pointe l'hôte de base
 | `admin@skillforge.dev` | ADMIN | `Skillforge123!` |
 | `learner@skillforge.dev` | LEARNER | `Skillforge123!` |
 
+> Ces comptes de démo ne valent que sur une instance **locale auto-hébergée** amorcée par le seed :
+> il n'existe aucun déploiement public où ils fonctionneraient. Change-les (et `SF_JWT_SECRET`,
+> `POSTGRES_PASSWORD`) pour tout usage hors développement.
+
 ### Authentification (JWT)
 Toutes les routes hors `/api/v1/auth/**` et documentation exigent un **access token** JWT
 (`Authorization: Bearer <token>`). Access 60 min, refresh 30 j (rotation).
@@ -126,3 +130,11 @@ curl -s -X PATCH http://localhost:8080/api/v1/auth/password \
 ```
 
 > `SF_JWT_SECRET` doit être surchargé hors dev (≥ 32 octets).
+
+## Licence
+
+Distribué sous licence **MIT** : voir [`LICENSE`](LICENSE).
+
+Les images pédagogiques (`frontend/public/images/`) proviennent de [Pexels](https://www.pexels.com)
+(licence Pexels, usage libre sans attribution requise) ; les crédits sont conservés dans les fichiers
+`credits.json` à titre indicatif.
