@@ -1,0 +1,43 @@
+{
+  "ref": "bindings-entree-et-sortie-check",
+  "node": "bindings",
+  "lesson": "entree-et-sortie",
+  "title": "Quiz : Entrée et sortie",
+  "description": "Vérifie que tu distingues bien le sens d'un binding d'entrée et d'un binding de sortie.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait un binding d'entrée (input binding) ?",
+      "justification": "Un binding d'entrée capte un événement d'un système externe et appelle un endpoint de ton application pour le lui livrer : c'est le sens monde extérieur vers ton code.",
+      "position": 0,
+      "options": [
+        { "label": "Il laisse Dapr capter un événement externe et appeler un endpoint de ton app", "correct": true, "position": 0 },
+        { "label": "Il laisse ton app envoyer un SMS via un service externe", "correct": false, "position": 1 },
+        { "label": "Il stocke un état clé/valeur dans Redis", "correct": false, "position": 2 },
+        { "label": "Il chiffre le trafic réseau entre deux sidecars", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un appel de binding de sortie, quel champ indique l'action à réaliser sur le système externe ?",
+      "justification": "Un appel de sortie précise toujours une operation (create, get, delete...), car un même système peut supporter plusieurs actions.",
+      "position": 1,
+      "options": [
+        { "label": "Le champ operation", "correct": true, "position": 0 },
+        { "label": "Le champ topic", "correct": false, "position": 1 },
+        { "label": "Le champ etag", "correct": false, "position": 2 },
+        { "label": "Le champ appId", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec un binding d'entrée, ton application doit sonder (poller) elle-même le système externe.",
+      "justification": "Faux : c'est Dapr qui écoute la source externe puis appelle ton application. Ton code n'a qu'à exposer une route.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

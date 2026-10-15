@@ -1,0 +1,43 @@
+{
+  "ref": "resiliency-eviter-les-pieges-check",
+  "node": "resiliency",
+  "lesson": "eviter-les-pieges",
+  "title": "Quiz : Éviter les pièges",
+  "description": "Vérifie ta compréhension de l'idempotence, du backoff exponentiel et du réglage des circuit breakers.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi l'idempotence est-elle indispensable quand on active des retries ?",
+      "justification": "Les retries offrent une garantie at-least-once : un appel d'écriture peut être rejoué et appliqué deux fois. L'idempotence garantit que rejouer l'opération produit le même résultat qu'une seule exécution.",
+      "position": 0,
+      "options": [
+        { "label": "Parce qu'un retry peut rejouer une écriture déjà appliquée et en doubler l'effet", "correct": true, "position": 0 },
+        { "label": "Parce que les retries chiffrent automatiquement les données", "correct": false, "position": 1 },
+        { "label": "Parce que l'idempotence accélère les appels réseau", "correct": false, "position": 2 },
+        { "label": "Parce que sans elle le sidecar refuse de démarrer", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte un backoff exponentiel par rapport à des réessais immédiats ?",
+      "justification": "Le backoff exponentiel espace de plus en plus les tentatives (1s, 2s, 4s...), laissant au service le temps de récupérer plutôt que de l'inonder d'appels.",
+      "position": 1,
+      "options": [
+        { "label": "Il espace de plus en plus les tentatives pour laisser le service récupérer", "correct": true, "position": 0 },
+        { "label": "Il supprime complètement le besoin de timeouts", "correct": false, "position": 1 },
+        { "label": "Il garantit que l'appel réussira toujours", "correct": false, "position": 2 },
+        { "label": "Il réduit le nombre de services à déployer", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un circuit breaker, le paramètre trip définit la condition d'ouverture du circuit (par exemple consecutiveFailures >= 5).",
+      "justification": "Vrai : trip exprime la condition qui fait ouvrir le circuit ; timeout fixe ensuite combien de temps il reste ouvert avant de passer en half-open.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

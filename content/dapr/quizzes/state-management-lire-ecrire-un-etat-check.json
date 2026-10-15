@@ -1,0 +1,43 @@
+{
+  "ref": "state-management-lire-ecrire-un-etat-check",
+  "node": "state-management",
+  "lesson": "lire-ecrire-un-etat",
+  "title": "Quiz : Lire et écrire un état",
+  "description": "Vérifie ta compréhension de l'API state clé/valeur et des state stores pluggables.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment écrit-on une valeur dans un store via l'API state de Dapr ?",
+      "justification": "L'écriture se fait par un POST sur /v1.0/state/<store> avec un tableau d'objets contenant une clé et une valeur ; il n'y a pas d'accès SQL direct.",
+      "position": 0,
+      "options": [
+        { "label": "Un POST sur /v1.0/state/<store> avec un tableau d'objets clé/valeur", "correct": true, "position": 0 },
+        { "label": "Une requête SQL INSERT envoyée au sidecar", "correct": false, "position": 1 },
+        { "label": "Un appel direct au client Redis depuis le code", "correct": false, "position": 2 },
+        { "label": "Un GET sur /v1.0/write/<store>", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que représente le nom du store (par exemple \"statestore\") dans l'URL ?",
+      "justification": "Le nom désigne un composant state déclaré en YAML ; le backend réel (Redis, PostgreSQL...) est choisi dans la configuration, pas dans le code.",
+      "position": 1,
+      "options": [
+        { "label": "Un composant configurable, dont le backend est choisi en YAML", "correct": true, "position": 0 },
+        { "label": "Le nom d'une table Redis imposé par Dapr", "correct": false, "position": 1 },
+        { "label": "L'adresse IP du serveur de base de données", "correct": false, "position": 2 },
+        { "label": "Une technologie figée que le code doit connaître", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Changer de Redis vers PostgreSQL comme state store oblige à réécrire le code qui lit et écrit l'état.",
+      "justification": "Faux : le code parle toujours à la même API /v1.0/state/... ; seul le composant change, en configuration.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

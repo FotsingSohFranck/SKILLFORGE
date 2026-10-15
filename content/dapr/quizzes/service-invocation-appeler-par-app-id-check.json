@@ -1,0 +1,43 @@
+{
+  "ref": "service-invocation-appeler-par-app-id-check",
+  "node": "service-invocation",
+  "lesson": "appeler-par-app-id",
+  "title": "Quiz : Appeler par app-id",
+  "description": "Vérifie ta compréhension de l'API d'invocation et de la résolution de nom.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle URL permet d'invoquer la méthode « ajouter » du service dont l'app-id est « panier » ?",
+      "justification": "L'API d'invocation suit toujours le format /v1.0/invoke/<app-id>/method/<methode>, adressé à ton propre sidecar local (port 3500).",
+      "position": 0,
+      "options": [
+        { "label": "http://localhost:3500/v1.0/invoke/panier/method/ajouter", "correct": true, "position": 0 },
+        { "label": "http://panier:8080/ajouter", "correct": false, "position": 1 },
+        { "label": "http://localhost:3500/v1.0/state/panier/ajouter", "correct": false, "position": 2 },
+        { "label": "http://192.168.1.10:8080/method/ajouter", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment Dapr résout-il un app-id en adresse réseau selon l'environnement ?",
+      "justification": "En self-hosted (local), Dapr utilise mDNS ; sur Kubernetes, il s'appuie sur le DNS du cluster. Le même code marche dans les deux cas.",
+      "position": 1,
+      "options": [
+        { "label": "mDNS en local, DNS du cluster sur Kubernetes", "correct": true, "position": 0 },
+        { "label": "Toujours en demandant l'IP à l'utilisateur", "correct": false, "position": 1 },
+        { "label": "Uniquement via un fichier /etc/hosts édité à la main", "correct": false, "position": 2 },
+        { "label": "En scannant tous les ports de la machine", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour appeler un autre service via Dapr, tu dois coder son IP et son port dans ton application.",
+      "justification": "Faux : tu n'indiques que l'app-id (nom logique). Dapr se charge de le résoudre en adresse réseau, sans IP ni port en dur.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

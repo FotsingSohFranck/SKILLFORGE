@@ -1,0 +1,43 @@
+{
+  "ref": "security-mtls-automatique-check",
+  "node": "security",
+  "lesson": "mtls-automatique",
+  "title": "Quiz : mTLS automatique",
+  "description": "Vérifie ta compréhension du rôle de Sentry et du mTLS entre sidecars.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle du service Sentry dans Dapr ?",
+      "justification": "Sentry est l'autorité de certification (CA) du control plane : il émet et signe les certificats d'identité des sidecars, ce qui leur permet de se vérifier mutuellement.",
+      "position": 0,
+      "options": [
+        { "label": "Émettre et signer les certificats d'identité des sidecars", "correct": true, "position": 0 },
+        { "label": "Router le trafic réseau entre les services", "correct": false, "position": 1 },
+        { "label": "Stocker l'état clé/valeur des applications", "correct": false, "position": 2 },
+        { "label": "Collecter les traces distribuées", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour chiffrer en mTLS les appels entre services, le développeur doit écrire du code cryptographique dans son application.",
+      "justification": "Faux : le mTLS entre sidecars est activé par défaut et entièrement géré par Dapr. La logique métier ignore totalement cette plomberie.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi les certificats des charges de travail sont-ils de courte durée de vie et renouvelés automatiquement ?",
+      "justification": "La rotation automatique de certificats de courte durée limite la fenêtre d'exploitation d'un certificat volé, sans jamais interrompre le service.",
+      "position": 2,
+      "options": [
+        { "label": "Pour limiter la fenêtre d'exploitation d'un certificat compromis", "correct": true, "position": 0 },
+        { "label": "Pour économiser de l'espace disque sur les nœuds", "correct": false, "position": 1 },
+        { "label": "Parce que Dapr ne sait pas garder un certificat longtemps", "correct": false, "position": 2 },
+        { "label": "Pour obliger à redémarrer l'application chaque heure", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

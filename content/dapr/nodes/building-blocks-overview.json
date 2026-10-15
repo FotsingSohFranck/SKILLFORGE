@@ -1,0 +1,94 @@
+{
+  "node": "building-blocks-overview",
+  "lessons": [
+    {
+      "slug": "cest-quoi-un-building-block",
+      "title": "C'est quoi un building block ?",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Une API pour un besoin distribué récurrent",
+          "position": 0,
+          "body": "Un **building block** (littéralement « brique de construction ») est le concept central de Dapr. C'est une **API standard** qui résout **un** besoin récurrent des applications distribuées.\n\nReprends les problèmes de plomberie vus au chapitre précédent : appeler un autre service, stocker un état, échanger des messages, lire un secret. À **chacun** de ces besoins, Dapr fait correspondre **un** building block, c'est-à-dire une API claire et documentée que ton code appelle en HTTP ou gRPC.\n\nL'idée clé : tu n'as plus à **réinventer** cette plomberie. Tu appelles l'API du building block, et Dapr se charge du reste. Ton code se concentre sur **ce qu'il veut faire** (« stocke cette valeur », « publie ce message ») et pas sur **comment** le faire avec telle ou telle technologie."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "API stable d'un côté, composant pluggable de l'autre",
+          "position": 1,
+          "body": "Chaque building block a **deux faces**.\n\n**Face application** : une **API stable**. Elle ne change pas quand tu changes d'infrastructure. Le building block « gestion d'état » expose toujours les mêmes opérations (sauvegarder, lire, supprimer une clé), quel que soit le store derrière.\n\n**Face infrastructure** : un ou plusieurs **composants** interchangeables. Un composant est l'**implémentation concrète** du building block avec une technologie précise. Pour l'état, ce peut être Redis, PostgreSQL, Cosmos DB... Pour le pub/sub, Kafka, RabbitMQ, Azure Service Bus...\n\nC'est cette séparation qui fait toute la force de Dapr : ton code parle à une API qui ne bouge pas, pendant que le composant derrière reste **remplaçable** par simple configuration. On approfondira cette distinction dans la dernière leçon."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 2,
+          "quizRef": "building-blocks-overview-cest-quoi-un-building-block-check"
+        }
+      ]
+    },
+    {
+      "slug": "tour-dhorizon-des-blocs",
+      "title": "Tour d'horizon des blocs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Les blocs essentiels",
+          "position": 0,
+          "body": "Quatre building blocks couvrent la grande majorité des besoins. Ce sont ceux que tu rencontreras en premier.\n\n**Invocation de service** : appeler un autre service par son **app-id**, sans connaître son adresse réseau, avec découverte, mTLS, retries et répartition de charge automatiques.\n\n**Gestion d'état** : stocker et relire des données **clé/valeur** de façon portable, sans coupler ton code à un store précis.\n\n**Publish / Subscribe** : échanger des **messages** entre services de façon découplée, un service publie sur un *topic*, d'autres s'y abonnent.\n\n**Bindings** : se connecter à des **systèmes externes** (files d'attente, bases, SaaS) sans embarquer leur SDK, en entrée (recevoir des événements) comme en sortie (déclencher des actions)."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les blocs avancés",
+          "position": 1,
+          "body": "D'autres building blocks répondent à des besoins plus spécialisés, que tu abordes une fois les bases maîtrisées.\n\n**Acteurs** : un modèle de programmation (« acteurs virtuels ») qui associe **état et comportement** dans des unités adressables, traitées une requête à la fois.\n\n**Secrets** : lire des secrets (mots de passe, clés) depuis un **secret store** (Vault, secrets Kubernetes, cloud), sans jamais les écrire en dur.\n\n**Configuration** : lire et **s'abonner** à la configuration applicative (réglages, *feature flags*) et réagir quand elle change.\n\n**Workflow** : orchestrer des **processus durables** en code (chaînage d'étapes, parallélisme, compensation) qui survivent aux pannes et aux redémarrages.\n\nTous partagent la même philosophie : une API stable, des composants interchangeables derrière."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Les blocs et leurs composants interchangeables",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  App[\"Ton application\"] --> Dapr[\"Runtime Dapr\"]\n  Dapr --> B1[\"Invocation de service\"]\n  Dapr --> B2[\"Gestion d'etat\"]\n  Dapr --> B3[\"Pub / Sub\"]\n  Dapr --> B4[\"Bindings\"]\n  Dapr --> B5[\"Acteurs\"]\n  Dapr --> B6[\"Secrets\"]\n  B2 --> C1[(\"Redis\")]\n  B2 --> C2[(\"PostgreSQL\")]\n  B3 --> C3[(\"Kafka\")]\n  B3 --> C4[(\"RabbitMQ\")]\n  B6 --> C5[(\"Vault\")]\n  B6 --> C6[(\"Secrets K8s\")]"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "building-blocks-overview-tour-dhorizon-des-blocs-check"
+        }
+      ]
+    },
+    {
+      "slug": "building-block-vs-composant",
+      "title": "Building block vs composant",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "L'API appelée par le code vs l'implémentation déclarée en YAML",
+          "position": 0,
+          "body": "Il est essentiel de ne pas confondre les deux notions, car elles vivent à des endroits différents.\n\nUn **building block** est l'**API** : c'est ce que ton **code appelle** à l'exécution. Par exemple, pour la gestion d'état, ton application fait un appel du type `POST /v1.0/state/<nom-du-store>`. Le building block, c'est ce contrat d'API, toujours identique.\n\nUn **composant** est l'**implémentation concrète** : c'est ce que tu **déclares en YAML**, en dehors du code. Tu y choisis la technologie (Redis, PostgreSQL...) et tu fournis sa configuration (adresse, identifiants). Le composant porte un **nom** (par exemple `statestore`), et c'est ce nom que ton code cite dans l'URL de l'API.\n\nAutrement dit : le building block **ne sait pas** quelle techno il y a derrière, et le composant **ne contient aucune** logique métier. Ils se rencontrent seulement par le nom du composant."
+        },
+        {
+          "type": "CODE",
+          "title": "Un composant d'état déclaré en YAML",
+          "position": 1,
+          "codeLanguage": "yaml",
+          "body": "# Fichier de composant : il implemente le building block \"gestion d'etat\"\n# avec Redis. Le code n'y fait jamais reference directement :\n# il appelle l'API d'etat en citant seulement le nom \"statestore\".\napiVersion: dapr.io/v1alpha1\nkind: Component\nmetadata:\n  name: statestore        # le nom cite par le code dans l'URL de l'API\nspec:\n  type: state.redis       # le composant choisi : Redis\n  version: v1\n  metadata:\n    - name: redisHost\n      value: localhost:6379\n    - name: redisPassword\n      value: \"\"\n\n# Pour passer a PostgreSQL : on remplace type par state.postgresql\n# et sa metadata. Le code, lui, ne change pas d'une ligne."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La pluggabilité, clé de la portabilité",
+          "position": 2,
+          "body": "Cette séparation nette entre API et implémentation s'appelle la **pluggabilité** : le composant se « branche » derrière le building block comme on branche un appareil sur une prise. L'application ne voit que la prise (l'API), jamais l'appareil (la techno).\n\nC'est exactement ce qui rend une application Dapr **portable**. Tu écris ton code **une seule fois** contre les API des building blocks. Déployer en local avec Redis, puis en production sur un cloud avec un store managé, ne demande plus de **retoucher le code** : tu fournis simplement un autre **composant** avec le même nom.\n\n> À retenir, au niveau expert : Dapr ne te rend pas indépendant de l'infrastructure par magie, il déplace le **point de couplage**. Au lieu d'être dispersé dans le code de tous tes services, le lien vers une technologie précise est **concentré dans un fichier de composant**, isolé, versionné et remplaçable. C'est ce déplacement qui transforme un changement d'infra, hier coûteux, en un simple changement de configuration."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "building-blocks-overview-building-block-vs-composant-check"
+        }
+      ]
+    }
+  ]
+}

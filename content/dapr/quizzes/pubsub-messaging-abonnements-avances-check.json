@@ -1,0 +1,43 @@
+{
+  "ref": "pubsub-messaging-abonnements-avances-check",
+  "node": "pubsub-messaging",
+  "lesson": "abonnements-avances",
+  "title": "Quiz : Abonnements avancés",
+  "description": "Vérifie ta compréhension du routage par contenu, des dead-letter topics et du mode bulk.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un dead-letter topic dans un abonnement pub/sub ?",
+      "justification": "Après un nombre maximal de tentatives infructueuses, Dapr déplace le message vers le dead-letter topic : le traitement n'est plus bloqué et le message est conservé pour inspection.",
+      "position": 0,
+      "options": [
+        { "label": "Recevoir les messages qui échouent après le nombre maximal de tentatives", "correct": true, "position": 0 },
+        { "label": "Accélérer la livraison des messages prioritaires", "correct": false, "position": 1 },
+        { "label": "Chiffrer les messages en transit", "correct": false, "position": 2 },
+        { "label": "Supprimer définitivement tous les messages du topic", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que permet le routage par contenu (content-based routing) d'un abonnement ?",
+      "justification": "On définit plusieurs règles avec des expressions CEL sur le CloudEvent ; la première règle vraie décide de la route, ce qui évite de multiplier les topics.",
+      "position": 1,
+      "options": [
+        { "label": "Router un message vers différentes routes selon des règles sur son contenu", "correct": true, "position": 0 },
+        { "label": "Dupliquer chaque message vers tous les brokers disponibles", "correct": false, "position": 1 },
+        { "label": "Convertir automatiquement le message en SQL", "correct": false, "position": 2 },
+        { "label": "Interdire tout abonnement déclaratif", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le mode bulk améliore le débit en traitant plusieurs messages par appel, au prix d'une latence par message plus élevée.",
+      "justification": "Vrai : des lots plus grands augmentent le débit mais retardent la livraison de chaque message (compromis réglé via maxMessagesCount et maxAwaitDurationMs).",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

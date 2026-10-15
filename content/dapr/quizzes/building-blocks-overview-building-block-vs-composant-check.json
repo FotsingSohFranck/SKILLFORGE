@@ -1,0 +1,43 @@
+{
+  "ref": "building-blocks-overview-building-block-vs-composant-check",
+  "node": "building-blocks-overview",
+  "lesson": "building-block-vs-composant",
+  "title": "Quiz : Building block vs composant",
+  "description": "Vérifie que tu distingues l'API appelée par le code de l'implémentation déclarée en YAML.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où déclare-t-on le composant qui implémente un building block ?",
+      "justification": "Un composant se déclare en YAML, en dehors du code. Il y choisit la technologie et sa configuration ; le code ne cite que le nom du composant.",
+      "position": 0,
+      "options": [
+        { "label": "Dans un fichier de composant YAML, hors du code", "correct": true, "position": 0 },
+        { "label": "Directement dans le code métier de l'application", "correct": false, "position": 1 },
+        { "label": "Dans le noyau du runtime Dapr à recompiler", "correct": false, "position": 2 },
+        { "label": "Nulle part, c'est automatique et non configurable", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi la pluggabilité rend-elle une application Dapr portable ?",
+      "justification": "Le lien vers une technologie précise est concentré dans le composant, isolé du code. Changer d'infra revient donc à fournir un autre composant, sans retoucher le code.",
+      "position": 1,
+      "options": [
+        { "label": "Le couplage à la techno est concentré dans le composant, pas dans le code", "correct": true, "position": 0 },
+        { "label": "Dapr traduit automatiquement le code d'un langage à un autre", "correct": false, "position": 1 },
+        { "label": "Dapr héberge lui-même toutes les bases de données", "correct": false, "position": 2 },
+        { "label": "Le code est recompilé à chaque changement d'infrastructure", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le building block et le composant se rencontrent par le nom du composant que le code cite dans son appel d'API.",
+      "justification": "Vrai : le code cite le nom du composant (par exemple « statestore ») dans l'URL de l'API, et c'est ce nom qui relie l'appel à l'implémentation déclarée en YAML.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "node": "dapr-overview",
+  "lessons": [
+    {
+      "slug": "le-probleme-des-microservices",
+      "title": "Le problème que Dapr résout",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Découper en microservices, oui, mais à quel prix ?",
+          "position": 0,
+          "body": "Quand une application grossit, on la **découpe en microservices** : des petits services indépendants qui communiquent par le **réseau**. C'est excellent pour la scalabilité et l'autonomie des équipes.\n\nMais chaque service doit soudain résoudre les **mêmes problèmes de plomberie** : comment **trouver et appeler** les autres services ? comment **réessayer** quand le réseau échoue ? où **stocker un état** partagé ? comment **échanger des messages** ? où **lire les secrets** ?\n\nAucun de ces problèmes n'est ta **logique métier**. Et pourtant, ils reviennent dans **chaque** service."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La plomberie, réécrite partout",
+          "position": 1,
+          "body": "Pire : ce code de plomberie est souvent **réécrit dans chaque langage**. L'équipe Java branche une librairie Redis, l'équipe Go une autre, l'équipe Python une troisième. Chacune réapprend les subtilités de RabbitMQ, des *retries*, du chiffrement...\n\nRésultat : du **code dupliqué**, incohérent, et surtout **fortement couplé à une technologie précise**. Remplacer Redis par un autre store, ou RabbitMQ par Kafka, devient un chantier **dans tous les services à la fois**.\n\nC'est exactement ce gâchis que Dapr vient supprimer."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 2,
+          "quizRef": "dapr-overview-probleme-check"
+        }
+      ]
+    },
+    {
+      "slug": "ce-quest-dapr",
+      "title": "Ce qu'est Dapr (et ce qu'il n'est pas)",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Dapr : la plomberie résolue une fois pour toutes",
+          "position": 0,
+          "body": "**Dapr** (prononcé « *dapper* », pour *Distributed Application Runtime*) est un **runtime** qui prend en charge cette plomberie **à ta place**.\n\nIl expose une série d'**API standard** pour les besoins récurrents des applications distribuées : appeler un autre service, lire/écrire un **état**, **publier/consommer** des messages, lire des **secrets**, et plus encore.\n\nTon code n'appelle plus directement Redis ou RabbitMQ : il appelle **Dapr**, et c'est Dapr qui parle à l'infrastructure."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Ton app parle à Dapr, Dapr parle à l'infra",
+          "position": 1,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  App[\"Ton application\"] -->|HTTP / gRPC| Dapr[\"Runtime Dapr\"]\n  Dapr --> State[(\"State store\\nRedis, Postgres...\")]\n  Dapr --> Broker[(\"Message broker\\nKafka, RabbitMQ...\")]\n  Dapr --> Secrets[(\"Secret store\\nVault, K8s...\")]"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Agnostique au langage et à l'infrastructure",
+          "position": 2,
+          "body": "Deux conséquences énormes.\n\n**Premièrement**, comme on parle à Dapr via **HTTP ou gRPC**, n'importe quel langage sait le faire : pas besoin d'un SDK spécial (même s'il en existe pour le confort).\n\n**Deuxièmement**, le choix de l'infrastructure (quel store, quel broker) se fait dans un **fichier de configuration**, **pas dans le code**. Passer de Redis à PostgreSQL, ou de RabbitMQ à Kafka, se fait **sans toucher une ligne** de ta logique métier."
+        },
+        {
+          "type": "CODE",
+          "title": "Appeler un service, sans connaître son adresse",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Ton application appelle TON sidecar Dapr (port 3500 par defaut),\n# pas directement l'autre service.\n# Ici : invoquer la methode \"ajouter\" du service dont l'app-id est \"panier\".\n\ncurl -X POST http://localhost:3500/v1.0/invoke/panier/method/ajouter \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"produit\": \"clavier\", \"quantite\": 1}'\n\n# Remarque : aucune IP ni port du service \"panier\".\n# Dapr le decouvre, equilibre la charge et chiffre l'appel (mTLS) tout seul."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Dapr n'est PAS un framework",
+          "position": 4,
+          "body": "Point crucial pour ne pas se tromper : Dapr **n'est pas un framework** qui impose sa structure à ton code, ni une grosse librairie à embarquer.\n\nC'est un **processus séparé** qui tourne **à côté** de ton application (le modèle « *sidecar* », vu au chapitre suivant). Tu peux donc l'**adopter progressivement** : commencer par **un seul** building block (par exemple le pub/sub) sur **un seul** service, sans réécrire l'application."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 5,
+          "quizRef": "dapr-overview-ce-quest-check"
+        }
+      ]
+    },
+    {
+      "slug": "dapr-dans-le-paysage",
+      "title": "Dapr dans le paysage cloud native",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Dapr vs un service mesh",
+          "position": 0,
+          "body": "Confusion fréquente. Un **service mesh** (comme Istio ou Linkerd) agit au niveau du **réseau** : il intercepte **le trafic** entre services pour ajouter mTLS, routage et retries réseau, de façon **transparente**, l'application ne sait même pas qu'il est là.\n\nDapr, lui, agit au niveau de l'**application** : il offre des **API explicites** que ton code appelle (état, pub/sub, acteurs...).\n\nLes deux sont **complémentaires** : on peut faire tourner Dapr *et* un mesh ensemble. Retiens : le mesh s'occupe du *comment* le trafic circule ; Dapr s'occupe de *ce que ton app sait faire*."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un projet ouvert et portable (CNCF)",
+          "position": 1,
+          "body": "Dapr est un projet **open source**, **gradué à la CNCF** (la fondation qui héberge Kubernetes). Concrètement, il est **indépendant d'un fournisseur** : les mêmes API fonctionnent sur ta machine, sur AWS, Azure, GCP, ou on-premise.\n\nC'est l'argument fort de **portabilité** : tu écris ton application contre les API Dapr une bonne fois, et changer de cloud (ou de brique d'infra) revient surtout à changer de la **configuration**, pas du code.\n\n> À retenir : Dapr standardise *les besoins distribués*, pas ton métier. C'est ce qui le rend si transversal."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 2,
+          "quizRef": "dapr-overview-paysage-check"
+        }
+      ]
+    }
+  ]
+}

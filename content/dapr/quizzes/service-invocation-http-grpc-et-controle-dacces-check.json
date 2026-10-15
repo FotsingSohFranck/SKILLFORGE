@@ -1,0 +1,43 @@
+{
+  "ref": "service-invocation-http-grpc-et-controle-dacces-check",
+  "node": "service-invocation",
+  "lesson": "http-grpc-et-controle-dacces",
+  "title": "Quiz : HTTP, gRPC et contrôle d'accès",
+  "description": "Vérifie ta compréhension du proxy HTTP/gRPC, des appels inter-namespaces et des policies d'accès.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment cibler le service d'app-id « panier » situé dans le namespace « production » ?",
+      "justification": "Pour un appel inter-namespaces, on qualifie l'app-id avec le namespace sous la forme <app-id>.<namespace>, soit panier.production.",
+      "position": 0,
+      "options": [
+        { "label": "En utilisant l'app-id qualifié « panier.production »", "correct": true, "position": 0 },
+        { "label": "En ouvrant un port spécial sur chaque namespace", "correct": false, "position": 1 },
+        { "label": "C'est impossible, Dapr n'autorise jamais l'inter-namespace", "correct": false, "position": 2 },
+        { "label": "En supprimant les namespaces du cluster", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans une access control policy, quelle est la bonne pratique de sécurité recommandée ?",
+      "justification": "Le principe du moindre privilège : defaultAction à « deny », puis une liste minimale d'exceptions « allow ». On n'ouvre que le strict nécessaire.",
+      "position": 1,
+      "options": [
+        { "label": "Mettre defaultAction à « deny » puis autoriser explicitement le minimum", "correct": true, "position": 0 },
+        { "label": "Mettre defaultAction à « allow » pour simplifier", "correct": false, "position": 1 },
+        { "label": "Désactiver mTLS pour accélérer les appels", "correct": false, "position": 2 },
+        { "label": "Autoriser tous les namespaces sans restriction", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une policy « deny » peut être contournée simplement en usurpant l'app-id de l'appelant.",
+      "justification": "Faux : l'identité de l'appelant est authentifiée par mTLS (certificat SPIFFE), donc elle ne peut pas être usurpée pour échapper à une policy deny.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

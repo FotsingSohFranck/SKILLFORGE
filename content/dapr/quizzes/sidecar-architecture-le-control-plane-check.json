@@ -1,0 +1,43 @@
+{
+  "ref": "sidecar-architecture-le-control-plane-check",
+  "node": "sidecar-architecture",
+  "lesson": "le-control-plane",
+  "title": "Quiz : le control plane",
+  "description": "Vérifie ta compréhension des composants du control plane et des différences entre mode self-hosted et Kubernetes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant du control plane agit comme autorité de certification pour le mTLS entre sidecars ?",
+      "justification": "sentry est la CA de Dapr : il émet et fait tourner les certificats qui permettent le mTLS, donc le chiffrement et l'authentification automatiques entre sidecars.",
+      "position": 0,
+      "options": [
+        { "label": "sentry", "correct": true, "position": 0 },
+        { "label": "placement", "correct": false, "position": 1 },
+        { "label": "sidecar-injector", "correct": false, "position": 2 },
+        { "label": "operator", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant du control plane n'est réellement utile que si tu utilises les acteurs Dapr ?",
+      "justification": "placement gère la table de répartition des acteurs (quel acteur vit sur quelle instance). Il n'est pertinent que pour le building block des acteurs.",
+      "position": 1,
+      "options": [
+        { "label": "placement", "correct": true, "position": 0 },
+        { "label": "sentry", "correct": false, "position": 1 },
+        { "label": "operator", "correct": false, "position": 2 },
+        { "label": "sidecar-injector", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En mode self-hosted comme sur Kubernetes, ton application voit exactement la même API Dapr.",
+      "justification": "Vrai : le contrat vu par le code ne change pas. Ce qui diffère entre les modes, c'est la façon dont le sidecar est injecté et configuré, pas l'API, ce qui rend l'app portable.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

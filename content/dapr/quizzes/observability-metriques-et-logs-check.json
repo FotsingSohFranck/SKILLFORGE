@@ -1,0 +1,43 @@
+{
+  "ref": "observability-metriques-et-logs-check",
+  "node": "observability",
+  "lesson": "metriques-et-logs",
+  "title": "Quiz : Métriques et logs",
+  "description": "Vérifie ta compréhension des métriques Prometheus, des logs structurés et des endpoints de santé.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sous quel format le sidecar Dapr expose-t-il ses métriques par défaut ?",
+      "justification": "Chaque sidecar expose ses métriques au format Prometheus sur un endpoint HTTP (par défaut le port 9090, chemin /metrics), que Prometheus vient scraper.",
+      "position": 0,
+      "options": [
+        { "label": "Au format Prometheus, sur un endpoint /metrics", "correct": true, "position": 0 },
+        { "label": "Sous forme de fichiers CSV écrits sur disque", "correct": false, "position": 1 },
+        { "label": "Uniquement dans une base PostgreSQL", "correct": false, "position": 2 },
+        { "label": "En envoyant un email par métrique", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En production, pourquoi activer les logs au format JSON (`--log-as-json`) ?",
+      "justification": "Des logs structurés en JSON sont bien plus faciles à indexer et à requêter dans un collecteur de logs (Loki, Elasticsearch, Fluentd).",
+      "position": 1,
+      "options": [
+        { "label": "Parce que des logs structurés sont plus faciles à indexer et requêter", "correct": true, "position": 0 },
+        { "label": "Parce que le JSON chiffre automatiquement les logs", "correct": false, "position": 1 },
+        { "label": "Parce que cela désactive complètement les logs", "correct": false, "position": 2 },
+        { "label": "Parce que c'est le seul format que Dapr accepte", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'endpoint `/v1.0/healthz` du sidecar permet à un orchestrateur de vérifier que le sidecar est vivant (liveness).",
+      "justification": "Vrai : /v1.0/healthz sert de sonde de liveness ; sur Kubernetes il alimente la liveness probe du conteneur daprd.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

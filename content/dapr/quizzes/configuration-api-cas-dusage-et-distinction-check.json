@@ -1,0 +1,43 @@
+{
+  "ref": "configuration-api-cas-dusage-et-distinction-check",
+  "node": "configuration-api",
+  "lesson": "cas-dusage-et-distinction",
+  "title": "Quiz : Cas d'usage et distinction",
+  "description": "Vérifie que tu distingues bien le building block Configuration API de la ressource runtime kind: Configuration.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de réglage est le meilleur candidat pour la Configuration API (avec abonnement) ?",
+      "justification": "La Configuration API brille pour les réglages dynamiques, modifiables sans redéploiement, comme les feature flags et les seuils. Les réglages figés restent en config de build.",
+      "position": 0,
+      "options": [
+        { "label": "Un feature flag que l'on veut basculer sans redéployer", "correct": true, "position": 0 },
+        { "label": "Le nom de l'application, fixé une fois pour toutes", "correct": false, "position": 1 },
+        { "label": "Le port d'écoute défini au build de l'image", "correct": false, "position": 2 },
+        { "label": "Le niveau de log par défaut embarqué dans l'image", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la ressource YAML `kind: Configuration` dans Dapr ?",
+      "justification": "La ressource kind: Configuration règle le runtime Dapr lui-même (tracing, mTLS, access control...). Elle est appliquée au démarrage du sidecar et n'est jamais lue par le code applicatif.",
+      "position": 1,
+      "options": [
+        { "label": "À régler le comportement du runtime Dapr (tracing, mTLS, access control)", "correct": true, "position": 0 },
+        { "label": "À stocker les feature flags lus par l'application", "correct": false, "position": 1 },
+        { "label": "À déclarer un config store Redis interrogé par le code", "correct": false, "position": 2 },
+        { "label": "À exposer une API REST que l'application appelle à l'exécution", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le building block Configuration API et la ressource `kind: Configuration` sont la même chose sous deux noms.",
+      "justification": "Faux : ce sont deux choses distinctes. Le building block est une API que le code appelle pour lire la config métier ; la ressource kind: Configuration règle la plateforme Dapr et n'est pas lue par le code.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

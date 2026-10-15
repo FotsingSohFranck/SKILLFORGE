@@ -1,0 +1,43 @@
+{
+  "ref": "sidecar-architecture-le-pattern-sidecar-check",
+  "node": "sidecar-architecture",
+  "lesson": "le-pattern-sidecar",
+  "title": "Quiz : le pattern sidecar",
+  "description": "Vérifie ta compréhension du modèle sidecar : ce qu'est daprd et comment il s'exécute aux côtés de ton application.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où s'exécute le processus daprd par rapport à ton application ?",
+      "justification": "Le pattern sidecar place daprd à côté de l'application : dans le même pod sur Kubernetes, ou sur le même hôte en local, partageant localhost et le cycle de vie.",
+      "position": 0,
+      "options": [
+        { "label": "Dans le même pod (ou sur le même hôte) que l'application", "correct": true, "position": 0 },
+        { "label": "Comme une librairie compilée dans le binaire de l'application", "correct": false, "position": 1 },
+        { "label": "Sur un serveur central partagé par toutes les applications", "correct": false, "position": 2 },
+        { "label": "Dans le noyau du système d'exploitation", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Si tu déploies 3 réplicas de ton service, combien de sidecars Dapr as-tu ?",
+      "justification": "La règle est un sidecar par instance d'application : 3 réplicas signifient 3 processus daprd, un accolé à chaque instance.",
+      "position": 1,
+      "options": [
+        { "label": "3, un par instance d'application", "correct": true, "position": 0 },
+        { "label": "1, partagé entre les trois réplicas", "correct": false, "position": 1 },
+        { "label": "Aucun, le sidecar est optionnel au-delà d'une instance", "correct": false, "position": 2 },
+        { "label": "6, deux par instance pour la redondance", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Parce qu'on parle au sidecar par le réseau, n'importe quel langage peut utiliser Dapr sans SDK dédié.",
+      "justification": "Vrai : le dialogue passe par HTTP ou gRPC, donc tout langage sait appeler le sidecar. Les SDK existent pour le confort, mais ne sont pas obligatoires.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

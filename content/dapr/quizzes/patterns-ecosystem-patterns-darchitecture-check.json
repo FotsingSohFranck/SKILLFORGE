@@ -1,0 +1,43 @@
+{
+  "ref": "patterns-ecosystem-patterns-darchitecture-check",
+  "node": "patterns-ecosystem",
+  "lesson": "patterns-darchitecture",
+  "title": "Quiz : patterns d'architecture",
+  "description": "Vérifie ta compréhension des patterns distribués que Dapr permet de réaliser.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans un pattern saga orchestré par Dapr Workflow, que se passe-t-il si une étape échoue ?",
+      "justification": "La saga déclenche des étapes de compensation pour annuler les effets des étapes déjà réussies et revenir à un état cohérent.",
+      "position": 0,
+      "options": [
+        { "label": "Des étapes de compensation annulent les effets déjà appliqués", "correct": true, "position": 0 },
+        { "label": "Une transaction SQL globale fait un rollback sur tous les services", "correct": false, "position": 1 },
+        { "label": "Le workflow ignore l'échec et continue malgré tout", "correct": false, "position": 2 },
+        { "label": "Tous les sidecars redémarrent automatiquement", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel problème le pattern outbox transactionnel de Dapr résout-il ?",
+      "justification": "L'outbox lie l'écriture de l'état et la publication du message : l'événement part si et seulement si l'état a bien été persisté, évitant de perdre un événement en cas de crash.",
+      "position": 1,
+      "options": [
+        { "label": "Garantir que l'écriture d'état et la publication d'un message soient atomiques", "correct": true, "position": 0 },
+        { "label": "Chiffrer automatiquement tous les messages du broker", "correct": false, "position": 1 },
+        { "label": "Répartir la charge entre plusieurs instances d'un service", "correct": false, "position": 2 },
+        { "label": "Remplacer le broker de messages par une base de données", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les acteurs Dapr sont un bon choix pour modéliser des entités métier vivantes avec état, comme un panier ou un appareil.",
+      "justification": "Vrai : les acteurs encapsulent état et comportement par entité, ce qui en fait un support naturel pour ce type de modélisation.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

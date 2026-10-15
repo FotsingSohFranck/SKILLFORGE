@@ -1,0 +1,43 @@
+{
+  "ref": "pubsub-messaging-publier-et-sabonner-check",
+  "node": "pubsub-messaging",
+  "lesson": "publier-et-sabonner",
+  "title": "Quiz : Publier et s'abonner",
+  "description": "Vérifie ta compréhension de la publication et des deux modes d'abonnement de Dapr.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la forme de l'API pour publier un message avec Dapr ?",
+      "justification": "On publie en appelant son sidecar sur POST /v1.0/publish/<pubsub>/<topic>, où <pubsub> est le nom du composant et <topic> le topic visé.",
+      "position": 0,
+      "options": [
+        { "label": "POST /v1.0/publish/<pubsub>/<topic>", "correct": true, "position": 0 },
+        { "label": "POST /v1.0/state/<topic>", "correct": false, "position": 1 },
+        { "label": "GET /v1.0/invoke/<topic>/publish", "correct": false, "position": 2 },
+        { "label": "PUT /v1.0/broker/<topic>", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle affirmation décrit correctement les deux modes d'abonnement de Dapr ?",
+      "justification": "Le mode déclaratif se définit dans une ressource Subscription (YAML) ; le mode programmatique expose l'endpoint /dapr/subscribe que Dapr appelle au démarrage.",
+      "position": 1,
+      "options": [
+        { "label": "Déclaratif via une ressource Subscription, ou programmatique via l'endpoint /dapr/subscribe", "correct": true, "position": 0 },
+        { "label": "Uniquement via une requête SQL sur le broker", "correct": false, "position": 1 },
+        { "label": "Déclaratif en Java, ou programmatique en Go seulement", "correct": false, "position": 2 },
+        { "label": "En modifiant la configuration du noyau Linux", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Quand un message arrive, Dapr fait un POST sur la route de l'abonné, et une réponse 200 signifie que le message est traité.",
+      "justification": "Vrai : Dapr livre chaque message par un POST sur la route déclarée ; une réponse 200 vaut acquittement, une erreur déclenche une relivraison.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

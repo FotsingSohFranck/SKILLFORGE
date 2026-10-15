@@ -1,0 +1,43 @@
+{
+  "ref": "components-configuration-scoper-les-composants-check",
+  "node": "components-configuration",
+  "lesson": "scoper-les-composants",
+  "title": "Quiz : Scoper les composants",
+  "description": "Vérifie ta compréhension des scopes et des namespaces pour restreindre l'accès à un composant.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il pour un composant qui ne contient aucun bloc scopes ?",
+      "justification": "En l'absence de scopes, le composant est ouvert : toutes les applications qui partagent ce Dapr (dans le même namespace) peuvent l'utiliser. Le bloc scopes sert justement à restreindre cette ouverture par défaut.",
+      "position": 0,
+      "options": [
+        { "label": "Il est utilisable par toutes les applications du namespace", "correct": true, "position": 0 },
+        { "label": "Il n'est utilisable par aucune application", "correct": false, "position": 1 },
+        { "label": "Il provoque une erreur au chargement", "correct": false, "position": 2 },
+        { "label": "Il n'est accessible qu'au premier app-id enregistré", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la liste déclarée dans le bloc scopes d'un composant ?",
+      "justification": "Le bloc scopes liste les app-id autorisés à charger et utiliser le composant. Les app-id absents de la liste l'ignorent, comme s'il n'existait pas.",
+      "position": 1,
+      "options": [
+        { "label": "À énumérer les app-id autorisés à utiliser le composant", "correct": true, "position": 0 },
+        { "label": "À lister les adresses IP des serveurs Redis", "correct": false, "position": 1 },
+        { "label": "À définir les variables d'environnement du sidecar", "correct": false, "position": 2 },
+        { "label": "À fixer le nombre de réplicas du composant", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un composant n'est visible que par les applications situées dans le même namespace que lui.",
+      "justification": "Vrai : le namespace est une première barrière d'isolation. Les scopes affinent ensuite, à l'intérieur d'un namespace, quels app-id précis ont le droit d'utiliser le composant.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

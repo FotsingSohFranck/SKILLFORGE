@@ -1,0 +1,43 @@
+{
+  "ref": "workflow-les-patterns-check",
+  "node": "workflow",
+  "lesson": "les-patterns",
+  "title": "Quiz : Les patterns d'orchestration",
+  "description": "Vérifie que tu sais distinguer les patterns courants de Dapr Workflow.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que décrit le pattern fan-out / fan-in ?",
+      "justification": "Le fan-out lance plusieurs activités en parallèle, puis le fan-in attend qu'elles soient toutes terminées pour agréger leurs résultats.",
+      "position": 0,
+      "options": [
+        { "label": "Lancer plusieurs activités en parallèle, puis attendre et agréger leurs résultats", "correct": true, "position": 0 },
+        { "label": "Exécuter les étapes strictement l'une après l'autre", "correct": false, "position": 1 },
+        { "label": "Mettre le workflow en pause jusqu'à un événement externe", "correct": false, "position": 2 },
+        { "label": "Appeler un seul service distant une seule fois", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pendant qu'un workflow attend un événement externe ou dort sur un timer, que se passe-t-il ?",
+      "justification": "L'état du workflow est persisté et il ne consomme pas de ressources pendant l'attente ; Dapr le réveille à l'événement ou à l'expiration du timer.",
+      "position": 1,
+      "options": [
+        { "label": "Son état est persisté et il ne consomme pas de ressources en attendant", "correct": true, "position": 0 },
+        { "label": "Il monopolise un thread en boucle active jusqu'à l'événement", "correct": false, "position": 1 },
+        { "label": "Il est définitivement supprimé puis recréé de zéro", "correct": false, "position": 2 },
+        { "label": "Il échoue automatiquement après une seconde", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un workflow Dapr peut appeler un autre workflow comme sous-processus (workflow enfant).",
+      "justification": "Vrai : le pattern des workflows enfants permet de composer et de réutiliser des orchestrations.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

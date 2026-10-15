@@ -1,0 +1,43 @@
+{
+  "ref": "state-management-transactions-et-requetes-check",
+  "node": "state-management",
+  "lesson": "transactions-et-requetes",
+  "title": "Quiz : Transactions et requêtes",
+  "description": "Vérifie ta compréhension des transactions multi-items, de l'API Query et du TTL.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte l'API transactionnelle de l'état Dapr ?",
+      "justification": "Elle applique plusieurs opérations (upsert/delete) de manière atomique : tout réussit ou rien n'est appliqué, ce qui évite un état à moitié modifié.",
+      "position": 0,
+      "options": [
+        { "label": "Appliquer plusieurs opérations de façon atomique (tout ou rien)", "correct": true, "position": 0 },
+        { "label": "Accélérer les lectures par clé", "correct": false, "position": 1 },
+        { "label": "Chiffrer automatiquement les valeurs", "correct": false, "position": 2 },
+        { "label": "Convertir le store Redis en PostgreSQL", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment demander à Dapr d'expirer automatiquement une clé après un délai ?",
+      "justification": "La métadonnée ttlInSeconds ajoutée à l'écriture indique à Dapr d'expirer la clé après ce délai, sans nettoyage manuel.",
+      "position": 1,
+      "options": [
+        { "label": "En ajoutant la métadonnée ttlInSeconds à l'écriture", "correct": true, "position": 0 },
+        { "label": "En supprimant la clé via un cron applicatif", "correct": false, "position": 1 },
+        { "label": "En activant la consistance strong", "correct": false, "position": 2 },
+        { "label": "En passant un ETag spécial à l'écriture", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'API transactionnelle et l'API Query fonctionnent avec n'importe quel state store.",
+      "justification": "Faux : ces capacités dépendent du backend ; seuls les stores qui les supportent (par exemple PostgreSQL ou Cosmos DB) les acceptent, les autres renvoient une erreur.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

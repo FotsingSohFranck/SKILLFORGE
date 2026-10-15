@@ -1,0 +1,101 @@
+{
+  "node": "first-app",
+  "lessons": [
+    {
+      "slug": "lancer-avec-dapr-run",
+      "title": "Lancer son app avec dapr run",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "La commande qui démarre app et sidecar ensemble",
+          "position": 0,
+          "body": "En mode self-hosted, la commande centrale est **`dapr run`**. Elle fait **deux choses d'un coup** : elle lance **ton application** et elle démarre **le sidecar Dapr** qui tourne à côté d'elle.\n\nSa forme générale est :\n\n```\ndapr run --app-id <id> --app-port <port> -- <commande pour lancer ton app>\n```\n\nLe `--` sépare les **options de Dapr** (à gauche) de la **commande de ton application** (à droite). Tout ce qui suit `--` est exécuté tel quel par Dapr pour démarrer ton processus."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "app-id et app-port : deux rôles bien distincts",
+          "position": 1,
+          "body": "Deux options reviennent presque toujours, et il ne faut pas les confondre.\n\n**`--app-id`** est l'**identité** de ton service dans le maillage Dapr. C'est ce nom (et non une adresse IP) que les autres services utiliseront pour t'appeler, et qui apparaît dans les traces et le dashboard. Il doit être **unique** et stable.\n\n**`--app-port`** est le port sur lequel **ton application écoute**. Dapr en a besoin pour savoir **où te joindre** : c'est sur ce port qu'il livrera les messages pub/sub et les événements de bindings d'entrée.\n\n> Résumé : `app-id` = *qui tu es*, `app-port` = *où Dapr te parle*."
+        },
+        {
+          "type": "CODE",
+          "title": "Lancer une petite API Node sous Dapr",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# Supposons une petite API qui ecoute sur le port 3000.\n# On lui donne l'app-id \"commandes\" et on indique son app-port.\n\ndapr run \\\n  --app-id commandes \\\n  --app-port 3000 \\\n  --dapr-http-port 3500 \\\n  -- node app.js\n\n# Ce qui se passe :\n#  - Dapr lance \"node app.js\" (ton application).\n#  - Dapr demarre le sidecar et expose son API HTTP sur le port 3500.\n#  - Ton app est desormais joignable dans le maillage sous l'app-id \"commandes\".\n#\n# Astuce : si tu n'indiques pas --app-port, Dapr suppose que ton app\n# n'expose aucun endpoint (il ne tentera pas de te livrer de messages)."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "first-app-lancer-avec-dapr-run-check"
+        }
+      ]
+    },
+    {
+      "slug": "le-flux-des-ports",
+      "title": "Le flux des ports",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Les ports exposés par le sidecar",
+          "position": 0,
+          "body": "Quand Dapr démarre, le sidecar ouvre **deux ports** sur lesquels **ton application** vient taper pour utiliser les building blocks :\n\n- **3500** : l'**API HTTP** de Dapr (port par défaut). C'est là que tu envoies tes `curl` vers `/v1.0/invoke`, `/v1.0/state`, etc.\n- **50001** : l'**API gRPC** de Dapr, pour les SDK et les appels plus performants.\n\nTu peux changer ces valeurs avec `--dapr-http-port` et `--dapr-grpc-port`, utile quand tu lances **plusieurs apps** sur la même machine et qu'il faut éviter les collisions de ports."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "L'app-port : le sens inverse",
+          "position": 1,
+          "body": "Attention au **sens de la communication**, car il va dans les **deux directions**.\n\nQuand **ton app** veut faire quelque chose (lire un état, invoquer un service), elle appelle le sidecar sur **3500 / 50001**.\n\nMais l'inverse existe aussi : quand Dapr a quelque chose à **te livrer** (un message publié sur un topic auquel tu es abonné, un événement d'un binding d'entrée), c'est **lui** qui appelle **ton application** sur l'**`app-port`**.\n\nVoilà pourquoi `--app-port` est indispensable dès que tu consommes des messages : sans lui, Dapr ne sait pas sur quel port frapper pour te les remettre."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Les deux sens de communication app <-> sidecar",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  App[\"Ton application\\n(app-port 3000)\"] -->|\"appels sortants:\\ninvoke, state, pub\"| Sidecar[\"Sidecar Dapr\\nHTTP 3500 / gRPC 50001\"]\n  Sidecar -->|\"livraisons entrantes:\\nmessages, bindings\"| App\n  Sidecar --> Infra[(\"Infra\\nstores, brokers...\")]"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "first-app-le-flux-des-ports-check"
+        }
+      ]
+    },
+    {
+      "slug": "observer-son-app",
+      "title": "Observer son application",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Lister les apps en cours et lire les logs",
+          "position": 0,
+          "body": "Une fois tes apps lancées, trois outils te donnent une vue immédiate de ce qui tourne.\n\n**`dapr list`** affiche toutes les applications Dapr actives sur ta machine : leur **app-id**, leurs ports (app-port, http, grpc), le PID et depuis combien de temps elles tournent. C'est le premier réflexe pour vérifier qu'une app est bien démarrée et sous quel app-id.\n\nLes **logs** sont eux aussi un bon compagnon : `dapr run` préfixe chaque ligne pour distinguer ce qui vient de **ton app** de ce qui vient du **sidecar** (`== APP ==` contre `== DAPR ==`), ce qui aide beaucoup à diagnostiquer."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le dashboard, une vue visuelle",
+          "position": 1,
+          "body": "**`dapr dashboard`** lance une interface web locale (par défaut sur `http://localhost:8080`) qui offre une vue visuelle de ton environnement Dapr.\n\nTu y retrouves la liste des **applications** et leurs détails, les **composants** déclarés, les **configurations** et les logs du **control plane**. C'est pratique pour explorer sans enchaîner les commandes.\n\n> Note : le dashboard est un **outil d'observation**, pas de configuration. On y regarde l'état du système, on n'y déclare pas de composants (ça se fait en YAML, vu plus tard)."
+        },
+        {
+          "type": "CODE",
+          "title": "Deux apps, et l'une invoque l'autre",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# Terminal 1 : on lance un service \"salutation\" qui ecoute sur 3000.\ndapr run --app-id salutation --app-port 3000 --dapr-http-port 3500 -- node salutation.js\n\n# Terminal 2 : une seconde app \"client\", sur d'autres ports pour eviter les collisions.\ndapr run --app-id client --app-port 4000 --dapr-http-port 3600 -- node client.js\n\n# Terminal 3 : verifier que les deux tournent.\ndapr list\n\n# Terminal 3 : invoquer \"salutation\" en passant par le sidecar du \"client\" (port 3600).\n# On n'a besoin QUE de l'app-id \"salutation\", jamais de son adresse reseau.\ncurl http://localhost:3600/v1.0/invoke/salutation/method/bonjour\n\n# Dapr resout l'app-id, route l'appel vers le bon sidecar et te renvoie la reponse."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "first-app-observer-son-app-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "node": "patterns-ecosystem",
+  "lessons": [
+    {
+      "slug": "les-sdks",
+      "title": "Les SDKs Dapr",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "L'API d'abord, les SDKs pour le confort",
+          "position": 0,
+          "body": "Tu le sais désormais : on parle à Dapr via **HTTP ou gRPC**. C'est volontaire, car cela rend Dapr utilisable depuis **n'importe quel langage**, même sans librairie dédiée : un simple `curl` suffit.\n\nMais construire soi-même chaque requête (bonne URL, bons en-têtes, sérialisation JSON, gestion des erreurs) devient vite répétitif. C'est là qu'interviennent les **SDKs**.\n\nUn SDK Dapr est une librairie **optionnelle** qui enveloppe l'API dans des fonctions idiomatiques de ton langage. Il ne remplace pas l'API : il l'habille pour que ton code soit **plus court et plus lisible**."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Un SDK par grand langage",
+          "position": 1,
+          "body": "Dapr maintient des SDKs officiels pour les principaux écosystèmes : **.NET**, **Java**, **Python**, **Go** et **JavaScript** (plus PHP et d'autres portés par la communauté).\n\nChaque SDK couvre les building blocks que tu connais : invocation de service, gestion d'état, pub/sub, bindings, secrets, acteurs et workflow. Certains vont plus loin : le SDK .NET s'intègre à l'injection de dépendances ASP.NET, le SDK Java expose des types réactifs, le SDK Python propose un style `async`.\n\nPoint important : le choix d'utiliser ou non un SDK est **local à chaque service**. Une équipe Go peut utiliser le SDK Go pendant qu'une équipe Python appelle l'API en direct. Dapr ne l'impose jamais."
+        },
+        {
+          "type": "CODE",
+          "title": "Le même appel d'état : brut puis via SDK",
+          "position": 2,
+          "codeLanguage": "python",
+          "body": "# Sans SDK : on construit la requete HTTP a la main vers le sidecar.\nimport requests\n\nrequests.post(\n    \"http://localhost:3500/v1.0/state/statestore\",\n    json=[{\"key\": \"panier-42\", \"value\": {\"articles\": 3}}],\n)\nresp = requests.get(\"http://localhost:3500/v1.0/state/statestore/panier-42\")\nprint(resp.json())\n\n# Avec le SDK Python : plus court, typé, et les details HTTP sont caches.\nfrom dapr.clients import DaprClient\n\nwith DaprClient() as client:\n    client.save_state(store_name=\"statestore\", key=\"panier-42\", value='{\"articles\": 3}')\n    state = client.get_state(store_name=\"statestore\", key=\"panier-42\")\n    print(state.data)\n\n# Meme building block, meme sidecar : le SDK n'est qu'une couche de confort."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "patterns-ecosystem-les-sdks-check"
+        }
+      ]
+    },
+    {
+      "slug": "patterns-darchitecture",
+      "title": "Patterns d'architecture avec Dapr",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Dapr, une boîte à outils de patterns distribués",
+          "position": 0,
+          "body": "Les building blocks de Dapr ne sont pas isolés : combinés, ils permettent de réaliser des **patterns d'architecture** classiques du distribué sans réécrire la plomberie.\n\nQuatre reviennent très souvent :\n\n- **Architecture événementielle** : les services se découplent via le **pub/sub**. Un service publie un événement, d'autres y réagissent, sans se connaître directement.\n- **Saga** : une transaction répartie sur plusieurs services, orchestrée par un **workflow** avec des étapes de **compensation** en cas d'échec.\n- **Outbox transactionnel** : écrire un état *et* publier un message de façon **atomique**, pour ne jamais perdre un événement.\n- **Entités avec état** : modéliser des objets métier vivants (un panier, un appareil) avec les **acteurs**."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Saga et outbox : fiabiliser le distribué",
+          "position": 1,
+          "body": "Le pattern **saga** répond à une question dure : comment garder la cohérence quand une opération touche plusieurs services, sans transaction globale ? Dapr Workflow exécute les étapes dans l'ordre et, si l'une échoue, déclenche les **compensations** (annuler le paiement, libérer le stock) pour revenir à un état cohérent.\n\nLe pattern **outbox** résout un piège classique : si un service enregistre une commande en base **puis** publie un événement, un crash entre les deux fait perdre l'événement. Dapr propose un **outbox transactionnel intégré** à l'API d'état : l'écriture de l'état et la publication du message sont liées, l'événement part **si et seulement si** l'état a bien été persisté.\n\n> À retenir : Dapr ne t'oblige à aucun pattern, mais fournit les briques fiables pour les mettre en œuvre proprement."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Une saga de commande orchestrée par un workflow",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  Start([\"Commande reçue\"]) --> Paiement[\"Débiter le paiement\"]\n  Paiement -->|OK| Stock[\"Réserver le stock\"]\n  Stock -->|OK| Livraison[\"Planifier la livraison\"]\n  Livraison --> Fin([\"Commande confirmée\"])\n  Stock -->|Échec| CompPaiement[\"Compensation : rembourser\"]\n  CompPaiement --> Annule([\"Commande annulée\"])"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "patterns-ecosystem-patterns-darchitecture-check"
+        }
+      ]
+    },
+    {
+      "slug": "quand-utiliser-dapr-ou-pas",
+      "title": "Quand utiliser Dapr, et quand s'en passer",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Quand Dapr brille vraiment",
+          "position": 0,
+          "body": "Dapr apporte le plus de valeur dans des contextes bien précis :\n\n- **Microservices polyglottes** : plusieurs services, parfois dans des langages différents, qui doivent partager les mêmes patterns (état, pub/sub, invocation). Dapr évite de réécrire cette plomberie dans chaque langage.\n- **Besoin de portabilité** : tu veux pouvoir changer de store, de broker ou de cloud sans réécrire le code métier. Les composants déclaratifs rendent ce changement quasi gratuit.\n- **Patterns distribués récurrents** : sagas, acteurs avec état, résilience, outbox, workflows durables. Dapr fournit ces briques déjà fiabilisées, testées et observables.\n\nEn clair : plus ton système est **distribué, hétérogène et amené à évoluer**, plus Dapr rentabilise son coût d'adoption."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Quand Dapr est superflu (niveau expert)",
+          "position": 1,
+          "body": "La maturité, c'est aussi savoir **ne pas** sortir l'outil. Dapr n'est pas gratuit : chaque instance ajoute un **sidecar** (processus, mémoire, un saut réseau local) et une couche conceptuelle à maîtriser et à exploiter.\n\nIl est souvent **superflu** dans ces cas :\n\n- **Monolithe simple** : un seul déployable, des appels en mémoire. Ajouter des sidecars et des appels HTTP locaux complique sans bénéfice.\n- **Une seule technologie maîtrisée** : si toute l'équipe est sur un seul langage avec un framework qui gère déjà proprement état, messagerie et résilience, l'abstraction de Dapr fait doublon.\n- **Très petite échelle ou prototype** : la portabilité et les patterns distribués ne sont pas encore un problème. Le surcoût opérationnel dépasse le gain.\n\n> Le bon réflexe d'expert : adopter Dapr pour les **problèmes qu'il résout réellement chez toi**, building block par building block, et non parce qu'il est à la mode. Un sidecar qui ne sert qu'à un appel trivial est une dette, pas un atout."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 2,
+          "quizRef": "patterns-ecosystem-quand-utiliser-dapr-ou-pas-check"
+        }
+      ]
+    }
+  ]
+}

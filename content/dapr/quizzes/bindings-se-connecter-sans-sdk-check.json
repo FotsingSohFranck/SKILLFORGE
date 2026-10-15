@@ -1,0 +1,43 @@
+{
+  "ref": "bindings-se-connecter-sans-sdk-check",
+  "node": "bindings",
+  "lesson": "se-connecter-sans-sdk",
+  "title": "Quiz : Se connecter sans SDK",
+  "description": "Vérifie ta compréhension des composants de binding et du rôle de leur nom.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où choisit-on le système auquel un binding se connecte (cron, Kafka, S3, Twilio...) ?",
+      "justification": "Le système est choisi dans le champ spec.type du composant YAML (bindings.cron, bindings.kafka...), sans ajouter de SDK au code.",
+      "position": 0,
+      "options": [
+        { "label": "Dans le champ spec.type du composant YAML", "correct": true, "position": 0 },
+        { "label": "En important le SDK du système dans le code de l'application", "correct": false, "position": 1 },
+        { "label": "En recompilant le runtime Dapr", "correct": false, "position": 2 },
+        { "label": "Dans une variable d'environnement du noyau Linux", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un composant de binding d'entrée est nommé \"batch-horaire\". Quelle route Dapr appelle-t-il sur ton application ?",
+      "justification": "Pour un binding d'entrée, Dapr invoque la route POST /<metadata.name>, donc POST /batch-horaire ici.",
+      "position": 1,
+      "options": [
+        { "label": "POST /batch-horaire", "correct": true, "position": 0 },
+        { "label": "GET /v1.0/state/batch-horaire", "correct": false, "position": 1 },
+        { "label": "POST /v1.0/invoke/batch-horaire", "correct": false, "position": 2 },
+        { "label": "POST /batch-horaire/subscribe", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour déclencher un binding de sortie nommé \"sms\", ton code appelle POST http://localhost:3500/v1.0/bindings/sms.",
+      "justification": "Vrai : le nom du composant apparaît dans l'URL du sidecar, sous la forme /v1.0/bindings/<name>.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

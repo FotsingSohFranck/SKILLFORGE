@@ -892,6 +892,20 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
+- ✅ **SF-90 — Nouveau parcours Dapr (roadmap + contenu complet)** — **TERMINÉ**
+  - **Roadmap** : `content/dapr/roadmap.json` (kind TRACK, position 13) : **20 nœuds, 6 phases**
+    (Fondations, Démarrer, Building blocks essentiels, Building blocks avancés, Résilience/sécurité/
+    observabilité, Déploiement & production), **24 arêtes** de prérequis (graphe cohérent).
+  - **Contenu** : 20 nœuds, **60 leçons**, **60 quiz** (~160 concepts) avec sections CONCEPT/CODE/DIAGRAM
+    (Mermaid)/QUIZ. Couvre sidecar, building blocks (invocation, état, pub/sub, bindings, acteurs, secrets,
+    config, workflow), résilience, sécurité, observabilité, Kubernetes, prod, patterns.
+  - **Méthode (multi-agents)** : 1 gabarit de référence écrit à la main (`dapr-overview`), puis **19 agents
+    en parallèle** (un par nœud) ont rédigé le reste en copiant le gabarit. Consolidation : sweep anti-tiret
+    cadratin (titres de quiz normalisés en « Quiz : … »), `validate --only dapr` **vert du 1er coup**,
+    `ingest --only dapr` OK. Vérifié API : Dapr au catalogue, 20 nœuds / 6 phases / 24 arêtes.
+  - **Reste (optionnel)** : images pédagogiques par concept (même pipeline curl que Docker/Kubernetes),
+    non faites pour l'instant.
+
 - ✅ **Maintenance — Tests `iam` + préparation mise en public (MIT)** — **TERMINÉ**
   - Correctif : `AuthIntegrationTest` (module `iam`) ne chargeait plus le contexte depuis l'ajout du
     « mot de passe oublié » — `JavaMailPasswordResetMailer` exige un bean `JavaMailSender` absent du

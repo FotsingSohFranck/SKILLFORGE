@@ -1,0 +1,43 @@
+{
+  "ref": "first-app-le-flux-des-ports-check",
+  "node": "first-app",
+  "lesson": "le-flux-des-ports",
+  "title": "Quiz : Le flux des ports",
+  "description": "Vérifie ta compréhension des ports du sidecar et du sens de la communication avec ton application.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels sont les ports par défaut de l'API HTTP et de l'API gRPC du sidecar Dapr ?",
+      "justification": "Le sidecar expose son API HTTP sur le port 3500 et son API gRPC sur le port 50001 par défaut.",
+      "position": 0,
+      "options": [
+        { "label": "3500 pour HTTP, 50001 pour gRPC", "correct": true, "position": 0 },
+        { "label": "8080 pour HTTP, 443 pour gRPC", "correct": false, "position": 1 },
+        { "label": "3000 pour HTTP, 3001 pour gRPC", "correct": false, "position": 2 },
+        { "label": "80 pour HTTP, 50001 pour gRPC", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand Dapr doit livrer à ton app un message d'un topic auquel elle est abonnée, sur quel port appelle-t-il ?",
+      "justification": "La livraison va dans le sens inverse : c'est Dapr qui appelle ton application, sur l'app-port que tu as déclaré.",
+      "position": 1,
+      "options": [
+        { "label": "Sur l'app-port de ton application", "correct": true, "position": 0 },
+        { "label": "Sur le port 3500 du sidecar", "correct": false, "position": 1 },
+        { "label": "Sur le port 50001 du sidecar", "correct": false, "position": 2 },
+        { "label": "Sur le port 8080 du dashboard", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La communication entre ton application et le sidecar se fait uniquement dans un seul sens (app vers sidecar).",
+      "justification": "Faux : ton app appelle le sidecar pour les building blocks, mais le sidecar appelle aussi ton app (sur l'app-port) pour lui livrer messages et événements de bindings.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

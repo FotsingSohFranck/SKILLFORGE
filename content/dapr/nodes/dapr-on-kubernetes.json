@@ -1,0 +1,115 @@
+{
+  "node": "dapr-on-kubernetes",
+  "lessons": [
+    {
+      "slug": "le-control-plane-sur-k8s",
+      "title": "Le control plane sur Kubernetes",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Dapr sur K8s : un control plane, puis des sidecars",
+          "position": 0,
+          "body": "Sur Kubernetes, Dapr se déploie en deux temps. D'abord un **control plane** : un petit ensemble de services système installés une seule fois, généralement dans le namespace `dapr-system`. Ensuite, les **sidecars** : à chaque pod de ton application viendra s'ajouter un conteneur `daprd`, mais ça, c'est l'objet de la leçon suivante.\n\nLe control plane n'exécute **aucune** de ta logique métier. Son rôle est de **gérer le cycle de vie** des sidecars et de leur fournir les services transverses : injection, découverte des acteurs, certificats mTLS. C'est l'équivalent, pour Dapr, de ce que le control plane Kubernetes fait pour tes conteneurs."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les quatre services du control plane",
+          "position": 1,
+          "body": "Quatre déploiements composent le control plane Dapr.\n\n- **dapr-operator** : surveille les ressources Dapr (les `Component`, `Configuration`, `Resiliency`...) dans le cluster et les met à disposition des sidecars.\n- **dapr-sidecar-injector** : un *webhook* d'admission qui injecte automatiquement le conteneur `daprd` dans les pods **annotés** pour Dapr.\n- **dapr-placement** : distribue la table de placement des **acteurs** (quel sidecar héberge quel acteur). Il n'est utile que si tu utilises les acteurs.\n- **dapr-sentry** : l'autorité de certification (CA) qui émet et fait tourner les certificats pour le **mTLS** entre sidecars.\n\nRetiens le découpage : l'operator lit la config, l'injector monte les sidecars, placement gère les acteurs, sentry sécurise."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Control plane dans dapr-system, sidecars dans tes pods",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph system[\"namespace dapr-system\"]\n    OP[\"dapr-operator\"]\n    INJ[\"dapr-sidecar-injector\"]\n    PL[\"dapr-placement\"]\n    SEN[\"dapr-sentry\"]\n  end\n  subgraph app[\"namespace de ton app\"]\n    POD[\"Pod\\napp + daprd\"]\n  end\n  INJ -->|injecte daprd| POD\n  OP -->|fournit Components| POD\n  SEN -->|certificats mTLS| POD\n  PL -->|table des acteurs| POD"
+        },
+        {
+          "type": "CODE",
+          "title": "Installer le control plane : dapr init -k ou Helm",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Option 1 : via la CLI Dapr (rapide, pour decouvrir)\n# Installe le control plane dans le namespace dapr-system.\ndapr init -k\n\n# Verifier que les services systeme tournent\ndapr status -k\nkubectl get pods -n dapr-system\n\n# Option 2 : via Helm (recommande en production, versions epinglees)\nhelm repo add dapr https://dapr.github.io/helm-charts/\nhelm repo update\nhelm upgrade --install dapr dapr/dapr \\\n  --version=1.15 \\\n  --namespace dapr-system \\\n  --create-namespace \\\n  --wait\n\n# Desinstaller si besoin\n# dapr uninstall -k"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "dapr-on-kubernetes-le-control-plane-sur-k8s-check"
+        }
+      ]
+    },
+    {
+      "slug": "linjection-du-sidecar",
+      "title": "L'injection du sidecar",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Tu n'ajoutes pas daprd toi-même : tu l'annotes",
+          "position": 0,
+          "body": "Sur Kubernetes, tu ne déclares **jamais** le conteneur `daprd` à la main dans ton `Deployment`. À la place, tu poses des **annotations** sur le *template* de pod, et le sidecar-injector s'occupe du reste.\n\nLes trois annotations fondamentales :\n\n- `dapr.io/enabled: \"true\"` : active l'injection pour ce pod. Sans elle, rien ne se passe.\n- `dapr.io/app-id: \"panier\"` : l'**identité** de ton application sur le réseau Dapr. C'est ce nom que les autres services utiliseront pour t'invoquer.\n- `dapr.io/app-port: \"8080\"` : le port sur lequel **ton** application écoute, pour que le sidecar sache où lui transmettre les requêtes entrantes.\n\nAttention : ces annotations vont sur `spec.template.metadata.annotations` (le pod), **pas** sur les métadonnées du Deployment."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Comment l'injector monte le conteneur daprd",
+          "position": 1,
+          "body": "Le `dapr-sidecar-injector` est un **mutating admission webhook**. Concrètement : à chaque fois qu'un pod est créé, l'API server Kubernetes consulte ce webhook **avant** de planifier le pod.\n\nSi le pod porte l'annotation `dapr.io/enabled: \"true\"`, l'injector **modifie à la volée** la définition du pod pour y ajouter le conteneur `daprd` (et un petit init container). Le sidecar démarre donc **dans le même pod** que ton application, partage son réseau (`localhost`) et son cycle de vie.\n\nC'est pour ça que l'injection est **transparente** : ton image ne change pas, ton `Deployment` ne contient que ton conteneur, et pourtant le pod qui tourne en a deux. Si tu ne vois pas de sidecar, la cause est presque toujours une annotation mal placée ou l'injector indisponible."
+        },
+        {
+          "type": "CODE",
+          "title": "Un Deployment annoté pour Dapr",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: panier\n  namespace: boutique\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: panier\n  template:\n    metadata:\n      labels:\n        app: panier\n      # Les annotations Dapr vont ICI, au niveau du pod.\n      annotations:\n        dapr.io/enabled: \"true\"\n        dapr.io/app-id: \"panier\"\n        dapr.io/app-port: \"8080\"\n        # Optionnel : exposer les metriques, choisir le protocole, etc.\n        dapr.io/enable-metrics: \"true\"\n    spec:\n      containers:\n        - name: panier\n          image: boutique/panier:1.0.0\n          ports:\n            - containerPort: 8080\n      # Aucun conteneur daprd ici : l'injector l'ajoutera."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "dapr-on-kubernetes-linjection-du-sidecar-check"
+        }
+      ]
+    },
+    {
+      "slug": "composants-et-config-sur-k8s",
+      "title": "Composants et configuration sur K8s",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Component et Configuration : des CRD appliqués par kubectl",
+          "position": 0,
+          "body": "En local (self-hosted), tu déposes tes composants sous forme de fichiers YAML dans un dossier. Sur Kubernetes, ces mêmes YAML deviennent des **ressources personnalisées** (CRD) que tu appliques avec `kubectl apply`.\n\nLe `dapr-operator` **surveille** ces ressources : dès qu'un `Component` (par exemple un state store Redis) ou une `Configuration` apparaît dans le cluster, il le rend disponible aux sidecars concernés. Tu passes donc d'un fichier sur disque à un **objet Kubernetes versionné**, géré par `kubectl`, GitOps ou Helm comme n'importe quelle autre ressource.\n\nLe `Component` décrit une brique d'infra (store, broker, secret store...). La `Configuration` règle le comportement du sidecar lui-même (tracing, mTLS, access control)."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le scoping par namespace (niveau expert)",
+          "position": 1,
+          "body": "Un point subtil mais essentiel en production : la **portée** des composants.\n\nUn `Component` appliqué dans un namespace n'est, par défaut, visible que par les sidecars **du même namespace**. Tu isoles ainsi naturellement les environnements : un state store `prod` dans le namespace `prod`, un autre dans `staging`, sans collision.\n\nTu peux affiner davantage avec le champ `scopes` dans le composant : il **restreint** l'accès à une liste précise d'**app-id**. Seules les applications dont l'app-id figure dans `scopes` pourront charger ce composant. C'est le principe du **moindre privilège** appliqué à l'infrastructure : le service `panier` n'a pas à voir le broker de messagerie réservé au service `facturation`.\n\n> À retenir : namespace = isolation large ; `scopes` = autorisation fine par application."
+        },
+        {
+          "type": "CODE",
+          "title": "Un Component en CRD Kubernetes",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "apiVersion: dapr.io/v1alpha1\nkind: Component\nmetadata:\n  name: statestore\n  namespace: boutique\nspec:\n  type: state.redis\n  version: v1\n  metadata:\n    - name: redisHost\n      value: \"redis-master.boutique.svc.cluster.local:6379\"\n    - name: redisPassword\n      # Reference d'un secret Kubernetes, jamais le mot de passe en dur.\n      secretKeyRef:\n        name: redis-secret\n        key: password\n# Limite ce composant aux seules applications autorisees.\nscopes:\n  - panier\n  - commandes"
+        },
+        {
+          "type": "CODE",
+          "title": "Appliquer et vérifier les ressources Dapr",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Appliquer le composant dans le namespace cible\nkubectl apply -f statestore.yaml\n\n# Lister les composants Dapr vus par le cluster\nkubectl get components -n boutique\n\n# Lister les configurations Dapr\nkubectl get configurations -n boutique\n\n# Redemarrer les pods pour qu'ils rechargent un composant modifie\nkubectl rollout restart deployment/panier -n boutique"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "dapr-on-kubernetes-composants-et-config-sur-k8s-check"
+        }
+      ]
+    }
+  ]
+}

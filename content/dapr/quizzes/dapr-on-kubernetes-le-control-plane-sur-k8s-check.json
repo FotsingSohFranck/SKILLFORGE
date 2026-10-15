@@ -1,0 +1,43 @@
+{
+  "ref": "dapr-on-kubernetes-le-control-plane-sur-k8s-check",
+  "node": "dapr-on-kubernetes",
+  "lesson": "le-control-plane-sur-k8s",
+  "title": "Quiz : Le control plane sur Kubernetes",
+  "description": "Vérifie ta compréhension des services système de Dapr et de leur installation sur un cluster.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel service du control plane injecte automatiquement le conteneur daprd dans les pods annotés ?",
+      "justification": "Le dapr-sidecar-injector est un webhook d'admission qui ajoute le conteneur daprd aux pods marqués pour Dapr. L'operator lit les composants, placement gère les acteurs, sentry émet les certificats.",
+      "position": 0,
+      "options": [
+        { "label": "dapr-sidecar-injector", "correct": true, "position": 0 },
+        { "label": "dapr-operator", "correct": false, "position": 1 },
+        { "label": "dapr-placement", "correct": false, "position": 2 },
+        { "label": "dapr-sentry", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le service dapr-sentry ?",
+      "justification": "Sentry est l'autorité de certification qui émet et fait tourner les certificats utilisés pour le mTLS entre sidecars.",
+      "position": 1,
+      "options": [
+        { "label": "Il émet les certificats pour le mTLS entre sidecars", "correct": true, "position": 0 },
+        { "label": "Il distribue la table de placement des acteurs", "correct": false, "position": 1 },
+        { "label": "Il exécute la logique métier des applications", "correct": false, "position": 2 },
+        { "label": "Il remplace le scheduler de Kubernetes", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le service dapr-placement n'est réellement utile que si l'on utilise les acteurs Dapr.",
+      "justification": "Vrai : placement gère la table qui associe chaque acteur à un sidecar. Sans acteurs, il ne joue aucun rôle actif.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

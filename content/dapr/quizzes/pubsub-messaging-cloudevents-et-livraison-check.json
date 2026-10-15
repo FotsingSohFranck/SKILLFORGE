@@ -1,0 +1,43 @@
+{
+  "ref": "pubsub-messaging-cloudevents-et-livraison-check",
+  "node": "pubsub-messaging",
+  "lesson": "cloudevents-et-livraison",
+  "title": "Quiz : CloudEvents et livraison",
+  "description": "Vérifie ta compréhension de l'enveloppe CloudEvents et de la garantie de livraison at-least-once.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel champ du CloudEvent se trouve le message d'origine que tu as publié ?",
+      "justification": "Dapr enveloppe le message : ta charge utile d'origine se retrouve dans le champ data, entourée des métadonnées standard (id, source, type...).",
+      "position": 0,
+      "options": [
+        { "label": "Dans le champ data", "correct": true, "position": 0 },
+        { "label": "Dans le champ source", "correct": false, "position": 1 },
+        { "label": "Dans le champ specversion", "correct": false, "position": 2 },
+        { "label": "Dans le champ traceid", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un consommateur de messages Dapr doit-il être idempotent ?",
+      "justification": "Dapr garantit une livraison at-least-once : un même message peut être livré plusieurs fois, donc le traiter deux fois doit donner le même résultat qu'une seule fois.",
+      "position": 1,
+      "options": [
+        { "label": "Parce que la livraison est at-least-once : un message peut arriver plusieurs fois", "correct": true, "position": 0 },
+        { "label": "Parce que Dapr livre les messages dans le désordre volontairement", "correct": false, "position": 1 },
+        { "label": "Parce que Dapr supprime les messages après lecture", "correct": false, "position": 2 },
+        { "label": "Parce que le broker chiffre chaque message deux fois", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le champ id du CloudEvent peut servir de clé de déduplication pour ignorer un message déjà traité.",
+      "justification": "Vrai : garder une trace des id déjà traités permet d'ignorer les relivraisons et d'implémenter l'idempotence.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

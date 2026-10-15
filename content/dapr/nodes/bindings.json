@@ -1,0 +1,101 @@
+{
+  "node": "bindings",
+  "lessons": [
+    {
+      "slug": "entree-et-sortie",
+      "title": "Bindings d'entrée et de sortie",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le binding d'entrée : un événement externe réveille ton app",
+          "position": 0,
+          "body": "Un **binding d'entrée** (*input binding*) connecte un **système externe** à ton application dans le sens *monde extérieur vers ton code*.\n\nQuand quelque chose se produit côté système externe (un fichier déposé sur un stockage, un message arrivé dans une file, l'heure d'un déclenchement planifié), Dapr le **capte** et **appelle un endpoint de ton application** pour te livrer l'événement.\n\nLe point clé : **ton app ne sonde rien** et ne connaît pas le protocole du système source. Elle expose simplement une route, et Dapr s'occupe d'écouter la source puis de l'invoquer. Par convention, Dapr appelle la route `POST /<nom-du-binding>` sur ton application."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le binding de sortie : ton app déclenche une action externe",
+          "position": 1,
+          "body": "Un **binding de sortie** (*output binding*) va dans l'autre sens : *ton code vers le monde extérieur*.\n\nTon application demande à Dapr d'**agir sur un système externe** : envoyer un SMS, écrire un objet dans un stockage, publier dans une file, appeler une API SaaS. Ton code fait un simple appel HTTP à son sidecar, et Dapr traduit cette demande vers le protocole natif du système cible.\n\nUn appel de sortie précise toujours une **`operation`** (par exemple `create`, `get`, `delete`), car un même système peut supporter plusieurs actions. Là encore, ton code **ignore le SDK** du service distant : il ne parle qu'à Dapr."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Les deux sens d'un binding",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  Src[(\"Système externe\\n(source)\")] -->|événement| Dapr1[\"Sidecar Dapr\"]\n  Dapr1 -->|\"POST /<binding>\"| App1[\"Ton application\"]\n  App2[\"Ton application\"] -->|\"POST /v1.0/bindings/<name>\"| Dapr2[\"Sidecar Dapr\"]\n  Dapr2 -->|action| Dst[(\"Système externe\\n(cible)\")]"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "bindings-entree-et-sortie-check"
+        }
+      ]
+    },
+    {
+      "slug": "se-connecter-sans-sdk",
+      "title": "Se connecter à un système externe sans SDK",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un composant YAML, pas une dépendance dans ton code",
+          "position": 0,
+          "body": "La grande promesse des bindings : te brancher à Kafka, Amazon S3, un cron, Twilio, PostgreSQL ou des dizaines d'autres systèmes **par de la configuration**, sans ajouter leur SDK à ton projet.\n\nChaque connexion est déclarée dans un **composant** Dapr (`kind: Component`) dont le champ `spec.type` choisit le pilote (`bindings.cron`, `bindings.kafka`, `bindings.aws.s3`, `bindings.twilio.sms`...). Le bloc `metadata` porte les réglages propres au système (planning, bucket, identifiants).\n\nRésultat : changer de système externe, ou corriger une adresse, revient à **éditer un fichier**, jamais à recompiler ton application."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le nom du composant fait le lien avec ton code",
+          "position": 1,
+          "body": "Le champ `metadata.name` du composant est l'**identifiant du binding**, et c'est lui qui relie la configuration à ton code.\n\nPour un binding **d'entrée**, Dapr appelle la route portant ce nom : un composant nommé `cron` déclenche `POST /cron` sur ton app. Ton application doit répondre `200` pour accuser réception.\n\nPour un binding **de sortie**, ce même nom apparaît dans l'URL que ton code appelle : `POST /v1.0/bindings/<name>`. Un seul nom, donc, à garder cohérent entre le YAML et l'application."
+        },
+        {
+          "type": "CODE",
+          "title": "Déclarer un binding d'entrée cron",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "# Composant : un cron qui declenche ton app toutes les 15 secondes.\n# Dapr appellera POST /batch-horaire sur ton application a chaque echeance.\napiVersion: dapr.io/v1alpha1\nkind: Component\nmetadata:\n  name: batch-horaire\nspec:\n  type: bindings.cron\n  version: v1\n  metadata:\n  - name: schedule\n    value: \"@every 15s\""
+        },
+        {
+          "type": "CODE",
+          "title": "Déclencher un binding de sortie",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Ton app appelle son sidecar (port 3500) pour agir sur un systeme externe.\n# \"sms\" est le metadata.name d'un composant de sortie (ex. bindings.twilio.sms).\n# L'operation \"create\" demande l'envoi ; data et metadata dependent du systeme.\n\ncurl -X POST http://localhost:3500/v1.0/bindings/sms \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"operation\": \"create\",\n    \"data\": { \"message\": \"Votre commande est expediee\" },\n    \"metadata\": { \"toNumber\": \"+33123456789\" }\n  }'"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "bindings-se-connecter-sans-sdk-check"
+        }
+      ]
+    },
+    {
+      "slug": "bindings-vs-pubsub",
+      "title": "Binding ou pub/sub : lequel choisir ?",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Deux outils, deux intentions",
+          "position": 0,
+          "body": "Bindings et pub/sub se ressemblent (les deux transportent des messages), mais répondent à des besoins différents.\n\nUn **binding** sert à **intégrer un système externe précis**, de façon point à point : ton app est reliée à *ce* stockage, *ce* cron, *ce* service SaaS. L'intention est une **intégration** avec une ressource identifiée.\n\nLe **pub/sub** sert à **découpler tes propres services** entre eux : un producteur publie sur un *topic* sans savoir qui écoute, et zéro, un ou plusieurs abonnés consomment. L'intention est le **découplage** interne, avec diffusion possible à plusieurs consommateurs."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le choix d'expert : la même techno peut faire les deux",
+          "position": 1,
+          "body": "Subtilité à connaître : un **même broker** comme Kafka existe à la fois en composant `pubsub.kafka` et en `bindings.kafka`. Ce n'est donc pas la technologie qui tranche, mais l'**usage**.\n\nChoisis un **binding** quand tu veux une connexion directe à un système extérieur, souvent *non Dapr* (un SaaS, un stockage, une base), en entrée ou en sortie, sans l'enveloppe **CloudEvents** ni la sémantique de topic.\n\nChoisis le **pub/sub** quand des services *Dapr* doivent se parler sans se connaître : tu profites alors des topics, de la diffusion à plusieurs abonnés, des groupes de consommateurs concurrents et des métadonnées CloudEvents.\n\n> À retenir : binding = *parler à un système externe* ; pub/sub = *découpler mes services entre eux*."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 2,
+          "quizRef": "bindings-bindings-vs-pubsub-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "actors-etat-timers-reminders-check",
+  "node": "actors",
+  "lesson": "etat-timers-reminders",
+  "title": "Quiz : État, timers et reminders",
+  "description": "Vérifie ta compréhension de l'état d'acteur, de la concurrence turn-based, des timers/reminders et du service placement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence essentielle entre un timer et un reminder d'acteur ?",
+      "justification": "Le timer est transitoire et disparaît à la désactivation de l'acteur ; le reminder est persistant, survit à la désactivation et peut réactiver l'acteur à l'échéance.",
+      "position": 0,
+      "options": [
+        { "label": "Le timer est transitoire (perdu à la désactivation), le reminder est persistant", "correct": true, "position": 0 },
+        { "label": "Le timer est persistant, le reminder est transitoire", "correct": false, "position": 1 },
+        { "label": "Les deux sont persistants, mais le timer est plus rapide", "correct": false, "position": 2 },
+        { "label": "Il n'y a aucune différence, ce sont des synonymes", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Grâce à la concurrence turn-based, deux appels sur le même acteur peuvent s'exécuter en parallèle.",
+      "justification": "Faux : un acteur est mono-thread. Dapr sérialise les appels sur un même acteur ; le second attend la fin du premier, ce qui évite les race conditions sans verrou.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le service placement de Dapr ?",
+      "justification": "Le service placement maintient une table de hachage distribuée qui associe chaque acteur à une instance hôte, pour router les appels et garantir un seul exemplaire actif par acteur.",
+      "position": 2,
+      "options": [
+        { "label": "Déterminer sur quelle instance vit chaque acteur et router les appels", "correct": true, "position": 0 },
+        { "label": "Chiffrer les messages entre les acteurs", "correct": false, "position": 1 },
+        { "label": "Stocker l'état de tous les acteurs dans sa propre base", "correct": false, "position": 2 },
+        { "label": "Compiler le code des acteurs au démarrage", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

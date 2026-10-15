@@ -1,0 +1,113 @@
+{
+  "node": "components-configuration",
+  "lessons": [
+    {
+      "slug": "le-modele-de-composant",
+      "title": "Le modèle de composant",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un composant : une brique d'infra décrite en YAML",
+          "position": 0,
+          "body": "Au chapitre précédent, Dapr parlait à Redis, à un broker, à un secret store. Mais **comment Dapr sait-il** quelle technologie utiliser, et avec quelles coordonnées ? La réponse tient en un mot : les **composants**.\n\nUn **composant** (*Component*) est une **ressource déclarative**, décrite en **YAML**, qui dit à Dapr : « pour tel building block, utilise telle implémentation, configurée comme ceci ». Un *state store* Redis, un pub/sub Kafka, un secret store Vault : chacun est un composant.\n\nLe point fondamental : cette ressource suit **toujours la même structure**, qu'il s'agisse d'un store, d'un broker ou d'un binding. Apprends-la une fois, tu les connais tous."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Anatomie de la ressource Component",
+          "position": 1,
+          "body": "Un fichier de composant a quatre parties clés.\n\n- **`apiVersion: dapr.io/v1alpha1`** : la version de l'API Dapr qui décrit la ressource. Elle est identique pour tous les composants.\n- **`kind: Component`** : le type de ressource. Ici, toujours `Component`.\n- **`metadata.name`** : le **nom** du composant. C'est **ce nom** que ton code utilisera dans les appels (ex. le `storeName` d'une requête d'état). Choisis-le clair et stable.\n- **`spec.type`** : l'**implémentation** choisie, sous la forme `<building-block>.<techno>` : `state.redis`, `pubsub.kafka`, `secretstores.hashicorp.vault`...\n- **`spec.version`** : la version du composant (souvent `v1`).\n- **`spec.metadata`** : une **liste de paires `name`/`value`** propres à l'implémentation : l'hôte Redis, un mot de passe, une option de comportement. Ces clés changent d'une techno à l'autre.\n\nRetiens la séparation : le **`kind`** et l'**`apiVersion`** sont universels ; c'est le **`spec.type`** et le **`spec.metadata`** qui portent le choix concret d'infrastructure."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Comment Dapr charge-t-il les composants ?",
+          "position": 2,
+          "body": "Écrire un YAML ne suffit pas : Dapr doit le **trouver et le charger** au démarrage du sidecar. Le mécanisme dépend du **mode d'exécution**.\n\n**En self-hosted (local).** Dapr lit les composants depuis un **dossier de fichiers**. Par défaut, c'est `~/.dapr/components` (créé par `dapr init`). Tu peux pointer ailleurs avec le drapeau **`--resources-path`** (l'ancien nom `--components-path` existe encore) : `dapr run --resources-path ./components ...`. Dapr charge **tous les YAML** du dossier.\n\n**En Kubernetes.** Les composants sont des **ressources personnalisées** (CRD) appliquées au cluster avec `kubectl apply -f`. Dapr les découvre via l'API Kubernetes ; **pas de dossier local**. Le même YAML (ou presque) sert dans les deux mondes, ce qui facilite le passage du poste de dev à la prod.\n\n> À retenir : le *contenu* du composant est portable ; seule la *façon de le livrer* à Dapr change entre local (fichiers) et Kubernetes (CRD)."
+        },
+        {
+          "type": "CODE",
+          "title": "Un state store Redis déclaré en YAML",
+          "position": 3,
+          "codeLanguage": "yaml",
+          "body": "# Fichier : components/statestore.yaml\n# Un state store Redis. Le \"metadata.name\" (statestore) est le nom\n# que ton code emploiera comme storeName dans les appels d'etat.\n\napiVersion: dapr.io/v1alpha1\nkind: Component\nmetadata:\n  name: statestore\nspec:\n  type: state.redis\n  version: v1\n  metadata:\n    - name: redisHost\n      value: localhost:6379\n    - name: redisPassword\n      value: \"\"\n    # Permet aussi d'utiliser ce store pour les acteurs Dapr.\n    - name: actorStateStore\n      value: \"true\"\n\n# Chargement en local :\n#   dapr run --app-id panier --resources-path ./components -- <ta-commande>\n# Dapr lit tous les YAML du dossier ./components au demarrage du sidecar."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "components-configuration-le-modele-de-composant-check"
+        }
+      ]
+    },
+    {
+      "slug": "scoper-les-composants",
+      "title": "Scoper les composants",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Par défaut, un composant est ouvert à tous",
+          "position": 0,
+          "body": "Quand tu charges un composant, **toutes** les applications qui partagent ce Dapr peuvent l'utiliser. Un composant `statestore` est accessible à ton service `panier`, mais aussi à `paiement`, `catalogue`, et tout autre app-id présent.\n\nCe n'est pas toujours souhaitable. Le service `paiement` ne devrait peut-être **pas** pouvoir lire le store de session du `panier`. Et un composant qui donne accès à une base sensible ne devrait être visible que des services qui en ont **réellement besoin**.\n\nDapr répond à ce besoin avec les **scopes** : restreindre **quels app-id** ont le droit d'utiliser un composant."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Scopes et namespaces",
+          "position": 1,
+          "body": "Deux mécanismes se combinent pour délimiter la portée d'un composant.\n\n**Les scopes.** On ajoute un bloc **`scopes`** au composant, qui liste les **app-id autorisés**. Si la liste est présente, **seuls** ces app-id peuvent charger et utiliser le composant ; les autres l'ignorent, comme s'il n'existait pas. Absence de `scopes` = ouvert à tous (le comportement par défaut).\n\n**Les namespaces.** En Kubernetes (et en self-hosted via la variable `NAMESPACE`), un composant appartient à un **namespace**. Un composant n'est visible **que** par les applications du **même namespace**. C'est une première barrière, naturelle, d'isolation : `production` et `staging` ne se voient pas.\n\nLes deux se cumulent : le namespace isole des groupes entiers d'applications, et les `scopes` affinent **à l'intérieur** d'un namespace quels app-id précis ont le droit. C'est une pièce importante de la **sécurité** (principe du moindre privilège), qu'on approfondira dans le chapitre dédié."
+        },
+        {
+          "type": "CODE",
+          "title": "Un composant restreint à certains app-id",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "# Fichier : components/statestore.yaml\n# Meme state store, mais reserve explicitement a deux services.\n\napiVersion: dapr.io/v1alpha1\nkind: Component\nmetadata:\n  name: statestore\n  # En Kubernetes, le namespace isole deja ce composant\n  # des applications des autres namespaces.\n  namespace: production\nspec:\n  type: state.redis\n  version: v1\n  metadata:\n    - name: redisHost\n      value: redis-master.production.svc:6379\n    - name: redisPassword\n      value: \"\"\n\n# Seuls les app-id listes ici peuvent charger ce composant.\n# Les autres services du namespace l'ignorent purement et simplement.\nscopes:\n  - panier\n  - commande"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "components-configuration-scoper-les-composants-check"
+        }
+      ]
+    },
+    {
+      "slug": "la-configuration-applicative",
+      "title": "La configuration applicative",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Component n'est pas Configuration",
+          "position": 0,
+          "body": "Attention à une confusion classique. Un **Component** décrit **une brique d'infrastructure** (ce store, ce broker). Une ressource **Configuration** (`kind: Configuration`) décrit, elle, **comment le sidecar Dapr se comporte** pour une application donnée.\n\nCe sont **deux ressources distinctes**, avec le même `apiVersion: dapr.io/v1alpha1` mais un `kind` différent. Un composant répond à « avec *quoi* Dapr parle-t-il ? » ; une Configuration répond à « *comment* le runtime Dapr se règle-t-il ? ».\n\nEn self-hosted, on la passe avec `dapr run --config ./config.yaml` ; en Kubernetes, on l'applique comme CRD et on la référence via l'annotation `dapr.io/config` sur le pod."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Ce que règle une Configuration",
+          "position": 1,
+          "body": "La ressource Configuration regroupe les grands réglages transversaux du sidecar.\n\n- **`tracing`** : l'**observabilité** : taux d'échantillonnage (`samplingRate`) et endpoint d'export des traces (Zipkin, OTLP...). On y revient au chapitre Observabilité.\n- **`mtls`** : le **TLS mutuel** entre sidecars : activer/désactiver, durée de vie des certificats. On l'approfondit au chapitre Sécurité.\n- **`features`** : activer ou non des **fonctionnalités** de Dapr, parfois en préversion (*preview features*).\n- **`accessControl`** : une **politique d'autorisation** fine : quels app-id (avec quelle identité SPIFFE) ont le droit d'invoquer quelles méthodes de cette application. Action par défaut `allow` ou `deny`, puis exceptions par service.\n\nLà où les `scopes` d'un composant disent *qui peut utiliser telle brique d'infra*, l'`accessControl` d'une Configuration dit *qui peut appeler telle méthode de mon service*. Deux portées complémentaires."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Une Configuration par application",
+          "position": 2,
+          "body": "Une Configuration s'applique **à une application** (un app-id), pas globalement. Deux services peuvent donc avoir des réglages différents : l'un échantillonne 100 % de ses traces en pré-production, l'autre se contente de 10 % en charge.\n\nIl existe aussi une Configuration du **control plane** (par exemple la configuration `daprsystem` en Kubernetes) qui fixe des réglages à l'échelle du cluster, comme le mTLS par défaut. Ne la confonds pas avec la Configuration d'une application : même `kind`, portée différente.\n\n> À retenir : tu auras typiquement **plusieurs** fichiers de composants (un par brique d'infra) et **une** Configuration par application, qui règle le comportement de son sidecar."
+        },
+        {
+          "type": "CODE",
+          "title": "Une Configuration complète en YAML",
+          "position": 3,
+          "codeLanguage": "yaml",
+          "body": "# Fichier : config.yaml\n# Regle le comportement du sidecar de l'application \"panier\".\n# Rien a voir avec un Component : ici on configure le RUNTIME.\n\napiVersion: dapr.io/v1alpha1\nkind: Configuration\nmetadata:\n  name: panier-config\n  namespace: production\nspec:\n  # Observabilite : echantillonne toutes les traces vers Zipkin.\n  tracing:\n    samplingRate: \"1\"\n    zipkin:\n      endpointAddress: http://zipkin.default.svc:9411/api/v2/spans\n  # Securite : impose le mTLS entre sidecars.\n  mtls:\n    enabled: true\n    workloadCertTTL: 24h\n  # Active une fonctionnalite nommee.\n  features:\n    - name: SchedulerReminders\n      enabled: true\n  # Autorisation fine : par defaut on refuse, puis on ouvre au cas par cas.\n  accessControl:\n    defaultAction: deny\n    trustDomain: \"public\"\n    policies:\n      - appId: commande\n        defaultAction: deny\n        trustDomain: \"public\"\n        namespace: \"production\"\n        operations:\n          - name: /checkout\n            httpVerb: [\"POST\"]\n            action: allow\n\n# Local :      dapr run --app-id panier --config ./config.yaml -- <commande>\n# Kubernetes : annotation dapr.io/config: \"panier-config\" sur le pod."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "components-configuration-la-configuration-applicative-check"
+        }
+      ]
+    }
+  ]
+}

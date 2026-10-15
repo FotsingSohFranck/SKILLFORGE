@@ -1,0 +1,43 @@
+{
+  "ref": "bindings-bindings-vs-pubsub-check",
+  "node": "bindings",
+  "lesson": "bindings-vs-pubsub",
+  "title": "Quiz : Binding ou pub/sub",
+  "description": "Vérifie que tu sais quand préférer un binding et quand préférer le pub/sub.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel cas un binding est-il plus adapté que le pub/sub ?",
+      "justification": "Le binding sert à intégrer un système externe précis, point à point (un SaaS, un stockage, un cron), souvent non Dapr.",
+      "position": 0,
+      "options": [
+        { "label": "Pour intégrer un système externe précis, en point à point", "correct": true, "position": 0 },
+        { "label": "Pour découpler tes propres services avec diffusion à plusieurs abonnés", "correct": false, "position": 1 },
+        { "label": "Pour exposer des topics avec groupes de consommateurs concurrents", "correct": false, "position": 2 },
+        { "label": "Pour chiffrer automatiquement le trafic entre services", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel élément distingue vraiment un binding du pub/sub pour un broker comme Kafka ?",
+      "justification": "La même technologie existe en composant pubsub et en composant bindings : ce n'est pas la techno qui tranche, mais l'usage visé (intégration externe ou découplage interne).",
+      "position": 1,
+      "options": [
+        { "label": "L'usage visé, pas la technologie, car la même techno peut servir aux deux", "correct": true, "position": 0 },
+        { "label": "Le binding est toujours plus rapide que le pub/sub", "correct": false, "position": 1 },
+        { "label": "Seul le pub/sub peut utiliser Kafka", "correct": false, "position": 2 },
+        { "label": "Le binding impose obligatoirement l'enveloppe CloudEvents", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le pub/sub est fait pour découpler tes propres services entre eux, avec diffusion possible à plusieurs abonnés.",
+      "justification": "Vrai : un producteur publie sur un topic sans savoir qui écoute, et plusieurs abonnés peuvent consommer. C'est l'intention de découplage interne.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

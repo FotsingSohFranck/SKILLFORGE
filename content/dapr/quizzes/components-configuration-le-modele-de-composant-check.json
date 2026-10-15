@@ -1,0 +1,43 @@
+{
+  "ref": "components-configuration-le-modele-de-composant-check",
+  "node": "components-configuration",
+  "lesson": "le-modele-de-composant",
+  "title": "Quiz : Le modèle de composant",
+  "description": "Vérifie ta compréhension de la ressource Component et de la façon dont Dapr la charge.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans un composant Dapr, où se trouve le choix de l'implémentation concrète (par exemple Redis pour le stockage d'état) ?",
+      "justification": "Le champ spec.type porte le choix de l'implémentation, sous la forme <building-block>.<techno> comme state.redis. Le kind et l'apiVersion, eux, sont identiques pour tous les composants.",
+      "position": 0,
+      "options": [
+        { "label": "Dans spec.type (ex. state.redis)", "correct": true, "position": 0 },
+        { "label": "Dans kind, qui vaut Redis", "correct": false, "position": 1 },
+        { "label": "Dans apiVersion", "correct": false, "position": 2 },
+        { "label": "Dans metadata.name, qui doit valoir redis", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "En mode self-hosted (local), comment indiques-tu à Dapr le dossier contenant tes composants ?",
+      "justification": "En local, Dapr charge les composants depuis un dossier de fichiers, désigné par le drapeau --resources-path. En Kubernetes, ce sont au contraire des CRD appliquées au cluster.",
+      "position": 1,
+      "options": [
+        { "label": "Avec le drapeau --resources-path", "correct": true, "position": 0 },
+        { "label": "Avec kubectl apply -f", "correct": false, "position": 1 },
+        { "label": "En les écrivant dans le code de l'application", "correct": false, "position": 2 },
+        { "label": "Avec une requête SQL au démarrage", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le metadata.name d'un composant est le nom que ton code utilisera pour le désigner dans ses appels (par exemple comme storeName).",
+      "justification": "Vrai : c'est bien le metadata.name qui sert de référence côté application. Il faut donc le choisir clair et stable.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

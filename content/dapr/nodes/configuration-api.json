@@ -1,0 +1,120 @@
+{
+  "node": "configuration-api",
+  "lessons": [
+    {
+      "slug": "lire-la-configuration",
+      "title": "Lire la configuration applicative",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Le building block Configuration API",
+          "position": 0,
+          "body": "La **Configuration API** est un building block de Dapr qui permet à ton application de **lire la configuration applicative** depuis un **config store** centralisé, sans coder un client spécifique pour chaque base.\n\nIl s'agit de données de configuration **métier** : feature flags, seuils, URL de services, messages, réglages d'interface... Bref, tout ce que tu veux pouvoir ajuster **sans redéployer** l'application.\n\nTon code n'interroge pas Redis ou Postgres directement : il appelle **son sidecar Dapr** via une API stable. L'endpoint de lecture est `GET /v1.0-alpha1/configuration/<store>`, où `<store>` est le nom du composant de type `configuration`.\n\n> Le préfixe `v1.0-alpha1` indique que l'API est encore en **alpha** : stable dans son usage courant, mais susceptible d'évoluer. Vérifie la version exposée par ta release de Dapr."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Lire une ou plusieurs clés",
+          "position": 1,
+          "body": "La lecture se fait par **clés**. Tu passes les clés voulues en paramètres de requête, par exemple `?key=feature-x&key=seuil-alerte`, et Dapr te renvoie un objet où chaque clé est associée à sa **valeur** et à ses **métadonnées** (dont souvent une **version**).\n\nPoint important : si tu **n'indiques aucune clé**, Dapr renvoie **toute** la configuration disponible dans le store (selon ce que le store autorise). En pratique, on préfère demander explicitement les clés dont on a besoin, c'est plus lisible et plus sûr.\n\nLa réponse typique ressemble à un dictionnaire : `{ \"feature-x\": { \"value\": \"true\", \"version\": \"1\" } }`. Ton application lit la `value` et s'en sert pour adapter son comportement."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les config stores (Redis, Postgres...)",
+          "position": 2,
+          "body": "Un **config store** est l'infrastructure qui héberge réellement les données de configuration. Comme pour les autres building blocks, on le déclare via un **composant Dapr** en YAML, de `type: configuration.<technologie>`.\n\nLes stores supportés incluent **Redis** (`configuration.redis`) et **PostgreSQL** (`configuration.postgres`), entre autres. Le choix se fait dans le fichier du composant, **pas dans le code** : passer de Redis à Postgres ne change pas une ligne de ta logique métier.\n\nC'est tout l'intérêt de Dapr : ton application reste **agnostique** au store choisi. Elle appelle toujours la même API `/v1.0-alpha1/configuration/<store>`, quel que soit le moteur derrière."
+        },
+        {
+          "type": "CODE",
+          "title": "Lire des clés de configuration via curl",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Ton application interroge SON sidecar Dapr (port 3500 par defaut).\n# On demande explicitement deux cles au config store nomme \"configstore\".\n\ncurl \"http://localhost:3500/v1.0-alpha1/configuration/configstore?key=feature-x&key=seuil-alerte\"\n\n# Reponse typique : chaque cle porte sa valeur et sa version.\n# {\n#   \"feature-x\":    { \"value\": \"true\", \"version\": \"1\" },\n#   \"seuil-alerte\": { \"value\": \"80\",   \"version\": \"3\" }\n# }\n\n# Sans aucun ?key=..., Dapr renvoie TOUTE la configuration du store.\ncurl \"http://localhost:3500/v1.0-alpha1/configuration/configstore\""
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "configuration-api-lire-la-configuration-check"
+        }
+      ]
+    },
+    {
+      "slug": "sabonner-aux-changements",
+      "title": "S'abonner aux changements de configuration",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Du pull au push : s'abonner aux changements",
+          "position": 0,
+          "body": "Lire la configuration **une fois** au démarrage ne suffit pas si elle peut changer pendant que l'application tourne. Tu voudrais que ton app réagisse **immédiatement** quand une valeur est modifiée dans le store, sans la **sonder en boucle**.\n\nC'est le rôle de l'**abonnement** (subscribe). Au lieu de redemander les clés toutes les N secondes (*polling*), ton application **s'abonne** à un ensemble de clés : Dapr maintient un **flux** (streaming) et **pousse** une notification à ton app **dès qu'une valeur change** dans le store.\n\nL'endpoint d'abonnement est `GET /v1.0-alpha1/configuration/<store>/subscribe`, et on se désabonne via `/v1.0-alpha1/configuration/<store>/unsubscribe`. Ton application expose en retour un endpoint que Dapr appelle pour livrer les mises à jour."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Une configuration vraiment dynamique",
+          "position": 1,
+          "body": "Grâce à l'abonnement, la configuration devient **dynamique**. Un opérateur change une valeur dans le store, et **toutes les instances abonnées** la reçoivent en quasi temps réel, puis adaptent leur comportement.\n\nConcrètement : activer une fonctionnalité, relever un seuil, basculer en mode maintenance... **sans redéployer ni redémarrer** les services.\n\nNote que tout store ne supporte pas forcément la notification de changements : Redis le fait bien, par exemple. Vérifie la capacité du composant que tu utilises. Quand le store ne pousse pas d'événements, l'abonnement ne peut pas t'avertir des modifications."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les feature flags",
+          "position": 2,
+          "body": "Un **feature flag** (drapeau de fonctionnalité) est un simple interrupteur stocké en configuration : une clé dont la valeur active ou désactive un comportement, par exemple `nouveau-panier = true`.\n\nCombiné à l'abonnement, c'est puissant : tu peux **activer une fonctionnalité en production** en changeant une seule valeur dans le store, et voir **toutes les instances** la prendre en compte instantanément. Idéal pour un *canary*, un *kill switch* d'urgence, ou ouvrir une feature à une date précise.\n\nLe code lit le flag au bon endroit (`if (featureActive) { ... }`) et reste abonné pour réagir à chaque changement. La logique de déploiement et la logique d'activation sont ainsi **découplées**."
+        },
+        {
+          "type": "CODE",
+          "title": "S'abonner puis se désabonner",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# S'abonner aux changements de la cle \"feature-x\" sur le store \"configstore\".\n# Dapr renvoie un identifiant d'abonnement et poussera les mises a jour\n# vers l'endpoint que ton application expose.\n\ncurl \"http://localhost:3500/v1.0-alpha1/configuration/configstore/subscribe?key=feature-x\"\n\n# Reponse : { \"id\": \"<subscription-id>\" }\n\n# Quand on n'a plus besoin des notifications, on se desabonne\n# en reutilisant l'identifiant renvoye ci-dessus.\n\ncurl \"http://localhost:3500/v1.0-alpha1/configuration/configstore/unsubscribe?id=<subscription-id>\""
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "configuration-api-sabonner-aux-changements-check"
+        }
+      ]
+    },
+    {
+      "slug": "cas-dusage-et-distinction",
+      "title": "Cas d'usage et distinction cruciale",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Réglages dynamiques vs config figée au build",
+          "position": 0,
+          "body": "Quand utiliser la Configuration API ? Pour tout ce qui doit **changer sans redéployer** : feature flags, seuils d'alerte, limites de débit, messages affichés, bascules de mode.\n\nÀ l'opposé, une **configuration figée au build** (variables d'environnement, fichier embarqué dans l'image, propriétés chargées au démarrage) est parfaite pour les réglages **stables** : nom de l'application, port d'écoute, niveau de log par défaut. La changer suppose de **reconstruire ou redéployer**.\n\nLa règle : **statique et rarement modifié** reste en config de build ; **dynamique et ajustable à chaud** passe par la Configuration API avec abonnement. Ne mets pas tout dans le config store « au cas où » : cela ajoute une dépendance et de la latence pour des valeurs qui ne bougent jamais."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Deux chemins selon la volatilité du réglage",
+          "position": 1,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  R[\"Un reglage a gerer\"] --> Q{\"Change-t-il sans redeploiement ?\"}\n  Q -->|Oui| D[\"Configuration API\\nconfig store + subscribe\"]\n  Q -->|Non| S[\"Config de build\\nvariables d'env, fichier embarque\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Piège d'expert : deux « configuration » dans Dapr",
+          "position": 2,
+          "body": "Attention à une confusion classique : il existe **deux choses nommées « configuration »** dans Dapr, totalement différentes.\n\n**1. Le building block Configuration API** (ce chapitre) : une **API applicative** (`/v1.0-alpha1/configuration/...`) que **ton code** appelle pour **lire et s'abonner** à de la configuration **métier** (feature flags, seuils) stockée dans un **config store** comme Redis.\n\n**2. La ressource YAML `kind: Configuration`** : une ressource de **réglage du runtime Dapr lui-même**. Elle configure le comportement du sidecar et du control plane : tracing, mTLS, access control, middlewares HTTP, limites... Elle n'est **jamais lue par ton code** via une API ; elle est **appliquée au démarrage** du sidecar (via `--config` en self-hosted, ou référencée par une annotation sur Kubernetes).\n\nEn résumé : le **building block** = données métier que l'app lit à l'exécution. La **ressource `kind: Configuration`** = réglages de la plateforme Dapr. Même mot, deux mondes : ne les confonds pas."
+        },
+        {
+          "type": "CODE",
+          "title": "Ne pas confondre : composant store vs ressource runtime",
+          "position": 3,
+          "codeLanguage": "yaml",
+          "body": "# (1) BUILDING BLOCK : un composant \"config store\" que ton app INTERROGE.\n# C'est un Component, pas une Configuration.\napiVersion: dapr.io/v1alpha1\nkind: Component\nmetadata:\n  name: configstore\nspec:\n  type: configuration.redis\n  version: v1\n  metadata:\n    - name: redisHost\n      value: localhost:6379\n---\n# (2) RESSOURCE RUNTIME : regle le sidecar Dapr lui-meme (tracing, mTLS...).\n# Ton code ne la lit JAMAIS ; elle est appliquee au demarrage du sidecar.\napiVersion: dapr.io/v1alpha1\nkind: Configuration\nmetadata:\n  name: appconfig\nspec:\n  tracing:\n    samplingRate: \"1\"\n    zipkin:\n      endpointAddress: http://localhost:9411/api/v2/spans"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "configuration-api-cas-dusage-et-distinction-check"
+        }
+      ]
+    }
+  ]
+}

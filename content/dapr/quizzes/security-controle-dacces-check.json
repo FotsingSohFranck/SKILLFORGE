@@ -1,0 +1,43 @@
+{
+  "ref": "security-controle-dacces-check",
+  "node": "security",
+  "lesson": "controle-dacces",
+  "title": "Quiz : Contrôle d'accès",
+  "description": "Vérifie ta compréhension des policies d'access control sur l'invocation de service.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle posture de sécurité recommande-t-on pour le `defaultAction` global en production ?",
+      "justification": "Le deny by default refuse tout appel non explicitement autorisé : on met `defaultAction: deny` puis on ouvre seulement les appels légitimes.",
+      "position": 0,
+      "options": [
+        { "label": "`deny`, puis autoriser explicitement les appels légitimes", "correct": true, "position": 0 },
+        { "label": "`allow`, et ne jamais rien refuser", "correct": false, "position": 1 },
+        { "label": "Laisser le champ vide pour tout autoriser", "correct": false, "position": 2 },
+        { "label": "`deny` partout, sans aucune exception possible", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quels critères une policy d'access control peut-elle discriminer un appel entrant ?",
+      "justification": "Les ACL d'invocation évaluent le trust domain, le namespace, l'app-id appelant, puis l'opération (chemin et verbe HTTP) ; la règle la plus spécifique l'emporte.",
+      "position": 1,
+      "options": [
+        { "label": "L'app-id appelant, le namespace, le trust domain et le verbe HTTP", "correct": true, "position": 0 },
+        { "label": "Uniquement l'adresse IP source de l'appel", "correct": false, "position": 1 },
+        { "label": "La taille du corps de la requête", "correct": false, "position": 2 },
+        { "label": "La version du SDK utilisée par l'appelant", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le contrôle d'accès remplace le mTLS et rend son usage inutile.",
+      "justification": "Faux : le mTLS prouve l'identité, les ACL décident ce que cette identité a le droit de faire. Les deux sont complémentaires dans un modèle zero-trust.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

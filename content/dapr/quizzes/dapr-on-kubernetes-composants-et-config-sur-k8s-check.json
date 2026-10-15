@@ -1,0 +1,43 @@
+{
+  "ref": "dapr-on-kubernetes-composants-et-config-sur-k8s-check",
+  "node": "dapr-on-kubernetes",
+  "lesson": "composants-et-config-sur-k8s",
+  "title": "Quiz : Composants et configuration sur K8s",
+  "description": "Vérifie ta compréhension des composants en CRD et du scoping par namespace et par application.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur Kubernetes, comment déclare-t-on un composant Dapr (par exemple un state store) ?",
+      "justification": "Les composants deviennent des ressources personnalisées (CRD) `Component` appliquées avec kubectl ; le dapr-operator les surveille et les fournit aux sidecars.",
+      "position": 0,
+      "options": [
+        { "label": "En appliquant une ressource Component (CRD) avec kubectl apply", "correct": true, "position": 0 },
+        { "label": "En déposant un fichier dans un dossier sur chaque nœud", "correct": false, "position": 1 },
+        { "label": "En modifiant l'image Docker de l'application", "correct": false, "position": 2 },
+        { "label": "En passant des variables d'environnement au pod", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le champ scopes dans la définition d'un Component ?",
+      "justification": "scopes restreint l'accès au composant aux seules applications dont l'app-id figure dans la liste : c'est le moindre privilège appliqué à l'infrastructure.",
+      "position": 1,
+      "options": [
+        { "label": "Il limite l'accès au composant à une liste précise d'app-id", "correct": true, "position": 0 },
+        { "label": "Il définit le nombre de réplicas du composant", "correct": false, "position": 1 },
+        { "label": "Il choisit la version de l'API Kubernetes", "correct": false, "position": 2 },
+        { "label": "Il active automatiquement le mTLS", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Par défaut, un Component appliqué dans un namespace n'est visible que par les sidecars du même namespace.",
+      "justification": "Vrai : la portée par défaut est le namespace, ce qui isole naturellement les environnements comme prod et staging.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "state-management-concurrence-et-consistance-check",
+  "node": "state-management",
+  "lesson": "concurrence-et-consistance",
+  "title": "Quiz : Concurrence et consistance",
+  "description": "Vérifie ta compréhension des ETags, de la consistance et des stratégies de concurrence.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'ETag renvoyé par Dapr lors d'une lecture d'état ?",
+      "justification": "L'ETag est un numéro de version : on le renvoie à l'écriture pour que Dapr détecte si la valeur a changé entre-temps et rejette l'écriture en cas de conflit.",
+      "position": 0,
+      "options": [
+        { "label": "À détecter qu'une valeur a changé entre-temps (concurrence optimiste)", "correct": true, "position": 0 },
+        { "label": "À chiffrer la valeur stockée", "correct": false, "position": 1 },
+        { "label": "À identifier le store à utiliser", "correct": false, "position": 2 },
+        { "label": "À définir la durée de vie de la clé", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle stratégie de concurrence exige un ETag et fait gagner la première écriture ?",
+      "justification": "first-write refuse une écriture dont l'ETag ne correspond plus (409 Conflict) ; last-write, le défaut, ignore les ETags et laisse la dernière écriture écraser l'état.",
+      "position": 1,
+      "options": [
+        { "label": "first-write", "correct": true, "position": 0 },
+        { "label": "last-write", "correct": false, "position": 1 },
+        { "label": "eventual", "correct": false, "position": 2 },
+        { "label": "strong", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La consistance \"strong\" garantit qu'une lecture suivant une écriture verra bien la dernière valeur.",
+      "justification": "Vrai : strong garantit cela, au prix de la latence, contrairement à eventual qui tolère un court délai de propagation. Tous les stores ne supportent pas strong.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

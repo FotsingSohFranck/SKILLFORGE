@@ -1,0 +1,43 @@
+{
+  "ref": "configuration-api-lire-la-configuration-check",
+  "node": "configuration-api",
+  "lesson": "lire-la-configuration",
+  "title": "Quiz : Lire la configuration",
+  "description": "Vérifie ta compréhension de la lecture de configuration via le building block Configuration API.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel endpoint ton application appelle-t-elle pour lire la configuration applicative via Dapr ?",
+      "justification": "La Configuration API expose la lecture sur GET /v1.0-alpha1/configuration/<store>, où <store> est le nom du composant de type configuration.",
+      "position": 0,
+      "options": [
+        { "label": "GET /v1.0-alpha1/configuration/<store>", "correct": true, "position": 0 },
+        { "label": "GET /v1.0/state/<store>", "correct": false, "position": 1 },
+        { "label": "GET /v1.0/invoke/<store>", "correct": false, "position": 2 },
+        { "label": "GET /v1.0/secrets/<store>", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que renvoie Dapr si tu appelles l'API de configuration sans préciser de clé ?",
+      "justification": "Sans paramètre key, Dapr renvoie toute la configuration disponible dans le store. On préfère toutefois demander explicitement les clés voulues.",
+      "position": 1,
+      "options": [
+        { "label": "Toute la configuration disponible dans le store", "correct": true, "position": 0 },
+        { "label": "Une erreur 400, la clé étant obligatoire", "correct": false, "position": 1 },
+        { "label": "Uniquement la dernière clé modifiée", "correct": false, "position": 2 },
+        { "label": "Un objet vide par défaut", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Passer de Redis à PostgreSQL comme config store oblige à modifier le code métier de l'application.",
+      "justification": "Faux : le choix du store se fait dans le composant YAML (type: configuration.redis ou configuration.postgres). L'application appelle toujours la même API, sans changer son code.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

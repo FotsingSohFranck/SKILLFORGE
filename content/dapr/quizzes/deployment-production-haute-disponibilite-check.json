@@ -1,0 +1,43 @@
+{
+  "ref": "deployment-production-haute-disponibilite-check",
+  "node": "deployment-production",
+  "lesson": "haute-disponibilite",
+  "title": "Quiz : Haute disponibilité du control plane",
+  "description": "Vérifie ta compréhension du mode HA et du consensus Raft du service de placement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi le service dapr-placement est-il généralement déployé avec 3 réplicas en mode HA ?",
+      "justification": "Le placement maintient un état et utilise le consensus Raft : un nombre impair de réplicas (3) assure le quorum et tolère la perte d'un membre.",
+      "position": 0,
+      "options": [
+        { "label": "Parce qu'il utilise le consensus Raft, qui exige un quorum avec un nombre impair de réplicas", "correct": true, "position": 0 },
+        { "label": "Parce qu'un pod Kubernetes ne peut héberger que 3 conteneurs", "correct": false, "position": 1 },
+        { "label": "Parce que chaque réplica gère exactement un building block", "correct": false, "position": 2 },
+        { "label": "Parce que le mTLS impose 3 autorités de certification", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il pour les sidecars déjà en cours si les services système du control plane tombent brièvement ?",
+      "justification": "Les sidecars déjà démarrés continuent de servir le trafic ; on perd surtout l'injection dans les nouveaux pods et le renouvellement des certificats.",
+      "position": 1,
+      "options": [
+        { "label": "Ils continuent de servir le trafic, mais on perd l'injection et le renouvellement de certificats", "correct": true, "position": 0 },
+        { "label": "Tous les sidecars s'arrêtent immédiatement", "correct": false, "position": 1 },
+        { "label": "Les applications perdent toutes leurs données d'état", "correct": false, "position": 2 },
+        { "label": "Le mTLS est désactivé automatiquement", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En production, exécuter un seul réplica de chaque service système du control plane est une bonne pratique.",
+      "justification": "Faux : un seul réplica est un point unique de défaillance. En production on active le mode HA avec plusieurs réplicas.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

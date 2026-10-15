@@ -1,0 +1,43 @@
+{
+  "ref": "observability-traces-distribuees-check",
+  "node": "observability",
+  "lesson": "traces-distribuees",
+  "title": "Quiz : Les traces distribuées",
+  "description": "Vérifie ta compréhension de la propagation du contexte de trace, des exporteurs et de l'échantillonnage.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel standard Dapr utilise-t-il pour propager le contexte de trace entre les sidecars ?",
+      "justification": "Dapr suit le standard W3C Trace Context et propage l'en-tête traceparent (ainsi que tracestate) pour relier les spans d'une même requête.",
+      "position": 0,
+      "options": [
+        { "label": "W3C Trace Context (en-tête traceparent)", "correct": true, "position": 0 },
+        { "label": "Un en-tête propriétaire X-Dapr-Trace", "correct": false, "position": 1 },
+        { "label": "Le protocole SNMP", "correct": false, "position": 2 },
+        { "label": "Les cookies de session HTTP", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que signifie un `samplingRate` réglé à `\"0.1\"` ?",
+      "justification": "Le taux va de \"0\" (aucune trace) à \"1\" (toutes). À \"0.1\", environ 10 % des requêtes sont tracées, un compromis pour ne pas saturer le backend en production.",
+      "position": 1,
+      "options": [
+        { "label": "Environ 10 % des requêtes sont tracées", "correct": true, "position": 0 },
+        { "label": "Toutes les requêtes sont tracées", "correct": false, "position": 1 },
+        { "label": "Le tracing est complètement désactivé", "correct": false, "position": 2 },
+        { "label": "Une requête sur 10 secondes est tracée", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "L'exporteur de traces (Zipkin ou OTLP) et le taux d'échantillonnage se définissent dans une ressource Configuration, pas dans le code.",
+      "justification": "Vrai : ces réglages vivent dans une ressource Configuration attachée au sidecar, ce qui permet de les changer sans toucher à l'application.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

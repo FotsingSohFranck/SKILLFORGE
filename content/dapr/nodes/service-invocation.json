@@ -1,0 +1,94 @@
+{
+  "node": "service-invocation",
+  "lessons": [
+    {
+      "slug": "appeler-par-app-id",
+      "title": "Appeler un service par son app-id",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "L'API d'invocation de service",
+          "position": 0,
+          "body": "Le premier building block de Dapr répond à la question la plus basique des microservices : **comment appeler un autre service ?**\n\nAvec Dapr, tu n'appelles jamais l'autre service directement. Tu appelles **ton propre sidecar** sur une URL au format très régulier :\n\n`http://localhost:3500/v1.0/invoke/<app-id>/method/<methode>`\n\nDécomposons :\n- `3500` est le port HTTP par défaut de **ton** sidecar.\n- `invoke` est le nom du building block.\n- `<app-id>` est l'**identité logique** du service cible (ex. `panier`, `commandes`), choisie au lancement avec `--app-id`.\n- `<methode>` est le chemin de la méthode à invoquer, transmis tel quel à l'application cible.\n\nTu n'indiques **ni IP ni port** du service distant : juste son **nom logique**. C'est Dapr qui transforme ce nom en une adresse réseau concrète."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La résolution de nom : du nom à l'adresse",
+          "position": 1,
+          "body": "Pour router `panier` vers une vraie machine, Dapr s'appuie sur un composant de **résolution de nom** (*name resolution*), choisi automatiquement selon l'environnement.\n\n**En local (self-hosted)**, Dapr utilise **mDNS** : les sidecars se découvrent entre eux sur le réseau local en diffusant et en écoutant les annonces de présence. Aucune configuration : lance deux apps avec des app-id différents, elles se trouvent.\n\n**Sur Kubernetes**, Dapr s'appuie sur le **DNS du cluster** : chaque application Dapr est jointe via un **Service Kubernetes** stable, et la résolution passe par le DNS natif de Kubernetes. C'est plus robuste et scalable que mDNS, adapté à un cluster.\n\nLa conséquence est essentielle : **le même code** (`/v1.0/invoke/panier/method/...`) fonctionne **sans modification** en local comme en production. Seul le mécanisme de résolution, invisible pour toi, change."
+        },
+        {
+          "type": "CODE",
+          "title": "Invoquer une méthode avec curl",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# Suppose deux services lances avec Dapr :\n#   dapr run --app-id panier     --app-port 8080 -- node panier.js\n#   dapr run --app-id commandes  --app-port 8081 -- node commandes.js\n\n# Depuis n'importe quel service (ou ta machine), on appelle le sidecar local\n# sur le port 3500 et on cible l'app-id \"panier\", methode \"ajouter\".\n\ncurl -X POST http://localhost:3500/v1.0/invoke/panier/method/ajouter \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"produit\": \"clavier\", \"quantite\": 1}'\n\n# Pour une methode en lecture, un simple GET suffit :\ncurl http://localhost:3500/v1.0/invoke/panier/method/contenu\n\n# Aucune IP, aucun port du service \"panier\" : Dapr resout le nom tout seul\n# (mDNS en local, DNS du cluster sur Kubernetes)."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "service-invocation-appeler-par-app-id-check"
+        }
+      ]
+    },
+    {
+      "slug": "ce-que-dapr-ajoute",
+      "title": "Ce que Dapr ajoute à l'appel",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "mTLS, retries, load balancing et tracing automatiques",
+          "position": 0,
+          "body": "L'invocation de service ne se contente pas de router l'appel. Entre les deux sidecars, Dapr ajoute **gratuitement** une série de garanties que tu aurais dû coder toi-même.\n\n- **mTLS (chiffrement mutuel)** : le trafic entre sidecars est chiffré et **authentifié des deux côtés** par des certificats gérés automatiquement par le control plane (Sentry). Ni toi ni ton code n'avez à manipuler de certificats.\n- **Retries** : si l'appel échoue sur une erreur transitoire, Dapr peut le **réessayer** (comportement affinable via les politiques de résilience).\n- **Load balancing** : si plusieurs instances partagent le même app-id, Dapr **répartit** les appels entre elles (round-robin via gRPC côté client).\n- **Tracing distribué** : Dapr génère et propage automatiquement les **identifiants de trace** (W3C Trace Context), ce qui te donne une vue bout-en-bout des appels sans instrumenter ton code.\n\nTout cela, **sans une ligne** ajoutée à ta logique métier."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le découplage réseau : jamais d'IP ni de port en dur",
+          "position": 1,
+          "body": "Le bénéfice le plus structurant est le **découplage réseau**. Ton code ne connaît que des **noms logiques** (`panier`, `commandes`), jamais l'endroit où tournent réellement ces services.\n\nCe que cela t'épargne :\n- Pas d'**IP ni de port codés en dur**, donc rien à changer quand un service est redéployé, déplacé, ou scalé.\n- Pas de **registre de services** à maintenir toi-même : la découverte est intégrée.\n- La **mobilité** : un service peut passer de ta machine à un cluster Kubernetes sans que les appelants s'en aperçoivent.\n\n> À retenir : ton application exprime **l'intention** (« appeler la méthode `ajouter` du service `panier` »), et Dapr s'occupe de **toute la plomberie réseau** (adresse, sécurité, résilience, répartition, traçage) pour concrétiser cette intention."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 2,
+          "quizRef": "service-invocation-ce-que-dapr-ajoute-check"
+        }
+      ]
+    },
+    {
+      "slug": "http-grpc-et-controle-dacces",
+      "title": "HTTP, gRPC et contrôle d'accès",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un proxy HTTP et gRPC, y compris entre namespaces",
+          "position": 0,
+          "body": "Le sidecar Dapr agit comme un **proxy** : il reçoit ton appel sur son API et le relaie vers l'application cible. Il fonctionne avec **les deux protocoles** :\n\n- En **HTTP**, tu utilises l'URL `/v1.0/invoke/<app-id>/method/<methode>` vue plus tôt.\n- En **gRPC**, Dapr expose la méthode `InvokeService` ; le sidecar sait aussi faire du **proxying gRPC** pour relayer directement des appels gRPC d'application à application.\n\nSur Kubernetes, un service vit dans un **namespace**. Pour appeler un service d'**un autre namespace**, on **qualifie l'app-id** avec le namespace :\n\n`<app-id>.<namespace>` (par exemple `panier.production`).\n\nAinsi, un appel `/v1.0/invoke/panier.production/method/ajouter` cible explicitement le service `panier` du namespace `production`, et le routage inter-namespaces reste géré par Dapr."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le contrôle d'accès par policy (niveau expert)",
+          "position": 1,
+          "body": "Router et chiffrer les appels ne suffit pas toujours : il faut parfois décider **qui a le droit d'appeler qui**. Dapr propose une **politique de contrôle d'accès** (*access control policy*) appliquée à l'invocation de service, dans la **Configuration** du sidecar appelé.\n\nLe principe :\n- Une **action par défaut** (`defaultAction`) : `allow` (tout autoriser) ou `deny` (tout refuser) pour l'ensemble des appelants.\n- Une liste de **politiques par application appelante**, identifiée par son **identité SPIFFE** (`appId`, `namespace`, `trustDomain`), chacune pouvant surcharger la règle par défaut et préciser des **opérations** autorisées ou refusées (chemins + verbes HTTP).\n\nL'identité de l'appelant est **authentifiée par mTLS** (le certificat SPIFFE), donc une policy `deny` ne peut pas être contournée en usurpant un app-id. La bonne pratique de sécurité est le **deny par défaut** puis une liste d'exceptions `allow` minimales : on n'ouvre que ce qui est strictement nécessaire."
+        },
+        {
+          "type": "CODE",
+          "title": "Une Configuration avec contrôle d'accès",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "apiVersion: dapr.io/v1alpha1\nkind: Configuration\nmetadata:\n  name: appconfig\n  namespace: production\nspec:\n  accessControl:\n    # Par defaut, on refuse tout appelant non liste explicitement.\n    defaultAction: deny\n    trustDomain: \"public\"\n    policies:\n      # Seul le service \"commandes\" (namespace production) est autorise,\n      # et uniquement sur la methode POST /ajouter.\n      - appId: commandes\n        namespace: production\n        trustDomain: \"public\"\n        defaultAction: deny\n        operations:\n          - name: /ajouter\n            httpVerb: [\"POST\"]\n            action: allow\n"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "service-invocation-http-grpc-et-controle-dacces-check"
+        }
+      ]
+    }
+  ]
+}

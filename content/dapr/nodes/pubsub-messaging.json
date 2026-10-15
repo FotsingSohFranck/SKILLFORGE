@@ -1,0 +1,107 @@
+{
+  "node": "pubsub-messaging",
+  "lessons": [
+    {
+      "slug": "publier-et-sabonner",
+      "title": "Publier et s'abonner",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Publier un message, sans connaître le broker",
+          "position": 0,
+          "body": "Le **pub/sub** (publish/subscribe) permet à des services de **communiquer par messages** sans se connaître. Un service **publie** sur un **topic** ; d'autres services **s'y abonnent** et reçoivent une copie de chaque message. L'émetteur ignore totalement qui écoute, et combien d'abonnés il y a : c'est le **découplage**.\n\nAvec Dapr, on publie en appelant son **sidecar** sur l'API pub/sub :\n\n`POST /v1.0/publish/<pubsub>/<topic>`\n\nIci `<pubsub>` est le **nom du composant** pub/sub (par exemple `orderpubsub`), et `<topic>` est le nom du **topic** (par exemple `commandes`). Le corps de la requête est **ton message**, dans le format de ton choix (souvent du JSON).\n\nTon code ne parle jamais directement à Kafka, RabbitMQ ou Redis Streams : c'est le composant Dapr qui le fait pour toi."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "S'abonner : déclaratif ou programmatique",
+          "position": 1,
+          "body": "Côté réception, Dapr propose **deux façons** de s'abonner, au choix.\n\n**L'abonnement déclaratif** se définit dans une **ressource** Dapr de type `Subscription` (un fichier YAML). On y indique le composant pub/sub, le topic, et la **route HTTP** de ton application vers laquelle Dapr livrera les messages. L'avantage : aucun code d'abonnement, et on peut changer la configuration sans retoucher l'application.\n\n**L'abonnement programmatique** se fait dans le code : ton application expose l'endpoint `GET /dapr/subscribe`, que Dapr appelle **au démarrage**. Ta réponse liste les topics et les routes auxquels tu souhaites t'abonner. L'avantage : les abonnements sont **dynamiques**, calculés par ton code.\n\nDans les deux cas, quand un message arrive, Dapr **fait un POST** sur la route de ton application. Si tu réponds `200 OK`, le message est considéré comme traité ; une erreur déclenche une **relivraison**."
+        },
+        {
+          "type": "CODE",
+          "title": "Publier un message avec curl",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# On publie sur le topic \"commandes\" du composant pub/sub \"orderpubsub\".\n# L'appel vise TON sidecar local (port 3500 par defaut), pas le broker.\n\ncurl -X POST http://localhost:3500/v1.0/publish/orderpubsub/commandes \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"orderId\": \"A-1042\", \"montant\": 59.90}'\n\n# Reponse 204 No Content = message accepte par Dapr.\n# Dapr enveloppe automatiquement le message en CloudEvent,\n# puis le remet au broker configure (Kafka, RabbitMQ, Redis...)."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Producteur, broker, consommateurs",
+          "position": 3,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  Prod[\"Service producteur\"] -->|POST publish| DaprP[\"Sidecar Dapr\"]\n  DaprP -->|publie| Broker[(\"Broker\\nKafka, RabbitMQ...\")]\n  Broker -->|livre| DaprC1[\"Sidecar Dapr\"]\n  Broker -->|livre| DaprC2[\"Sidecar Dapr\"]\n  DaprC1 -->|POST route| Cons1[\"Consommateur A\"]\n  DaprC2 -->|POST route| Cons2[\"Consommateur B\"]"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "pubsub-messaging-publier-et-sabonner-check"
+        }
+      ]
+    },
+    {
+      "slug": "cloudevents-et-livraison",
+      "title": "CloudEvents et garanties de livraison",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "L'enveloppe CloudEvents",
+          "position": 0,
+          "body": "Quand tu publies un message, Dapr ne l'envoie pas brut : il l'**enveloppe** au format **CloudEvents**, un standard **CNCF** décrivant les métadonnées d'un événement.\n\nDapr ajoute des champs standard autour de ta charge utile (ton message d'origine se retrouve dans le champ `data`) :\n\n- `id` : un identifiant **unique** de l'événement, très utile pour l'idempotence.\n- `source` : qui a émis l'événement (l'app-id du producteur).\n- `type` : le type de l'événement.\n- `specversion` : la version de la spec CloudEvents.\n- `datacontenttype` : le type de contenu de `data` (par exemple `application/json`).\n- `traceid` : pour relier l'événement à une **trace distribuée**.\n\nGrâce à ce format commun, tout consommateur sait lire l'enveloppe **de la même manière**, quel que soit le broker en dessous. Si tu dois publier vers un système qui attend un format brut, Dapr permet de **désactiver** cette enveloppe (publication *raw*)."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Livraison at-least-once et idempotence",
+          "position": 1,
+          "body": "Dapr garantit une livraison **at-least-once** (au moins une fois) : chaque message sera livré **au moins une fois** à chaque abonnement. Il ne garantit **pas** l'exactement-une-fois.\n\nConcrètement, un même message peut être livré **plusieurs fois** : par exemple si ton application traite le message mais échoue à répondre `200` à temps, Dapr considère la livraison comme ratée et **réessaie**.\n\nLa conséquence est capitale pour ton code : les consommateurs doivent être **idempotents**. Traiter deux fois le même message doit produire le **même résultat** que de le traiter une seule fois.\n\nLa technique la plus courante : utiliser le champ `id` du CloudEvent comme **clé de déduplication**. On garde une trace des `id` déjà traités (en base ou dans un state store), et on **ignore** un message dont l'`id` a déjà été vu."
+        },
+        {
+          "type": "CODE",
+          "title": "Un abonnement déclaratif en YAML",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "# subscription.yaml\n# Abonnement declaratif : aucun code cote application.\napiVersion: dapr.io/v2alpha1\nkind: Subscription\nmetadata:\n  name: commandes-subscription\nspec:\n  # Nom du composant pub/sub a utiliser.\n  pubsubname: orderpubsub\n  # Topic ecoute.\n  topic: commandes\n  # Route HTTP de TON application ou Dapr livrera chaque message.\n  routes:\n    default: /commandes/nouvelle\nscopes:\n  # Seules ces applications recoivent les messages de cet abonnement.\n  - checkout-service"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "pubsub-messaging-cloudevents-et-livraison-check"
+        }
+      ]
+    },
+    {
+      "slug": "abonnements-avances",
+      "title": "Abonnements avancés",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Routage par règles et par contenu",
+          "position": 0,
+          "body": "Un abonnement n'est pas obligé de livrer **tous** les messages d'un topic vers **la même** route. Dapr permet le **routage par contenu** (*content-based routing*) : on définit plusieurs **règles**, chacune avec une **expression** sur le CloudEvent, et la première règle vraie décide de la route.\n\nPar exemple, sur un topic `commandes`, on peut router les messages selon le champ `type` du CloudEvent :\n\n- `event.type == \"commande.urgente\"` vers la route `/commandes/prioritaire`\n- tout le reste vers une route `default`.\n\nLes expressions s'écrivent avec le langage **CEL** (*Common Expression Language*) et portent sur les champs de l'enveloppe et de `data`. Cela évite de créer un topic par cas : **un seul topic**, plusieurs **traitements** selon le contenu."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Dead-letter topics",
+          "position": 1,
+          "body": "Que faire d'un message qui **échoue systématiquement** ? Sans garde-fou, Dapr le relivrerait indéfiniment (*poison message*), bloquant la file.\n\nLa réponse est le **dead-letter topic** (file de lettres mortes). On associe à un abonnement un topic de secours : après un **nombre maximal** de tentatives infructueuses, Dapr **déplace** le message vers ce dead-letter topic au lieu de le relivrer encore.\n\nDeux bénéfices : le traitement normal n'est plus **bloqué** par un message empoisonné, et les messages problématiques sont **conservés** pour être inspectés, corrigés, puis éventuellement rejoués plus tard. C'est un filet de sécurité indispensable en production."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le mode bulk (niveau expert)",
+          "position": 2,
+          "body": "Par défaut, Dapr livre les messages **un par un** : un POST HTTP vers ton application **par message**. Quand le débit est très élevé, ce va-et-vient devient coûteux.\n\nLe **bulk pub/sub** répond à ce besoin. Côté publication, l'API *bulk publish* permet d'envoyer **plusieurs messages en un seul appel**. Côté consommation, l'**abonnement bulk** fait livrer par Dapr un **lot** de messages d'un coup, que ton application traite ensemble.\n\nOn règle le comportement avec deux paramètres : `maxMessagesCount` (taille maximale d'un lot) et `maxAwaitDurationMs` (délai maximal d'attente avant de livrer un lot, même incomplet). C'est un compromis classique : des lots plus grands améliorent le **débit**, mais augmentent la **latence** par message. À réserver aux scénarios à fort volume."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "pubsub-messaging-abonnements-avances-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "installation-setup-dapr-init-self-hosted-check",
+  "node": "installation-setup",
+  "lesson": "dapr-init-self-hosted",
+  "title": "Quiz : dapr init en self-hosted",
+  "description": "Vérifie ta compréhension de ce que `dapr init` installe et prépare en local.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que met en place `dapr init` en mode self-hosted ?",
+      "justification": "`dapr init` installe les binaires (dont daprd et le service placement), démarre les conteneurs Redis et Zipkin, et crée le dossier ~/.dapr avec des composants par défaut.",
+      "position": 0,
+      "options": [
+        { "label": "Les binaires du runtime, les conteneurs Redis et Zipkin, et le dossier ~/.dapr", "correct": true, "position": 0 },
+        { "label": "Uniquement un cluster Kubernetes complet sur la machine", "correct": false, "position": 1 },
+        { "label": "Seulement un fichier de configuration vide, à remplir ensuite", "correct": false, "position": 2 },
+        { "label": "Une base PostgreSQL et un serveur Kafka de production", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi peut-on tester la gestion d'état et le pub/sub tout de suite après `dapr init`, sans écrire de YAML ?",
+      "justification": "`dapr init` crée des composants par défaut dans ~/.dapr/components/ qui pointent vers le Redis local, prêts à l'emploi pour le state store et le pub/sub.",
+      "position": 1,
+      "options": [
+        { "label": "Parce que des composants par défaut vers le Redis local sont déjà créés dans ~/.dapr/components/", "correct": true, "position": 0 },
+        { "label": "Parce que Dapr stocke l'état en mémoire sans jamais avoir besoin de store", "correct": false, "position": 1 },
+        { "label": "Parce qu'il faut d'abord déployer sur Kubernetes pour que ça marche", "correct": false, "position": 2 },
+        { "label": "Parce que la CLI recompile le runtime à chaque appel", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le mode self-hosted de `dapr init` requiert que Docker soit installé et démarré.",
+      "justification": "Vrai : en self-hosted complet, Redis et Zipkin tournent dans des conteneurs Docker. Il faut donc Docker (sauf à utiliser le mode slim, sans Docker).",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "resiliency-la-policy-declarative-check",
+  "node": "resiliency",
+  "lesson": "la-policy-declarative",
+  "title": "Quiz : La résilience déclarative",
+  "description": "Vérifie ta compréhension de la ressource Resiliency : policies et targets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une ressource Resiliency, comment s'organise la configuration ?",
+      "justification": "On définit d'abord des policies nommées (retries, timeouts, circuitBreakers), puis on les cible dans une section targets sur des apps, composants ou acteurs.",
+      "position": 0,
+      "options": [
+        { "label": "On définit des policies nommées, puis on les cible sur des apps, composants ou acteurs", "correct": true, "position": 0 },
+        { "label": "On écrit la logique de retry directement dans le code de chaque service", "correct": false, "position": 1 },
+        { "label": "On modifie le noyau du sidecar Dapr", "correct": false, "position": 2 },
+        { "label": "On recompile l'application avec un flag spécial", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quels types de cibles la section targets permet-elle d'adresser ?",
+      "justification": "Les targets couvrent les apps (invocation de service), les components (state store, pub/sub, binding...) et les actors (types d'acteurs).",
+      "position": 1,
+      "options": [
+        { "label": "apps, components et actors", "correct": true, "position": 0 },
+        { "label": "Uniquement les bases de données SQL", "correct": false, "position": 1 },
+        { "label": "Seulement les appels HTTP entrants du navigateur", "correct": false, "position": 2 },
+        { "label": "Les fichiers de logs et les métriques", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Appliquer une ressource Resiliency oblige à modifier la logique métier de l'application.",
+      "justification": "Faux : les policies sont appliquées par le sidecar Dapr, de façon transparente pour le code applicatif.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "node": "sidecar-architecture",
+  "lessons": [
+    {
+      "slug": "le-pattern-sidecar",
+      "title": "Le pattern sidecar",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un processus qui roule à côté de ton application",
+          "position": 0,
+          "body": "On a vu que Dapr n'est **pas une librairie** embarquée dans ton code, mais un **processus séparé**. Ce processus a un nom : **`daprd`** (le *Dapr runtime*).\n\nLe **pattern sidecar** consiste à faire tourner `daprd` **à côté** de ton application : dans le **même pod** sur Kubernetes, ou sur le **même hôte** en local. Les deux partagent le réseau local (`localhost`) et le même cycle de vie.\n\nL'image est celle du **side-car** d'une moto : un habitacle accolé qui suit le véhicule partout, sans en faire partie mécaniquement. Ton app pilote, le sidecar l'accompagne et prend en charge toute la plomberie distribuée.\n\nRègle d'or : **un sidecar par instance d'application**. Si tu lances 3 réplicas de ton service, tu as 3 processus `daprd`, un accolé à chacun."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi ce modèle plutôt qu'une librairie",
+          "position": 1,
+          "body": "Mettre la plomberie dans un **processus voisin** plutôt que dans ton binaire apporte trois gains décisifs.\n\n**Isolation** : Dapr tourne dans son propre processus. S'il consomme de la mémoire, gère ses propres connexions à Redis ou Kafka, ou plante, cela n'écrase pas la mémoire ni la pile d'appels de ton application. Les responsabilités sont nettement séparées.\n\n**Agnostique au langage** : comme on dialogue avec le sidecar par le **réseau** (HTTP ou gRPC) et non par un appel de fonction en mémoire, **n'importe quel langage** sait lui parler. Java, Go, Python, Rust, Node : tous voient la même API. Pas besoin de porter une librairie dans chaque langage.\n\n**Cycle de vie lié à l'app** : le sidecar **démarre et s'arrête avec** ton application. Sur Kubernetes, il vit et meurt avec le pod. En local, `dapr run` lance les deux ensemble. Chaque instance a donc *son* sidecar dédié, jamais partagé avec une autre instance."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "App et sidecar dans un même pod",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph Pod[\"Pod (ou hôte local)\"]\n    App[\"Ton application\\n(app-port : 8080)\"]\n    Daprd[\"Sidecar daprd\\n(HTTP 3500 / gRPC 50001)\"]\n    App -->|\"localhost : invoquer, publier...\"| Daprd\n    Daprd -->|\"localhost : livrer messages, bindings\"| App\n  end\n  Daprd -->|réseau| Infra[(\"Infra : state store,\\nbroker, autres sidecars\")]"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "sidecar-architecture-le-pattern-sidecar-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-api-et-les-ports",
+      "title": "Les API et les ports du sidecar",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Deux API pour le même runtime : HTTP et gRPC",
+          "position": 0,
+          "body": "Le sidecar expose ses building blocks via **deux API équivalentes**, à toi de choisir.\n\nL'**API HTTP** écoute par défaut sur le **port 3500**. Simple, lisible, idéale pour débuter, scripter avec `curl` ou tester vite fait. Les chemins suivent le motif `/v1.0/<building-block>/...`.\n\nL'**API gRPC** écoute par défaut sur le **port 50001**. Plus performante (binaire, multiplexée), elle est privilégiée par les SDK et les charges à fort débit.\n\nLes deux exposent **les mêmes fonctionnalités** : invocation de service, état, pub/sub, secrets, etc. Le choix est une question de confort et de performance, pas de capacités. Ces ports sont **configurables** (via `--dapr-http-port` et `--dapr-grpc-port`), mais 3500 et 50001 sont les valeurs par défaut à connaître."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Une communication bidirectionnelle",
+          "position": 1,
+          "body": "Point souvent mal compris : le dialogue entre ton app et le sidecar va **dans les deux sens**.\n\n**App vers Dapr** : ton code appelle le sidecar sur son port (3500 ou 50001) pour *sortir*. C'est le sens que l'on imagine en premier : invoquer un autre service, publier un message, lire un état ou un secret.\n\n**Dapr vers app** : le sidecar a aussi besoin d'appeler **ton** application, sur ce qu'on appelle l'**app-port** (le port où ton app écoute). C'est par là qu'il **livre** les messages d'un topic auquel tu es abonné, et qu'il déclenche ton code lors d'un **binding d'entrée** (un événement venu de l'extérieur).\n\nTu déclares cet app-port au démarrage (`--app-port 8080`). Si tu ne reçois que des événements sortants, il est facultatif ; dès que tu t'abonnes à du pub/sub ou à un binding d'entrée, Dapr doit savoir où frapper chez toi."
+        },
+        {
+          "type": "CODE",
+          "title": "Interroger ton sidecar avec curl",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# Le sidecar expose des endpoints de service sur son port HTTP (3500 par defaut).\n\n# 1) Verifier que le sidecar est vivant et pret.\n#    Repond 204 No Content quand tout va bien.\ncurl -i http://localhost:3500/v1.0/healthz\n\n# 2) Demander au sidecar de se decrire : app-id, composants charges,\n#    capacites, et surtout les ports utilises.\ncurl http://localhost:3500/v1.0/metadata\n\n# Extrait typique de la reponse de /v1.0/metadata :\n# {\n#   \"id\": \"panier\",\n#   \"runtimeVersion\": \"1.15.0\",\n#   \"components\": [ { \"name\": \"statestore\", \"type\": \"state.redis\" } ]\n# }\n\n# Astuce : /v1.0/healthz sert aussi de readiness probe sur Kubernetes."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "sidecar-architecture-les-api-et-les-ports-check"
+        }
+      ]
+    },
+    {
+      "slug": "le-control-plane",
+      "title": "Le control plane",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Data plane et control plane",
+          "position": 0,
+          "body": "Jusqu'ici on a parlé du **data plane** : les sidecars `daprd`, accolés à chaque app, qui font transiter les requêtes réelles. Mais qui **configure, sécurise et coordonne** tous ces sidecars ? C'est le rôle du **control plane**, un ensemble de services système qui ne traitent pas tes requêtes métier mais encadrent le data plane.\n\nQuatre composants à connaître :\n\n- **sidecar-injector** : sur Kubernetes, il **injecte automatiquement** le conteneur `daprd` dans tes pods annotés, pour que tu n'aies pas à l'ajouter à la main.\n- **operator** : il surveille les **composants** et **configurations** Dapr (des ressources Kubernetes) et les diffuse aux sidecars concernés.\n- **placement** : il gère la **répartition des acteurs** Dapr entre les instances (la table de hachage qui dit *quel* acteur vit *où*). Essentiel uniquement si tu utilises les acteurs.\n- **sentry** : c'est l'**autorité de certification** (CA). Il émet et fait tourner les certificats qui permettent le **mTLS** entre sidecars, donc le chiffrement et l'authentification automatiques des échanges."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Self-hosted ou Kubernetes (niveau expert)",
+          "position": 1,
+          "body": "Dapr s'exécute dans **deux modes d'hébergement**, et le control plane n'y a pas la même forme.\n\n**Mode self-hosted** (ta machine, un VM, `dapr init`) : les sidecars `daprd` tournent comme de **simples processus** à côté de tes apps. Le control plane est **réduit au minimum** : surtout un conteneur **placement** (pour les acteurs), et sentry seulement si tu actives explicitement le mTLS. Pas de sidecar-injector ni d'operator, car il n'y a pas de pods à muter ni de CRD à surveiller : tu passes tes composants via des **fichiers YAML dans un dossier** que `daprd` lit au démarrage.\n\n**Mode Kubernetes** : le control plane est déployé **en entier**, sous forme de Deployments dans le namespace `dapr-system`. Le **sidecar-injector** ajoute `daprd` à chaque pod portant l'annotation `dapr.io/enabled: \"true\"`. L'**operator** lit les composants et configurations déclarés en **CRD** et les distribue. **sentry** sert de CA à l'échelle du cluster, et **placement** coordonne les acteurs.\n\nÀ retenir : **la même API** pour ton application dans les deux cas. Ce qui change, c'est *comment* le sidecar arrive là et *comment* il est configuré, jamais le contrat que voit ton code. C'est ce qui rend une app Dapr portable du laptop au cluster de production."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Le control plane coordonne les sidecars",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph CP[\"Control plane (dapr-system)\"]\n    Inj[\"sidecar-injector\"]\n    Op[\"operator\"]\n    Pl[\"placement\\n(acteurs)\"]\n    Se[\"sentry\\n(CA mTLS)\"]\n  end\n  subgraph PodA[\"Pod A\"]\n    AppA[\"App A\"] --- DA[\"daprd\"]\n  end\n  subgraph PodB[\"Pod B\"]\n    AppB[\"App B\"] --- DB[\"daprd\"]\n  end\n  Inj -.injecte.-> DA\n  Inj -.injecte.-> DB\n  Op -.composants/config.-> DA\n  Op -.composants/config.-> DB\n  Se -.certificats.-> DA\n  Se -.certificats.-> DB\n  Pl -.table acteurs.-> DA\n  Pl -.table acteurs.-> DB\n  DA <-->|mTLS| DB"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "sidecar-architecture-le-control-plane-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "components-configuration-la-configuration-applicative-check",
+  "node": "components-configuration",
+  "lesson": "la-configuration-applicative",
+  "title": "Quiz : La configuration applicative",
+  "description": "Vérifie ta compréhension de la ressource Configuration et de ce qui la distingue d'un Component.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence essentielle entre une ressource Component et une ressource Configuration ?",
+      "justification": "Un Component décrit une brique d'infrastructure (quel store, quel broker), alors qu'une Configuration règle le comportement du runtime Dapr (tracing, mTLS, features, access control) pour une application.",
+      "position": 0,
+      "options": [
+        { "label": "Le Component décrit une brique d'infra ; la Configuration règle le comportement du sidecar", "correct": true, "position": 0 },
+        { "label": "Ce sont deux noms pour exactement la même ressource", "correct": false, "position": 1 },
+        { "label": "Le Component est en YAML, la Configuration est obligatoirement en JSON", "correct": false, "position": 2 },
+        { "label": "La Configuration remplace le code métier de l'application", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Parmi ces réglages, lequel est porté par une ressource Configuration ?",
+      "justification": "La Configuration regroupe les réglages transversaux du sidecar : tracing, mtls, features et accessControl. L'hôte d'un store Redis, lui, appartient au spec.metadata d'un Component.",
+      "position": 1,
+      "options": [
+        { "label": "Le taux d'échantillonnage des traces (tracing.samplingRate)", "correct": true, "position": 0 },
+        { "label": "L'adresse de l'hôte Redis du state store", "correct": false, "position": 1 },
+        { "label": "Le mot de passe du broker Kafka", "correct": false, "position": 2 },
+        { "label": "Le nom de la table SQL à interroger", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le bloc accessControl d'une Configuration permet de définir quels app-id ont le droit d'invoquer quelles méthodes d'une application.",
+      "justification": "Vrai : l'accessControl fixe une politique d'autorisation fine (action par défaut allow ou deny, puis exceptions par service et par opération). C'est complémentaire des scopes d'un composant, qui portent sur l'accès aux briques d'infra.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

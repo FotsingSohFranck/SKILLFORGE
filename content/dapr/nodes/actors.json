@@ -1,0 +1,106 @@
+{
+  "node": "actors",
+  "lessons": [
+    {
+      "slug": "le-modele-dacteur",
+      "title": "Le modèle d'acteur",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Un acteur : de l'état plus du comportement",
+          "position": 0,
+          "body": "Un **acteur** est une petite unité qui combine deux choses : un **état** (ses données) et un **comportement** (des méthodes qu'on peut invoquer). Dans Dapr, on parle d'**acteurs virtuels** : tu ne crées ni ne détruis jamais un acteur explicitement, il **existe conceptuellement en permanence**.\n\nChaque acteur est adressé par un **type** et un **id** : par exemple le type `panier` avec l'id `user-42`. Cette paire identifie **un seul** acteur de façon unique dans tout le système.\n\nTu ne manipules donc pas des objets que tu as instanciés : tu invoques une méthode sur l'acteur `panier/user-42`, et Dapr se charge de le rendre disponible."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Activation à la demande, désactivation après inactivité",
+          "position": 1,
+          "body": "Puisqu'un acteur existe « toujours » en théorie, Dapr ne le charge en mémoire que **quand on en a besoin** : c'est l'**activation**. Au premier appel sur `panier/user-42`, Dapr place l'acteur en mémoire et **restaure son état** depuis le state store.\n\nQuand un acteur n'est **plus sollicité pendant un certain temps**, Dapr le **désactive** : il le sort de la mémoire. Son état reste persisté, donc rien n'est perdu ; au prochain appel, il sera réactivé de façon transparente.\n\nCe cycle activation/désactivation automatique te permet d'avoir des **millions d'acteurs** déclarés sans qu'ils occupent tous la mémoire en même temps : seuls les acteurs actifs comptent."
+        },
+        {
+          "type": "DIAGRAM",
+          "title": "Cycle de vie d'un acteur virtuel",
+          "position": 2,
+          "diagramFormat": "MERMAID",
+          "body": "stateDiagram-v2\n  [*] --> Inactif: acteur declare (jamais instancie)\n  Inactif --> Actif: 1er appel (activation + chargement de l'etat)\n  Actif --> Actif: appels suivants\n  Actif --> Inactif: inactivite (desactivation, etat conserve)\n  Inactif --> Actif: nouvel appel (reactivation)"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "actors-le-modele-dacteur-check"
+        }
+      ]
+    },
+    {
+      "slug": "etat-timers-reminders",
+      "title": "État, timers et reminders",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "L'état d'acteur, persistant et isolé",
+          "position": 0,
+          "body": "Chaque acteur possède son **propre état**, stocké en clé/valeur dans un **state store** qui supporte les acteurs (Redis, PostgreSQL...). Cet état est **isolé** : l'acteur `panier/user-42` ne voit que ses données, jamais celles de `panier/user-43`.\n\nDans le code, tu lis et écris cet état via l'API acteur, et Dapr le **persiste** pour toi. Combiné à la désactivation, cela garantit qu'un acteur retrouve exactement son état après avoir été sorti de la mémoire.\n\nC'est ce qui fait d'un acteur une bonne **unité de cohérence** : comme un seul acteur traite ses propres messages un à un, son état n'est jamais modifié par deux appels concurrents."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "La concurrence à tour de rôle (turn-based)",
+          "position": 1,
+          "body": "Point clé du modèle : un acteur est **mono-thread**. Dapr garantit qu'**un seul appel à la fois** s'exécute sur un acteur donné : c'est la **concurrence à tour de rôle** (*turn-based*).\n\nSi deux requêtes arrivent en même temps sur `panier/user-42`, elles sont **sérialisées** : la seconde attend que la première ait fini. Tu n'as donc **aucun verrou à gérer** dans ton code d'acteur, et pas de *race condition* sur son état.\n\nRevers de la médaille : un acteur ne peut pas paralléliser son propre travail. Les acteurs passent à l'échelle en étant **nombreux**, pas en étant individuellement rapides sur des traitements concurrents."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Timers transitoires vs reminders persistants",
+          "position": 2,
+          "body": "Un acteur peut programmer des rappels dans le temps, de deux façons.\n\nUn **timer** est **transitoire** : il déclenche un callback à intervalle régulier, mais il est **lié à l'activation**. Si l'acteur est désactivé, le timer **disparaît**. Utile pour un traitement périodique tant que l'acteur reste actif.\n\nUn **reminder** est **persistant** : Dapr le stocke, et il **survit à la désactivation** et même au redémarrage. Quand un reminder arrive à échéance, Dapr **réactive** l'acteur s'il le faut pour exécuter le callback. C'est le bon choix dès qu'un rappel doit avoir lieu de façon fiable, même longtemps après.\n\n> Règle simple : besoin que ça déclenche à coup sûr, même si l'acteur dort ? Reminder. Simple tâche régulière pendant que l'acteur vit ? Timer."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le service placement distribue les acteurs",
+          "position": 3,
+          "body": "Dans un cluster, les acteurs d'un même type sont **répartis sur plusieurs instances** de ton application. Comment Dapr sait-il **sur quelle instance** vit `panier/user-42` ?\n\nC'est le rôle du **service placement**, un composant du control plane de Dapr. Il maintient une **table de hachage distribuée** qui associe chaque acteur à une instance hôte, et la diffuse à tous les sidecars.\n\nAinsi, quand un appel vise `panier/user-42`, le sidecar consulte cette table, route la requête vers la **bonne instance**, et garantit qu'il n'existe **qu'un seul exemplaire actif** de cet acteur à la fois. Si des instances sont ajoutées ou retirées, la table est **rééquilibrée** automatiquement."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "actors-etat-timers-reminders-check"
+        }
+      ]
+    },
+    {
+      "slug": "quand-utiliser-les-acteurs",
+      "title": "Quand utiliser les acteurs",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Les bons cas : beaucoup de petites entités avec état",
+          "position": 0,
+          "body": "Le modèle d'acteur brille quand tu as **un très grand nombre de petites entités** indépendantes, chacune avec son propre état et sa propre logique.\n\nExemples typiques :\n\n- **IoT** : un acteur par capteur ou appareil, qui garde son dernier état et réagit à ses propres messages.\n- **Jeux en ligne** : un acteur par joueur ou par partie, isolant proprement l'état de chacun.\n- **Paniers d'achat** : un acteur par session client (`panier/user-42`), naturellement sérialisé, sans verrou.\n\nLe point commun : des entités **nombreuses**, **adressables individuellement**, dont les traitements sont surtout **locaux à l'entité**. La sérialisation turn-based devient alors un cadeau, pas une contrainte."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Les pièges : ni débit massif ni analytique",
+          "position": 1,
+          "body": "Le modèle a des limites nettes, et les ignorer mène à de mauvaises performances.\n\n**À éviter : le très haut débit sur une seule entité.** Comme un acteur traite ses appels **un par un**, un acteur unique devient vite un **goulot d'étranglement** si tout le trafic converge vers lui. Les acteurs passent à l'échelle **en largeur** (beaucoup d'acteurs), pas en profondeur sur un seul.\n\n**À éviter : les requêtes analytiques transverses.** Interroger ou agréger l'état de **tous** les acteurs (« somme de tous les paniers ») va à l'encontre du modèle : chaque état est isolé et dispersé. Pour ce genre de lecture, projette les données vers un store adapté (un entrepôt, une base requêtable) et interroge-le, plutôt que de balayer les acteurs.\n\nAutres signaux d'alerte : des entités à l'état **très volumineux**, des traitements qui doivent être **massivement parallèles** au sein d'une même entité, ou des transactions qui doivent **couvrir plusieurs acteurs** de façon atomique. Dans ces cas, un autre building block (état, pub/sub, workflow) est souvent plus adapté."
+        },
+        {
+          "type": "CODE",
+          "title": "Invoquer une méthode d'acteur via curl",
+          "position": 2,
+          "codeLanguage": "bash",
+          "body": "# On invoque une methode sur un acteur, identifie par son TYPE et son ID.\n# Ici : type \"panier\", id \"user-42\", methode \"ajouter\".\n# La requete passe par TON sidecar Dapr (port 3500 par defaut).\n\ncurl -X PUT http://localhost:3500/v1.0/actors/panier/user-42/method/ajouter \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"produit\": \"clavier\", \"quantite\": 1}'\n\n# Dapr active l'acteur si besoin, route l'appel vers la bonne instance\n# (grace au service placement) et serialise les appels (turn-based).\n# Aucun verrou ni adresse d'instance a gerer cote application."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "actors-quand-utiliser-les-acteurs-check"
+        }
+      ]
+    }
+  ]
+}

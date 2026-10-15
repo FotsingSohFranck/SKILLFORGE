@@ -1,0 +1,43 @@
+{
+  "ref": "configuration-api-sabonner-aux-changements-check",
+  "node": "configuration-api",
+  "lesson": "sabonner-aux-changements",
+  "title": "Quiz : S'abonner aux changements",
+  "description": "Vérifie ta compréhension de l'abonnement aux changements de configuration et des feature flags.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'avantage de s'abonner aux changements plutôt que de relire la configuration en boucle ?",
+      "justification": "L'abonnement (streaming) fait que Dapr pousse une notification dès qu'une valeur change, ce qui évite le polling et permet une réaction quasi temps réel.",
+      "position": 0,
+      "options": [
+        { "label": "Dapr pousse les mises à jour dès qu'une valeur change, sans polling", "correct": true, "position": 0 },
+        { "label": "Cela chiffre automatiquement la configuration", "correct": false, "position": 1 },
+        { "label": "Cela supprime le besoin d'un config store", "correct": false, "position": 2 },
+        { "label": "Cela convertit la configuration en secrets", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert typiquement un feature flag combiné à l'abonnement ?",
+      "justification": "Un feature flag est une valeur de configuration qui active/désactive un comportement. Avec l'abonnement, on peut l'activer en production et voir toutes les instances réagir sans redéploiement.",
+      "position": 1,
+      "options": [
+        { "label": "Activer ou désactiver une fonctionnalité en production sans redéployer", "correct": true, "position": 0 },
+        { "label": "Stocker les mots de passe de la base de données", "correct": false, "position": 1 },
+        { "label": "Définir le port d'écoute du sidecar", "correct": false, "position": 2 },
+        { "label": "Remplacer le mécanisme de service invocation", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Tous les config stores sont capables de notifier Dapr d'un changement de valeur.",
+      "justification": "Faux : la notification de changements dépend du store. Redis la supporte, mais certains stores ne poussent pas d'événements, auquel cas l'abonnement ne peut pas avertir des modifications.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

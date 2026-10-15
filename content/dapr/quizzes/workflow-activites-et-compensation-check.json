@@ -1,0 +1,43 @@
+{
+  "ref": "workflow-activites-et-compensation-check",
+  "node": "workflow",
+  "lesson": "activites-et-compensation",
+  "title": "Quiz : Activités, compensation et déterminisme",
+  "description": "Vérifie que tu maîtrises le rôle des activités, la compensation (saga) et la règle de déterminisme.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où doit vivre une opération avec effets de bord (appel réseau, écriture en base) ?",
+      "justification": "Le travail non déterministe et à effets de bord doit se faire dans une activité, pas dans le code du workflow, afin que son résultat soit persisté et non rejoué.",
+      "position": 0,
+      "options": [
+        { "label": "Dans une activité déclenchée par le workflow", "correct": true, "position": 0 },
+        { "label": "Directement dans le corps du code du workflow", "correct": false, "position": 1 },
+        { "label": "Dans le fichier de configuration YAML du composant", "correct": false, "position": 2 },
+        { "label": "Dans le moteur d'acteurs, à la main", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le pattern de compensation (saga) dans un workflow ?",
+      "justification": "Faute de transaction globale sur plusieurs services, la compensation annule les étapes déjà réussies en appelant leurs actions inverses (rembourser, libérer le stock).",
+      "position": 1,
+      "options": [
+        { "label": "Annuler les étapes déjà réussies en rejouant leurs actions inverses quand une étape échoue", "correct": true, "position": 0 },
+        { "label": "Accélérer le workflow en sautant des étapes", "correct": false, "position": 1 },
+        { "label": "Faire un ROLLBACK SQL global sur tous les services", "correct": false, "position": 2 },
+        { "label": "Chiffrer les messages entre sidecars", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut appeler directement datetime.now() ou générer un UUID aléatoire dans le corps d'un workflow Dapr.",
+      "justification": "Faux : le code du workflow est rejoué et doit rester déterministe ; l'heure et les ID doivent venir des API du SDK ou d'une activité.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "workflow-cest-quoi-dapr-workflow-check",
+  "node": "workflow",
+  "lesson": "cest-quoi-dapr-workflow",
+  "title": "Quiz : Qu'est-ce que Dapr Workflow",
+  "description": "Vérifie ta compréhension de ce qu'est un workflow durable et de la façon dont Dapr garantit sa reprise.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise un workflow Dapr par rapport à une simple fonction ?",
+      "justification": "Un workflow Dapr est durable : Dapr persiste son avancement et le reprend exactement là où il en était après une panne ou un redémarrage.",
+      "position": 0,
+      "options": [
+        { "label": "Son avancement est persisté et il reprend après une panne ou un redémarrage", "correct": true, "position": 0 },
+        { "label": "Il doit obligatoirement être décrit en YAML", "correct": false, "position": 1 },
+        { "label": "Il s'exécute uniquement en moins d'une seconde", "correct": false, "position": 2 },
+        { "label": "Il ne peut appeler qu'un seul service", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quel mécanisme interne de Dapr s'appuie le moteur de workflow ?",
+      "justification": "Chaque instance de workflow est portée par un acteur Dapr, ce qui lui procure un état persistant et un traitement à un seul thread.",
+      "position": 1,
+      "options": [
+        { "label": "Le moteur d'acteurs de Dapr", "correct": true, "position": 0 },
+        { "label": "Un cron Linux externe", "correct": false, "position": 1 },
+        { "label": "Un service mesh comme Istio", "correct": false, "position": 2 },
+        { "label": "Une base de données relationnelle dédiée au code", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après un redémarrage, Dapr rejoue toutes les étapes déjà réussies du workflow depuis le début.",
+      "justification": "Faux : Dapr reconstruit l'état à partir de l'historique persisté et reprend à la première étape non terminée, sans ré-exécuter les activités déjà réussies.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

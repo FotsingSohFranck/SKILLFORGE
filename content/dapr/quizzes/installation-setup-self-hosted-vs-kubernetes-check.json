@@ -1,0 +1,43 @@
+{
+  "ref": "installation-setup-self-hosted-vs-kubernetes-check",
+  "node": "installation-setup",
+  "lesson": "self-hosted-vs-kubernetes",
+  "title": "Quiz : Self-hosted ou Kubernetes",
+  "description": "Vérifie que tu sais distinguer les modes d'installation et choisir le bon.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande installe le control plane de Dapr dans un cluster Kubernetes ?",
+      "justification": "`dapr init -k` installe le control plane (operator, sidecar-injector, placement, sentry) dans le cluster. Sans le flag `-k`, `dapr init` installe en self-hosted sur la machine.",
+      "position": 0,
+      "options": [
+        { "label": "dapr init -k", "correct": true, "position": 0 },
+        { "label": "dapr init", "correct": false, "position": 1 },
+        { "label": "dapr init --slim", "correct": false, "position": 2 },
+        { "label": "dapr run -k", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le mode slim (`dapr init --slim`) ?",
+      "justification": "Le mode slim installe uniquement les binaires (daprd et placement) sans Docker, donc sans conteneurs Redis ni Zipkin : à toi de fournir et déclarer un state store et un broker.",
+      "position": 1,
+      "options": [
+        { "label": "Il installe seulement les binaires, sans Docker ni conteneurs Redis/Zipkin", "correct": true, "position": 0 },
+        { "label": "Il installe le control plane dans Kubernetes de façon allégée", "correct": false, "position": 1 },
+        { "label": "Il supprime Dapr de la machine", "correct": false, "position": 2 },
+        { "label": "Il lance automatiquement toutes les applications du dossier courant", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En mode Kubernetes, les sidecars Dapr sont injectés automatiquement dans les pods annotés `dapr.io/enabled: \"true\"`.",
+      "justification": "Vrai : le sidecar-injector du control plane ajoute automatiquement le sidecar aux pods portant l'annotation, sans qu'on le lance à la main comme en self-hosted.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

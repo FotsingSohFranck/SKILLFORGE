@@ -1,0 +1,106 @@
+{
+  "node": "deployment-production",
+  "lessons": [
+    {
+      "slug": "haute-disponibilite",
+      "title": "Haute disponibilité du control plane",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Pourquoi le control plane doit être hautement disponible",
+          "position": 0,
+          "body": "En production, tout le trafic Dapr passe par les **sidecars**, mais ceux-ci dépendent du **control plane** pour fonctionner correctement. Trois services système sont en jeu : le **dapr-sidecar-injector** (injecte le sidecar dans les pods), le **dapr-sentry** (autorité de certification qui émet les certificats mTLS) et le **dapr-operator** (surveille les composants et configurations).\n\nSi ces services tombent, les sidecars **déjà en cours** continuent de servir le trafic, mais tu perds des opérations critiques : plus d'**injection** dans les nouveaux pods, plus de **renouvellement** de certificats, plus de prise en compte des **nouveaux composants**.\n\nEn production, un seul réplica de chacun est donc un **point unique de défaillance** : on vise le **mode HA** avec plusieurs réplicas répartis."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Le cas particulier du service de placement (raft)",
+          "position": 1,
+          "body": "Le **dapr-placement** est à part : c'est lui qui distribue la **table de placement des acteurs** (quel sidecar héberge quel acteur). Contrairement aux autres services système qui sont *stateless*, le placement maintient un **état** et utilise le consensus **Raft**.\n\nQui dit Raft dit **quorum** : pour tolérer la perte d'un nœud, il faut un **nombre impair** de réplicas, typiquement **3**. Avec 3 réplicas, le cluster élit un *leader* et survit à la perte d'**un** membre. Avec un seul réplica, perdre le placement casse tout le routage des acteurs.\n\n> À retenir : le mode HA passe le placement à 3 réplicas (quorum Raft) et les services *stateless* à 3 réplicas pour la redondance. Si tu n'utilises pas les acteurs, le placement reste néanmoins installé."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Une checklist de mise en production",
+          "position": 2,
+          "body": "Avant d'ouvrir le trafic réel, vérifie méthodiquement :\n\n- **Mode HA** activé sur le control plane (réplicas multiples, placement en quorum Raft).\n- **mTLS activé** entre sidecars (il l'est par défaut, ne le désactive pas).\n- **Requests/limits de ressources** définies sur chaque sidecar (voir leçon suivante).\n- **Observabilité** branchée : traces, métriques Prometheus, logs centralisés.\n- **Résilience** déclarée : retries, timeouts, circuit breakers.\n- **Secrets** lus depuis un secret store, jamais en dur dans les composants.\n- **Scoping** des composants : chaque app ne voit que les composants qui la concernent.\n- **Sondes** (*liveness*/*readiness*) de l'app correctement configurées.\n- **Version** de Dapr maîtrisée et identique sur tout le cluster.\n\nCette checklist se vérifie avant chaque montée de version, pas seulement au premier déploiement."
+        },
+        {
+          "type": "CODE",
+          "title": "Installer Dapr en mode HA sur Kubernetes",
+          "position": 3,
+          "codeLanguage": "bash",
+          "body": "# Avec la CLI Dapr : le drapeau --enable-ha passe le control plane en HA\n# (3 replicas pour chaque service systeme, placement en quorum Raft).\ndapr init -k --enable-ha=true\n\n# Equivalent via Helm, pour un controle fin en production :\nhelm repo add dapr https://dapr.github.io/helm-charts/\nhelm repo update\nhelm upgrade --install dapr dapr/dapr \\\n  --version=1.15 \\\n  --namespace dapr-system \\\n  --create-namespace \\\n  --set global.ha.enabled=true \\\n  --wait\n\n# Verifier que chaque service systeme a bien plusieurs replicas :\nkubectl get pods -n dapr-system\n# dapr-sentry, dapr-operator, dapr-sidecar-injector -> plusieurs replicas\n# dapr-placement-server -> 3 replicas (StatefulSet, quorum Raft)"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 4,
+          "quizRef": "deployment-production-haute-disponibilite-check"
+        }
+      ]
+    },
+    {
+      "slug": "ressources-et-scaling",
+      "title": "Ressources du sidecar et montée en charge",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Dimensionner les ressources du sidecar",
+          "position": 0,
+          "body": "Chaque pod reçoit un **conteneur sidecar** (`daprd`) en plus de ton conteneur applicatif. Ce sidecar consomme du CPU et de la mémoire : il faut donc lui définir des **requests** (ce qui est réservé, utilisé par l'ordonnanceur) et des **limits** (le plafond à ne pas dépasser).\n\nSans **requests**, l'ordonnanceur Kubernetes place mal les pods et le sidecar peut être affamé en CPU sous charge. Sans **limits** mémoire, un sidecar qui dérive peut se faire tuer (*OOMKilled*) de façon imprévisible ou pénaliser ses voisins.\n\nDapr fournit des **valeurs de référence** mesurées, par exemple de l'ordre de quelques **millicores** au repos et quelques dizaines de **Mi** de mémoire pour un sidecar typique. Mais la bonne pratique reste de **mesurer sous charge réelle** et d'ajuster, car la consommation dépend du débit, du nombre de composants et de l'usage des acteurs."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Monter en charge les apps, avec mTLS en production",
+          "position": 1,
+          "body": "La **montée en charge** d'une application Dapr est classique côté Kubernetes : on augmente le nombre de **réplicas** du déploiement, chaque pod embarquant son propre sidecar. L'**invocation de service** équilibre automatiquement la charge entre les instances via leur app-id, et le **pub/sub** répartit la consommation. On peut piloter cela avec un **HPA** (autoscaler horizontal), voire **KEDA** pour une mise à l'échelle pilotée par les événements (profondeur d'une file, d'un topic).\n\nUn point de sécurité : en production, le **mTLS entre sidecars doit rester activé** (c'est le défaut). Chaque sidecar reçoit du **sentry** une identité **SPIFFE** et un certificat à durée de vie courte, renouvelé automatiquement. Ne jamais désactiver le mTLS pour « simplifier » : c'est ce qui chiffre et authentifie tout le trafic de service à service.\n\n> Piège fréquent : une app qui scale vite mais dont le sidecar n'a pas de **requests** CPU adaptées devient le goulet d'étranglement, pas l'app elle-même."
+        },
+        {
+          "type": "CODE",
+          "title": "Annotations de ressources du sidecar",
+          "position": 2,
+          "codeLanguage": "yaml",
+          "body": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: panier\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: panier\n  template:\n    metadata:\n      labels:\n        app: panier\n      annotations:\n        dapr.io/enabled: \"true\"\n        dapr.io/app-id: \"panier\"\n        dapr.io/app-port: \"8080\"\n        # Requests/limits du conteneur sidecar daprd injecte :\n        dapr.io/sidecar-cpu-request: \"100m\"\n        dapr.io/sidecar-cpu-limit: \"300m\"\n        dapr.io/sidecar-memory-request: \"64Mi\"\n        dapr.io/sidecar-memory-limit: \"256Mi\"\n    spec:\n      containers:\n        - name: panier\n          image: monregistre/panier:1.4.0\n          ports:\n            - containerPort: 8080"
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "deployment-production-ressources-et-scaling-check"
+        }
+      ]
+    },
+    {
+      "slug": "mises-a-jour-et-exploitation",
+      "title": "Mises à jour et exploitation",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "title": "Mettre à jour Dapr : control plane puis sidecars",
+          "position": 0,
+          "body": "Mettre à jour Dapr se fait en **deux temps**, car le control plane et les sidecars sont versionnés séparément.\n\n**D'abord le control plane.** Avec la CLI : `dapr upgrade -k --runtime-version=X.Y.Z`. En production on préfère **Helm** (`helm upgrade`) pour la traçabilité et les options fines. Dapr garantit la compatibilité sur au moins **une version mineure** d'écart, ce qui permet une transition en douceur.\n\n**Ensuite les sidecars.** Les sidecars tournant déjà dans les pods **ne changent pas** tout seuls : ils gardent leur ancienne version jusqu'à ce que le pod soit **recréé**. Il faut donc faire un **rolling restart** des déploiements (`kubectl rollout restart deployment/<nom>`) pour que le *sidecar-injector* mis à jour injecte la nouvelle version du sidecar."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Gérer l'écart de versions control plane / sidecars",
+          "position": 1,
+          "body": "Entre la mise à jour du control plane et le redémarrage de tous les pods, le cluster vit un **état transitoire** : des sidecars en **ancienne** version coexistent avec un control plane en **nouvelle** version. C'est normal et supporté dans la fenêtre d'**une version mineure**, mais ce n'est pas un état où rester.\n\nBonne pratique : ne **jamais sauter** plusieurs versions mineures d'un coup (passer de 1.13 à 1.15 se fait via 1.14). Après upgrade, **vérifier** que plus aucun sidecar ne traîne en ancienne version avant de considérer la migration terminée.\n\n> Dette classique : on met à jour le control plane, on oublie le *rolling restart*, et des semaines plus tard des sidecars obsolètes causent des incidents difficiles à diagnostiquer."
+        },
+        {
+          "type": "CONCEPT",
+          "title": "Superviser le control plane en continu (niveau expert)",
+          "position": 2,
+          "body": "En exploitation, le control plane se surveille comme n'importe quel composant critique.\n\n- **Santé des services système** : surveiller les pods de `dapr-system`, leurs redémarrages et leur disponibilité (sentry, operator, injector, placement).\n- **Certificats** : le certificat **racine** du sentry a une **date d'expiration**. Le laisser expirer casse tout le mTLS du cluster. On surveille l'échéance et on **renouvelle** avant terme (`dapr mtls expiry` pour l'inspecter).\n- **Quorum du placement** : vérifier que le *leader* Raft est élu et que les 3 réplicas sont sains ; une perte de quorum gèle le routage des acteurs.\n- **Métriques exposées** : les services système exposent des métriques **Prometheus** ; on branche des alertes sur la latence d'injection, les erreurs du sentry et la santé du placement.\n- **Capacité** : suivre la consommation CPU/mémoire des sidecars agrégée à l'échelle du cluster, car elle croît avec le nombre d'apps et de composants.\n\nUne plateforme Dapr bien exploitée est une plateforme dont on **mesure** le control plane, pas seulement les applications."
+        },
+        {
+          "type": "QUIZ",
+          "title": "Vérifie tes acquis",
+          "position": 3,
+          "quizRef": "deployment-production-mises-a-jour-et-exploitation-check"
+        }
+      ]
+    }
+  ]
+}

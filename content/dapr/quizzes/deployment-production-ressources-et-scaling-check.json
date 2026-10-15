@@ -1,0 +1,43 @@
+{
+  "ref": "deployment-production-ressources-et-scaling-check",
+  "node": "deployment-production",
+  "lesson": "ressources-et-scaling",
+  "title": "Quiz : Ressources du sidecar et montée en charge",
+  "description": "Vérifie ta compréhension du dimensionnement du sidecar, de la montée en charge et du mTLS en production.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi définir des requests et limits de ressources sur le sidecar daprd en production ?",
+      "justification": "Les requests permettent à l'ordonnanceur de bien placer le pod et d'éviter la famine CPU ; les limits bornent la mémoire pour éviter un OOMKill imprévisible.",
+      "position": 0,
+      "options": [
+        { "label": "Pour que l'ordonnanceur place bien les pods et éviter famine CPU ou OOMKill imprévisible", "correct": true, "position": 0 },
+        { "label": "Pour chiffrer le trafic entre les sidecars", "correct": false, "position": 1 },
+        { "label": "Pour désactiver le control plane", "correct": false, "position": 2 },
+        { "label": "Pour choisir le state store utilisé par l'application", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment monte-t-on en charge une application Dapr sur Kubernetes ?",
+      "justification": "On augmente le nombre de réplicas du déploiement (manuellement ou via HPA/KEDA) ; chaque pod embarque son sidecar et Dapr équilibre la charge par app-id.",
+      "position": 1,
+      "options": [
+        { "label": "En augmentant les réplicas du déploiement, éventuellement via HPA ou KEDA", "correct": true, "position": 0 },
+        { "label": "En désactivant le mTLS pour accélérer les appels", "correct": false, "position": 1 },
+        { "label": "En fusionnant tous les sidecars en un seul processus partagé", "correct": false, "position": 2 },
+        { "label": "En supprimant le service de placement", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "En production, il est recommandé de désactiver le mTLS entre sidecars pour simplifier.",
+      "justification": "Faux : le mTLS est activé par défaut et chiffre/authentifie le trafic de service à service ; il doit rester actif en production.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

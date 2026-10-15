@@ -1,0 +1,43 @@
+{
+  "ref": "security-jetons-et-scoping-check",
+  "node": "security",
+  "lesson": "jetons-et-scoping",
+  "title": "Quiz : Jetons d'API et scoping",
+  "description": "Vérifie ta compréhension des jetons d'API et du scoping des composants et secrets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le jeton d'API Dapr présenté par l'application dans l'en-tête `dapr-api-token` ?",
+      "justification": "Ce jeton authentifie l'application auprès de son sidecar : sans lui, le sidecar refuse les requêtes, ce qui protège le canal application vers sidecar sur localhost.",
+      "position": 0,
+      "options": [
+        { "label": "À authentifier l'application auprès de son sidecar", "correct": true, "position": 0 },
+        { "label": "À chiffrer le trafic entre deux sidecars distants", "correct": false, "position": 1 },
+        { "label": "À générer les certificats racine du cluster", "correct": false, "position": 2 },
+        { "label": "À équilibrer la charge entre les réplicas", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans la définition YAML d'un composant, à quoi sert le champ `scopes` ?",
+      "justification": "Le champ `scopes` liste les app-id autorisés à utiliser le composant ; un service non listé ne peut pas y accéder, ce qui applique le moindre privilège.",
+      "position": 1,
+      "options": [
+        { "label": "À limiter le composant aux seuls app-id listés", "correct": true, "position": 0 },
+        { "label": "À définir le nombre de réplicas du composant", "correct": false, "position": 1 },
+        { "label": "À choisir le port d'écoute du sidecar", "correct": false, "position": 2 },
+        { "label": "À activer la rotation des certificats", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Par défaut, tous les composants déclarés sont accessibles à toutes les applications du cluster.",
+      "justification": "Vrai : sans scoping, un composant est accessible à toutes les apps. Le champ `scopes` sert justement à restreindre cet accès.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "sidecar-architecture-les-api-et-les-ports-check",
+  "node": "sidecar-architecture",
+  "lesson": "les-api-et-les-ports",
+  "title": "Quiz : les API et les ports",
+  "description": "Vérifie ta compréhension des deux API du sidecar, de leurs ports par défaut et de la communication bidirectionnelle.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels sont les ports par défaut des API HTTP et gRPC du sidecar Dapr ?",
+      "justification": "L'API HTTP écoute par défaut sur le port 3500 et l'API gRPC sur le port 50001. Les deux exposent les mêmes building blocks.",
+      "position": 0,
+      "options": [
+        { "label": "HTTP sur 3500, gRPC sur 50001", "correct": true, "position": 0 },
+        { "label": "HTTP sur 80, gRPC sur 443", "correct": false, "position": 1 },
+        { "label": "HTTP sur 8080, gRPC sur 9090", "correct": false, "position": 2 },
+        { "label": "HTTP sur 3500, gRPC sur 3501", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'app-port que tu déclares au sidecar ?",
+      "justification": "L'app-port est le port où ton application écoute : c'est là que Dapr frappe pour livrer les messages des topics abonnés et déclencher les bindings d'entrée (sens Dapr vers app).",
+      "position": 1,
+      "options": [
+        { "label": "C'est le port de ton app, où Dapr livre messages et bindings d'entrée", "correct": true, "position": 0 },
+        { "label": "C'est le port HTTP du sidecar que ton app appelle pour publier", "correct": false, "position": 1 },
+        { "label": "C'est le port du control plane pour la configuration", "correct": false, "position": 2 },
+        { "label": "C'est le port de la base de données d'état", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les API HTTP et gRPC de Dapr n'offrent pas les mêmes fonctionnalités : certaines actions ne sont possibles qu'en gRPC.",
+      "justification": "Faux : les deux API exposent les mêmes building blocks. Le choix entre HTTP et gRPC relève du confort et de la performance, pas des capacités.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}
