@@ -880,10 +880,15 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
   - **PARCOURS KUBERNETES 100% FAIT** : 20 nœuds, **164 concepts -> 164 images** (1/concept), 0 leçon
     sans image. Sourcing navigateur Pexels (sans clé API) par lots de 3 nœuds, commit par lot, 0 régression.
     Validé + ré-ingéré + frontend rebuildé + vérifié en direct (leçon `le-probleme-a-lechelle` : 2 images
-    1280px chargées, légendes, asset HTTP 200). **643 images** au total dans `frontend/public/images/lessons/`.
-  - **Reste (autres parcours)** : rust, java-17-21, docker, terraform, aws, software-architect,
-    software-design, api-security, backend-performance, prompt-engineering, certifs — même pipeline.
-  - NB volume/poids : ~643 images (~110-130 Mo dans le repo).
+    1280px chargées, légendes, asset HTTP 200).
+  - **PARCOURS DOCKER 100% FAIT** : 16 nœuds, **154 concepts -> 154 images** (1/concept), 0 leçon sans image.
+    Sourcing bascule sur **`curl`** (extension navigateur trop instable) : `curl` sur `pexels.com/search`
+    extrait les IDs photos, download via le CDN `images.pexels.com` — fiable, sans clé API. Lots de 2-3 nœuds,
+    commit par lot, 0 régression. Validé + ingéré + frontend rebuildé + assets vérifiés HTTP 200.
+    **797 images** au total dans `frontend/public/images/lessons/`.
+  - **Reste (autres parcours)** : rust, java-17-21, terraform, aws, software-architect,
+    software-design, api-security, backend-performance, prompt-engineering, certifs — même pipeline (curl).
+  - NB volume/poids : ~797 images (~140-160 Mo dans le repo).
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
