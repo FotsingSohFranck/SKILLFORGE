@@ -13,22 +13,28 @@
           "body": "Quand tu lances un conteneur, on a l'impression que Docker fabrique une sorte de mini-ordinateur par magie. En réalité, il n'y a **aucune magie** : un conteneur, c'est simplement un **processus** ordinaire de Linux auquel on a appliqué **trois fonctionnalités du noyau**.\n\nDeux mots à définir tout de suite :\n- un **processus**, c'est un **programme en train de tourner** (ton navigateur ouvert, ton éditeur de texte, un serveur web démarré). Chaque programme lancé est un processus, avec un numéro.\n- le **noyau** (en anglais *kernel*) est le **programme central** du système d'exploitation : c'est lui qui gère la mémoire, les fichiers, le réseau, et qui distribue le temps du processeur à chaque programme. Tout ce que fait ta machine passe par lui.\n\n👉 **Analogie** : le noyau est le **chef d'orchestre** de la machine. Les programmes sont les musiciens : aucun ne joue une note sans que le chef lui donne accès aux ressources.\n\nUn conteneur repose sur **trois** de ces fonctionnalités du noyau, qu'il faut bien distinguer :\n- les **namespaces** (« espaces de noms ») isolent ce qu'un processus **voit** (ses processus, son réseau, ses fichiers) ;\n- les **cgroups** (« control groups », groupes de contrôle) limitent ce qu'un processus **consomme** (processeur, mémoire, disque) ;\n- les **systèmes de fichiers en union** (union/overlay) assemblent l'image du conteneur en **couches** empilées.\n\n**Exemple concret** : quand tu tapes `docker run nginx`, Docker démarre le processus nginx, l'enferme dans ses propres namespaces (il se croit seul sur la machine), lui applique des cgroups (il ne peut pas avaler toute la RAM) et lui présente le système de fichiers de l'image nginx en couches. Trois réglages du noyau, pas une machine virtuelle. Comprendre ces trois mécanismes, c'est cesser de voir Docker comme une boîte noire."
         },
         {
+          "type": "IMAGE",
+          "title": "Trois briques du noyau, pas de magie.",
+          "body": "/images/lessons/la-magie-demystifiee-1.jpg",
+          "position": 1
+        },
+        {
           "type": "DIAGRAM",
-          "position": 1,
+          "position": 2,
           "title": "Les trois piliers d'un conteneur",
           "diagramFormat": "MERMAID",
           "body": "graph TD\n    P[\"Processus conteneurisé\"] --> NS[\"Namespaces\\n(ce qu'il VOIT :\\nPID, réseau, montages...)\"]\n    P --> CG[\"cgroups\\n(ce qu'il CONSOMME :\\nCPU, mémoire, I/O)\"]\n    P --> UF[\"Union FS\\n(son SYSTÈME DE FICHIERS :\\ncouches image + couche écriture)\"]"
         },
         {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 3,
           "title": "À vous",
           "body": "Un candidat en entretien affirme : « Docker a inventé une technologie révolutionnaire d'isolation ». Nuancez cette affirmation.",
           "solution": "Docker n'a pas inventé l'isolation : les namespaces et cgroups existaient déjà dans le noyau Linux (les cgroups datent de 2007, les namespaces de la même époque), et des technologies comme LXC les utilisaient avant Docker. La contribution de Docker a été de rendre ces briques faciles à utiliser : un format d'image portable, un outillage ergonomique (build/run/push), un registre partagé et un écosystème. Docker a démocratisé les conteneurs, il n'a pas inventé l'isolation du noyau. Comprendre cela recadre correctement ce qu'est réellement Docker : un outil d'orchestration de fonctionnalités Linux existantes."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 4,
           "title": "Quiz, La magie démystifiée",
           "quizRef": "namespaces-cgroups-union-magie-check"
         }
@@ -46,28 +52,40 @@
           "body": "Un **namespace** (mot anglais qu'on traduit par « espace de noms ») est un cloisonnement fourni par le noyau Linux : il donne à un processus une **vue partielle et privée** d'une ressource système, comme s'il était seul à l'utiliser.\n\nAu passage, définissons l'**hôte** (en anglais *host*) : c'est la **machine** (physique ou virtuelle) sur laquelle Docker et tous les conteneurs tournent. Le conteneur partage le noyau de cet hôte.\n\n👉 **Analogie** : imagine un grand **open space** de bureau qu'on divise avec des cloisons amovibles. Chaque personne, dans son box, a l'impression d'avoir son propre bureau, sa propre corbeille, son propre téléphone, alors que tout le monde partage le même bâtiment. Le namespace, c'est la cloison : elle ne déplace rien, elle **cache** juste le reste.\n\nLinux propose plusieurs types de namespaces, un par ressource à isoler :\n- **PID** (de l'anglais *Process IDentifier*, l'identifiant numérique d'un processus) : le conteneur a sa propre numérotation. Son application porte le numéro 1 (**PID 1**) et il ne voit pas les processus de l'hôte.\n- **NET** (*network*, réseau) : sa propre pile réseau, c'est-à-dire ses interfaces, son adresse IP, ses ports. Deux conteneurs peuvent chacun ouvrir « le port 80 » sans se gêner.\n- **MNT** (*mount*, montage) : ses propres points de montage, donc sa propre arborescence de fichiers.\n- **UTS** (*Unix Time-sharing System*, un nom historique) : son propre **hostname** (le nom de la machine).\n- **IPC** (*Inter-Process Communication*, communication entre processus) : ses propres canaux d'échange entre processus.\n- **USER** (utilisateur) : sa propre correspondance d'utilisateurs, ce qui rend possible le mode « rootless » (voir plus bas).\n\n**Exemple concret** : lance `docker run --rm alpine hostname`. Le conteneur affiche un nom de machine différent de celui de ton PC (c'est le namespace **UTS** en action), alors que c'est pourtant le même ordinateur. C'est tout l'effet des namespaces : donner au conteneur l'**illusion d'être seul** sur la machine."
         },
         {
+          "type": "IMAGE",
+          "title": "Namespaces : isoler ce que le processus voit.",
+          "body": "/images/lessons/namespaces-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Voir l'isolation PID",
           "codeLanguage": "bash",
           "body": "# Sur l'HÔTE : des centaines de processus\nps aux | wc -l        # ex. 312\n\n# DANS un conteneur : une poignée, et l'app est PID 1\ndocker run --rm alpine ps aux\n#   PID   USER     COMMAND\n#     1   root     ps aux        <- le conteneur ne voit QUE ses processus\n\n# Le MÊME processus a un PID différent vu de l'hôte : l'isolation est une VUE"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Le namespace USER & le rootless (niveau expert)",
           "body": "Petit rappel indispensable : sur Linux, **root** est le **super-utilisateur**, le compte tout-puissant qui a le droit de tout faire sur la machine (installer, supprimer, lire n'importe quel fichier). Son identifiant numérique, appelé **uid** (*user identifier*, identifiant d'utilisateur), vaut **0**.\n\nLe **user namespace** permet de **remapper** (faire correspondre) les identifiants d'utilisateurs : root **à l'intérieur** du conteneur (uid 0) peut correspondre à un utilisateur **ordinaire, sans privilèges**, sur l'hôte.\n\n👉 **Analogie** : c'est un **déguisement de directeur**. Sur la scène (le conteneur), le comédien joue le grand patron et donne des ordres. Mais dès qu'il sort de scène (côté hôte), c'est un employé lambda sans aucun pouvoir spécial.\n\nPourquoi c'est capital pour la **sécurité** ? On appelle **évasion** (en anglais *container escape*) le scénario où un attaquant réussit à sortir du conteneur pour atteindre l'hôte. Sans user namespace, un processus root qui s'évade devient **root sur l'hôte** : catastrophe totale. Avec le remapping, ce même évadé n'est plus qu'un **utilisateur ordinaire** côté hôte, incapable de faire de gros dégâts.\n\n**Exemple concret** : c'est le fondement du **mode rootless**, qui fait tourner tout le moteur Docker sans privilèges root sur l'hôte. Ainsi, même si un conteneur est compromis, l'impact reste confiné. Le user namespace transforme une catastrophe potentielle en simple utilisateur ordinaire côté hôte."
         },
         {
+          "type": "IMAGE",
+          "title": "Le namespace USER & le rootless.",
+          "body": "/images/lessons/namespaces-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Vous lancez `ps aux` dans un conteneur et ne voyez qu'un ou deux processus, alors que l'hôte en fait tourner des centaines. Quel namespace est responsable, et cela signifie-t-il que les autres processus n'existent pas ?",
           "solution": "C'est le PID namespace : il donne au conteneur sa propre numérotation de processus et sa propre vue, où il ne voit que SES processus (son application est PID 1). Les centaines de processus de l'hôte existent bel et bien et tournent sur le même noyau, le conteneur ne les voit simplement pas, car sa vue est isolée. Depuis l'hôte, on verrait le processus du conteneur avec un PID différent, parmi tous les autres. L'isolation par namespace est une question de visibilité/vue, pas de séparation physique : tout partage le même noyau."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Namespaces",
           "quizRef": "namespaces-cgroups-union-namespaces-check"
         }
@@ -85,41 +103,59 @@
           "body": "Les **namespaces** répondent à la question « qu'est-ce que le processus **voit** ? ». Les **cgroups** répondent à une question différente : « combien de ressources a-t-il le droit de **consommer** ? ».\n\n**cgroups** est l'abréviation de *control groups* (« groupes de contrôle »). C'est une fonctionnalité du noyau Linux qui **mesure et plafonne** les ressources d'un groupe de processus : le **CPU** (le processeur : part garantie et plafond), la **mémoire vive** (la RAM), les **entrées/sorties disque** (I/O, la lecture et l'écriture sur le disque) et le réseau.\n\n👉 **Analogie** : les cgroups sont le **forfait mobile** de chaque conteneur. Ton forfait te donne tant de Go de data et de minutes ; une fois le quota atteint, ça coupe ou ça bride. Pareil ici : « ce conteneur a droit à 512 Mo de RAM et à un demi-cœur de processeur, pas plus ».\n\nDeux notions à connaître :\n- l'**OOM kill** (de l'anglais *Out Of Memory*, « plus de mémoire ») : si un conteneur dépasse sa limite de mémoire, le noyau **tue** son processus pour protéger la machine. Dans Docker, on le repère avec `OOMKilled: true`.\n- le **voisin bruyant** (en anglais *noisy neighbor*) : sans limite, un seul conteneur emballé pourrait dévorer toute la RAM ou tout le CPU et **affamer** les autres conteneurs de la machine.\n\n**Exemple concret** : `docker run --memory=512m --cpus=0.5 nginx` crée les cgroups correspondants ; nginx ne pourra jamais dépasser 512 Mo ni un demi-cœur, même en cas de bug. Les cgroups sont la garantie d'un **partage équitable** des ressources."
         },
         {
+          "type": "IMAGE",
+          "title": "cgroups : limiter la consommation.",
+          "body": "/images/lessons/cgroups-et-union-fs-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Limiter les ressources",
           "codeLanguage": "bash",
           "body": "# Plafonner mémoire et CPU d'un conteneur (cgroups en action)\ndocker run --memory=512m --cpus=0.5 nginx\n\n# Dépasser la limite mémoire => le processus est tué (OOMKilled)\ndocker run --memory=64m python -c \"x = ' ' * (200*1024*1024)\"\n#  -> Container exits, State.OOMKilled = true\n\ndocker stats     # voir la consommation temps réel (mémoire/CPU) par conteneur"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Union FS : l'image en couches",
           "body": "Un **système de fichiers** (en anglais *filesystem*) est la façon dont les fichiers et dossiers sont organisés et rangés sur un disque. Un **système de fichiers en union** (dont la version moderne s'appelle **overlayfs**, de *overlay* = superposition) a une particularité : il **empile** plusieurs systèmes de fichiers et les présente comme **un seul**.\n\nUne **image** Docker (le modèle figé à partir duquel on lance des conteneurs) **est** justement une pile de **couches** (*layers*). Chaque instruction de ton **Dockerfile** (le fichier-recette qui décrit comment construire l'image) ajoute une couche par-dessus la précédente. Toutes ces couches sont en **lecture seule** : une fois créées, on ne les modifie plus.\n\nAu lancement d'un conteneur, une fine **couche d'écriture** est ajoutée tout en haut de la pile. Toute modification faite par le conteneur va dans cette couche, sans jamais toucher les couches de l'image en dessous. Ce mécanisme s'appelle le **copy-on-write** (« copie à l'écriture », abrégé CoW) : un fichier n'est recopié que si on cherche à le modifier.\n\n👉 **Analogie** : l'image, ce sont des **transparents empilés** (comme les feuilles plastiques d'un rétroprojecteur). Chaque transparent ajoute des dessins ; en regardant à travers la pile, on voit une seule image combinée. Ta couche d'écriture est un dernier transparent vierge posé dessus : tu gribouilles dessus sans jamais abîmer les transparents du dessous, et tu peux le jeter à tout moment.\n\nDeux conséquences majeures :\n- les couches communes sont **partagées et mises en cache** entre images (si deux images partent de `debian:12`, cette couche n'est stockée et téléchargée **qu'une seule fois**) ;\n- le conteneur est **éphémère** (« qui ne dure pas ») : sa couche d'écriture est **jetée** quand on le supprime, d'où le besoin de **volumes** pour conserver des données."
         },
         {
+          "type": "IMAGE",
+          "title": "Union FS : l'image en couches.",
+          "body": "/images/lessons/cgroups-et-union-fs-2.jpg",
+          "position": 4
+        },
+        {
           "type": "DIAGRAM",
-          "position": 3,
+          "position": 5,
           "title": "Couches d'une image + couche conteneur",
           "diagramFormat": "MERMAID",
           "body": "graph TD\n    W[\"Couche d'écriture du conteneur (copy-on-write, éphémère)\"] --> L3\n    L3[\"Couche : COPY app.jar\"] --> L2\n    L2[\"Couche : RUN apt install\"] --> L1\n    L1[\"Couche de base : debian:12 (lecture seule, partagée)\"]"
         },
         {
           "type": "CONCEPT",
-          "position": 4,
+          "position": 6,
           "title": "Pourquoi le copy-on-write change tout (niveau expert)",
           "body": "Le **copy-on-write** (CoW, « copie à l'écriture », vu juste avant) explique à lui seul la plupart des comportements de Docker qui surprennent les débutants. Reprenons-les un par un.\n\n- **Le partage** : lancer dix conteneurs de la même image ne **duplique pas** l'image dix fois. Les dix partagent les mêmes couches en lecture seule ; chacun n'a en propre que sa mince couche d'écriture. Dix conteneurs d'une image de 800 Mo n'occupent donc pas 8 Go.\n- **La rapidité** : démarrer un conteneur ne copie aucun fichier ; il ajoute juste une couche d'écriture **vide**. C'est pour ça qu'un conteneur démarre en une fraction de seconde, là où une machine virtuelle met des dizaines de secondes.\n- **L'éphémère** : écrire dans un conteneur écrit dans sa couche jetable ; le supprimer efface ces données. Pour **persister** (conserver au-delà de la vie du conteneur), on utilise un **volume** : un espace de stockage géré par Docker, indépendant du conteneur, qui survit à sa suppression.\n- **Le coût caché d'écriture** : modifier un **gros** fichier venu d'une couche basse le **recopie d'abord entièrement** dans la couche d'écriture avant de le modifier (c'est le principe même du copy-on-write). Sur des fichiers volumineux très souvent réécrits (une base de données par exemple), c'est lent et gourmand, raison de plus pour mettre ces données dans un volume.\n\n👉 **Analogie** : la couche image est un **livre imprimé** que tu ne peux pas raturer. Pour corriger une page, tu la **photocopies**, tu annotes la photocopie et tu la poses par-dessus. Corriger une phrase est instantané ; mais si la « page » pèse 500 Mo, la photocopier avant d'y toucher coûte cher."
         },
         {
+          "type": "IMAGE",
+          "title": "Pourquoi le copy-on-write change tout.",
+          "body": "/images/lessons/cgroups-et-union-fs-3.jpg",
+          "position": 7
+        },
+        {
           "type": "EXERCISE",
-          "position": 5,
+          "position": 8,
           "title": "À vous",
           "body": "Vous lancez 10 conteneurs à partir de la même image de 800 Mo. Occupent-ils 8 Go de disque ? Et si vous écrivez un fichier de 1 Mo dans l'un d'eux, où va-t-il ?",
           "solution": "Non, ils n'occupent pas 8 Go. Grâce au système de fichiers en union et au copy-on-write, les 10 conteneurs PARTAGENT les couches en lecture seule de l'image (les 800 Mo ne sont stockés qu'une fois). Chaque conteneur n'ajoute que sa propre couche d'écriture, initialement quasi vide, le surcoût est minime. Le fichier de 1 Mo écrit dans un conteneur va dans SA couche d'écriture (copy-on-write), au-dessus des couches image partagées : il n'affecte ni l'image ni les autres conteneurs, et disparaîtra si l'on supprime ce conteneur (d'où l'usage de volumes pour les données à conserver)."
         },
         {
           "type": "QUIZ",
-          "position": 6,
+          "position": 9,
           "title": "Quiz, Namespaces, cgroups & Union FS",
           "quizRef": "namespaces-cgroups-check"
         }
@@ -137,34 +173,52 @@
           "body": "Les cgroups existent en **deux générations**, et savoir laquelle tourne sur une machine est un réflexe de pro, car les limites et les mesures ne se comportent pas pareil.\n\nD'abord un mot de vocabulaire : un **contrôleur** (*controller*) est la partie des cgroups qui gère **une** ressource précise (le contrôleur `cpu`, le contrôleur `memory`, etc.). Une **hiérarchie** est l'arbre dans lequel on range les groupes de processus.\n\n- **cgroups v1** : une **hiérarchie séparée par ressource**. Il y a un arbre pour le CPU, un autre pour la mémoire, etc. Un même processus peut être rangé dans des groupes différents selon la ressource. Souple, mais **incohérent** et source de bugs.\n- **cgroups v2** : une **hiérarchie unifiée**, un seul arbre pour tous les contrôleurs. Modèle plus cohérent, meilleure gestion de la mémoire (notion de **pression** mémoire, réglage `memory.high`) et support du **mode rootless**.\n\n👉 **Analogie** : v1, c'est **un classeur par type de document** (un pour les factures, un pour les contrats), avec un même dossier client éparpillé dans plusieurs classeurs. v2, c'est **un seul classeur** avec un dossier complet par client : tout est au même endroit, plus facile à suivre.\n\n**Exemple concret** : les distributions Linux récentes et Docker utilisent **v2 par défaut**. Pour vérifier ce qui tourne : `stat -fc %T /sys/fs/cgroup` (il répond `cgroup2fs` pour la v2, `tmpfs` pour la v1). Un expert vérifie cette version avant de raisonner sur les limites et les métriques, car elles diffèrent d'une génération à l'autre."
         },
         {
+          "type": "IMAGE",
+          "title": "cgroups v1 vs v2 : ce qui a changé.",
+          "body": "/images/lessons/cgroups-v2-overlayfs-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "OverlayFS : lowerdir, upperdir, workdir, merged",
           "body": "Le **driver de stockage** (en anglais *storage driver*, la brique qui décide comment Docker range les couches sur le disque) utilisé par défaut s'appelle **overlay2**. Il s'appuie sur **OverlayFS**, le système de fichiers en union du noyau Linux. OverlayFS travaille avec quatre répertoires dont il faut connaître les noms :\n\n- les **lowerdir** (*lower directory*, « répertoires du bas ») : les couches de l'**image**, en **lecture seule**, empilées les unes sur les autres ;\n- l'**upperdir** (*upper directory*, « répertoire du haut ») : la **couche d'écriture** du conteneur, en lecture **et** écriture ;\n- le **workdir** (*work directory*) : un répertoire interne de travail qu'OverlayFS utilise pour ses opérations atomiques (tu n'y touches jamais) ;\n- le **merged** (« fusionné ») : la **vue combinée** finale, celle que voit le conteneur, comme s'il n'y avait qu'un seul système de fichiers.\n\n👉 **Analogie** : pense aux **calques** d'un logiciel de dessin. Les calques du bas (lowerdir) sont verrouillés. Tu dessines sur le calque du dessus (upperdir). Ce que l'œil perçoit, c'est le montage de tous les calques (merged).\n\nTrois comportements en découlent :\n- **Lecture** : un fichier est cherché de l'upper vers les lowers ; le premier trouvé gagne.\n- **Écriture** : un fichier venu d'une lower est d'abord **copié dans l'upper** (le fameux **copy-up**) avant d'être modifié, d'où le coût d'écriture sur un gros fichier de couche basse.\n- **Suppression** : on ne peut pas effacer un fichier d'une couche en lecture seule ; OverlayFS pose donc à sa place un fichier spécial appelé **whiteout** (« effaceur ») dans l'upper, qui le **masque**. Le fichier existe toujours dans la couche image, il est juste rendu invisible.\n\n**Exemple concret** : c'est ce mécanisme qui explique que la taille d'un conteneur augmente dès qu'on modifie de gros fichiers de l'image, et pourquoi supprimer un fichier issu de l'image ne fait pas maigrir l'image."
         },
         {
+          "type": "IMAGE",
+          "title": "OverlayFS : lowerdir, upperdir, workdir, merged.",
+          "body": "/images/lessons/cgroups-v2-overlayfs-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "Comment OverlayFS assemble les couches",
           "diagramFormat": "MERMAID",
           "body": "graph TD\n    M[\"Vue merged : ce que voit le conteneur\"]\n    M --> U[\"upperdir : couche d'écriture (lecture-écriture)\"]\n    M --> L2[\"lowerdir : couche image (lecture seule)\"]\n    M --> L1[\"lowerdir : couche de base (lecture seule, partagée)\"]\n    U -. copy-up à la 1re écriture .-> L2"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Les namespaces qu'on oublie",
           "body": "Au-delà des six namespaces classiques (PID, NET, MNT, UTS, IPC, USER, vus plus tôt), deux autres complètent le tableau et distinguent celui qui connaît vraiment le sujet.\n\n- Le **cgroup namespace** virtualise la **vue** de la hiérarchie cgroup : le conteneur voit sa propre racine de groupes de contrôle, pas celle de l'hôte. Résultat : une isolation plus propre (il ne devine pas comment l'hôte est organisé), très utile au mode rootless.\n- Le **time namespace** (plus récent) permet à un conteneur d'avoir son **propre décalage d'horloge** (sur les compteurs d'horloge monotone et de temps depuis le démarrage). C'est précieux pour la **migration de conteneurs** par *checkpoint/restore* : geler un conteneur (**checkpoint** = « point de sauvegarde ») puis le relancer ailleurs (**restore** = « restauration ») sans que son horloge fasse un bond.\n\n👉 **Analogie** : si les six premiers namespaces sont les pièces principales d'une maison (chambre, cuisine, salon...), ces deux-là sont le **garage** et la **cave** : moins fréquentés, mais ils font bel et bien partie de la maison.\n\n**Exemple concret** : Docker n'active qu'un **sous-ensemble** des namespaces disponibles par défaut. Un expert sait qu'ils existent tous et peut en activer d'autres selon le besoin (isolation renforcée, migration à chaud)."
         },
         {
+          "type": "IMAGE",
+          "title": "Les namespaces qu'on oublie.",
+          "body": "/images/lessons/cgroups-v2-overlayfs-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Vous modifiez un gros fichier de 500 Mo qui provient d'une couche de base (lowerdir) à l'intérieur d'un conteneur, et vous observez une latence et une consommation d'espace inattendues. Qu'est-ce qui se passe au niveau d'OverlayFS ?",
           "solution": "C'est le mécanisme de copy-up d'OverlayFS. Le fichier de 500 Mo vit dans une couche de base (lowerdir), en lecture seule. Dès que le conteneur tente de le MODIFIER, OverlayFS doit d'abord copier l'intégralité du fichier depuis la lowerdir vers l'upperdir (la couche d'écriture du conteneur), un copy-up de 500 Mo, AVANT d'appliquer la modification. D'où la latence (copie complète) et la consommation d'espace (le fichier existe désormais en double : une fois dans la couche image, une fois dans l'upper). C'est pourquoi les charges très intensives en écriture sur de gros fichiers issus de l'image sont à éviter dans la couche du conteneur : on place plutôt ces données dans un VOLUME (qui court-circuite OverlayFS et écrit directement, sans copy-up ni couches). Comprendre le copy-up guide la conception : données mutables/volumineuses → volume, pas couche de conteneur."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, cgroups v2 & OverlayFS (expert)",
           "quizRef": "cgroups-overlayfs-expert"
         }
@@ -182,28 +236,40 @@
           "body": "Le meilleur moyen de se convaincre qu'un conteneur « n'est que des fonctionnalités du noyau » est d'en **fabriquer un à la main**, sans Docker, avec les outils bruts de Linux. Trois notions suffisent.\n\n- **`unshare`** est une commande Linux qui lance un programme dans de **nouveaux namespaces**. Son nom veut dire « ne plus partager » : le processus cesse de partager la vue de l'hôte. Exemple : `unshare --pid --net --mount --uts ...` lui donne ses propres processus, réseau, montages et hostname.\n- **`chroot`** (« *change root* », changer la racine) remplace la racine `/` du système de fichiers vue par le processus par un dossier de ton choix. `pivot_root` en est la version plus robuste utilisée en production.\n- Le **rootfs** (*root filesystem*, « système de fichiers racine ») est le mini-système de fichiers minimal (les dossiers `/bin`, `/etc`, `/lib`...) dont un programme a besoin pour tourner.\n\n👉 **Analogie** : `unshare` **pose les cloisons** (l'isolation), `chroot` **déménage** le processus dans un petit appartement témoin (son rootfs), et une écriture dans les cgroups lui **impose un budget** de ressources. Mets les trois ensemble et tu obtiens l'essence d'un conteneur.\n\n**Exemple concret** : un processus **isolé** (sa vue, grâce aux namespaces), **cloisonné** (son rootfs, grâce à chroot) et **limité** (ses ressources, grâce aux cgroups) : c'est exactement ce que Docker automatise pour toi en une seule commande `docker run`. Le faire à la main une fois retire tout le mystère."
         },
         {
+          "type": "IMAGE",
+          "title": "Comprendre en le faisant.",
+          "body": "/images/lessons/conteneur-a-la-main-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Un mini-conteneur avec unshare & chroot",
           "codeLanguage": "bash",
           "body": "# 1) Un mini rootfs (on réutilise celui d'une image alpine)\nmkdir -p /tmp/rootfs && docker export $(docker create alpine) | tar -C /tmp/rootfs -xf -\n\n# 2) Nouveaux namespaces + nouvelle racine = un \"conteneur\" fait main\nsudo unshare --pid --net --uts --mount --fork --mount-proc \\\n  chroot /tmp/rootfs /bin/sh\n#   / # hostname isole     (UTS namespace)\n#   / # ps aux             (PID namespace : on ne voit que nos processus)\n#   / # ls /               (chroot : le rootfs alpine, pas l'hôte)\n\n# 3) Entrer dans les namespaces d'un conteneur Docker existant :\nsudo nsenter -t $(docker inspect -f '{{.State.Pid}}' web) -a"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "nsenter : l'outil de débogage ultime (niveau expert)",
           "body": "**`nsenter`** (de *namespace enter*, « entrer dans un namespace ») fait l'inverse d'`unshare` : au lieu de **créer** de nouveaux namespaces, il **rejoint ceux d'un processus déjà en cours**. C'est l'arme secrète pour déboguer un conteneur **minimal**.\n\nUn mot de vocabulaire : une image **distroless** (« sans distribution ») est une image ultra-réduite qui ne contient **que** ton application, sans shell (`sh`/`bash`) ni outils (`ip`, `curl`, `tcpdump`). C'est excellent pour la sécurité (moins de surface d'attaque), mais un cauchemar à déboguer : `docker exec ... tcpdump` échoue puisque `tcpdump` n'existe pas dedans.\n\nLa parade : lancer l'outil **depuis l'hôte**, mais **dans le namespace du conteneur**. Le conteneur n'a pas `tcpdump` ? On prend celui de l'hôte et on l'exécute dans le **namespace réseau** du conteneur : `nsenter -t <pid> -n tcpdump ...` (le `<pid>` est le numéro du processus du conteneur vu de l'hôte, que donne `docker inspect`).\n\n👉 **Analogie** : le conteneur distroless est une **pièce sans outils**. Plutôt que d'y installer une caisse à outils (reconstruire l'image), tu **passes ton bras par la porte** depuis le couloir (l'hôte), avec ton propre tournevis. Tu répares de l'intérieur sans rien ajouter dedans.\n\n**Exemple concret** : c'est aussi le principe des **conteneurs de débogage éphémères** (`docker debug`, `kubectl debug`). Maîtriser `unshare` et `nsenter`, c'est comprendre les conteneurs de l'intérieur et savoir déboguer ce qui n'a même pas de shell."
         },
         {
+          "type": "IMAGE",
+          "title": "nsenter : l'outil de débogage ultime.",
+          "body": "/images/lessons/conteneur-a-la-main-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un conteneur de production tourne sur une image distroless (sans shell, sans outils réseau). Il a un problème de connectivité et vous devez capturer son trafic réseau, mais `docker exec ... tcpdump` échoue car tcpdump n'existe pas dans l'image. Comment faire sans reconstruire l'image ?",
           "solution": "On utilise nsenter depuis l'hôte pour entrer dans le namespace RÉSEAU du conteneur et y lancer un tcpdump installé sur l'HÔTE (pas dans le conteneur). Étapes : récupérer le PID du processus du conteneur (`docker inspect -f '{{.State.Pid}}' <conteneur>`), puis `sudo nsenter -t <pid> -n tcpdump -i any`. tcpdump s'exécute alors dans la pile réseau isolée du conteneur (mêmes interfaces, mêmes paquets) tout en étant un binaire de l'hôte, on capture le trafic sans que le conteneur ait besoin d'un shell ou de tcpdump. Ce principe (entrer dans les namespaces d'un processus avec les outils de l'hôte) fonctionne aussi pour le réseau, les montages, les processus, et c'est ce qui sous-tend les conteneurs de débogage éphémères (docker debug, kubectl debug). C'est LA façon de déboguer une image minimale sans la reconstruire ni compromettre sa minimalité."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Conteneur à la main (expert)",
           "quizRef": "container-by-hand-expert"
         }
