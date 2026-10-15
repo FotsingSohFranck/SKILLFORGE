@@ -13,28 +13,40 @@
           "body": "Commençons par un rappel. Un **pod** est la plus petite unité que Kubernetes déploie : c'est une **enveloppe autour d'un ou plusieurs conteneurs** (ton application qui tourne). Chaque pod reçoit sa propre **adresse IP** (l'*Internet Protocol address*, le numéro qui identifie une machine sur un réseau, un peu comme un numéro de téléphone).\n\nLe souci : un pod est **éphémère**, c'est-à-dire qu'il n'est pas fait pour durer. Kubernetes le **recrée**, le **déplace** d'un serveur à un autre, ou en ajoute des copies (**scaling** = augmenter le nombre d'exemplaires) selon les besoins. Et à chaque recréation, le pod obtient une **nouvelle IP**. Écrire l'IP d'un pod en dur dans ta configuration revient donc à noter le numéro de téléphone de quelqu'un qui en change tous les jours : ça marche cinq minutes, puis ça casse.\n\n👉 **Analogie** : un pod, c'est comme un **livreur intérimaire**. Le livreur d'aujourd'hui ne sera pas celui de demain, et son numéro personnel changera. Tu ne veux pas appeler un livreur précis, tu veux appeler **le service de livraison**, qui te met en relation avec le livreur du moment.\n\nCe service de livraison, en Kubernetes, c'est le **Service** (avec un S majuscule : c'est un objet précis). Un **Service** fournit une **adresse stable** devant un **groupe de pods** : une IP virtuelle qui ne change jamais, et un **nom DNS** fixe (le DNS, *Domain Name System*, est l'annuaire qui traduit un nom lisible en adresse, comme quand `google.com` devient une IP). Le trafic envoyé au Service est **réparti** entre les pods sains derrière lui : c'est le **load balancing** (répartition de charge). Quand un pod meurt ou apparaît, le Service **met à jour tout seul** sa liste de cibles.\n\n**Exemple concret** : ton front-end veut parler à ton back-end. Au lieu de viser `10.1.4.7` (l'IP d'un pod qui disparaîtra), il appelle `http://backend:8080`, le nom du Service. Peu importe combien de pods back-end existent ni quelles sont leurs IP du moment : le Service reste le point d'entrée stable. Le Service est le point d'accès stable ; les pods, la chair mouvante derrière."
         },
         {
+          "type": "IMAGE",
+          "title": "Les pods sont des cibles mouvantes.",
+          "body": "/images/lessons/pourquoi-un-service-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Selector & endpoints",
           "body": "Comment le Service sait-il **quels pods** sont « les siens » ? Grâce aux **labels**.\n\nUn **label** est simplement une **étiquette** de la forme `clé: valeur` que tu colles sur un objet Kubernetes, par exemple `app: web`. Le Service définit un **sélecteur** (*selector*), c'est-à-dire un **critère de recherche** sur ces étiquettes : `selector: app=web` signifie « mes pods sont tous ceux qui portent l'étiquette `app=web` ».\n\n👉 **Analogie** : dans un vestiaire, tu ne retiens pas le numéro de chaque casier. Tu dis « tous les casiers avec un autocollant rouge sont à mon équipe ». Si on ajoute un casier avec un autocollant rouge, il rejoint automatiquement le groupe ; si on en retire un, il en sort. Le **label** est l'autocollant, le **sélecteur** est la règle « prends tous les rouges ».\n\nKubernetes tient alors à jour la liste des IP des pods qui correspondent **et qui sont prêts**, dans un objet appelé **Endpoints** (ou sa version moderne, l'**EndpointSlice**). Le mot **endpoint** veut dire « point de terminaison » : c'est une cible concrète (une IP + un port) vers laquelle le Service peut envoyer du trafic.\n\nLe mot **prêt** est important. Un pod peut être démarré mais **pas encore capable** de répondre (le temps de charger ses données, par exemple). Kubernetes vérifie cet état avec une **readiness probe** (une *sonde de disponibilité* : un petit test répété, du genre « réponds-tu correctement ? »). Un pod dont la sonde est **au rouge** est **retiré des endpoints** : le Service **cesse de lui envoyer du trafic** jusqu'à ce qu'il aille mieux. C'est ce mécanisme, combiné aux sondes, qui garantit qu'on ne route jamais vers un pod cassé.\n\n**À retenir** : le lien Service vers pods se fait par **labels**, pas par IP. C'est ce qui rend l'ensemble **souple et dynamique** : les pods vont et viennent, le Service suit tout seul."
         },
         {
+          "type": "IMAGE",
+          "title": "Selector & endpoints : retrouver ses pods par étiquettes.",
+          "body": "/images/lessons/pourquoi-un-service-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "Le Service : un point d'entrée stable devant des pods mouvants",
           "diagramFormat": "MERMAID",
           "body": "graph LR\n  C[\"Client / autre pod\"] -->|\"nom DNS stable : backend:8080\"| S[\"Service backend<br/>IP virtuelle fixe\"]\n  S -->|\"selector app=backend\"| P1[\"Pod backend<br/>IP 10.1.1.1 (prêt)\"]\n  S --> P2[\"Pod backend<br/>IP 10.1.1.2 (prêt)\"]\n  S -. \"retiré : readiness rouge\" .-> P3[\"Pod backend<br/>IP 10.1.1.3 (pas prêt)\"]"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Une application front est configurée pour appeler le backend via l'IP d'un pod backend. Ça marche, puis ça casse après quelques heures. Pourquoi, et quelle est la bonne approche ?",
           "solution": "Le problème vient d'avoir codé en dur l'IP d'un POD. Les pods sont éphémères : le pod backend a été recréé (redéploiement, redémarrage, replanification sur un autre nœud, scaling) et a reçu une NOUVELLE IP ; l'ancienne IP ne pointe plus vers rien (ou vers un autre pod), d'où la panne après quelques heures. Bonne approche : créer un Service devant les pods backend (selector app=backend) et faire appeler le front le Service par son NOM DNS stable (ex. http://backend:8080), pas une IP de pod. Le Service fournit une adresse virtuelle et un nom fixes qui ne changent pas, répartit le trafic sur tous les pods backend sains, et met à jour automatiquement ses cibles quand les pods apparaissent/disparaissent (en excluant les pods non prêts via readiness). On ne référence JAMAIS une IP de pod directement ; on passe toujours par un Service (par son nom)."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Pourquoi un Service",
           "quizRef": "services-pourquoi-check"
         }
@@ -52,28 +64,40 @@
           "body": "Tous les Services ne servent pas le même but : certains restent **internes** au cluster, d'autres s'ouvrent vers **l'extérieur**. Le champ `type` choisit cette portée. (Rappel : un **cluster** est l'ensemble des machines, appelées **nœuds** ou *nodes*, qui font tourner Kubernetes ; « interne au cluster » veut dire « accessible seulement par les applications qui tournent dedans ».)\n\n**ClusterIP** (le type par **défaut**) : le Service reçoit une **IP interne**, joignable **uniquement depuis l'intérieur** du cluster. 👉 **Analogie** : c'est un **numéro interne** d'entreprise, composable seulement depuis les téléphones du bâtiment. Parfait pour la communication entre tes propres services (exemple : l'API qui appelle la base de données ; personne dehors n'a à y toucher).\n\n**NodePort** : Kubernetes ouvre **le même port sur chaque nœud** du cluster (dans la plage 30000-32767) et redirige ce port vers le Service. Comme les nœuds ont des adresses accessibles, cela donne un **accès externe rudimentaire**. 👉 **Analogie** : c'est une **porte de service** à l'arrière de chaque bâtiment, avec le même numéro de porte partout. Ça dépanne, mais on ne bâtit pas l'entrée principale d'un site de production là-dessus : surtout utile en **dev/test**.\n\n**LoadBalancer** : sur un cloud managé (AWS, GCP, Azure...), ce type **demande au fournisseur un load balancer externe** (un répartiteur de charge, par exemple un ELB chez AWS), avec une **IP publique** qui distribue le trafic vers tes pods. 👉 **Analogie** : c'est le **standard téléphonique officiel** de l'entreprise, un numéro public que n'importe qui peut composer. C'est la façon standard d'exposer un service à Internet en cloud.\n\nIl existe un quatrième type, **ExternalName** : il ne cible aucun pod, c'est juste un **alias DNS** vers un nom externe (par exemple faire pointer le nom interne `paiement` vers `api.stripe.com`). Utile pour donner un nom interne stable à un service hébergé ailleurs.\n\n**Exemple** : une base de données interne sera en **ClusterIP** ; une API publique en cloud sera exposée via **LoadBalancer** (ou, mieux pour du HTTP multi-services, via un **Ingress**, vu au nœud suivant)."
         },
         {
+          "type": "IMAGE",
+          "title": "ClusterIP, NodePort, LoadBalancer : trois façons d'exposer.",
+          "body": "/images/lessons/types-de-services-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Un Service ClusterIP",
           "codeLanguage": "yaml",
           "body": "apiVersion: v1\nkind: Service\nmetadata:\n  name: backend            # -> joignable via http://backend:8080 dans le cluster\nspec:\n  type: ClusterIP          # interne (défaut)\n  selector:\n    app: backend           # cible les pods labellisés app=backend\n  ports:\n    - port: 8080           # port du Service\n      targetPort: 8080     # port du conteneur"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "La découverte de services par DNS",
           "body": "On a dit que le Service a un **nom** stable. D'où vient ce nom, et comment un pod le « trouve » ? Grâce au **DNS interne** du cluster, assuré par un composant nommé **CoreDNS**.\n\nRappel express : le **DNS** (*Domain Name System*) est l'**annuaire** qui traduit un nom lisible (`backend`) en adresse IP. CoreDNS fait ce travail **à l'intérieur** du cluster : chaque Service que tu crées reçoit automatiquement un **nom résolvable**.\n\nDepuis un pod, tu atteins un Service :\n- par son **nom court** s'il est dans le **même namespace** : `backend`. (Un **namespace** est un *espace de noms* : une façon de cloisonner les objets d'un cluster en groupes séparés, comme des dossiers.)\n- par son **nom complet** pour traverser les namespaces : `backend.mon-namespace.svc.cluster.local`.\n\n👉 **Analogie** : dans un immeuble de bureaux, tu appelles un collègue du même étage par son prénom (`backend`). Pour quelqu'un d'un autre étage, tu précises l'étage et le service (`backend.etage3...`). Le prénom court suffit entre voisins ; le nom complet lève toute ambiguïté.\n\nC'est ce qu'on appelle la **découverte de services** (*service discovery*) : tu ne configures **jamais** d'IP en dur, tu utilises des **noms** stables, et Kubernetes résout vers l'IP courante du Service (qui elle-même répartit vers les pods prêts).\n\n**Exemple** : si tu as déjà utilisé Docker Compose, tu sais qu'un conteneur peut appeler un autre par son nom de service (`db`) plutôt que par une IP. Le DNS de Kubernetes est le même principe, mais à l'échelle de tout un cluster."
         },
         {
+          "type": "IMAGE",
+          "title": "La découverte de services par DNS (un annuaire).",
+          "body": "/images/lessons/types-de-services-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Vous devez exposer une API web à Internet (cluster managé cloud), et par ailleurs permettre à cette API de joindre une base de données uniquement depuis l'intérieur du cluster. Quel type de Service pour chacun, et pourquoi ?",
           "solution": "Pour la base de données joignable uniquement en interne : un Service de type ClusterIP (le type par défaut). Il donne à la base une IP interne et un nom DNS stables, accessibles seulement DEPUIS le cluster, l'API l'atteint via son nom (ex. db:5432), et la base n'est jamais exposée à l'extérieur (bonne pratique de sécurité : ne pas publier ce qui doit rester interne). Pour l'API web à exposer à Internet sur un cloud managé : un Service de type LoadBalancer, qui provisionne un load balancer externe du fournisseur cloud avec une IP publique et route le trafic vers les pods de l'API. (En pratique, pour du HTTP/HTTPS multi-services avec routage par domaine/chemin et TLS, on met plutôt un Ingress, voir le nœud suivant, devant un Service ClusterIP, plutôt qu'un LoadBalancer par service, plus coûteux.) NodePort, lui, resterait un accès rudimentaire surtout pour le dev/test. Le principe : ClusterIP pour l'interne, LoadBalancer/Ingress pour l'exposition externe."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Services & découverte",
           "quizRef": "services-check"
         }
@@ -91,21 +115,33 @@
           "body": "Voici un piège classique dès qu'on expose un service vers l'extérieur. Quand un trafic externe entre par un **NodePort** ou un **LoadBalancer**, il atterrit d'abord sur **un** nœud précis du cluster. Mais le **pod** qui doit répondre peut très bien se trouver sur **un autre** nœud.\n\nPar défaut (réglage **`externalTrafficPolicy: Cluster`**), un composant réseau appelé **kube-proxy** (le programme présent sur chaque nœud qui met en œuvre les règles de routage des Services) **fait suivre** le paquet vers le bon nœud. C'est un **second saut**, de nœud à nœud. Problème : au passage, ce renvoi remplace l'**adresse IP source** du paquet par celle du nœud qui a transmis. Cette opération porte un nom, le **SNAT** (*Source Network Address Translation*, littéralement « traduction de l'adresse réseau source » : réécrire l'expéditeur d'un paquet).\n\n👉 **Analogie** : un client t'envoie une lettre, mais elle transite par un **bureau de tri interne** qui la remet dans une **nouvelle enveloppe** portant **sa propre adresse** comme expéditeur. Tu reçois bien le courrier, mais tu ne sais plus **qui** te l'a envoyé au départ : l'adresse d'origine a été effacée.\n\nConséquence : ton application voit l'IP **du nœud**, pas celle du **vrai client**. Pour beaucoup de besoins, c'est bloquant : la **journalisation** (savoir d'où viennent les visiteurs), la **géolocalisation**, la **limitation de débit** par client (*rate limiting*), ou la **liste d'autorisation par IP** (*allowlist* : n'autoriser que certaines adresses). Toutes ont besoin de la **vraie IP source**."
         },
         {
+          "type": "IMAGE",
+          "title": "Le double saut qui masque l'IP du client.",
+          "body": "/images/lessons/external-traffic-policy-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Local : préserver l'IP source",
           "body": "Le réglage **`externalTrafficPolicy: Local`** corrige ce problème. Avec lui, le trafic entré sur un nœud n'est envoyé **qu'aux pods présents sur ce même nœud** : plus de renvoi vers un autre nœud, donc **pas de second saut** et **pas de SNAT**. Résultat : l'**IP source réelle du client est préservée**, et ton application peut enfin la lire.\n\n👉 **Analogie** : on supprime le bureau de tri qui recollait une enveloppe. La lettre est remise directement, avec son **expéditeur d'origine** intact.\n\nMais il y a une **contrepartie** à comprendre. Si un nœud n'héberge **aucun** pod du service, il **ne peut pas** répondre à ce trafic (il n'a personne à qui le donner, et il n'a plus le droit de le renvoyer ailleurs). Il faut donc que le **load balancer** externe **n'envoie du trafic qu'aux nœuds qui ont des pods**. Heureusement, le load balancer utilise des **health checks** (*contrôles de santé* : des tests réguliers pour savoir quel nœud répond) et les intégrations cloud gèrent cela automatiquement.\n\nAutre effet de bord : la répartition du trafic peut être **moins uniforme**, car elle dépend de **la façon dont les pods sont distribués** sur les nœuds. Si un nœud a trois pods et un autre un seul, ils ne recevront pas la même charge (on peut mieux répartir avec des `topologySpreadConstraints`).\n\n**En résumé, c'est un compromis** : **`Cluster`** donne un équilibrage bien uniforme mais **masque l'IP** du client ; **`Local`** **préserve l'IP** mais son équilibrage **dépend du placement** des pods. Tu choisis selon ce qui compte pour ton application."
         },
         {
+          "type": "IMAGE",
+          "title": "externalTrafficPolicy: Local préserve l'IP source.",
+          "body": "/images/lessons/external-traffic-policy-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Une application derrière un Service LoadBalancer doit appliquer une liste d'autorisation par adresse IP (allowlist) et journaliser l'IP réelle des clients. Mais elle ne voit que des IP de nœuds internes. Quelle est la cause et le réglage à changer ?",
           "solution": "La cause est le externalTrafficPolicy par défaut (Cluster). Avec cette politique, quand le trafic externe arrive sur un nœud mais que le pod cible est sur un autre nœud, kube-proxy fait un second saut vers le bon nœud et applique un SNAT, remplaçant l'IP source du client par l'IP du nœud. L'application ne voit donc que des IP de nœuds internes, ce qui casse la journalisation de l'IP réelle ET l'allowlist par IP (elle filtrerait des IP de nœuds, pas de clients). Réglage à changer : passer le Service en externalTrafficPolicy: Local. Le trafic n'est alors routé qu'aux pods situés sur le nœud d'entrée (pas de second saut, pas de SNAT), ce qui PRÉSERVE l'IP source réelle du client, l'app peut la logger et l'utiliser pour l'allowlist. Contrepartie à connaître et à gérer : les nœuds sans pod du service ne servent pas ce trafic (le load balancer doit donc, via ses health checks, ne router que vers les nœuds ayant des pods, ce que gèrent les intégrations cloud), et la répartition dépend de la distribution des pods sur les nœuds (à répartir avec topologySpreadConstraints). En résumé : Cluster masque l'IP (équilibrage uniforme), Local la préserve (au prix d'un routage dépendant du placement), ici, Local est requis."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, externalTrafficPolicy (expert)",
           "quizRef": "external-traffic-policy-expert"
         }
@@ -123,27 +159,45 @@
           "body": "Un Service **ClusterIP** normal te donne **une** IP virtuelle unique, qui **répartit** le trafic vers un pod au hasard parmi les pods prêts. C'est parfait quand les pods sont **interchangeables** (peu importe lequel répond). Mais parfois, tu as besoin de joindre **un pod précis**, pas « n'importe lequel ».\n\nC'est le rôle du **headless Service** (littéralement « Service sans tête »), qu'on active en écrivant **`clusterIP: None`**. « Sans tête » signifie qu'il **n'a pas d'IP virtuelle** qui centralise et répartit. À la place, le **DNS renvoie directement les IP de tous les pods** : une entrée par pod. C'est alors le **client** qui décide vers quel pod aller, au lieu de subir un tirage au sort.\n\n👉 **Analogie** : un Service ClusterIP classique, c'est un **standard téléphonique** qui te bascule vers un conseiller disponible au hasard. Un headless Service, c'est **l'annuaire complet** : tu vois le numéro **direct** de chaque personne et tu appelles **exactement** celle que tu veux.\n\nÀ quoi ça sert concrètement ? Aux applications **avec état** (*stateful*), typiquement déployées via un **StatefulSet** (un contrôleur Kubernetes pour les applications où chaque pod a une **identité durable**, par exemple une base de données répliquée). Là, chaque pod **compte individuellement** : le pod `db-0` n'est pas équivalent au pod `db-1`. Le headless Service leur donne une **entrée DNS stable par pod**, de la forme `db-0.mon-service...`, si bien qu'un pod peut s'adresser à **`db-0` nommément** (pour la réplication des données, la découverte des pairs, l'élection d'un primaire...).\n\n**Exemple** : dans un cluster de base de données à trois répliques, le réplica `db-1` doit contacter **spécifiquement** le primaire `db-0` pour se synchroniser. Sans headless Service, impossible de viser `db-0` précisément."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "EndpointSlices : la scalabilité des endpoints",
-          "body": "Reprenons les **endpoints** vus plus tôt (la liste des cibles IP+port d'un Service). Historiquement, Kubernetes rangeait **toutes** les IP des pods d'un Service dans **un seul** objet, l'objet **Endpoints**.\n\nÀ petite échelle, aucun souci. Mais imagine un service très populaire avec **des milliers de pods** : cet objet unique devient **énorme**. Et surtout, **le moindre changement** (un pod qui apparaît ou disparaît) oblige à **réécrire l'objet entier**, puis à le **renvoyer à tous les kube-proxy** de tous les nœuds. C'est lourd et coûteux.\n\n👉 **Analogie** : garder tous les contacts d'une immense entreprise sur **une seule feuille**. Dès qu'une personne change de numéro, tu dois **réimprimer et redistribuer la feuille complète** à tout le monde. Absurde à grande échelle.\n\nLes **EndpointSlices** (« tranches d'endpoints ») résolvent cela en **découpant** la liste en **morceaux** (par défaut 100 endpoints par tranche). Un changement ne touche **qu'une seule tranche**, et seule celle-ci est renvoyée : la charge sur l'**apiserver** (le cerveau de Kubernetes, qui reçoit toutes les requêtes) et sur kube-proxy **chute fortement**.\n\nC'est aujourd'hui le mécanisme **par défaut**, tu n'as rien à activer. On le mentionne pour deux raisons : comprendre **comment le routage tient à l'échelle**, et savoir **déboguer** (`kubectl get endpointslices` te montre les cibles réelles d'un Service quand quelque chose cloche)."
+          "type": "IMAGE",
+          "title": "Les headless Services : pas d'IP virtuelle unique.",
+          "body": "/images/lessons/headless-endpointslices-affinite-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "EndpointSlices : la scalabilité des endpoints",
+          "body": "Reprenons les **endpoints** vus plus tôt (la liste des cibles IP+port d'un Service). Historiquement, Kubernetes rangeait **toutes** les IP des pods d'un Service dans **un seul** objet, l'objet **Endpoints**.\n\nÀ petite échelle, aucun souci. Mais imagine un service très populaire avec **des milliers de pods** : cet objet unique devient **énorme**. Et surtout, **le moindre changement** (un pod qui apparaît ou disparaît) oblige à **réécrire l'objet entier**, puis à le **renvoyer à tous les kube-proxy** de tous les nœuds. C'est lourd et coûteux.\n\n👉 **Analogie** : garder tous les contacts d'une immense entreprise sur **une seule feuille**. Dès qu'une personne change de numéro, tu dois **réimprimer et redistribuer la feuille complète** à tout le monde. Absurde à grande échelle.\n\nLes **EndpointSlices** (« tranches d'endpoints ») résolvent cela en **découpant** la liste en **morceaux** (par défaut 100 endpoints par tranche). Un changement ne touche **qu'une seule tranche**, et seule celle-ci est renvoyée : la charge sur l'**apiserver** (le cerveau de Kubernetes, qui reçoit toutes les requêtes) et sur kube-proxy **chute fortement**.\n\nC'est aujourd'hui le mécanisme **par défaut**, tu n'as rien à activer. On le mentionne pour deux raisons : comprendre **comment le routage tient à l'échelle**, et savoir **déboguer** (`kubectl get endpointslices` te montre les cibles réelles d'un Service quand quelque chose cloche)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "EndpointSlices : découper la liste des endpoints pour l'échelle.",
+          "body": "/images/lessons/headless-endpointslices-affinite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Affinité & routage topologique (niveau expert)",
           "body": "Trois réglages fins pour finir, utiles surtout à grande échelle. Pas besoin de les maîtriser tout de suite : sache qu'ils existent.\n\n**La session affinity** (`sessionAffinity: ClientIP`) : elle route **un même client toujours vers le même pod**, en se basant sur son IP. 👉 **Analogie** : être **toujours servi par le même vendeur** dans un magasin. C'est pratique si le pod garde en mémoire des infos de ta session, mais c'est **fragile** (si ce pod meurt, la session est perdue) : on préfère en général **externaliser l'état** (le stocker ailleurs, par exemple dans un cache partagé).\n\n**Le routage topologique** (*topology aware routing*, via `spec.trafficDistribution: PreferClose`, ou les *topology hints*) : il **privilégie les pods de la même zone** que l'appelant. Une **zone** est un regroupement de serveurs proches (typiquement un centre de données). Rester dans la même zone réduit la **latence** (le délai) et surtout les **coûts** : dans le cloud, le trafic **entre zones différentes** est **facturé**. À grande échelle, l'économie est réelle.\n\n**`internalTrafficPolicy: Local`** : c'est l'équivalent « interne » de ce qu'on a vu avec `externalTrafficPolicy`. Il **cantonne le trafic interne aux pods du nœud local**, sans sortir vers les autres nœuds.\n\n👉 **En résumé** : ces trois leviers ajustent **latence, coût et affinité de session**. Ce sont des sujets d'**exploitation à grande échelle** ; retiens leur existence, tu les régleras le jour où tu en auras besoin."
         },
         {
+          "type": "IMAGE",
+          "title": "Affinité & routage topologique à grande échelle.",
+          "body": "/images/lessons/headless-endpointslices-affinite-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "Vous déployez une base de données répliquée en StatefulSet. Chaque réplica doit pouvoir joindre les autres réplicas individuellement (par exemple le réplica 1 doit contacter le réplica 0, le primaire). Un Service ClusterIP classique ne convient pas. Quel type de Service utiliser et pourquoi ?",
           "solution": "Il faut un headless Service (clusterIP: None). Un Service ClusterIP classique donne une seule IP virtuelle qui RÉPARTIT le trafic aléatoirement entre tous les pods : impossible de cibler un réplica précis, ce qui est incompatible avec une base répliquée où chaque nœud doit s'adresser à un pair identifié (le réplica 1 doit contacter SPÉCIFIQUEMENT le réplica 0, le primaire, pas « un pod au hasard »). Le headless Service résout cela : au lieu d'une IP virtuelle, le DNS renvoie directement les adresses de chaque pod, et, couplé au StatefulSet, il fournit une entrée DNS STABLE par pod, de la forme <pod>.<service>.<namespace>.svc.cluster.local (ex. db-0.db-headless...). Ainsi, db-1 peut résoudre et joindre db-0 nommément, de façon stable même après recréation ; c'est ce qui permet la découverte de pairs, la réplication et l'élection du primaire dans un cluster de base de données. C'est d'ailleurs le pattern standard : un StatefulSet est presque toujours associé à un headless Service pour donner à chaque pod une identité réseau stable et adressable individuellement (on peut ajouter un Service ClusterIP normal en plus, pour l'accès équilibré des clients applicatifs au primaire ou en lecture)."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, Headless & EndpointSlices (expert)",
           "quizRef": "headless-endpointslices-expert"
         }

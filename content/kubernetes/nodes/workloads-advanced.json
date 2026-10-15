@@ -13,28 +13,40 @@
           "body": "Avant tout, deux rappels de vocabulaire. Un **pod** est la plus petite unité que Kubernetes sait lancer : c'est une **enveloppe autour d'un ou plusieurs conteneurs** (ton application qui tourne pour de vrai). Un **Deployment** est l'objet qui fabrique et surveille un groupe de pods **identiques** pour une application, et les relance automatiquement s'ils tombent.\n\nLe Deployment traite ses pods comme **interchangeables** : ils sont **sans état** (en anglais *stateless*, c'est-à-dire qu'ils ne gardent aucune donnée qui leur soit propre), **jetables**, et reçoivent des noms **aléatoires** (par exemple `web-7d9f8a-x2k`). Parfait pour une application web : si un pod meurt, un autre le remplace et personne ne voit la différence.\n\n👉 **Analogie** : les pods d'un Deployment sont comme les **caissiers interchangeables** d'un supermarché. Peu importe lequel te sert, le service est le même, et si l'un part en pause un autre prend sa place sans que ça change quoi que ce soit pour toi.\n\nMais certaines applications gardent des **données qui appartiennent à chaque exemplaire** : on dit qu'elles ont un **état** (en anglais *stateful*). Exemple typique : une **base de données répliquée** (plusieurs copies de la base qui se synchronisent entre elles), ou un **cluster** applicatif (un groupe de programmes qui travaillent ensemble) comme **Kafka** (une file de messages) ou **Elasticsearch** (un moteur de recherche). Ces applications ont besoin de pods à **identité stable** : un nom fixe qui ne change jamais, un **stockage propre** qui les suit partout, et un **ordre** de démarrage précis.\n\n👉 **Analogie** : ici les pods ne sont plus des caissiers interchangeables mais des **employés nominatifs avec chacun son casier**. `db-0` a SON casier (ses données), `db-1` a le sien ; on ne peut pas les intervertir sans tout mélanger.\n\nC'est le rôle du **StatefulSet**. Comme le Deployment, il crée et surveille un groupe de pods, mais il leur donne des noms **ordonnés et stables** (`db-0`, `db-1`, `db-2`), un **volume persistant dédié** à chacun (un espace de stockage qui survit aux redémarrages), et un démarrage/arrêt **ordonné**. Règle simple à retenir : pour tout ce qui a un état identifiable, **StatefulSet** ; pour le reste (le sans-état), **Deployment**."
         },
         {
+          "type": "IMAGE",
+          "title": "Quand le Deployment ne suffit pas : les applications avec état.",
+          "body": "/images/lessons/statefulsets-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Identité stable & stockage par pod",
           "body": "Le StatefulSet apporte **trois garanties**. Détaillons-les une par une.\n\n**1. Identité réseau stable.** Chaque pod a un nom **prévisible** (`db-0`, `db-1`, `db-2`) et une **adresse DNS** stable. Le **DNS** (en anglais *Domain Name System*) est l'annuaire du réseau : il traduit un nom lisible (comme `db-0.mabase`) en adresse technique, exactement comme un répertoire téléphonique traduit un nom en numéro. Cette adresse par pod est fournie par un **headless Service** : un Service « sans tête », c'est-à-dire sans adresse unique partagée. Au lieu de répartir le trafic au hasard entre les pods (ce que fait un Service normal), il expose une **entrée DNS par pod**. 👉 **Analogie** : c'est la différence entre appeler le **standard d'une entreprise** qui te bascule sur n'importe quel agent libre (Service normal), et composer le **numéro de poste direct** d'une personne précise (headless Service). Un nœud de base de données a justement besoin de joindre `db-0` en personne, pas « n'importe quel db ».\n\n**2. Stockage persistant par pod.** Via un **`volumeClaimTemplate`** (un « modèle de demande de volume »), chaque pod obtient son **propre** espace de stockage. Ce stockage prend la forme d'un **PVC** (en anglais *PersistentVolumeClaim*, une « demande de volume persistant ») : c'est un **bon de réservation** qui dit « je réserve 10 Go d'espace durable ». Kubernetes lui attribue alors un **volume** réel (le disque). L'important : ce volume **suit** le pod. `db-0` retrouve **toujours ses propres données**, même après un redémarrage, une recréation, ou un déplacement sur un autre nœud. 👉 **Analogie** : chaque pod a son **casier personnel fermé à clé** ; quand il revient de pause, il rouvre SON casier avec SES affaires, jamais celui du voisin.\n\n**3. Ordre.** Les pods sont créés **dans l'ordre** (`db-0` d'abord, puis `db-1`, puis `db-2`), chacun attendant que le précédent soit prêt, et supprimés **dans l'ordre inverse**. C'est crucial pour initialiser un cluster : souvent le premier nœud joue un rôle particulier (le **primaire**, celui qui décide) et les suivants s'y raccrochent. 👉 **Analogie** : on **monte un échafaudage étage par étage**, pas les quatre coins en même temps.\n\nCes garanties ont un **coût de complexité** : un StatefulSet est plus lourd à gérer qu'un Deployment. On ne les prend donc que si l'application les **exige** vraiment."
         },
         {
+          "type": "IMAGE",
+          "title": "StatefulSet : identité stable et stockage par pod.",
+          "body": "/images/lessons/statefulsets-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "Vue d'ensemble d'un StatefulSet",
           "diagramFormat": "MERMAID",
           "body": "graph TD\n  SS[\"StatefulSet: db (3 replicas)\"] --> P0[\"Pod db-0\"]\n  SS --> P1[\"Pod db-1\"]\n  SS --> P2[\"Pod db-2\"]\n  P0 --> V0[(\"PVC db-0 : donnees propres\")]\n  P1 --> V1[(\"PVC db-1 : donnees propres\")]\n  P2 --> V2[(\"PVC db-2 : donnees propres\")]\n  HS[\"Headless Service\"] -. DNS stable par pod .-> P0\n  HS -. DNS stable par pod .-> P1\n  HS -. DNS stable par pod .-> P2"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Une équipe déploie une base de données répliquée à 3 nœuds avec un Deployment classique. Les pods reçoivent des noms aléatoires qui changent à chaque recréation, et perdent parfois leurs données au redémarrage. Quel objet aurait-il fallu utiliser et pourquoi ?",
           "solution": "Il fallait un StatefulSet, pas un Deployment. Un Deployment traite les pods comme interchangeables et sans état : noms aléatoires qui changent à chaque recréation, et pas de stockage attitré à chaque pod, d'où les problèmes observés (identité instable, perte de données). Une base de données répliquée a précisément besoin de ce que le StatefulSet garantit : (1) des identités stables et ordonnées (db-0, db-1, db-2) avec une adresse DNS stable par pod, pour que les réplicas se connaissent et que la réplication cible le bon nœud ; (2) un volume persistant DÉDIÉ à chaque pod (via volumeClaimTemplate) qui le suit, db-0 retrouve toujours SES données, même après redémarrage ou replanification ; (3) un ordre de démarrage/arrêt déterministe, souvent nécessaire pour initialiser proprement un cluster (le primaire d'abord, etc.). En résumé : tout workload à état identifiable (bases, brokers, systèmes de consensus) doit utiliser un StatefulSet. (En pratique, on s'appuie souvent en plus sur un opérateur dédié à la base, qui gère la réplication au-dessus du StatefulSet.)"
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, StatefulSets",
           "quizRef": "workloads-advanced-statefulsets-check"
         }
@@ -52,28 +64,40 @@
           "body": "Rappel utile : un **nœud** (en anglais *node*) est une **machine** (physique ou virtuelle) du cluster, sur laquelle Kubernetes fait effectivement tourner des pods. Un cluster, c'est simplement un ensemble de nœuds pilotés ensemble.\n\nUn **DaemonSet** garantit qu'**un seul exemplaire** d'un pod tourne sur **chaque nœud** (ou sur un sous-ensemble choisi, via des **sélecteurs** : des étiquettes qui filtrent les nœuds visés). Quand un nouveau nœud rejoint le cluster, il reçoit **automatiquement** ce pod ; quand un nœud part, son pod disparaît avec lui.\n\n👉 **Analogie** : c'est comme la règle « **un extincteur par étage** » dans un immeuble. Tu ne fixes pas un nombre total d'extincteurs : la règle est « un par étage », donc si on construit un étage de plus, il aura le sien automatiquement, sans que tu aies à y penser.\n\nÀ quoi ça sert ? C'est le patron des **agents d'infrastructure** : ces petits programmes qui doivent être présents **partout** pour surveiller ou servir chaque machine. Exemples concrets : collecteurs de **logs** (les *journaux*, c'est-à-dire l'historique texte de ce que font les applications ; par exemple Fluent Bit), agents de **métriques** (des mesures comme la charge CPU ou la mémoire ; par exemple node-exporter), plugins **réseau** (le **CNI**, qui branche les pods au réseau) ou de **stockage** (le **CSI**, qui branche les disques), agents de **sécurité** (par exemple Falco). Point clé : on ne choisit **pas** le nombre de répliques d'un DaemonSet, il suit **mécaniquement** le nombre de nœuds."
         },
         {
+          "type": "IMAGE",
+          "title": "DaemonSet : un pod sur chaque nœud.",
+          "body": "/images/lessons/daemonsets-jobs-cronjobs-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Job & CronJob : les tâches",
           "body": "Tous les workloads ne tournent pas **en continu**. Certains ont un début et une **fin**.\n\nUn **Job** exécute une tâche **jusqu'à son terme** : il crée un (ou plusieurs) pod, attend qu'il **réussisse** (que le programme se termine sans erreur), et gère les **réessais** en cas d'échec grâce au champ **`backoffLimit`** (le nombre de tentatives avant d'abandonner). C'est l'outil des tâches **ponctuelles** : migration d'une base de données (transformer son schéma une seule fois), import de données, calcul unique. 👉 **Analogie** : un Job, c'est une **liste de courses**. Une fois tous les articles achetés, la tâche est **finie** : tu ne repars pas faire les courses en boucle.\n\nUn **CronJob** planifie un Job de façon **récurrente**, selon la **syntaxe cron**. Le mot « cron » vient du planificateur de tâches historique d'Unix : c'est une petite expression de cinq champs qui décrit un horaire (« tous les jours à 2 h », « toutes les 15 minutes »). Le CronJob sert aux tâches qui **reviennent** : **sauvegardes**, **rapports**, **nettoyage** périodique. 👉 **Analogie** : c'est le **réveil** ou l'**agenda récurrent** qui déclenche la même corvée à heure fixe.\n\nLa différence de fond avec un Deployment : un Deployment **redémarre ses pods sans fin** (une application web ne doit jamais s'arrêter), alors qu'un Job/CronJob a une notion de **complétion** : la tâche **finit**, et c'est exactement ce qu'on attend d'elle."
         },
         {
+          "type": "IMAGE",
+          "title": "Job & CronJob : tâches ponctuelles et planifiées.",
+          "body": "/images/lessons/daemonsets-jobs-cronjobs-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Un CronJob de sauvegarde",
           "codeLanguage": "yaml",
           "body": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: backup-db\nspec:\n  schedule: \"0 2 * * *\"          # tous les jours à 2 h (syntaxe cron)\n  jobTemplate:\n    spec:\n      backoffLimit: 2             # reessais en cas d'echec\n      template:\n        spec:\n          restartPolicy: Never\n          containers:\n            - name: dump\n              image: postgres:18\n              command: ['sh','-c','pg_dump ... > /backup/db.sql']"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Pour chacun de ces besoins, quel workload Kubernetes choisir : (a) faire tourner un collecteur de logs sur absolument tous les nœuds ; (b) exécuter chaque nuit une sauvegarde de base de données ; (c) faire tourner une API web répliquée sans état ?",
           "solution": "(a) Collecteur de logs sur tous les nœuds → un DaemonSet : il garantit exactement un pod du collecteur par nœud, s'ajuste automatiquement quand des nœuds rejoignent ou quittent le cluster, et c'est le patron standard des agents d'infrastructure (logs, métriques, réseau, sécurité). (b) Sauvegarde chaque nuit → un CronJob : il planifie l'exécution d'un Job selon une expression cron (ex. \"0 2 * * *\"), gère la complétion et les réessais, et convient aux tâches récurrentes bornées dans le temps (sauvegardes, rapports, nettoyage), contrairement à un Deployment qui tournerait sans fin. (c) API web répliquée sans état → un Deployment : c'est l'objet pour les applications sans état, avec répliques interchangeables, auto-réparation, rolling update et rollback. Le bon réflexe : Deployment pour le sans-état continu, StatefulSet pour l'état identifiable, DaemonSet pour un-par-nœud, Job/CronJob pour les tâches ponctuelles/planifiées."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, StatefulSets, DaemonSets & Jobs",
           "quizRef": "workloads-advanced-check"
         }
@@ -91,27 +115,45 @@
           "body": "Mettre à jour une application **avec état** est plus délicat qu'un Deployment : on touche à des données précieuses, dans un ordre qui compte. Par défaut, le StatefulSet met à jour ses pods **en ordre inverse** (du plus grand index au plus petit : `db-2`, puis `db-1`, puis `db-0`), **un par un**, en attendant que chacun soit **Ready** (« prêt », c'est-à-dire qu'il répond correctement) avant de passer au suivant.\n\nDeux leviers d'expert pour garder le contrôle.\n\n**Le champ `updateStrategy.rollingUpdate.partition`.** Il ne met à jour que les pods dont l'index est **supérieur ou égal à la valeur de partition**. En le réglant, on réalise un **canary** : on met à jour un seul pod (par exemple `db-2`), on l'observe en conditions réelles, et si tout va bien on **abaisse** la partition pour propager la mise à jour au reste. Le mot **canary** (« canari ») vient des mineurs qui descendaient avec un canari : si l'oiseau tombait, c'était le signal d'un danger, à temps. 👉 **Analogie** : tu fais **goûter le plat à une seule personne d'abord** ; si elle va bien, tu sers toute la table.\n\n**La stratégie `OnDelete`.** Avec elle, un pod n'est mis à jour que lorsque tu le **supprimes toi-même, manuellement**. Kubernetes ne touche à rien tout seul : c'est un **contrôle total**, utile pour les bases très sensibles où l'on veut choisir précisément le moment de chaque redémarrage. 👉 **Analogie** : le mode **« manuel »** au lieu de l'automatique ; c'est toi qui décides quand chaque étage passe à la nouvelle version.\n\nEnfin, la **PVC retention policy** (`persistentVolumeClaimRetentionPolicy`) décide du sort des **volumes** (rappel : le stockage persistant propre à chaque pod) quand le StatefulSet est **réduit** (moins de répliques) ou **supprimé** : faut-il les **conserver** (pour ne rien perdre) ou les **supprimer** (pour ne pas laisser traîner des disques orphelins qui coûtent cher) ? Mal réglé, ce champ peut soit **détruire des données**, soit **accumuler** des volumes inutiles."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Jobs : parallélisme & robustesse",
-          "body": "Un Job ne se limite pas à « lancer un pod ». Quelques champs le transforment en véritable outil de traitement par lot.\n\n**`completions`** fixe le nombre d'exécutions **réussies** attendues (par exemple 10 unités de travail à terminer). **`parallelism`** fixe le nombre de pods qui tournent **en même temps**. 👉 **Analogie** : `completions`, c'est « il y a **100 colis à livrer** » ; `parallelism`, c'est « on met **5 livreurs en même temps** ». Combinés, ils accélèrent un gros traitement en le répartissant.\n\nLes **indexed jobs** (« jobs indexés ») donnent à chaque pod un **numéro d'index** (de 0 à N-1). Chaque pod sait ainsi **quelle part** du travail lui revient (le pod n°3 traite le lot n°3), sans que deux pods se marchent dessus. 👉 **Analogie** : on découpe un annuaire en tranches et on donne **la tranche A-E au premier livreur, F-J au deuxième**, et ainsi de suite.\n\nDeux garde-fous essentiels. **`backoffLimit`** borne le nombre de **réessais** avant d'abandonner (sinon un job cassé réessaierait sans fin). **`activeDeadlineSeconds`** limite la **durée totale** : passé ce délai, le Job est stoppé même s'il n'a pas fini (utile contre un traitement qui reste coincé). 👉 **Analogie** : le **minuteur** et le **nombre d'essais maximum** d'un jeu ; on ne s'acharne pas indéfiniment.\n\nUn traitement par lot bien conçu exploite ces réglages pour la **parallélisation** (aller vite) et la **robustesse** (ne pas rester bloqué), là où un débutant lancerait un seul pod séquentiel qui plante en silence."
+          "type": "IMAGE",
+          "title": "Mettre à jour un StatefulSet : partition et OnDelete, avec précaution.",
+          "body": "/images/lessons/mises-a-jour-et-patterns-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Jobs : parallélisme & robustesse",
+          "body": "Un Job ne se limite pas à « lancer un pod ». Quelques champs le transforment en véritable outil de traitement par lot.\n\n**`completions`** fixe le nombre d'exécutions **réussies** attendues (par exemple 10 unités de travail à terminer). **`parallelism`** fixe le nombre de pods qui tournent **en même temps**. 👉 **Analogie** : `completions`, c'est « il y a **100 colis à livrer** » ; `parallelism`, c'est « on met **5 livreurs en même temps** ». Combinés, ils accélèrent un gros traitement en le répartissant.\n\nLes **indexed jobs** (« jobs indexés ») donnent à chaque pod un **numéro d'index** (de 0 à N-1). Chaque pod sait ainsi **quelle part** du travail lui revient (le pod n°3 traite le lot n°3), sans que deux pods se marchent dessus. 👉 **Analogie** : on découpe un annuaire en tranches et on donne **la tranche A-E au premier livreur, F-J au deuxième**, et ainsi de suite.\n\nDeux garde-fous essentiels. **`backoffLimit`** borne le nombre de **réessais** avant d'abandonner (sinon un job cassé réessaierait sans fin). **`activeDeadlineSeconds`** limite la **durée totale** : passé ce délai, le Job est stoppé même s'il n'a pas fini (utile contre un traitement qui reste coincé). 👉 **Analogie** : le **minuteur** et le **nombre d'essais maximum** d'un jeu ; on ne s'acharne pas indéfiniment.\n\nUn traitement par lot bien conçu exploite ces réglages pour la **parallélisation** (aller vite) et la **robustesse** (ne pas rester bloqué), là où un débutant lancerait un seul pod séquentiel qui plante en silence."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Jobs : parallélisme et robustesse.",
+          "body": "/images/lessons/mises-a-jour-et-patterns-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "CronJob : les pièges de concurrence (niveau expert)",
           "body": "Un CronJob a des réglages souvent **ignorés** qui causent de vrais incidents en production. Les voici.\n\n**`concurrencyPolicy`** répond à la question : que faire si l'exécution **précédente n'est pas finie** quand la suivante doit démarrer ? Trois valeurs possibles. **`Allow`** (le défaut) : les exécutions **se chevauchent** (deux tournent en même temps), au risque de doublons ou de conflits. **`Forbid`** : on **saute** la nouvelle tant que l'ancienne tourne encore. **`Replace`** : on **tue** l'ancienne pour lancer la nouvelle. Pour une sauvegarde ou une tâche **non réentrante** (une tâche qui ne supporte pas d'être exécutée en double en même temps, car les deux se marcheraient dessus sur les mêmes données), **`Forbid`** est souvent le bon choix. 👉 **Analogie** : une **imprimante partagée**. Si un document est déjà en cours, `Forbid` = « attends ton tour », `Replace` = « annule le sien et imprime le mien », `Allow` = « imprimez les deux en même temps sur la même feuille » (le chaos garanti).\n\n**`startingDeadlineSeconds`** : si le contrôleur qui déclenche les CronJobs était **indisponible** à l'heure prévue, jusqu'à **combien de temps après** a-t-on encore le droit de **rattraper** l'exécution manquée ? Au-delà de ce délai, l'exécution est **abandonnée silencieusement** (personne n'est prévenu). 👉 **Analogie** : un train raté ; `startingDeadlineSeconds` dit « je veux bien attendre le suivant jusqu'à 10 minutes, pas au-delà ».\n\n**`successfulJobsHistoryLimit`** et **`failedJobsHistoryLimit`** bornent le nombre de **vieux Jobs conservés** (réussis et échoués) pour consultation. Sans limite, ils **s'accumulent** et encombrent le cluster. 👉 **Analogie** : ne garder que les **N derniers tickets de caisse** au lieu de tous les empiler à l'infini.\n\nRégler ces champs, c'est ce qui distingue un CronJob **fiable** d'une **bombe à retardement** qui marche « jusqu'au jour où »."
         },
         {
+          "type": "IMAGE",
+          "title": "CronJob : les pièges de concurrence.",
+          "body": "/images/lessons/mises-a-jour-et-patterns-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "Un CronJob de sauvegarde de base de données s'exécute toutes les heures, mais certaines sauvegardes prennent parfois plus d'une heure. On observe des exécutions qui se chevauchent, saturant la base et produisant des sauvegardes corrompues. Quel réglage corrige cela, et lequel choisir ?",
           "solution": "Le problème vient de la concurrencyPolicy par défaut (Allow) : quand une sauvegarde dépasse une heure, la CronJob démarre quand même la suivante à l'heure prévue, si bien que deux sauvegardes tournent en même temps, d'où la saturation de la base et des dumps corrompus (deux processus concurrents sur les mêmes données). Réglage à corriger : concurrencyPolicy. Choix adapté ici : Forbid, si l'exécution précédente n'est pas terminée, la nouvelle est SAUTÉE (pas de chevauchement) ; la sauvegarde en cours va à son terme et la prochaine repartira au créneau suivant. C'est le bon choix pour une tâche non réentrante comme une sauvegarde (mieux vaut sauter une exécution que corrompre les données). (Replace tuerait la sauvegarde en cours pour lancer la nouvelle, inadapté ici car on ne veut pas interrompre un dump en cours ; Allow est précisément le défaut problématique.) On complète utilement par startingDeadlineSeconds (pour gérer proprement les rattrapages si le contrôleur était indisponible) et par des history limits pour ne pas accumuler les vieux Jobs. Idéalement, on rend aussi le job idempotent/verrouillé. Le réglage clé reste concurrencyPolicy: Forbid pour empêcher tout chevauchement."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, Mises à jour & patterns (expert)",
           "quizRef": "workloads-patterns-expert"
         }

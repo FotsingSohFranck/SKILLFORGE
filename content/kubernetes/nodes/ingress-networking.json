@@ -13,35 +13,47 @@
           "body": "Quand tu tapes une adresse comme `exemple.com` dans ton navigateur, ta demande voyage par **HTTP** (*HyperText Transfer Protocol*), le langage du web : c'est le protocole que navigateurs et serveurs utilisent pour s'échanger des pages. Sa version sécurisée (chiffrée) s'appelle **HTTPS** (le `S` pour *Secure*) : c'est ce qui affiche le petit cadenas dans le navigateur.\n\nDans Kubernetes, une application qui tourne est jointe via un **Service** (une adresse interne stable au cluster). Pour la rendre accessible **depuis l'extérieur** (Internet), une première méthode est le **LoadBalancer** : le cloud attribue une **IP publique** (une adresse joignable depuis Internet) rien que pour ce Service. Le souci : une IP publique se **paie**, et il en faudrait une par application. Avec 10 applications, ça fait 10 IP publiques et 10 lignes sur la facture.\n\nL'**Ingress** (mot anglais pour « entrée », « ce qui entre ») règle ce problème. C'est un **point d'entrée HTTP(S) unique** placé en façade du cluster : tout le trafic web arrive par lui, et il le **route** (l'aiguille) vers le bon Service selon deux critères lus dans l'URL :\n- le **domaine** (le nom de site, la partie juste après `https://`, par exemple `api.exemple.com`) ;\n- le **chemin** (*path*, ce qui vient après le nom de site, par exemple `/blog`).\n\nExemples de règles : `api.exemple.com` vers le Service `api` ; `exemple.com/blog` vers le Service `blog` ; `exemple.com/` vers le Service `frontend`. En bonus, l'Ingress gère la **terminaison TLS** (déchiffrer le HTTPS une seule fois, à l'entrée) de façon centralisée.\n\n👉 **Analogie** : l'Ingress est le **standardiste** à l'accueil d'un grand immeuble de bureaux. Les visiteurs entrent tous par **une seule porte**, disent qui ils viennent voir (le domaine et le chemin), et le standardiste les **aiguille** vers le bon étage (le bon Service). Sans lui, il faudrait une porte d'entrée et une adresse publique par bureau. C'est le pendant Kubernetes du **reverse proxy** (le serveur qui reçoit les requêtes et les redistribue en interne) que tu as croisé avec Docker."
         },
         {
+          "type": "IMAGE",
+          "title": "L'Ingress : un point d'entrée HTTP intelligent.",
+          "body": "/images/lessons/ingress-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "L'objet Ingress a besoin d'un contrôleur",
           "body": "Voici le piège qui déroute presque tous les débutants. Dans Kubernetes, un **objet** est une fiche que tu déclares (souvent en YAML) puis que tu envoies au cluster ; l'objet **Ingress** contient tes **règles de routage** (« tel domaine va vers tel Service »). Mais créer cet objet ne **fait rien** tout seul : c'est juste une **liste de consignes** posée sur une étagère. Personne ne la lit encore.\n\nPour que ces règles s'appliquent réellement, il faut un programme qui tourne dans le cluster et dont le métier est de **lire les objets Ingress et d'exécuter le routage** : c'est l'**Ingress Controller** (contrôleur d'Ingress). C'est **lui** qui écoute le trafic venu de l'extérieur et l'aiguille selon tes règles. Les plus connus : **NGINX Ingress** (bâti sur le serveur web NGINX), **Traefik**, ou le contrôleur fourni par ton cloud. Le champ `ingressClassName` de ton objet indique **quel** contrôleur doit prendre en charge ces règles.\n\n👉 **Analogie** : ton objet Ingress est une **partition de musique** (les notes écrites sur le papier). Sans **musicien** pour la lire et la jouer, elle reste une feuille muette. L'Ingress Controller, c'est le musicien. Écrire la partition ne produit aucun son tant que personne ne la joue. Concrètement : si tu appliques un Ingress sur un cluster où aucun contrôleur n'est installé, ton YAML est accepté sans erreur, et pourtant **rien** n'est accessible, parce que personne n'exécute les règles.\n\nDe plus en plus, une norme plus récente et plus riche, la **Gateway API**, remplace progressivement l'Ingress pour les besoins avancés (routage fin, trafic pondéré, protocoles autres que HTTP). On la découvre dans la dernière leçon."
         },
         {
+          "type": "IMAGE",
+          "title": "L'objet Ingress a besoin d'un contrôleur pour agir.",
+          "body": "/images/lessons/ingress-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Une règle d'Ingress",
           "codeLanguage": "yaml",
           "body": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: site\nspec:\n  ingressClassName: nginx      # quel contrôleur applique ces règles\n  tls:\n    - hosts: [ \"exemple.com\" ]\n      secretName: exemple-tls  # certificat TLS (Secret)\n  rules:\n    - host: exemple.com\n      http:\n        paths:\n          - path: /api\n            pathType: Prefix\n            backend: { service: { name: backend, port: { number: 8080 } } }\n          - path: /\n            pathType: Prefix\n            backend: { service: { name: frontend, port: { number: 80 } } }"
         },
         {
           "type": "DIAGRAM",
-          "position": 3,
+          "position": 5,
           "title": "Le trajet d'une requête vers le bon Service",
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    U[\"Utilisateur (navigateur)\"] -->|\"HTTPS vers exemple.com\"| C[\"Load balancer + Ingress Controller (la porte unique)\"]\n    C -->|\"chemin /api\"| S1[\"Service backend :8080\"]\n    C -->|\"chemin /\"| S2[\"Service frontend :80\"]\n    S1 --> P1[\"Pods backend\"]\n    S2 --> P2[\"Pods frontend\"]"
         },
         {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Un développeur crée un objet Ingress avec de belles règles de routage, applique le YAML sans erreur, mais rien n'est accessible depuis l'extérieur. Quelle est la cause la plus probable ?",
           "solution": "La cause la plus probable est l'absence d'Ingress Controller dans le cluster. Un objet Ingress n'est qu'une DÉCLARATION de règles de routage stockée dans l'API, il ne route rien par lui-même. Ce sont les Ingress Controllers (NGINX Ingress, Traefik, ou le contrôleur natif du fournisseur cloud) qui LISENT ces objets Ingress et appliquent réellement le routage, en écoutant le trafic externe. Sans contrôleur installé (et sans load balancer/adresse externe qui pointe vers lui), les règles Ingress sont simplement ignorées : le YAML est accepté, mais rien ne l'exécute. Corrections : installer un Ingress Controller (ex. ingress-nginx) dans le cluster, s'assurer qu'il dispose d'une adresse externe (Service LoadBalancer sur un cloud managé), et que l'objet Ingress référence la bonne ingressClassName correspondant au contrôleur. On vérifie avec kubectl get ingress (colonne ADDRESS renseignée) et kubectl get pods -n <ns-du-controller>. Autres causes possibles une fois le contrôleur en place : DNS du domaine non pointé vers l'adresse du contrôleur, ou certificat TLS manquant."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Ingress",
           "quizRef": "ingress-check"
         }
@@ -59,27 +71,45 @@
           "body": "Un **pod** est la plus petite unité déployable de Kubernetes : un ou plusieurs conteneurs qui tournent ensemble. Une **IP** (adresse *Internet Protocol*, par exemple `10.1.2.3`) est le numéro qui identifie un programme sur un réseau, un peu comme un **numéro de téléphone** : pour joindre quelqu'un, il te faut son numéro.\n\nKubernetes impose une règle réseau **simple mais forte** : **chaque pod reçoit sa propre IP**, et **tous les pods peuvent se joindre directement** par cette IP, **sans NAT**, peu importe le **nœud** (la machine physique ou virtuelle du cluster) sur lequel ils tournent. Le **NAT** (*Network Address Translation*, traduction d'adresses) est cette technique où une adresse est réécrite au passage d'une frontière réseau ; ici, justement, on n'en veut pas : l'IP qu'un pod voit est la vraie. Résultat : c'est comme si **tous les pods étaient branchés sur un même grand réseau plat**, même répartis sur des dizaines de machines.\n\n👉 **Analogie** : imagine un immense **open space** où chaque personne (un pod) a un **numéro de poste direct**. N'importe qui appelle n'importe qui en composant son numéro, sans passer par un standard qui renumérote les appels au passage. Peu importe l'étage (le nœud) où la personne est assise.\n\nÇa change tout par rapport à **Docker** seul, où, sur une seule machine, il fallait **mapper des ports** (l'option `-p 8080:80`, qui expose un port du conteneur sur un port de l'hôte) pour joindre un conteneur. Dans Kubernetes, ce bricolage de ports disparaît au niveau pod-à-pod : un pod parle à un autre par son IP (ou, mieux, par un **Service**, une adresse stable qu'on verra ensuite). Attention : ce modèle est une **exigence** (ce que Kubernetes promet), mais Kubernetes ne le **réalise** pas lui-même : il délègue le câblage à un plugin réseau (section suivante)."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Le CNI : qui réalise le réseau",
-          "body": "Kubernetes pose l'exigence (« chaque pod une IP joignable ») mais ne **câble** pas le réseau lui-même. Il confie ce travail à un **plugin** (un module qu'on branche pour ajouter une fonction) qui respecte une norme appelée **CNI** (*Container Network Interface*, « interface réseau pour conteneurs »). Le CNI est le **contrat** : n'importe quel plugin qui le respecte peut fournir le réseau du cluster.\n\nLes plus répandus : **Calico**, **Cilium**, **Flannel**, ou le plugin réseau de ton cloud (souvent appelé *VPC CNI*). Ils réalisent le fameux « chaque pod une IP » de deux grandes façons :\n- le **réseau overlay** : les paquets d'un pod sont emballés dans d'autres paquets pour voyager d'un nœud à l'autre (on parle d'**encapsulation**, par exemple *VXLAN*), comme glisser une lettre dans une seconde enveloppe pour le courrier interne ;\n- le **routage natif** : les IP de pods sont directement routables sur le réseau des nœuds, sans emballage.\n\n👉 **Analogie** : Kubernetes est l'**architecte** qui exige « chaque bureau doit avoir le courant ». Le CNI est l'**électricien** qui tire réellement les câbles ; libre à lui de passer les fils dans les murs (overlay) ou en apparent (routage natif), du moment que le courant arrive à destination.\n\nCertains CNI vont plus loin. **Cilium**, par exemple, est basé sur **eBPF** (une technologie qui exécute de petits programmes très efficaces directement dans le **noyau** Linux, le cœur du système d'exploitation). Cela lui donne des **NetworkPolicies** performantes (des règles de pare-feu qui décident quel pod a le droit de parler à quel pod), de l'observabilité réseau et du chiffrement. Le choix du CNI est une **décision d'architecture** du cluster ; en environnement **managé** (le cloud gère le cluster pour toi), il est souvent déjà fourni par défaut."
+          "type": "IMAGE",
+          "title": "Le modèle réseau : chaque pod a sa propre IP.",
+          "body": "/images/lessons/reseau-du-cluster-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Le CNI : qui réalise le réseau",
+          "body": "Kubernetes pose l'exigence (« chaque pod une IP joignable ») mais ne **câble** pas le réseau lui-même. Il confie ce travail à un **plugin** (un module qu'on branche pour ajouter une fonction) qui respecte une norme appelée **CNI** (*Container Network Interface*, « interface réseau pour conteneurs »). Le CNI est le **contrat** : n'importe quel plugin qui le respecte peut fournir le réseau du cluster.\n\nLes plus répandus : **Calico**, **Cilium**, **Flannel**, ou le plugin réseau de ton cloud (souvent appelé *VPC CNI*). Ils réalisent le fameux « chaque pod une IP » de deux grandes façons :\n- le **réseau overlay** : les paquets d'un pod sont emballés dans d'autres paquets pour voyager d'un nœud à l'autre (on parle d'**encapsulation**, par exemple *VXLAN*), comme glisser une lettre dans une seconde enveloppe pour le courrier interne ;\n- le **routage natif** : les IP de pods sont directement routables sur le réseau des nœuds, sans emballage.\n\n👉 **Analogie** : Kubernetes est l'**architecte** qui exige « chaque bureau doit avoir le courant ». Le CNI est l'**électricien** qui tire réellement les câbles ; libre à lui de passer les fils dans les murs (overlay) ou en apparent (routage natif), du moment que le courant arrive à destination.\n\nCertains CNI vont plus loin. **Cilium**, par exemple, est basé sur **eBPF** (une technologie qui exécute de petits programmes très efficaces directement dans le **noyau** Linux, le cœur du système d'exploitation). Cela lui donne des **NetworkPolicies** performantes (des règles de pare-feu qui décident quel pod a le droit de parler à quel pod), de l'observabilité réseau et du chiffrement. Le choix du CNI est une **décision d'architecture** du cluster ; en environnement **managé** (le cloud gère le cluster pour toi), il est souvent déjà fourni par défaut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le CNI réalise concrètement le réseau du cluster.",
+          "body": "/images/lessons/reseau-du-cluster-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "kube-proxy & la mécanique des Services (niveau expert)",
           "body": "Cette section soulève le capot ; garde-la comme approfondissement. Question : quand tu appelles un **Service** (qui a une **IP virtuelle**, une adresse qui n'appartient à aucune machine réelle), comment l'appel atteint-il concrètement l'un des pods derrière lui ?\n\nHistoriquement, un composant nommé **kube-proxy** tourne sur **chaque nœud** et y programme des règles de redirection. Il s'appuie pour cela sur **iptables** (le pare-feu et routeur intégré au noyau Linux, qui filtre et redirige les paquets selon des règles) ou, pour de meilleures performances à grande échelle, sur **IPVS** (*IP Virtual Server*, un module Linux spécialisé dans la répartition de charge). Ces règles **interceptent** le trafic destiné à l'IP du Service et le **redirigent** vers l'une des IP de pods listées dans les **endpoints** (la liste, tenue à jour par Kubernetes, des pods **prêts** qui se cachent derrière le Service).\n\nAutrement dit, l'IP d'un Service **n'existe nulle part physiquement** : ce n'est pas une carte réseau, c'est une **règle de redirection** appliquée sur chaque nœud.\n\n👉 **Analogie** : l'IP du Service est un **numéro de standard unique** (« appelez le service client »). Aucun téléphone ne porte réellement ce numéro : le standard (kube-proxy) **redirige** chaque appel vers l'un des agents disponibles (les pods des endpoints). Un agent qui part en pause (un pod qui n'est plus **prêt**) est retiré de la liste, et cesse **instantanément** de recevoir des appels.\n\nLes CNI modernes à base d'**eBPF** (comme Cilium) remplacent avantageusement kube-proxy par des programmes noyau plus directs et plus rapides. Comprendre cette mécanique explique deux choses très pratiques : pourquoi un pod non prêt arrête net de recevoir du trafic (il quitte les endpoints), et **où** enquêter quand « le Service ne route pas » (du côté des endpoints et des règles kube-proxy)."
         },
         {
+          "type": "IMAGE",
+          "title": "kube-proxy : la mécanique interne des Services.",
+          "body": "/images/lessons/reseau-du-cluster-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "Un collègue affirme : « Dans Kubernetes, comme avec Docker, il faut mapper des ports entre les pods pour qu'ils communiquent d'un nœud à l'autre. » Corrigez cette affirmation.",
           "solution": "C'est faux : le modèle réseau de Kubernetes est différent et plus simple. Kubernetes impose que CHAQUE pod ait sa propre IP et que TOUS les pods puissent se joindre directement, sans NAT ni mapping de ports, quel que soit le nœud sur lequel ils s'exécutent, comme s'ils étaient sur un grand réseau plat. Un pod atteint donc un autre pod par son IP (ou, en pratique, par un Service pour avoir une adresse stable), sans se soucier du nœud ni de mapper des ports comme on le faisait avec `-p` en Docker sur un seul hôte. Cette exigence est réalisée par le plugin CNI (Calico, Cilium, Flannel, VPC CNI...) installé dans le cluster, qui met en place le réseau (routage ou overlay) pour rendre les IP de pods mutuellement joignables entre nœuds. Le mapping de ports façon Docker n'existe plus au niveau pod-à-pod ; l'exposition externe, elle, se gère via les Services (NodePort/LoadBalancer) et l'Ingress, pas par des -p entre pods."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, Réseau du cluster",
           "quizRef": "cluster-networking-check"
         }
@@ -97,27 +127,45 @@
           "body": "Tu connais désormais l'**Ingress** (le point d'entrée HTTP qui route par domaine et chemin). Il a des limites dès que les besoins grandissent : il est **peu expressif**, et pour aller au-delà du routage de base il faut lui coller des **annotations** (des étiquettes `clé: valeur` ajoutées à l'objet pour lui passer des options) **propres à chaque contrôleur**, donc **non portables** : ce qui marche avec NGINX ne marche pas tel quel avec Traefik. Il gère aussi mal le trafic **non-HTTP** ou **pondéré**.\n\nLa **Gateway API** est une norme plus récente (désormais stable) qui remplace l'Ingress pour les besoins avancés. Son idée maîtresse : **séparer les rôles** entre équipes, avec des objets distincts.\n- Côté **infra** (l'équipe qui gère la plateforme) : le **GatewayClass** (le type de passerelle disponible, fourni par une implémentation) et le **Gateway** (le point d'entrée concret : les ports ouverts, l'écoute, le TLS).\n- Côté **applicatif** (les équipes qui déploient des apps) : les **routes**, à savoir **HTTPRoute** (routage HTTP), **TCPRoute**, **GRPCRoute**, qui disent « tel trafic va vers mon Service ».\n\n👉 **Analogie** : la Gateway API, c'est un **aéroport** avec une répartition claire des métiers. L'exploitant de l'aéroport (l'infra) gère les **pistes et les portes** (le Gateway). Chaque compagnie aérienne (une équipe applicative) gère ses **vols et destinations** (les HTTPRoute) sans jamais toucher aux pistes. Chacun son périmètre, sans se marcher dessus, là où l'Ingress mélangeait tout dans un seul objet bourré d'annotations maison.\n\nElle apporte en natif le **trafic pondéré** (envoyer par exemple 10 % des visiteurs vers une nouvelle version : c'est le déploiement **canary**, du nom du « canari dans la mine » qu'on envoyait tester l'air en premier), le **multi-protocole**, et un modèle **portable** d'une implémentation à l'autre. Aujourd'hui, un profil confirmé conçoit l'exposition avec la Gateway API dès que les besoins dépassent le simple routage d'un Ingress."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "cert-manager : le TLS automatisé",
-          "body": "Le **HTTPS** (le web sécurisé) repose sur un **certificat TLS** : un fichier signé qui prouve « je suis bien `exemple.com` » et qui permet de **chiffrer** la connexion. Ce certificat a une **date d'expiration** ; passé cette date, les navigateurs affichent une grosse **erreur de sécurité** et les visiteurs fuient. Le gérer à la main (l'obtenir, puis le **renouveler** avant qu'il expire) est pénible et une source classique de pannes (« le certificat a expiré ce week-end »).\n\n**cert-manager** est un outil qui **automatise tout ce cycle de vie** à l'intérieur du cluster. Tu déclares un objet **`Certificate`** (ou une simple annotation sur ton Ingress ou ta Gateway), et cert-manager se charge du reste : il **obtient** le certificat auprès d'un **émetteur** (celui qui délivre et signe les certificats), puis le **renouvelle automatiquement** avant l'expiration. L'émetteur le plus courant est **Let's Encrypt**, une autorité **gratuite** ; pour prouver que le domaine t'appartient vraiment, elle utilise le protocole **ACME** via un « défi » (*challenge*) : **HTTP-01** (cert-manager place un fichier temporaire sur ton site que Let's Encrypt vient vérifier) ou **DNS-01** (il ajoute un enregistrement temporaire dans ta zone DNS). On peut aussi passer par une **PKI** interne (*Public Key Infrastructure*, l'autorité de certification privée d'une entreprise).\n\nLe certificat obtenu est rangé dans un **Secret** (l'objet Kubernetes qui stocke des données sensibles), que l'Ingress ou la Gateway vient lire pour servir le HTTPS.\n\n👉 **Analogie** : cert-manager est un **abonnement à renouvellement automatique**, comme le prélèvement auto de ton assurance. Au lieu de penser toi-même à renouveler chaque trimestre (et d'oublier un jour), le renouvellement se fait tout seul, en avance, sans intervention. Plus d'expiration surprise. C'est devenu le **standard de fait** du TLS dans Kubernetes."
+          "type": "IMAGE",
+          "title": "La Gateway API : le successeur d'Ingress.",
+          "body": "/images/lessons/gateway-api-cert-manager-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "cert-manager : le TLS automatisé",
+          "body": "Le **HTTPS** (le web sécurisé) repose sur un **certificat TLS** : un fichier signé qui prouve « je suis bien `exemple.com` » et qui permet de **chiffrer** la connexion. Ce certificat a une **date d'expiration** ; passé cette date, les navigateurs affichent une grosse **erreur de sécurité** et les visiteurs fuient. Le gérer à la main (l'obtenir, puis le **renouveler** avant qu'il expire) est pénible et une source classique de pannes (« le certificat a expiré ce week-end »).\n\n**cert-manager** est un outil qui **automatise tout ce cycle de vie** à l'intérieur du cluster. Tu déclares un objet **`Certificate`** (ou une simple annotation sur ton Ingress ou ta Gateway), et cert-manager se charge du reste : il **obtient** le certificat auprès d'un **émetteur** (celui qui délivre et signe les certificats), puis le **renouvelle automatiquement** avant l'expiration. L'émetteur le plus courant est **Let's Encrypt**, une autorité **gratuite** ; pour prouver que le domaine t'appartient vraiment, elle utilise le protocole **ACME** via un « défi » (*challenge*) : **HTTP-01** (cert-manager place un fichier temporaire sur ton site que Let's Encrypt vient vérifier) ou **DNS-01** (il ajoute un enregistrement temporaire dans ta zone DNS). On peut aussi passer par une **PKI** interne (*Public Key Infrastructure*, l'autorité de certification privée d'une entreprise).\n\nLe certificat obtenu est rangé dans un **Secret** (l'objet Kubernetes qui stocke des données sensibles), que l'Ingress ou la Gateway vient lire pour servir le HTTPS.\n\n👉 **Analogie** : cert-manager est un **abonnement à renouvellement automatique**, comme le prélèvement auto de ton assurance. Au lieu de penser toi-même à renouveler chaque trimestre (et d'oublier un jour), le renouvellement se fait tout seul, en avance, sans intervention. Plus d'expiration surprise. C'est devenu le **standard de fait** du TLS dans Kubernetes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "cert-manager : le TLS (HTTPS) automatisé.",
+          "body": "/images/lessons/gateway-api-cert-manager-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Réseau avancé : eBPF, dual-stack, MTU (niveau expert)",
           "body": "Trois sujets d'exploitation réseau, à connaître pour passer de « je déploie » à « j'opère ». Garde-les comme culture d'approfondissement.\n\n**eBPF.** Les CNI modernes comme **Cilium** s'appuient sur **eBPF** (*extended Berkeley Packet Filter*), une technologie qui exécute de petits programmes directement dans le **noyau** Linux (le cœur du système). Ils remplacent kube-proxy et iptables par du code noyau bien plus **performant** à grande échelle, et ajoutent une **observabilité réseau** fine (l'outil **Hubble** montre qui parle à qui) ainsi que des NetworkPolicies riches jusqu'à la **couche applicative (L7)** (filtrer par requête HTTP, pas seulement par IP et port).\n\n**Dual-stack.** Un cluster peut fonctionner en **dual-stack**, c'est-à-dire donner à chaque pod à la fois une adresse **IPv4** (l'ancien format, du type `10.0.0.1`, en voie d'épuisement) **et** une adresse **IPv6** (le format plus récent, quasi illimité). C'est supporté, mais exige une configuration **cohérente de bout en bout**.\n\n**MTU.** La **MTU** (*Maximum Transmission Unit*) est la **taille maximale d'un paquet** réseau. C'est un piège classique des réseaux **overlay** : l'encapsulation (par exemple **VXLAN**, qui emballe chaque paquet dans un autre) **ajoute des octets**. Si la MTU n'est pas ajustée en conséquence, les **gros paquets** ne passent plus et les connexions **pendent** (restent bloquées), avec un symptôme très déroutant : « les petites requêtes passent, les grosses non ». 👉 **Analogie** : c'est comme un **tunnel routier trop bas**, les voitures passent mais les camions restent coincés à l'entrée. Ici le « camion » est un gros paquet, et le « tunnel » est la MTU trop juste à cause de l'enveloppe VXLAN.\n\nMaîtriser ces sujets sépare celui qui **déploie** sur Kubernetes de celui qui **opère** vraiment son réseau."
         },
         {
+          "type": "IMAGE",
+          "title": "Réseau avancé : eBPF, dual-stack, MTU.",
+          "body": "/images/lessons/gateway-api-cert-manager-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "Une équipe gère ses certificats TLS manuellement : un ingénieur renouvelle chaque certificat Let's Encrypt tous les 3 mois. Un jour, il est en congé, le certificat expire, et le site passe en erreur de sécurité pour tous les utilisateurs. Quel outil Kubernetes élimine ce risque, et comment ?",
           "solution": "cert-manager élimine ce risque en automatisant entièrement le cycle de vie des certificats TLS dans le cluster. On l'installe, on configure un Issuer/ClusterIssuer (par exemple Let's Encrypt via ACME, avec un challenge HTTP-01 ou DNS-01), puis on déclare un objet Certificate (ou simplement une annotation sur l'Ingress/la Gateway indiquant l'issuer). cert-manager se charge alors : d'ÉMETTRE le certificat automatiquement, de le stocker dans un Secret que l'Ingress/Gateway consomme, et surtout de le RENOUVELER automatiquement avant expiration (il surveille la date et relance l'émission bien à l'avance, sans intervention humaine). Résultat : plus de renouvellement manuel, donc plus de dépendance à la présence d'une personne, et plus d'expiration surprise, la cause exacte de l'incident décrit disparaît. C'est le standard de fait pour le TLS sur Kubernetes. Bonne pratique complémentaire : surveiller quand même l'expiration des certificats (une alerte si un certificat approche de l'expiration sans avoir été renouvelé) pour détecter un éventuel échec de renouvellement (ex. challenge ACME qui échoue) avant qu'il ne devienne critique. Mais le renouvellement lui-même n'est plus un geste manuel fragile."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, Gateway API & cert-manager (expert)",
           "quizRef": "gateway-cert-manager-expert"
         }
