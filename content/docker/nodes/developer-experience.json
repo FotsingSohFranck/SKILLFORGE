@@ -13,35 +13,47 @@
           "body": "Petit rappel avant de commencer. Un **conteneur**, c'est une **boîte isolée** qui contient une application *et* tout ce dont elle a besoin pour tourner (la bonne version du langage, les bibliothèques, les outils), le tout démarré à partir d'une **image** (le « moule » figé qui sert à créer le conteneur). On a surtout vu le conteneur comme un moyen de faire tourner une app **en production** (sur les serveurs, pour les vrais utilisateurs).\n\nMais le conteneur est aussi un excellent **environnement de développement**, c'est-à-dire l'ensemble des outils et versions dont TU as besoin sur ta machine pour **écrire et tester** le code.\n\nLe problème qu'il résout : sans Docker, chaque nouvelle personne qui rejoint le projet doit installer à la main la bonne version de Node, de PostgreSQL, de Redis, etc. Chacun finit avec une machine légèrement différente, d'où le fameux « ça marche chez moi, pas chez toi ». Avec un conteneur, **tout le monde obtient exactement le même environnement** sans rien installer : on clone le dépôt, on tape `docker compose up` (la commande qui démarre tous les services décrits dans un fichier `compose.yaml`), et on développe.\n\n👉 **Analogie** : au lieu de demander à chaque cuisinier d'acheter et de régler lui-même son four (et d'obtenir des cuissons différentes), on livre à chacun **la même cuisine déjà équipée, prête à l'emploi**. Personne ne perd une journée à tout installer, et le plat sort pareil pour tous.\n\n**Exemple concret** : un nouveau développeur arrive lundi matin. Ancienne méthode : une demi-journée à installer Node 22, PostgreSQL, Redis et à régler les versions. Méthode conteneur : `git clone`, `docker compose up`, et il code avant le café. Reste une chose à apprendre : développer *dans* un conteneur demande d'adapter un peu ses habitudes pour voir ses modifications tout de suite (le *hot reload*, juste en dessous), attacher un débogueur, et lancer les tests. C'est tout l'objet de ce nœud."
         },
         {
+          "type": "IMAGE",
+          "title": "Le conteneur comme environnement de dev.",
+          "body": "/images/lessons/developper-dans-des-conteneurs-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Le rechargement à chaud (hot reload) via bind mount",
           "body": "Quand tu développes, tu modifies ton code des dizaines de fois par heure et tu veux voir le résultat **immédiatement**. Or une image Docker est **figée** : le code y est copié une fois pour toutes au moment de la construire. Reconstruire l'image (le *rebuild*) après chaque petite modification prendrait de longues secondes à chaque fois : insupportable.\n\nLa solution s'appelle le **rechargement à chaud**, en anglais **hot reload** : la faculté pour l'application de prendre en compte une modification du code **sans rebuild ni redémarrage manuel**. Pour l'obtenir en conteneur, on utilise un **bind mount** (vu au nœud Persistance).\n\nUn **bind mount**, c'est un **branchement direct** entre un dossier de ta machine (l'**hôte**, c'est-à-dire ton ordinateur) et un dossier *à l'intérieur* du conteneur : les deux pointent vers **les mêmes fichiers en temps réel**. Le conteneur exécute donc directement tes fichiers **locaux**. Combiné à un outil de rechargement à chaud (par exemple **nodemon** ou **Vite** côté JavaScript, **Spring DevTools** côté Java), qui surveille les fichiers et relance l'app dès qu'ils changent, la moindre sauvegarde est prise en compte **instantanément**.\n\n👉 **Analogie** : sans bind mount, ton conteneur lit une **photocopie** de ton code prise au moment du build ; modifier l'original ne change rien à la photocopie. Le bind mount remplace la photocopie par une **vitre transparente** : le conteneur voit directement ta feuille, et le moindre trait que tu ajoutes apparaît aussitôt de l'autre côté.\n\n**Exemple concret** : tu corriges un texte dans `src/App.js`, tu sauvegardes (Ctrl+S), et la page dans ton navigateur se rafraîchit toute seule une seconde plus tard, sans que tu aies retapé la moindre commande Docker.\n\nUne subtilité importante : on monte le **code**, pas les **dépendances** (les bibliothèques externes, souvent rangées dans un dossier `node_modules` en JavaScript). Ces dépendances sont en général déjà installées **dans l'image**, et compilées pour le système du conteneur (Linux). D'où une astuce très fréquente : monter le code de l'hôte mais **préserver** le `node_modules` du conteneur, pour ne pas l'écraser par celui de ta machine. C'est exactement le piège de l'exercice de cette leçon."
         },
         {
+          "type": "IMAGE",
+          "title": "Le rechargement à chaud (hot reload) via bind mount.",
+          "body": "/images/lessons/developper-dans-des-conteneurs-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Un service de dev avec hot reload (Compose)",
           "codeLanguage": "yaml",
           "body": "services:\n  web:\n    build: .\n    command: npm run dev          # serveur de dev avec hot reload\n    volumes:\n      - ./src:/app/src            # monter le code -> reload instantané\n      - /app/node_modules         # volume anonyme : garder les deps de l'image\n    ports: [\"3000:3000\"]\n    environment:\n      CHOKIDAR_USEPOLLING: \"true\"  # parfois requis pour détecter les changements"
         },
         {
           "type": "DIAGRAM",
-          "position": 3,
+          "position": 5,
           "title": "Le trajet d'une sauvegarde avec le hot reload",
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[Tu edites src/App.js<br/>et tu sauvegardes] --> B[Ton disque hote<br/>dossier ./src]\n    B -- bind mount --> C[Meme fichier vu<br/>dans le conteneur /app/src]\n    C --> D[nodemon / Vite<br/>detecte le changement]\n    D --> E[App rechargee<br/>sans rebuild]\n    E --> F[Resultat visible<br/>dans le navigateur]"
         },
         {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Un développeur monte son code avec un bind mount `./:/app` pour le hot reload, mais son application casse car le `node_modules` de sa machine (Windows) écrase celui du conteneur (Linux), avec des binaires incompatibles. Comment résoudre ?",
           "solution": "Le problème : le bind mount `./:/app` monte TOUT le dossier hôte, y compris le node_modules local (compilé pour Windows), qui masque le node_modules du conteneur (compilé pour Linux), d'où des binaires natifs incompatibles. Solution classique : monter le code mais PRÉSERVER le node_modules du conteneur en ajoutant un volume anonyme sur ce chemin : `volumes: [\"./:/app\", \"/app/node_modules\"]`. Le second montage « protège » /app/node_modules du conteneur (celui installé dans l'image, pour Linux) en l'excluant du bind mount de l'hôte. Ainsi le code est partagé (hot reload) mais les dépendances restent celles, correctes, du conteneur. On peut aussi ajouter node_modules au .dockerignore et ne jamais l'avoir côté hôte."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Développer dans des conteneurs",
           "quizRef": "developer-experience-conteneurs-check"
         }
@@ -59,34 +71,52 @@
           "body": "**Déboguer** (en anglais *to debug*), c'est traquer un bug en exécutant son programme **pas à pas** pour voir ce qui se passe vraiment. L'outil qui permet ça s'appelle un **débogueur** (*debugger*) : il te laisse poser des **points d'arrêt** (*breakpoints*, des lignes où l'exécution se met en pause) et **inspecter les variables** (regarder les valeurs à cet instant précis). C'est bien plus puissant que de semer des affichages un peu partout.\n\nCe débogueur est en général intégré à ton **IDE**, pour *Integrated Development Environment*, c'est-à-dire ton **éditeur de code enrichi** (par exemple **VS Code** ou **IntelliJ**). Question naturelle : peut-on déboguer une application qui tourne **dans** un conteneur, donc dans une boîte isolée, depuis l'IDE resté sur ma machine ? Oui, très bien.\n\nLe principe : chaque langage sait ouvrir un **port de débogage**, c'est-à-dire un canal réseau spécial par lequel un débogueur externe peut se connecter au programme en cours d'exécution. Selon le langage, ce mécanisme porte un nom différent :\n- **Java** ouvre le port **JDWP** (*Java Debug Wire Protocol*, le protocole de débogage de Java), activé par l'option `-agentlib:jdwp=...` ;\n- **Node** ouvre son port d'inspection avec l'option `--inspect=0.0.0.0:9229` ;\n- **Python** utilise la bibliothèque **debugpy**.\n\nIl suffit alors de **publier** ce port vers l'extérieur du conteneur (`-p 9229:9229`, qui rend le port 9229 du conteneur joignable depuis ta machine), de lancer l'app en mode debug, et de connecter l'IDE à ce port. Points d'arrêt, pas à pas, inspection : tout marche **comme si l'app tournait en local**.\n\n👉 **Analogie** : le conteneur est une pièce aux murs opaques. Le port de débogage, c'est une **fenêtre d'observation** que tu perces dans le mur : de l'extérieur (ton IDE), tu vois tout ce qui se passe à l'intérieur et tu peux même mettre l'action sur pause. Le conteneur devient **transparent** pour le débogage.\n\n**Exemple concret** : tu lances ton app Node avec `--inspect`, tu poses un point d'arrêt dans VS Code sur la ligne qui plante, tu recharges la page, et l'exécution se fige pile là, avec toutes les variables affichées, exactement comme pour un programme lancé directement sur ton PC."
         },
         {
+          "type": "IMAGE",
+          "title": "Attacher un debugger.",
+          "body": "/images/lessons/debug-et-tests-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Debug d'une app Node en conteneur",
           "codeLanguage": "bash",
           "body": "# Lancer l'app avec l'inspecteur ouvert sur toutes les interfaces\ndocker run -p 3000:3000 -p 9229:9229 \\\n  monapp node --inspect=0.0.0.0:9229 server.js\n\n# Côté IDE : attacher le débogueur à localhost:9229\n# -> points d'arrêt, pas à pas, inspection... comme en local"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Tests dans des conteneurs",
           "body": "Les conteneurs sont aussi formidables pour les **tests automatisés**, c'est-à-dire les petits programmes qui vérifient tout seuls que ton code fait bien ce qu'il doit. En particulier les **tests d'intégration** : ceux qui vérifient que ton application marche avec ses **vraies dépendances**, comme une base de données ou un cache (une mémoire rapide où l'app range des résultats).\n\nL'idée : au lieu de brancher tes tests sur une base installée à la main et partagée par toute l'équipe (fragile), on démarre les dépendances réelles dans des conteneurs **jetables**, on lance la suite de tests contre elles, puis on jette tout. Résultat : **reproductible** (identique à chaque fois) et **isolé** (rien ni personne d'autre ne peut interférer).\n\nC'est le principe de **Testcontainers**, une bibliothèque (utilisée par cette plateforme) qui, pour chaque test d'intégration, démarre automatiquement un **vrai** service en conteneur, par exemple un vrai PostgreSQL, puis le supprime à la fin.\n\n👉 **Analogie** : plutôt que de faire répéter une pièce de théâtre dans le salon commun (où quelqu'un range toujours le décor au mauvais endroit), on **monte une scène neuve et identique** avant chaque répétition, et on la démonte après. Chaque essai part d'un décor propre et connu.\n\n**Exemple concret** : ton test veut vérifier qu'un utilisateur est bien enregistré. Testcontainers démarre un PostgreSQL neuf en quelques secondes, le test insère l'utilisateur et vérifie, puis la base est détruite. Comme c'est un **vrai** PostgreSQL et non une imitation (un *mock*), le test se comporte comme en production (mêmes types, mêmes contraintes). En **CI** (l'*intégration continue*, le service qui reconstruit et reteste le projet automatiquement à chaque envoi de code), on exécute souvent toute la suite dans des conteneurs pour obtenir un environnement identique à chaque exécution."
         },
         {
+          "type": "IMAGE",
+          "title": "Tests dans des conteneurs.",
+          "body": "/images/lessons/debug-et-tests-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Parité dev/prod : l'arbitrage (niveau expert)",
           "body": "Voici un réflexe de professionnel à cadrer tôt. Tous les conforts de **développement** que l'on vient de voir (le bind mount du code, le hot reload, les ports de debug ouverts, une image de dev bourrée d'outils pratiques) sont excellents sur ta machine, mais ils ne doivent **jamais** se retrouver dans l'image de **production**, celle qui tourne face aux vrais utilisateurs.\n\nPourquoi ? Parce qu'un port de débogage laissé ouvert ou un dossier de code monté depuis l'extérieur en production sont des **portes d'entrée pour un attaquant** : autrement dit des failles de sécurité. Et les outils de confort alourdissent l'image et augmentent sa surface d'attaque.\n\nLa solution : garder des configurations **séparées**. En pratique, on met les commodités de dev (montages, debug) dans un fichier à part, souvent un **`compose.override.yaml`** (un fichier que Docker Compose applique *automatiquement par-dessus* le fichier principal quand il est présent, typiquement en local), et on garde un **Dockerfile de production épuré** : construit en **multi-stage** (plusieurs étapes, où seule la partie finale minimale part en prod), tournant en **non-root** (avec un utilisateur sans les pleins pouvoirs, pour limiter la casse en cas d'intrusion), et sans aucun outil de debug.\n\n👉 **Analogie** : en cuisine, l'établi de préparation est en désordre, plein d'ustensiles et de raccourcis bien pratiques. Mais l'**assiette envoyée en salle** ne contient que le plat, dressé proprement : on n'envoie pas le fouet et le torchon avec. Dev et prod, deux dressages différents.\n\nAttention à ne pas confondre : l'objectif du **12-factor** (un ensemble de bonnes pratiques reconnues pour les applications modernes) est la **parité dev/prod**, c'est-à-dire faire tourner **les mêmes services aux mêmes versions** en dev et en prod (même PostgreSQL, même Redis) pour éviter les mauvaises surprises. Cette parité porte sur les **services et versions**, pas sur les **commodités** de dev. On veut le même moteur des deux côtés, sans embarquer en production les rallonges et les outils de bricolage du garage."
         },
         {
+          "type": "IMAGE",
+          "title": "Parité dev/prod : l'arbitrage.",
+          "body": "/images/lessons/debug-et-tests-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Pourquoi lancer ses tests d'intégration contre une base PostgreSQL en conteneur (jetable) plutôt que contre une base partagée par toute l'équipe ?",
           "solution": "Une base en conteneur jetable (approche Testcontainers) offre isolation et reproductibilité : chaque exécution de tests démarre une base neuve, dans un état connu, détruite à la fin, pas d'interférence entre développeurs, pas de données résiduelles d'un test précédent, pas de « ça passe chez moi mais pas en CI » lié à l'état partagé. Une base partagée, au contraire, est fragile : les tests se marchent dessus (données modifiées par l'un cassant les tests de l'autre), l'ordre d'exécution devient significatif, et le nettoyage est un casse-tête. De plus, la base en conteneur est la VRAIE base (PostgreSQL), pas un mock : le test reflète la production (types, contraintes, transactions). Isolation + reproductibilité + fidélité = tests fiables."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Expérience développeur",
           "quizRef": "developer-experience-check"
         }
@@ -104,34 +134,52 @@
           "body": "Le hot reload par bind mount réglait un problème précis : voir ses modifications tout de suite. Les **Dev Containers** (littéralement « conteneurs de développement ») vont beaucoup plus loin : ils transforment l'**environnement de développement tout entier** en un **artefact versionné**, c'est-à-dire un élément rangé dans le dépôt Git au même titre que le code, donc partagé et suivi dans l'historique. On parle d'**environnement de dev comme code**.\n\nConcrètement, on ajoute au projet un fichier **`devcontainer.json`** qui **décrit le conteneur dans lequel on développe** : quelle image ou quel Dockerfile utiliser, quelles **extensions** installer dans l'éditeur (les petits modules qui ajoutent des fonctions, par exemple la coloration ou l'auto-complétion d'un langage), quels outils, quels ports exposer, et quelles **commandes post-création** lancer une fois le conteneur prêt (par exemple installer les dépendances).\n\nTon éditeur, typiquement **VS Code** (mais aussi **GitHub Codespaces**, l'environnement de dev hébergé dans le cloud par GitHub, ou les IDE **JetBrains**), ouvre alors le projet **à l'intérieur** de ce conteneur. Point clé : l'éditeur, lui, continue de tourner sur **ta machine** (l'hôte), mais le **langage, les dépendances et les outils** vivent **dans le conteneur**. Tu édites en local, tout le reste s'exécute dans la boîte.\n\n👉 **Analogie** : au lieu de donner à chaque nouvelle recrue une liste « installe d'abord ces 12 outils, dans ces versions », tu lui remets une **mallette scellée déjà équipée**. Elle l'ouvre et retrouve, à l'identique, exactement le poste de travail du reste de l'équipe.\n\n**Exemple concret** : un nouvel arrivant clone le dépôt, clique sur « Reopen in Container » dans VS Code, patiente quelques minutes pendant que le conteneur se provisionne, et se retrouve avec **l'environnement exact** de l'équipe : bonnes versions du langage, linters (les outils qui signalent les erreurs de style), extensions, tout est là. Fini le « installe d'abord ces 12 outils »."
         },
         {
+          "type": "IMAGE",
+          "title": "L'environnement de dev comme code.",
+          "body": "/images/lessons/dev-containers-outillage-moderne-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Un devcontainer.json",
           "codeLanguage": "json",
           "body": "// .devcontainer/devcontainer.json\n{\n  \"name\": \"App backend\",\n  \"dockerComposeFile\": \"../compose.yaml\",  // réutiliser le stack (db, cache...)\n  \"service\": \"api\",\n  \"workspaceFolder\": \"/app\",\n  \"forwardPorts\": [8080, 5432],\n  \"customizations\": {\n    \"vscode\": {\n      \"extensions\": [\"redhat.java\", \"esbenp.prettier-vscode\"]\n    }\n  },\n  \"postCreateCommand\": \"mvn -q dependency:go-offline\"\n}"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "compose watch : le hot reload nouvelle génération",
           "body": "Rappel utile ici : la commande **`docker compose watch`** modernise le rechargement à chaud. On la configure en déclarant une section **`develop.watch`** dans le service, à l'intérieur du fichier Compose.\n\nSon intérêt : plutôt qu'un bind mount **global** (qui monte tout l'arbre de fichiers, avec ses pièges de permissions et le problème du `node_modules` vu plus tôt), on déclare des **règles précises** qui disent, fichier par fichier, quoi faire quand ils changent. Trois actions existent :\n- **`sync`** : **copier** dans le conteneur uniquement les fichiers modifiés (pour un hot reload propre, sans exposer tout le disque) ;\n- **`sync+restart`** : synchroniser **puis redémarrer** le service (utile quand un changement demande un redémarrage, par exemple un fichier de configuration) ;\n- **`rebuild`** : **reconstruire l'image** quand un fichier **structurant** change, typiquement `package.json` (qui liste les dépendances) : si les dépendances bougent, il faut refaire l'image.\n\n👉 **Analogie** : le bind mount global, c'est **laisser grande ouverte la porte entre ta maison et le conteneur**, tout passe dans les deux sens sans contrôle. `compose watch`, c'est un **passe-plat avec des consignes claires** : ce type de plat, tu le glisses tel quel (`sync`) ; celui-là, tu le glisses et tu sonnes pour prévenir (`sync+restart`) ; et si on change la recette elle-même, on rallume le four (`rebuild`).\n\n**Exemple concret** : tu édites un composant React, `sync` le copie et la page se rafraîchit ; tu ajoutes une bibliothèque dans `package.json`, la règle `rebuild` reconstruit l'image pour l'installer proprement. C'est plus **explicite** et plus **portable** que le bind mount, et cela n'expose pas tout l'arbre de fichiers de l'hôte : c'est la direction recommandée pour le développement conteneurisé moderne."
         },
         {
+          "type": "IMAGE",
+          "title": "compose watch : le hot reload nouvelle génération.",
+          "body": "/images/lessons/dev-containers-outillage-moderne-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "docker init, docker debug & au-delà (niveau expert)",
           "body": "L'outillage récent réduit encore les frictions du quotidien.\n\n**`docker init`** est une commande qui **génère automatiquement** les fichiers de base d'un projet Docker : un **Dockerfile** (la recette de l'image), un **compose.yaml** (la description des services) et un **`.dockerignore`** (la liste des fichiers à ne pas copier dans l'image), adaptés au **langage détecté** dans ton projet. En une seule commande, tu obtiens un point de départ correct au lieu de partir d'une page blanche.\n\n**`docker debug`** ouvre un **shell de débogage** (une invite de commande interactive) **riche en outils** dans **n'importe quel** conteneur, y compris ceux qui n'ont **aucun shell** à l'intérieur, comme les images **distroless** (des images ultra-minimales qui ne contiennent que l'application et le strict nécessaire, sans même un terminal, pour être plus légères et plus sûres). Techniquement, il s'appuie sur le principe **nsenter** vu au nœud namespaces (entrer dans les espaces isolés d'un conteneur depuis l'extérieur). C'est inestimable pour **inspecter une image minimale de production** que, normalement, tu ne pourrais même pas ouvrir.\n\n👉 **Analogie** : une image distroless, c'est un **coffre-fort sans poignée intérieure**, impossible à ouvrir de dedans. `docker debug`, c'est le **passe-partout du serrurier** : il te fait entrer et te donne tous ses outils, même là où il n'y a aucune porte.\n\nEnfin, dans le monde **Kubernetes** (l'orchestrateur qui gère des conteneurs à grande échelle sur un **cluster**, c'est-à-dire un ensemble de machines coordonnées), des outils comme **Telepresence** ou **mirrord** font l'inverse du déploiement : ils **redirigent le trafic** d'un service qui tourne dans le cluster vers ton code **local**. Tu développes ainsi contre un environnement réel (avec ses vraies bases, ses vrais voisins) **sans avoir à redéployer** à chaque changement.\n\n**Exemple concret** : tu veux corriger un service qui n'a de sens qu'entouré des dix autres du cluster ; avec Telepresence, les appels destinés à ce service arrivent sur ta machine, tu poses tes points d'arrêt en local, et le reste du cluster continue de tourner normalement. Le message de fond : bien équipé, un environnement conteneurisé devient **plus** productif qu'un environnement local bricolé, et non l'inverse."
         },
         {
+          "type": "IMAGE",
+          "title": "docker init, docker debug & au-delà.",
+          "body": "/images/lessons/dev-containers-outillage-moderne-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Une équipe perd systématiquement une demi-journée à chaque nouvel arrivant pour installer et configurer le bon environnement (versions du langage, outils, extensions d'éditeur, services). Quelle approche Docker élimine ce problème, et comment ?",
           "solution": "Les Dev Containers (fichier devcontainer.json). L'idée est de traiter l'environnement de développement complet comme du code versionné dans le dépôt : le devcontainer.json décrit le conteneur de dev (image/Dockerfile, ou réutilisation du compose.yaml du projet pour avoir aussi la base et le cache), les extensions d'éditeur à installer, les outils, les ports à exposer et les commandes post-création (ex. installer les dépendances). Un nouvel arrivant clone le dépôt et fait « Reopen in Container » dans VS Code (ou ouvre le projet dans GitHub Codespaces) : l'éditeur se connecte à un conteneur qui contient déjà EXACTEMENT le bon environnement, mêmes versions du langage, mêmes outils, mêmes extensions, mêmes services, provisionné automatiquement en quelques minutes. Plus besoin d'installer 12 outils à la main ni de déboguer les écarts de version entre postes : l'environnement est reproductible, partagé et évolutif (une modification du devcontainer.json profite à toute l'équipe au prochain rebuild). C'est « l'environnement de dev comme code », l'équivalent pour le poste de développeur de ce que Docker a fait pour la production."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Dev Containers & outillage (expert)",
           "quizRef": "dev-containers-expert"
         }
