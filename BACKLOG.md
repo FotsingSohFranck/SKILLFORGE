@@ -877,9 +877,13 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     0 leçon sans image. Vérifié (internet, pods, java : ordre concept->image, légendes, HTTP 200).
     490 images dans `frontend/public/images/lessons/` (480 backend + 10 pods). Fichiers de données
     (requête+légende par concept) : `scratchpad/images/<node>.json`.
-  - **Reste (autres parcours)** : kubernetes (hors pods), rust, java-17-21, docker, terraform, aws,
-    certifs, etc. — même pipeline a rejouer par parcours si souhaité.
-  - NB volume/poids : ~490 images backend (~80-100 Mo dans le repo).
+  - **PARCOURS KUBERNETES 100% FAIT** : 20 nœuds, **164 concepts -> 164 images** (1/concept), 0 leçon
+    sans image. Sourcing navigateur Pexels (sans clé API) par lots de 3 nœuds, commit par lot, 0 régression.
+    Validé + ré-ingéré + frontend rebuildé + vérifié en direct (leçon `le-probleme-a-lechelle` : 2 images
+    1280px chargées, légendes, asset HTTP 200). **643 images** au total dans `frontend/public/images/lessons/`.
+  - **Reste (autres parcours)** : rust, java-17-21, docker, terraform, aws, software-architect,
+    software-design, api-security, backend-performance, prompt-engineering, certifs — même pipeline.
+  - NB volume/poids : ~643 images (~110-130 Mo dans le repo).
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 
