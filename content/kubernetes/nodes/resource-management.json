@@ -13,35 +13,47 @@
           "body": "Avant de parler de réglages, plantons le décor avec quelques mots que tu croiseras sans arrêt.\n\n- Un **conteneur** est une **application empaquetée avec tout ce qu'il lui faut pour tourner** (son code, ses librairies, sa configuration). 👉 **Analogie** : c'est une **boîte-repas** déjà prête, que tu peux réchauffer n'importe où sans avoir besoin d'une cuisine spéciale. Exemple : ton API packagée dans une image `monorg/api:1.4.0`.\n- Un **pod** est la **plus petite unité que Kubernetes sait lancer** : une enveloppe qui contient un (parfois plusieurs) conteneur. Retiens : Kubernetes ne manipule pas des conteneurs tout nus, il manipule des **pods**.\n- Un **nœud** (en anglais *node*) est **une machine** (physique ou virtuelle) sur laquelle tournent les pods. Un ensemble de nœuds pilotés ensemble forme un **cluster**.\n- Le **scheduler** (« planificateur ») est le composant de Kubernetes qui **décide sur quel nœud placer chaque nouveau pod**. 👉 **Analogie** : c'est l'**hôte d'un restaurant** qui, à chaque nouveau client, choisit une table libre assez grande pour le groupe.\n\nDeux ressources comptent surtout : le **CPU** (la puissance de calcul du processeur, mesurée en **cœurs**, ou en **millicœurs** notés `m` : `250m` = 0,25 cœur) et la **mémoire** (la RAM, mesurée en octets, souvent en `Mi` ou `Gi`). Pour chacune, un conteneur peut déclarer **deux nombres** :\n- les **requests** (« demandes ») = ce qui lui est **garanti**. C'est ce que le **scheduler** regarde pour choisir un nœud ayant assez de place libre. 👉 **Analogie** : c'est la **réservation** que tu poses au restaurant (« une table pour 4 »).\n- les **limits** (« limites ») = le **plafond** qu'il ne peut jamais dépasser. 👉 **Analogie** : c'est le **nombre maximum de chaises** que la table acceptera.\n\nExemple concret : un conteneur avec `requests.cpu: 250m` (un quart de cœur garanti) et `limits.cpu: 1` (un cœur maximum) est **sûr d'avoir** son quart de cœur, et **peut monter** jusqu'à un cœur entier si le nœud a de la marge. Ces deux nombres gouvernent le placement, la stabilité et le coût du cluster. Les oublier est l'une des erreurs les plus coûteuses : **sans requests**, le scheduler place à l'aveugle (il ignore de combien le pod a besoin) ; **sans limits**, un conteneur emballé peut **affamer ses voisins** sur le même nœud."
         },
         {
+          "type": "IMAGE",
+          "title": "Requests & limits : deux nombres qui gouvernent tout.",
+          "body": "/images/lessons/requests-et-limits-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "CPU compressible, mémoire non",
           "body": "Il y a une différence **fondamentale** entre les deux ressources, et c'est elle qui explique presque tous les incidents.\n\nLe **CPU** est **compressible** : on peut, à tout instant, en **donner moins** à un conteneur sans le casser. Si un conteneur atteint sa **limite** CPU, il n'est pas tué : il est **throttlé**. **Throttler** (de l'anglais *to throttle*, « brider, étrangler ») veut dire **ralentir** : le noyau lui distribue le processeur au compte-gouttes. 👉 **Analogie** : c'est un **robinet** qu'on referme un peu ; l'eau coule moins vite, mais elle coule encore. Désagréable (plus lent), pas fatal.\n\nLa **mémoire** est **non compressible** : une fois qu'un octet est occupé, on ne peut pas « ralentir » son usage, on ne peut que **libérer** de la place. Si un conteneur dépasse sa **limite mémoire**, le noyau n'a pas le choix : il le **tue**. Cet événement s'appelle un **OOMKill** (de *Out Of Memory*, « plus de mémoire », suivi de *kill*, « tuer »). Le conteneur s'arrête alors avec le **code de sortie 137** : c'est la signature à reconnaître dans les logs. 👉 **Analogie** : un ascenseur avec une **charge maximale** ; une personne de trop et il **se bloque** au lieu de « rouler plus lentement ».\n\nConséquence pratique : **bien régler la limite mémoire est critique**. Trop basse, le conteneur est tué en boucle, un cycle que Kubernetes affiche comme `CrashLoopBackOff` (« boucle de plantage »).\n\nUn cas piège très courant : la **JVM** (*Java Virtual Machine*, le moteur qui exécute les programmes Java). La JVM réserve une zone mémoire pour les objets, appelée le **heap** (« le tas »). Historiquement, elle dimensionnait ce heap d'après la mémoire de **toute la machine**. Or, dans un conteneur, la limite est imposée par un mécanisme du noyau Linux nommé **cgroup** (*control group*, « groupe de contrôle » : l'outil qui plafonne le CPU et la mémoire d'un groupe de processus). Si la JVM **ignore** le cgroup, elle **se croit seule sur une grosse machine**, réclame un heap énorme, dépasse la limite du pod, et se fait **OOMKill**. Les JVM récentes détectent les limites cgroup, mais il faut le **vérifier** et souvent **aligner explicitement le heap** sur la limite mémoire du pod (on verra l'option `-XX:MaxRAMPercentage` plus loin). Important : la limite mémoire du pod couvre **tout** (heap + zones hors-heap : metaspace, threads, buffers natifs), il faut donc laisser une marge sous 100 %."
         },
         {
+          "type": "IMAGE",
+          "title": "CPU compressible, mémoire non.",
+          "body": "/images/lessons/requests-et-limits-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "Les deux nombres, et ce qui arrive si on les dépasse",
           "diagramFormat": "MERMAID",
           "body": "graph TD\n  C[\"Conteneur\"] --> R[\"request<br/>ce qui est GARANTI<br/>sert au placement (scheduler)\"]\n  C --> L[\"limit<br/>le PLAFOND<br/>a ne jamais depasser\"]\n  L --> CPU[\"Depasse la limite CPU ?<br/>compressible<br/>THROTTLE (ralenti), pas tue\"]\n  L --> MEM[\"Depasse la limite memoire ?<br/>non compressible<br/>OOMKilled (code 137), TUE\"]"
         },
         {
           "type": "CODE",
-          "position": 3,
+          "position": 5,
           "title": "Déclarer des ressources",
           "codeLanguage": "yaml",
           "body": "spec:\n  containers:\n    - name: api\n      image: monorg/api:1.4.0\n      resources:\n        requests:            # garanti + utilisé pour le placement\n          cpu: \"250m\"        # 0,25 cœur\n          memory: \"256Mi\"\n        limits:              # plafond\n          cpu: \"1\"           # 1 cœur (au-delà : throttling)\n          memory: \"512Mi\"    # au-delà : OOMKilled"
         },
         {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Un pod Java est régulièrement tué avec le code de sortie 137 (OOMKilled), alors que sa limite mémoire semble « raisonnable » à 512Mi. Quelles sont les deux pistes à vérifier ?",
           "solution": "137 = OOMKilled : le conteneur a dépassé sa limite mémoire (non compressible → le noyau le tue). Deux pistes principales : (1) La limite mémoire est simplement trop basse pour la charge réelle de l'application, il faut mesurer la consommation effective (métriques, kubectl top pod) et augmenter la limite (et la request) en conséquence, ou réduire l'empreinte de l'app. (2) Pour une JVM spécifiquement : le heap n'est pas aligné sur la limite du conteneur. Si la JVM ne tient pas compte de la limite cgroup, elle dimensionne son heap d'après la mémoire de la MACHINE (bien plus grande que 512Mi) et tente d'allouer au-delà de la limite du pod → OOMKill. Les JVM récentes détectent les limites cgroup, mais il faut le vérifier/forcer : utiliser -XX:MaxRAMPercentage (ex. 75) pour caler le heap sur un pourcentage de la mémoire du conteneur, en gardant une marge pour le hors-heap (metaspace, threads, buffers natifs), car la limite mémoire du pod couvre TOUT, pas seulement le heap. En résumé : mesurer et ajuster la limite, ET s'assurer que le runtime (JVM ici) respecte la limite du conteneur plutôt que la RAM de la machine."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Requests & limits",
           "quizRef": "resource-management-requests-check"
         }
@@ -59,27 +71,45 @@
           "body": "Selon la façon dont tu règles requests et limits, Kubernetes range automatiquement chaque pod dans une **classe de qualité de service**, en anglais **QoS** (*Quality of Service*). Cette classe sert à répondre à une seule question : quand un **nœud** vient à manquer de mémoire, **quels pods sacrifier en premier** ? Expulser un pod pour soulager un nœud saturé s'appelle une **éviction** (le **kubelet**, l'agent présent sur chaque nœud, tue le pod ; le scheduler tentera ensuite de le replacer ailleurs).\n\nIl existe trois classes, de la mieux protégée à la plus exposée :\n- **Guaranteed** (« garanti ») : requests **égales** aux limits sur **toutes** les ressources. La classe la plus protégée, **évincée en dernier**. Pour les charges critiques (base de données, service de paiement).\n- **Burstable** (« qui peut faire des pics ») : il y a des requests, mais **inférieures** aux limits (ou seulement partielles). Entre les deux.\n- **BestEffort** (« au mieux ») : **aucune** request ni limit déclarée. La **première sacrifiée** dès qu'un nœud est sous pression mémoire.\n\n👉 **Analogie** : un avion surbooké qui doit débarquer des passagers. **BestEffort** voyage en standby (débarqué en premier), **Burstable** en classe éco, **Guaranteed** en première (on n'y touche qu'en tout dernier recours). Exemple concret : tu mets ton service critique en **Guaranteed** (`requests = limits`) pour qu'il **survive** quand le nœud doit évincer des pods, et tu laisses les tâches jetables (un job de nettoyage, par exemple) en BestEffort."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Quotas & LimitRange par namespace",
-          "body": "Sur un cluster **partagé** entre plusieurs équipes, il faut empêcher une seule équipe de **tout consommer**. Pour cela, on cloisonne d'abord avec des **namespaces**. Un **namespace** (« espace de noms ») est une **partition logique** du cluster : un dossier virtuel qui regroupe les objets d'une équipe ou d'un projet. 👉 **Analogie** : dans un immeuble de bureaux partagé, chaque entreprise a son **étage** ; même bâtiment, espaces séparés.\n\nSur ces namespaces, deux objets posent des garde-fous.\n- Le **ResourceQuota** (« quota de ressources ») plafonne le **total** consommable **par namespace** : par exemple « au plus 20 CPU, 40Gi de mémoire, et 50 pods en tout ». 👉 **Analogie** : c'est le **budget mensuel** attribué à un service ; une fois épuisé, plus de dépense possible. Concrètement, dès que le namespace atteint son quota, l'API **refuse** les nouvelles créations de pods de cette équipe.\n- Le **LimitRange** (« plage de limites ») agit à l'échelle **du conteneur** dans le namespace : il fixe des **valeurs par défaut** (« sans réglage explicite, chaque conteneur reçoit 128Mi ») et des **min/max** (« plafond 2Gi par conteneur »). 👉 **Analogie** : c'est le **règlement intérieur** de l'étage, qui impose une taille standard aux bureaux et interdit d'en réserver un démesuré.\n\nUtilité du LimitRange : garantir que même les pods **sans requests/limits explicites** en reçoivent quand même (sinon ils tomberaient en BestEffort et échapperaient à la comptabilité du quota, car un ResourceQuota sur les ressources exige souvent que les pods déclarent des requests/limits), et **brider** les conteneurs excessifs. Ensemble, **namespaces + ResourceQuota + LimitRange** rendent un cluster multi-équipes **gouvernable** et équitable : chaque équipe a un budget borné, appliqué automatiquement au niveau de l'API."
+          "type": "IMAGE",
+          "title": "Les classes de qualité de service (QoS).",
+          "body": "/images/lessons/qos-quotas-limitrange-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Quotas & LimitRange par namespace",
+          "body": "Sur un cluster **partagé** entre plusieurs équipes, il faut empêcher une seule équipe de **tout consommer**. Pour cela, on cloisonne d'abord avec des **namespaces**. Un **namespace** (« espace de noms ») est une **partition logique** du cluster : un dossier virtuel qui regroupe les objets d'une équipe ou d'un projet. 👉 **Analogie** : dans un immeuble de bureaux partagé, chaque entreprise a son **étage** ; même bâtiment, espaces séparés.\n\nSur ces namespaces, deux objets posent des garde-fous.\n- Le **ResourceQuota** (« quota de ressources ») plafonne le **total** consommable **par namespace** : par exemple « au plus 20 CPU, 40Gi de mémoire, et 50 pods en tout ». 👉 **Analogie** : c'est le **budget mensuel** attribué à un service ; une fois épuisé, plus de dépense possible. Concrètement, dès que le namespace atteint son quota, l'API **refuse** les nouvelles créations de pods de cette équipe.\n- Le **LimitRange** (« plage de limites ») agit à l'échelle **du conteneur** dans le namespace : il fixe des **valeurs par défaut** (« sans réglage explicite, chaque conteneur reçoit 128Mi ») et des **min/max** (« plafond 2Gi par conteneur »). 👉 **Analogie** : c'est le **règlement intérieur** de l'étage, qui impose une taille standard aux bureaux et interdit d'en réserver un démesuré.\n\nUtilité du LimitRange : garantir que même les pods **sans requests/limits explicites** en reçoivent quand même (sinon ils tomberaient en BestEffort et échapperaient à la comptabilité du quota, car un ResourceQuota sur les ressources exige souvent que les pods déclarent des requests/limits), et **brider** les conteneurs excessifs. Ensemble, **namespaces + ResourceQuota + LimitRange** rendent un cluster multi-équipes **gouvernable** et équitable : chaque équipe a un budget borné, appliqué automatiquement au niveau de l'API."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quotas & LimitRange : limiter par namespace.",
+          "body": "/images/lessons/qos-quotas-limitrange-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Mesurer avant de régler (niveau expert)",
           "body": "Régler requests/limits **au hasard** a deux défauts opposés. Trop **haut** : tu **réserves** des ressources qui ne servent pas (le nœud paraît plein alors qu'il ne fait presque rien, tu paies pour du vide, et tu cases moins de pods par nœud). Trop **bas** : tu provoques du throttling, des OOMKills et des évictions. La bonne valeur se **mesure**, elle ne se devine pas.\n\nLa démarche d'expert :\n1. **Observer la consommation réelle** sur une période représentative. Outils : le **metrics-server** (petit composant qui collecte l'usage CPU/mémoire des pods) interrogé par `kubectl top pod` (qui affiche la conso instantanée, un peu comme le gestionnaire des tâches de ton PC) ; ou **Prometheus**, une base de données de métriques qui **historise** ces mesures dans le temps pour voir les tendances et les pics.\n2. **Régler les requests** proche de l'usage **médian** observé, et les **limits** avec une **marge** pour absorber les pics.\n3. **Surveiller** ensuite le **throttling CPU** et les **OOMKills** pour réajuster.\n\nDes outils de **right-sizing** (« dimensionnement au plus juste ») automatisent l'analyse, par exemple le **VPA** (*Vertical Pod Autoscaler*) en **mode recommandation** : il observe et **suggère** des requests/limits sans les appliquer d'office. 👉 **Analogie** : avant d'acheter une valise, tu **pèses** tes affaires plutôt que de deviner leur volume ; ici, tu mesures la conso avant de fixer les tailles. Le bon dimensionnement est un **équilibre mesuré** entre coût (densité) et stabilité, jamais une supposition."
         },
         {
+          "type": "IMAGE",
+          "title": "Mesurer avant de régler.",
+          "body": "/images/lessons/qos-quotas-limitrange-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "Sur un cluster partagé entre plusieurs équipes, l'équipe A déploie par erreur des centaines de pods qui consomment presque toutes les ressources, empêchant les autres équipes de déployer. Quels objets Kubernetes auraient prévenu cela, et comment ?",
           "solution": "Un ResourceQuota (et un LimitRange) par namespace, en isolant chaque équipe dans son propre namespace. Le ResourceQuota plafonne le TOTAL que le namespace de l'équipe A peut consommer : nombre de pods, somme des requests/limits CPU et mémoire, etc. (ex. « namespace équipe-A : au plus 20 CPU, 40Gi, 50 pods »). Ainsi, dès qu'A atteint son budget, ses créations de pods supplémentaires sont REFUSÉES par l'API, elle ne peut pas déborder sur les ressources des autres équipes, qui gardent leur part garantie. Le LimitRange complète en fixant des requests/limits par défaut et des maxima par conteneur dans le namespace : il empêche un pod sans ressources déclarées de passer en BestEffort et d'échapper à la comptabilité du quota (un ResourceQuota sur les ressources exige souvent que les pods déclarent des requests/limits), et bride les conteneurs individuels excessifs. Ensemble, namespaces + ResourceQuota + LimitRange rendent un cluster multi-équipes gouvernable : chaque équipe a un budget borné, appliqué automatiquement au niveau de l'API, ce qui prévient qu'une équipe affame les autres."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, Requests, limits & quotas",
           "quizRef": "resource-management-check"
         }
@@ -97,21 +127,33 @@
           "body": "Attention à un piège de vocabulaire : une **limite CPU** ne veut **pas** dire « le conteneur ne dépassera jamais X cœurs en moyenne ». Le mécanisme réel est plus subtil, et le comprendre évite des heures de confusion.\n\nLa limite est appliquée par le **CFS** (*Completely Fair Scheduler*, le « planificateur complètement équitable » du noyau Linux, celui qui répartit le processeur entre tous les programmes). Il fonctionne par **quota** sur des **périodes** courtes : par défaut, une **période de 100 ms** (millisecondes). À chaque période, le conteneur reçoit un **quota** de temps CPU proportionnel à sa limite. Exemple : une limite d'**1 cœur** donne droit à environ **100 ms** de temps processeur par tranche de 100 ms.\n\nPoint clé : **une fois son quota épuisé dans la période, le conteneur est mis en pause (throttlé) jusqu'à la période suivante**, même s'il reste du CPU **libre** sur le nœud. 👉 **Analogie** : un forfait data qui se **recharge chaque minute**. Si tu consommes tout ton quota en 20 secondes, tu es **coupé pendant les 40 secondes restantes**, même si l'antenne est vide et pourrait te servir. Conséquence contre-intuitive : une application avec une limite d'1 cœur qui fait un **pic de calcul court et multi-thread** (elle utilise plusieurs cœurs en parallèle) épuise son quota au **milieu** d'une période et se retrouve **throttlée**, ce qui ajoute de la **latence** (le travail est reporté aux périodes suivantes), alors même que le nœud n'est **pas** saturé."
         },
         {
+          "type": "IMAGE",
+          "title": "La limite CPU appliquée par throttling (CFS).",
+          "body": "/images/lessons/debat-des-limites-cpu-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Faut-il vraiment poser des limites CPU ?",
           "body": "C'est un **débat d'expert** réel dans la communauté Kubernetes, pas une question tranchée. La position montante : **ne pas poser de limite CPU** du tout, mais **toujours** poser des **requests**.\n\nLe raisonnement s'appuie sur ce qu'on a vu : le CPU est **compressible**. Sans limite, un conteneur peut profiter du CPU **libre** du nœud quand il y en a (moins de latence, meilleure utilisation de la machine). Et les **requests** suffisent à garantir une **part équitable** en cas de **contention** (quand plusieurs pods se disputent le processeur en même temps) : le CFS répartit alors le CPU **proportionnellement aux requests**. Poser une limite CPU, au contraire, introduit du **throttling** même quand ce serait inutile (le cas de la leçon précédente).\n\nLa limite CPU garde toutefois du sens pour des cas **précis** : facturation stricte au cœur, isolation entre locataires **hostiles** (un cluster **multi-tenant** = partagé par plusieurs clients qui ne se font pas confiance), ou besoin d'un comportement **déterministe** (des performances identiques quelle que soit la charge des voisins).\n\nLa **mémoire**, elle, doit **toujours** avoir une limite : étant **non compressible**, sans plafond un pic la fait déborder et déclenche l'OOMKill. 👉 **Règle nuancée d'expert à retenir** : **requests partout**, **limite mémoire toujours**, **limite CPU avec parcimonie**."
         },
         {
+          "type": "IMAGE",
+          "title": "Faut-il vraiment poser des limites CPU ? Un débat.",
+          "body": "/images/lessons/debat-des-limites-cpu-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Une application a une limite CPU d'1 cœur et des pics de calcul courts. En production, on observe des latences élevées et du « CPU throttling » dans les métriques, alors que les nœuds ont du CPU libre en abondance. Expliquez le mécanisme, et quelle piste explorer.",
           "solution": "Mécanisme : la limite CPU est appliquée par le CFS du noyau sous forme d'un quota par PÉRIODE (100 ms par défaut). Avec une limite d'1 cœur, le conteneur a droit à ~100 ms de temps CPU par période de 100 ms. Lors d'un pic de calcul court mais intense (multi-thread), il consomme son quota AVANT la fin de la période et se fait alors throttler, mis en pause jusqu'à la période suivante, même si le nœud a plein de CPU libre à ce moment. Ce throttling ajoute de la latence (le travail est reporté aux périodes suivantes), d'où des latences élevées visibles alors que le nœud n'est pas saturé : c'est la signature classique du throttling par la limite CPU, pas un manque de CPU sur le nœud. Piste à explorer : réévaluer (voire RETIRER) la limite CPU. Le CPU étant compressible, on peut souvent se contenter de définir des REQUESTS correctes (qui garantissent une part équitable sous contention) et supprimer la limite : le conteneur peut alors utiliser le CPU libre du nœud pendant ses pics, sans throttling, ce qui élimine la latence artificielle. C'est la recommandation d'expert de plus en plus répandue : requests partout, limite mémoire toujours (non compressible), mais limite CPU seulement quand un cas précis l'exige (facturation stricte, isolation hostile). Si l'on veut garder une limite pour d'autres raisons, on peut au moins la relever pour laisser de la marge aux pics, ou ajuster la période CFS, mais la solution la plus simple et efficace est généralement de retirer la limite CPU et de bien régler les requests. On vérifie le résultat via la métrique de throttling (container_cpu_cfs_throttled_periods)."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, Le débat des limites CPU (expert)",
           "quizRef": "cpu-limits-expert"
         }
@@ -129,21 +171,33 @@
           "body": "Piège classique : un nœud de **8 cœurs / 32 Gi** n'offre **pas** 8 cœurs / 32 Gi à tes pods. Kubernetes distingue deux notions.\n- La **capacity** (« capacité ») = les ressources **physiques totales** de la machine.\n- L'**allocatable** (« allouable ») = ce qui reste **réellement disponible pour les pods**, une fois la part du système mise de côté.\n\nOù passe la différence ? Elle est **réservée** :\n- **`kube-reserved`** : pour les composants de Kubernetes eux-mêmes sur le nœud, surtout le **kubelet** (l'agent qui pilote les pods sur ce nœud) et le **container runtime** (le moteur qui lance concrètement les conteneurs, par exemple **containerd**).\n- **`system-reserved`** : pour le **système d'exploitation** et ses services (le noyau Linux, `sshd`, les journaux système...).\n- **`eviction-threshold`** (« seuil d'éviction ») : une **marge de sécurité** ; en dessous de ce niveau de mémoire libre, le kubelet commence à **évincer** des pods pour ne pas asphyxier le nœud.\n\n👉 **Analogie** : un camion affiche **20 tonnes** de charge (la capacity), mais la **remorque et le chauffeur** pèsent déjà quelques tonnes ; la charge **utile réelle** (l'allocatable) est plus faible. Point crucial : le **scheduler** raisonne sur l'**allocatable**, **jamais** sur la capacity. Tu peux voir les deux avec `kubectl describe node` (sections `Capacity` et `Allocatable`). Dimensionner en oubliant cette réserve conduit à des nœuds « pleins » plus tôt que prévu, ou à mettre le nœud sous pression système (et donc à des évictions)."
         },
         {
+          "type": "IMAGE",
+          "title": "Capacity ≠ allocatable : tout n'est pas disponible.",
+          "body": "/images/lessons/node-allocatable-densite-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Overcommit, densité & bin packing",
           "body": "On peut maintenant comprendre un levier puissant. Rappel : les **requests réservent**, les **limits plafonnent**, et le **scheduler place uniquement selon les requests**. L'écart entre les deux ouvre la porte à l'**overcommit** (« surengagement ») : la somme des **limits** des pods d'un nœud a le droit de **dépasser** sa capacité, tant que la somme de leurs **requests** tient dans l'allocatable.\n\nPourquoi c'est utile ? Parce que tous les pods n'utilisent **pas leur maximum en même temps**. En pariant là-dessus, on obtient une **densité** élevée : beaucoup de pods sur un même nœud, donc **moins de nœuds** à payer. 👉 **Analogie** : une compagnie aérienne **surbooke** un vol parce qu'elle sait que tous les passagers réservés ne se présenteront pas. Ça marche... **la plupart du temps**. Le risque : si trop de pods réclament leur maximum **simultanément**, on frôle l'**éviction** (côté mémoire) ou le **throttling** (côté CPU).\n\nRégler requests/limits, c'est donc **arbitrer** : requests **basses** = plus de pods par nœud (densité, coût réduit) mais plus de surprises ; requests **réalistes** = moins de densité mais plus de stabilité. Pour ranger au mieux les pods dans les nœuds, le scheduler fait du **bin packing** (« rangement en boîtes » : le casse-tête consistant à caser des objets de tailles variées dans un minimum de cartons). Des outils de right-sizing comme le **VPA** en mode reco ou **Goldilocks** (un tableau de bord qui suggère les bonnes tailles) aident à trouver l'équilibre à partir de la consommation **mesurée**, pas devinée."
         },
         {
+          "type": "IMAGE",
+          "title": "Overcommit, densité & bin packing : bien remplir les nœuds.",
+          "body": "/images/lessons/node-allocatable-densite-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Un administrateur calcule qu'un nœud de 16 Gi de RAM peut accueillir 16 pods demandant 1 Gi chacun. En pratique, le scheduler refuse d'en placer plus de 14, laissant des pods en Pending alors que le nœud « a de la place ». Pourquoi ?",
           "solution": "Parce que le scheduler ne raisonne pas sur la capacity (16 Gi physiques) mais sur l'allocatable, qui est inférieure. Sur un nœud, Kubernetes réserve une partie des ressources au système : kube-reserved (pour le kubelet et le container runtime), system-reserved (pour l'OS et ses services), et un seuil d'éviction (marge de sécurité sous laquelle le kubelet commence à expulser des pods pour éviter la famine mémoire du nœud). L'allocatable = capacity − (kube-reserved + system-reserved + eviction-threshold). Sur un nœud de 16 Gi, il ne reste donc peut-être que ~14 Gi réellement allocables aux pods. Le scheduler place les pods en fonction de la somme de leurs REQUESTS (1 Gi chacun) comparée à l'allocatable (~14 Gi), d'où le refus au-delà de 14 pods, les suivants restent en Pending faute d'allocatable, même si la « capacité physique » brute semble suffire. Le calcul correct part de l'allocatable (visible via kubectl describe node, section Allocatable), pas de la capacity. Un expert intègre toujours cette réserve système dans son dimensionnement de densité ; l'ignorer conduit soit à sous-estimer les nœuds nécessaires, soit à mettre le nœud sous pression système (et donc à des évictions) si l'on force le placement."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, Node allocatable & densité (expert)",
           "quizRef": "node-allocatable-expert"
         }
