@@ -13,35 +13,47 @@
           "body": "Dans un cluster Kubernetes, beaucoup de monde veut agir : des **humains** (toi, tes collègues) et des **programmes** (outils, robots de déploiement). La question centrale de la sécurité est donc : **qui a le droit de faire quoi, et sur quoi ?** C'est exactement ce que gère le **RBAC**.\n\n**RBAC** est l'abréviation de *Role-Based Access Control*, en français **contrôle d'accès basé sur les rôles**. C'est le système de permissions de Kubernetes : pour chaque demande envoyée au cluster, il décide si elle est **autorisée** ou **refusée**.\n\n👉 **Analogie** : pense au **badge d'un immeuble de bureaux**. Ton badge n'ouvre pas toutes les portes : il ouvre l'étage de ton équipe et la salle café, mais pas la salle des serveurs. Le RBAC, c'est le système qui décide quelles portes ton badge ouvre dans le cluster.\n\nTrois mots de vocabulaire à poser tout de suite, car ils reviennent partout :\n- une **ressource** = un type d'objet Kubernetes sur lequel on agit. Exemples concrets : les `pods` (les conteneurs qui tournent), les `secrets` (mots de passe, clés), les `deployments` (les applications déployées).\n- un **verbe** = l'action qu'on veut faire sur une ressource. Exemples : `get` (lire un objet précis), `list` (lister), `create` (créer), `delete` (supprimer), `watch` (surveiller les changements).\n- un **namespace** (espace de noms) = un dossier virtuel qui **cloisonne** le cluster en zones séparées. 👉 **Analogie** : ce sont les **étages** de l'immeuble ; l'équipe A travaille dans le namespace `equipe-a`, l'équipe B dans `equipe-b`, sans se marcher dessus.\n\nUne **permission**, c'est donc simplement la combinaison **verbe + ressource** : par exemple `get` + `pods` = le droit de lire les pods.\n\nMaintenant, **quatre objets** RBAC s'articulent pour distribuer ces permissions. Ils se répartissent selon deux axes : **décrire des droits** ou **les accorder**, et agir **dans un seul namespace** ou **dans tout le cluster**.\n- un **Role** (rôle) décrit un **ensemble de permissions**, valables **dans un seul namespace**. Exemple : un Role `lecteur-pods` dans `equipe-a` qui autorise `get`/`list` sur les `pods`.\n- un **ClusterRole** décrit lui aussi un ensemble de permissions, mais **à l'échelle de tout le cluster** (tous les namespaces, plus les objets qui n'appartiennent à aucun namespace, comme les nodes).\n- une **RoleBinding** (liaison de rôle) **attribue** un Role à quelqu'un (un utilisateur, un groupe ou un ServiceAccount), **dans un namespace**. C'est elle qui accorde réellement les droits.\n- une **ClusterRoleBinding** attribue un rôle à quelqu'un **à l'échelle du cluster**.\n\n👉 **Le partage des tâches à retenir** : un **rôle** (Role/ClusterRole) est une **liste de droits posée sur une étagère**, il n'accorde rien tout seul. Une **liaison** (RoleBinding/ClusterRoleBinding) est le geste qui **remet cette liste à une personne**. Pas de liaison = pas de droits, même si le rôle existe.\n\n(On croise ici le mot **ServiceAccount** : c'est l'**identité d'un programme** dans le cluster, l'équivalent d'un compte utilisateur mais pour une application. Toute la leçon suivante lui est consacrée ; retiens pour l'instant qu'on peut donner des droits à un humain **ou** à un programme.)"
         },
         {
+          "type": "IMAGE",
+          "title": "RBAC : qui peut faire quoi, sur quoi.",
+          "body": "/images/lessons/roles-et-bindings-1.jpg",
+          "position": 1
+        },
+        {
           "type": "DIAGRAM",
-          "position": 1,
+          "position": 2,
           "title": "Le chemin d'une permission",
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    subgraph NS[\"Namespace equipe-a\"]\n        U[\"Sujet : alice (User)\"] --> RB[\"RoleBinding : dev-lecteur\"]\n        RB --> R[\"Role : lecteur-pods\"]\n        R --> P[\"Permissions accordees :<br/>get, list, watch<br/>sur pods et pods/log\"]\n    end\n    note[\"Pas de liaison = pas de droits.<br/>Le Role decrit, la RoleBinding accorde.\"] -.-> RB"
         },
         {
           "type": "CODE",
-          "position": 2,
+          "position": 3,
           "title": "Un Role et sa liaison",
           "codeLanguage": "yaml",
           "body": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata: { namespace: equipe-a, name: lecteur-pods }\nrules:\n  - apiGroups: [\"\"]\n    resources: [\"pods\", \"pods/log\"]\n    verbs: [\"get\", \"list\", \"watch\"]      # lecture seule\n---\nkind: RoleBinding\nmetadata: { namespace: equipe-a, name: dev-lecteur }\nsubjects:\n  - kind: User\n    name: alice@exemple.com\nroleRef:\n  kind: Role\n  name: lecteur-pods\n  apiGroup: rbac.authorization.k8s.io"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 4,
           "title": "RBAC est additif : pas de permission par défaut",
           "body": "Voici un principe **rassurant** du RBAC : il est **additif** et **fermé par défaut**. Décortiquons ces deux mots.\n\n**Fermé par défaut** (en anglais *default deny*) veut dire : au départ, **personne n'a aucun droit**. Un utilisateur ou un ServiceAccount tout neuf ne peut **rien** faire tant qu'une liaison ne lui accorde pas explicitement une permission. 👉 **Analogie** : un **badge vierge** n'ouvre aucune porte ; il faut activer chaque accès un par un.\n\n**Additif** veut dire : le RBAC ne connaît que des règles qui **ajoutent** des droits, jamais qui en **retirent**. Il n'existe **pas** de règle deny (interdire) en RBAC. 👉 **Conséquence pratique** : pour **restreindre** quelqu'un, on ne lui enlève pas des droits, on lui en **donne moins** au départ. Si deux liaisons accordent des droits à la même personne, elle cumule l'**union** des deux.\n\nC'est le principe du **moindre privilège** (en anglais *least privilege*) appliqué par construction : on **part de zéro** et on n'accorde que le **strict nécessaire** pour faire son travail, rien de plus. Exemple : un développeur qui a juste besoin de lire les logs reçoit uniquement le droit de lire les pods et leurs logs, pas celui de les supprimer ni de consulter les secrets.\n\nDu coup, un bon **audit RBAC** (une revue des permissions accordées) consiste surtout à traquer les liaisons **trop larges** : typiquement le ClusterRole `cluster-admin`, qui donne **tous** les droits sur **tout** le cluster, doit être réservé à **très peu de monde**. 👉 **Analogie** : c'est le **passe-partout du gardien** ; on ne le distribue pas à toute l'entreprise."
         },
         {
+          "type": "IMAGE",
+          "title": "RBAC est additif : aucune permission par défaut.",
+          "body": "/images/lessons/roles-et-bindings-2.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Vous voulez donner à un développeur le droit de consulter (lire) les pods et leurs logs uniquement dans le namespace `equipe-a`, et rien d'autre. Quels objets RBAC créez-vous, et pourquoi cette approche respecte-t-elle le moindre privilège ?",
           "solution": "On crée deux objets, dans le namespace equipe-a. (1) Un Role (portée namespace) qui liste précisément les permissions voulues : verbes get/list/watch sur les ressources pods et pods/log, c'est-à-dire de la lecture seule, rien d'autre (pas de create/delete, pas d'autres ressources comme les secrets). (2) Une RoleBinding qui attribue ce Role au développeur (subject kind User) dans equipe-a. Résultat : le développeur peut lire les pods et leurs logs, seulement dans equipe-a, et absolument rien d'autre. Cette approche respecte le moindre privilège car : le RBAC est fermé par défaut (aucune permission sans liaison explicite), on n'accorde donc QUE ce qui est nécessaire (lecture des pods/logs) et NULLE PART ailleurs (portée limitée au namespace via Role/RoleBinding plutôt que ClusterRole/ClusterRoleBinding qui donneraient l'accès à tout le cluster). On part de zéro et on ajoute le minimum, au lieu de donner un rôle large (comme cluster-admin ou edit) puis d'espérer que la personne n'en abuse pas. C'est granulaire, auditable et cantonné."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, RBAC",
           "quizRef": "rbac-check"
         }
@@ -59,21 +71,33 @@
           "body": "Jusqu'ici on a surtout parlé d'humains. Mais dans un cluster, ce ne sont pas que des humains qui agissent : des **applications** aussi ont parfois besoin de parler au cerveau de Kubernetes pour lire ou modifier des choses. Elles ont donc, elles aussi, besoin d'une **identité**.\n\nD'abord, un rappel de vocabulaire. Le cerveau de Kubernetes, le composant qui reçoit **toutes** les commandes et applique le RBAC, s'appelle l'**apiserver** (serveur d'API). Quand tu tapes `kubectl get pods`, ta demande arrive à l'apiserver, qui vérifie tes droits **avant** de répondre.\n\nUn **ServiceAccount** (compte de service, souvent abrégé **SA**) est l'**identité d'un programme** dans le cluster : l'équivalent d'un compte utilisateur, mais pour une application au lieu d'une personne. 👉 **Analogie** : dans une entreprise, un humain a un badge nominatif ; un **robot** ou une **machine** a lui aussi son propre badge de service. Le ServiceAccount, c'est le badge des programmes.\n\nÀ quoi ça sert concrètement ? Certains logiciels ont besoin de dialoguer avec l'apiserver. Exemples : un **opérateur** (un programme qui gère automatiquement d'autres objets Kubernetes à ta place), un outil de **CI** (*Continuous Integration*, la chaîne qui teste et déploie ton code automatiquement), ou un contrôleur maison. Chacun tourne sous un ServiceAccount.\n\nComment un programme prouve-t-il son identité ? Avec un **token** (jeton) : une longue chaîne secrète qui joue le rôle de **mot de passe**. Chaque **pod** (l'unité qui fait tourner tes conteneurs) démarre sous un ServiceAccount, et Kubernetes **monte automatiquement** le token de ce compte dans le pod, sous forme de fichier. Le programme lit ce fichier et le présente à l'apiserver pour s'authentifier. 👉 **Analogie** : le token, c'est la **carte d'accès glissée automatiquement dans la poche** du pod dès sa naissance.\n\nDeux points importants pour la suite. D'une part, si un pod ne précise **aucun** ServiceAccount, il utilise le compte nommé **`default`**, présent d'office dans chaque namespace. D'autre part, on accorde des droits à un ServiceAccount **exactement** comme à un humain : avec une RoleBinding qui le référence comme sujet. C'est ainsi qu'un opérateur obtient le droit de créer des pods, ou qu'un outil de sauvegarde obtient un accès en lecture, jamais plus que nécessaire (moindre privilège, encore et toujours)."
         },
         {
+          "type": "IMAGE",
+          "title": "ServiceAccount : l'identité des applications.",
+          "body": "/images/lessons/service-accounts-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Le piège du ServiceAccount par défaut (niveau expert)",
           "body": "Voici un **piège de sécurité** très courant, à connaître absolument. On vient de voir que, par défaut, chaque pod monte automatiquement le token du ServiceAccount `default` de son namespace. Deux problèmes se combinent :\n1. beaucoup de clusters mal configurés donnent au compte `default` **plus de droits que nécessaire** (par facilité, au fil du temps) ;\n2. le token est présent dans le pod **même si l'application ne s'en sert jamais**.\n\nLe danger : imagine qu'un attaquant **compromette** ton application (via une faille dans ton code ou une dépendance piégée). Il se retrouve **à l'intérieur** du pod, trouve le fichier token (rangé dans `/var/run/secrets/kubernetes.io/serviceaccount/token`), et **hérite** aussitôt de toutes les permissions de ce ServiceAccount sur l'apiserver. 👉 **Analogie** : c'est comme laisser un **passe de service traîner dans une pièce** ; le premier cambrioleur entré s'en empare et ouvre d'autres portes.\n\nLes bonnes pratiques pour fermer ce trou :\n- créer un **ServiceAccount dédié et minimal** par application, avec **exactement** les droits requis (souvent **aucun**), au lieu de réutiliser `default` ;\n- **désactiver le montage automatique du token** quand le pod n'a pas besoin de parler à l'apiserver, grâce au champ `automountServiceAccountToken: false` (sur le pod ou sur le ServiceAccount). Le token n'est alors plus déposé dans le pod : il n'y a plus rien à voler ;\n- **auditer** régulièrement qui a accès à quoi (avec `kubectl auth can-i`, vu à la leçon suivante).\n\nLe réflexe clé : **la plupart des applications métier n'ont aucun besoin de parler à l'API Kubernetes** (un site web, une API métier ou un worker ne font que leur travail applicatif). Leur ServiceAccount ne devrait donc porter **aucune** permission, et idéalement **aucun** token monté. On ne laisse un accès à l'API que là où il est vraiment indispensable."
         },
         {
+          "type": "IMAGE",
+          "title": "Le piège du ServiceAccount par défaut.",
+          "body": "/images/lessons/service-accounts-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Une application web métier (qui n'interagit jamais avec l'API Kubernetes) tourne avec le ServiceAccount `default`, dont le token est monté automatiquement dans le pod. En quoi est-ce un risque, et que faire ?",
           "solution": "Le risque : le pod porte un token d'API Kubernetes (celui du ServiceAccount default) qu'il n'utilise jamais, mais qui est exploitable. Si l'application est compromise (faille applicative, dépendance malveillante), l'attaquant trouve ce token monté dans le pod (/var/run/secrets/kubernetes.io/serviceaccount/token) et peut s'en servir pour parler à l'apiserver avec les permissions du ServiceAccount default, d'autant plus grave si ce compte a été doté de droits trop larges. C'est une surface d'attaque gratuite pour une appli qui n'a aucun besoin de l'API. Que faire : (1) désactiver le montage automatique du token puisque l'app n'en a pas besoin, automountServiceAccountToken: false (sur le pod ou le ServiceAccount) ; le token n'est alors plus présent dans le pod. (2) De façon générale, ne pas utiliser le ServiceAccount default : créer un ServiceAccount dédié par application, avec le strict minimum de permissions (ici, aucune, puisque l'app ne parle pas à l'API). (3) Auditer les droits du ServiceAccount default et des autres comptes pour éviter les permissions excessives. Principe : moindre privilège appliqué aux identités machine, une appli qui n'a pas besoin de l'API ne doit ni porter de token ni avoir de permissions."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, Comptes de service",
           "quizRef": "service-accounts-check"
         }
@@ -91,27 +115,45 @@
           "body": "Une fois qu'on a distribué des rôles et des liaisons partout, une question se pose : **comment savoir ce qu'un utilisateur ou un ServiceAccount a réellement le droit de faire ?** Relire tous les Roles et RoleBindings à la main serait pénible et source d'erreurs. Kubernetes offre un outil direct pour répondre.\n\nRappel : **`kubectl`** est l'outil en ligne de commande (le programme qu'on tape dans le terminal) pour piloter un cluster Kubernetes. La sous-commande **`kubectl auth can-i`** (littéralement : est-ce que je peux ?) répond par **oui** ou **non** à une question de permission précise.\n\nExemples concrets :\n- `kubectl auth can-i delete pods` : moi, ai-je le droit de supprimer des pods ? Réponse : `yes` ou `no`.\n- `kubectl auth can-i get secrets --as=system:serviceaccount:equipe-a:mon-sa` : le drapeau `--as` demande de tester **au nom d'un autre sujet** (ici le ServiceAccount `mon-sa` du namespace `equipe-a`). Très pratique pour vérifier les droits d'un compte **sans** être ce compte.\n\n👉 **Analogie** : c'est le **testeur de badge** à l'entrée. Au lieu de deviner, tu passes le badge devant le lecteur et il affiche accès autorisé ou refusé.\n\nÀ quoi ça sert au quotidien :\n- **diagnostiquer un `Forbidden`** : quand l'apiserver répond `Forbidden` (interdit) à une commande, c'est un refus RBAC. Un `can-i` confirme tout de suite s'il manque une permission.\n- **auditer** : vérifier qu'un compte n'a **pas** trop de droits. On peut même traquer les droits démesurés avec `kubectl auth can-i '*' '*'` (puis-je tout faire, sur tout ?) : si la réponse est `yes` pour un compte qui ne devrait pas, c'est une alerte.\n\nUn audit RBAC régulier avec `can-i` (ou des outils dédiés comme `rbac-tool`) fait partie de l'**hygiène de sécurité** de base d'un cluster."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "ClusterRoles agrégés & rôles par défaut",
-          "body": "Bonne nouvelle : tu n'as pas à tout écrire toi-même. Kubernetes livre des **ClusterRoles par défaut**, tout prêts, pour les besoins les plus courants. Les quatre à connaître :\n- **`view`** : **lecture seule** sur la plupart des ressources d'un namespace, **sans** les secrets (pour ne pas exposer les mots de passe). 👉 Le visiteur qui peut regarder mais rien toucher.\n- **`edit`** : **modifier** la plupart des ressources d'un namespace (créer/supprimer des pods, des deployments...), mais **sans** toucher au RBAC lui-même (il ne peut pas s'auto-accorder plus de droits).\n- **`admin`** : **tout** dans un namespace, **y compris** gérer le RBAC local (créer des Roles et des RoleBindings dans ce namespace).\n- **`cluster-admin`** : **tout, partout**, sur l'ensemble du cluster. 👉 C'est le **passe-partout absolu**, à réserver à une poignée de personnes.\n\nCes rôles t'évitent de réinventer la roue : pour donner un accès en lecture à quelqu'un dans un namespace, tu lies simplement le ClusterRole `view` via une RoleBinding, sans écrire de Role à la main.\n\nMaintenant un mécanisme plus avancé : les **ClusterRoles agrégés**. Un ClusterRole peut **récupérer automatiquement** les règles d'autres ClusterRoles qui portent un certain **label** (une étiquette clé-valeur posée sur un objet). Ce regroupement automatique se déclare avec le champ `aggregationRule`. 👉 **Analogie** : le rôle agrégé est un **classeur** qui absorbe automatiquement toute nouvelle fiche estampillée du bon tampon, sans qu'on ait à la ranger à la main.\n\nÀ quoi ça sert vraiment ? Quand tu ajoutes une **CRD** au cluster. Une **CRD** (*Custom Resource Definition*, définition de ressource personnalisée) est un moyen d'**inventer un nouveau type d'objet** Kubernetes, propre à ton besoin (par exemple un type `Database` géré par un opérateur). Grâce à l'agrégation, cette CRD peut **étendre** les rôles `view` et `edit` avec les permissions sur son nouveau type, **sans modifier** les rôles de base : il suffit de fournir un petit ClusterRole labellisé, et `view`/`edit` l'absorbent. Résultat : quelqu'un qui avait `view` peut désormais aussi consulter les objets `Database`, automatiquement. C'est ainsi que les opérateurs s'intègrent **proprement** au RBAC existant."
+          "type": "IMAGE",
+          "title": "Vérifier et auditer les droits : kubectl auth can-i.",
+          "body": "/images/lessons/rbac-avance-workload-identity-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "ClusterRoles agrégés & rôles par défaut",
+          "body": "Bonne nouvelle : tu n'as pas à tout écrire toi-même. Kubernetes livre des **ClusterRoles par défaut**, tout prêts, pour les besoins les plus courants. Les quatre à connaître :\n- **`view`** : **lecture seule** sur la plupart des ressources d'un namespace, **sans** les secrets (pour ne pas exposer les mots de passe). 👉 Le visiteur qui peut regarder mais rien toucher.\n- **`edit`** : **modifier** la plupart des ressources d'un namespace (créer/supprimer des pods, des deployments...), mais **sans** toucher au RBAC lui-même (il ne peut pas s'auto-accorder plus de droits).\n- **`admin`** : **tout** dans un namespace, **y compris** gérer le RBAC local (créer des Roles et des RoleBindings dans ce namespace).\n- **`cluster-admin`** : **tout, partout**, sur l'ensemble du cluster. 👉 C'est le **passe-partout absolu**, à réserver à une poignée de personnes.\n\nCes rôles t'évitent de réinventer la roue : pour donner un accès en lecture à quelqu'un dans un namespace, tu lies simplement le ClusterRole `view` via une RoleBinding, sans écrire de Role à la main.\n\nMaintenant un mécanisme plus avancé : les **ClusterRoles agrégés**. Un ClusterRole peut **récupérer automatiquement** les règles d'autres ClusterRoles qui portent un certain **label** (une étiquette clé-valeur posée sur un objet). Ce regroupement automatique se déclare avec le champ `aggregationRule`. 👉 **Analogie** : le rôle agrégé est un **classeur** qui absorbe automatiquement toute nouvelle fiche estampillée du bon tampon, sans qu'on ait à la ranger à la main.\n\nÀ quoi ça sert vraiment ? Quand tu ajoutes une **CRD** au cluster. Une **CRD** (*Custom Resource Definition*, définition de ressource personnalisée) est un moyen d'**inventer un nouveau type d'objet** Kubernetes, propre à ton besoin (par exemple un type `Database` géré par un opérateur). Grâce à l'agrégation, cette CRD peut **étendre** les rôles `view` et `edit` avec les permissions sur son nouveau type, **sans modifier** les rôles de base : il suffit de fournir un petit ClusterRole labellisé, et `view`/`edit` l'absorbent. Résultat : quelqu'un qui avait `view` peut désormais aussi consulter les objets `Database`, automatiquement. C'est ainsi que les opérateurs s'intègrent **proprement** au RBAC existant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ClusterRoles agrégés & rôles par défaut.",
+          "body": "/images/lessons/rbac-avance-workload-identity-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Workload identity : la fin des clés cloud en dur (niveau expert)",
           "body": "Une application dans un pod a souvent besoin d'accéder à des services **du cloud**, hébergés en dehors du cluster : un stockage de fichiers comme **S3** (le service de stockage d'objets d'AWS), une base de données managée, un coffre à secrets. Pour cela, le cloud exige une **preuve d'identité**. Comment la fournir proprement ?\n\nD'abord un mot de vocabulaire : **IAM** (*Identity and Access Management*, gestion des identités et des accès) est le système de permissions **du fournisseur cloud** (AWS, Google Cloud, Azure). C'est l'équivalent du RBAC, mais côté cloud : il décide quelle identité a le droit d'accéder à quel service cloud.\n\n**L'anti-pattern (à éviter)** : générer une **clé d'accès statique** (un identifiant plus un secret, façon login/mot de passe permanent) dans le cloud, et la coller dans un Secret Kubernetes monté dans le pod. Le problème : c'est un secret à **longue durée de vie**, donc **volable** et **difficile à faire tourner** (à remplacer régulièrement). Si le pod est compromis ou si le Secret fuite, l'attaquant obtient un accès cloud **durable**. 👉 **Analogie** : c'est comme cacher un **double de clé de maison sous le paillasson** ; pratique, mais quiconque le trouve entre quand il veut, tant que tu n'as pas changé la serrure.\n\n**La solution moderne : la workload identity** (identité de charge de travail). L'idée : au lieu d'une clé en dur, on **relie** le **ServiceAccount Kubernetes** du pod à une **identité IAM du cloud**. Chaque cloud a son nom pour ce mécanisme : **IRSA** (*IAM Roles for Service Accounts*) sur AWS, **Workload Identity** sur Google (GKE), **Managed Identity** sur Azure (AKS).\n\nComment ça marche, concrètement ? Le pod reçoit un **token projeté** : un jeton **court** (durée de vie limitée), spécifique à ce pod, généré par Kubernetes. Le SDK du cloud **échange automatiquement** ce token contre des **credentials cloud temporaires** (sur AWS, via le service **STS**, *Security Token Service*, qui délivre des accès éphémères). Le pod agit alors sous un **rôle IAM** précis, le temps d'une courte session. 👉 **Résultat** : **aucune clé statique** à stocker ni à faire tourner ; les accès sont **éphémères**, renouvelés tout seuls, limités au strict nécessaire (moindre privilège) et **tracés** côté cloud.\n\nC'est le pendant, côté cloud, du principe **pas de secret en dur** : l'identité de la charge de travail est **fédérée** (reliée de confiance) avec le IAM du cloud, et plus aucune clé permanente ne traîne dans le cluster. Pour tout accès d'un pod à des services cloud, c'est aujourd'hui **la** pratique recommandée."
         },
         {
+          "type": "IMAGE",
+          "title": "Workload identity : la fin des clés cloud en dur.",
+          "body": "/images/lessons/rbac-avance-workload-identity-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "Une application dans un pod doit lire un bucket S3. Un développeur crée un utilisateur IAM AWS, génère une clé d'accès statique, et la stocke dans un Secret Kubernetes monté dans le pod. Quels sont les risques, et quelle approche moderne les élimine ?",
           "solution": "Risques de la clé statique dans un Secret : (1) C'est un secret à LONGUE DURÉE, exploitable, si le pod est compromis (faille applicative, dépendance malveillante) ou si le Secret fuite (RBAC trop large, sauvegarde etcd non chiffrée, log accidentel), l'attaquant obtient un accès AWS durable et difficile à révoquer sans casser l'app. (2) La rotation est pénible et souvent négligée (une clé qui traîne des mois/années). (3) L'accès n'est pas finement audité ni éphémère. (4) La clé peut se retrouver committée dans Git par erreur. Approche moderne qui élimine ces risques : la workload identity, sur AWS, IRSA (IAM Roles for Service Accounts) ; sur GKE, Workload Identity ; sur AKS, Managed Identity. On lie le ServiceAccount Kubernetes du pod à un rôle IAM cloud. Le pod reçoit alors un token projeté (court, spécifique au pod) que le SDK AWS échange automatiquement contre des credentials AWS TEMPORAIRES (STS) pour assumer le rôle IAM autorisé à lire le bucket. Résultat : AUCUNE clé statique à stocker ni à faire tourner ; les credentials sont éphémères, renouvelés automatiquement, scopés au rôle (moindre privilège), et audités côté cloud (CloudTrail). L'identité de la charge de travail est fédérée avec l'IAM cloud, exactement dans l'esprit pas de secret en dur. C'est aujourd'hui la pratique recommandée pour tout accès d'un pod à des services cloud."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, RBAC avancé & workload identity (expert)",
           "quizRef": "rbac-advanced-expert"
         }
