@@ -903,8 +903,10 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     en parallèle** (un par nœud) ont rédigé le reste en copiant le gabarit. Consolidation : sweep anti-tiret
     cadratin (titres de quiz normalisés en « Quiz : … »), `validate --only dapr` **vert du 1er coup**,
     `ingest --only dapr` OK. Vérifié API : Dapr au catalogue, 20 nœuds / 6 phases / 24 arêtes.
-  - **Reste (optionnel)** : images pédagogiques par concept (même pipeline curl que Docker/Kubernetes),
-    non faites pour l'instant.
+  - **Images** : ✅ **130 concepts illustrés** (une image après chaque concept), via **5 agents parallèles**
+    (sourcing curl Pexels + `insert-lesson-images.mjs`), 0 échec. `les-trois-piliers` (observability) réutilise
+    les 2 images partagées existantes (même thème). Ré-ingéré + frontend rebuildé + assets vérifiés HTTP 200.
+    **925 images** au total dans `frontend/public/images/lessons/`.
 
 - ✅ **Maintenance — Tests `iam` + préparation mise en public (MIT)** — **TERMINÉ**
   - Correctif : `AuthIntegrationTest` (module `iam`) ne chargeait plus le contexte depuis l'ajout du

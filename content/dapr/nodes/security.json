@@ -13,22 +13,34 @@
           "body": "Dans un cluster Dapr, un service du **control plane** s'appelle **Sentry**. C'est l'**autorité de certification** (CA) : c'est lui qui **émet et signe** les certificats d'identité de chaque application.\n\nAu démarrage, chaque sidecar demande à Sentry un **certificat** qui prouve son identité. Cette identité n'est pas une IP (qui change tout le temps) mais une **identité stable** dérivée de l'app-id et du namespace, encodée sous forme d'URI **SPIFFE** du type `spiffe://<trust-domain>/ns/<namespace>/<app-id>`.\n\nSentry possède un **certificat racine** (root cert) : tous les sidecars lui font confiance, donc ils peuvent **se vérifier mutuellement** sans configuration manuelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Sentry est l'autorité de certification : elle émet et signe l'identité de chaque application.",
+          "body": "/images/lessons/mtls-automatique-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le mTLS, activé par défaut et renouvelé tout seul",
-          "position": 1,
+          "position": 2,
           "body": "**mTLS** (mutual TLS) signifie que **les deux** parties d'un échange présentent un certificat : le client prouve son identité au serveur **et** le serveur prouve la sienne au client. Chez Dapr, **tout le trafic entre sidecars est chiffré par mTLS**, et c'est **activé par défaut**.\n\nTon code n'a **rien à faire** : quand le service A invoque le service B, les sidecars négocient le mTLS, se présentent leurs certificats signés par Sentry, les vérifient, puis chiffrent la communication. Ta logique métier ignore totalement cette plomberie cryptographique.\n\nPoint clé pour la production : les certificats des charges de travail sont **de courte durée de vie** et **renouvelés automatiquement** (rotation) par Sentry, **sans interruption** de service. Un certificat volé n'est donc exploitable que très peu de temps."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le mTLS chiffre tout le trafic entre sidecars, activé par défaut et renouvelé automatiquement.",
+          "body": "/images/lessons/mtls-automatique-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "Chiffrement mTLS entre deux sidecars",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n  Sentry[\"Sentry (CA)\\nemet + signe les certs\"]\n  subgraph A[\"Service A\"]\n    AppA[\"App A\"] --- SidecarA[\"Sidecar A\"]\n  end\n  subgraph B[\"Service B\"]\n    SidecarB[\"Sidecar B\"] --- AppB[\"App B\"]\n  end\n  Sentry -.->|cert signe| SidecarA\n  Sentry -.->|cert signe| SidecarB\n  SidecarA <-->|\"mTLS (trafic chiffre)\"| SidecarB"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "security-mtls-automatique-check"
         }
       ]
@@ -45,22 +57,34 @@
           "body": "Le mTLS sécurise le trafic **entre sidecars**. Mais il reste un autre canal à protéger : celui **entre ton application et son propre sidecar** (localhost). Par défaut, n'importe quel processus local pourrait appeler l'API du sidecar.\n\nDapr propose deux jetons complémentaires :\n\n- **Jeton d'API Dapr** : ton application doit présenter ce jeton (en-tête `dapr-api-token`) pour que le sidecar accepte ses requêtes. Cela **authentifie l'application auprès du sidecar**.\n- **Jeton d'API de l'app** : dans l'autre sens, le sidecar présente un jeton (en-tête `dapr-api-token` côté app) quand il appelle **ton** application, pour que celle-ci vérifie que l'appel vient bien de **son** sidecar. Cela **authentifie le sidecar auprès de l'application**.\n\nLes deux jetons sont des **JWT** fournis via des variables d'environnement, idéalement lues depuis un **secret store**, jamais en dur."
         },
         {
+          "type": "IMAGE",
+          "title": "Les jetons d'API authentifient l'application et le sidecar l'un auprès de l'autre.",
+          "body": "/images/lessons/jetons-et-scoping-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le scoping : restreindre composants et secrets",
-          "position": 1,
+          "position": 2,
           "body": "Par défaut, **tous** les composants (state stores, pub/sub, bindings...) sont accessibles à **toutes** les applications du cluster. Ce n'est pas souhaitable : la base de commandes n'a pas à voir le store du service de paiement.\n\nLe **scoping** répond à ce besoin. Dans la définition YAML d'un composant, le champ `scopes` liste les **app-id autorisés** : seuls ces services pourront utiliser ce composant. Un service non listé reçoit une erreur.\n\nLe même principe s'applique aux **secrets** : via la clause `allowedSecrets` / `deniedSecrets` d'une Configuration, on restreint **quels secrets** une application peut lire dans un secret store, pour appliquer le **moindre privilège**. Ainsi, même si une app est compromise, elle ne peut toucher qu'à ce qui la concerne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le scoping restreint quels services accèdent à chaque composant et secret.",
+          "body": "/images/lessons/jetons-et-scoping-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Activer un jeton d'API sur le sidecar",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "yaml",
           "body": "# 1) On stocke le jeton dans un Secret Kubernetes.\napiVersion: v1\nkind: Secret\nmetadata:\n  name: dapr-api-token\ntype: Opaque\nstringData:\n  token: \"un-jeton-jwt-long-et-aleatoire\"\n---\n# 2) On injecte ce jeton dans le sidecar via une annotation du Deployment.\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: commande\nspec:\n  template:\n    metadata:\n      annotations:\n        dapr.io/enabled: \"true\"\n        dapr.io/app-id: \"commande\"\n        # Le sidecar lira le jeton depuis ce Secret\n        # et exigera l'en-tete dapr-api-token sur chaque requete.\n        dapr.io/api-token-secret: \"dapr-api-token\"\n    spec:\n      containers:\n        - name: app\n          image: mon-registry/commande:1.0"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "security-jetons-et-scoping-check"
         }
       ]
@@ -77,22 +101,34 @@
           "body": "Le mTLS garantit **qui** parle (l'identité est prouvée), mais pas **qui a le droit** de parler à qui. Pour cela, Dapr offre des **policies d'access control** (ACL) appliquées à l'**invocation de service**.\n\nUne policy se déclare dans une ressource **Configuration** attachée à une application. Elle définit :\n\n- un **défaut global** (`defaultAction`) : `allow` ou `deny` pour tout appel entrant non couvert par une règle plus spécifique ;\n- une liste de règles par **app-id appelant** (`appPolicies`), chacune avec son propre `defaultAction` ;\n- au sein d'une règle, des **opérations** fines : on peut autoriser ou refuser un **chemin** précis (`name`) et des **verbes HTTP** donnés (`httpVerb`, par exemple `POST`, `GET`).\n\nOn peut aussi restreindre par **namespace** et par **trust domain**, pour qu'un service d'un autre namespace ne puisse pas appeler le tien. C'est le niveau **expert** : une posture zero-trust où chaque appel entrant doit être explicitement autorisé."
         },
         {
+          "type": "IMAGE",
+          "title": "Des policies allow/deny contrôlent qui peut invoquer chaque service.",
+          "body": "/images/lessons/controle-dacces-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Bien choisir son defaultAction",
-          "position": 1,
+          "position": 2,
           "body": "La règle d'or : en production, mettre `defaultAction: deny` au niveau global, puis **ouvrir explicitement** les seuls appels légitimes. C'est le principe du **deny by default** : tout ce qui n'est pas autorisé est interdit.\n\nAttention à la **résolution** : la règle la plus **spécifique** l'emporte. Dapr évalue dans l'ordre le trust domain, le namespace, l'app-id appelant, puis l'opération (chemin + verbe). Une opération peut donc **autoriser** un `POST /orders` alors que le `defaultAction` de l'appelant est `deny`.\n\n> À retenir : le contrôle d'accès **complète** le mTLS. Le mTLS prouve l'identité ; les ACL décident ce que cette identité a le droit de faire. Ensemble, ils réalisent un modèle **zero-trust**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En production, deny par défaut puis ouvrir explicitement les seuls appels légitimes.",
+          "body": "/images/lessons/controle-dacces-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Une Configuration d'access control",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "yaml",
           "body": "apiVersion: dapr.io/v1alpha1\nkind: Configuration\nmetadata:\n  name: appconfig\nspec:\n  accessControl:\n    # Deny par defaut : tout appel entrant est refuse,\n    # sauf ce qui est explicitement autorise ci-dessous.\n    defaultAction: deny\n    trustDomain: \"public\"\n    policies:\n      # Seul le service \"frontend\" peut appeler cette app...\n      - appId: frontend\n        defaultAction: deny\n        trustDomain: \"public\"\n        namespace: \"production\"\n        operations:\n          # ...et uniquement POST sur /orders\n          - name: /orders\n            httpVerb: [\"POST\"]\n            action: allow\n          # ...et GET sur /orders/status\n          - name: /orders/status\n            httpVerb: [\"GET\"]\n            action: allow"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "security-controle-dacces-check"
         }
       ]

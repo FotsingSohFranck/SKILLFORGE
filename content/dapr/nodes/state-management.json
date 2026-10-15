@@ -13,22 +13,34 @@
           "body": "Beaucoup de services ont besoin de **retenir quelque chose** entre deux requêtes : un panier, une session, un compteur. Dapr propose pour cela un building block **state management** : une API **clé/valeur** simple, exposée par ton sidecar.\n\nPour **écrire**, tu envoies un `POST` sur `/v1.0/state/<store>` avec un **tableau** d'objets `{ \"key\": ..., \"value\": ... }`. La `value` peut être n'importe quel **JSON** (une chaîne, un nombre, un objet complet).\n\nPour **lire**, tu fais un `GET` sur `/v1.0/state/<store>/<key>` et Dapr te renvoie la valeur stockée. Pour supprimer, un `DELETE` sur la même URL. Ton code manipule donc un **dictionnaire distant** sans jamais parler directement à la base."
         },
         {
+          "type": "IMAGE",
+          "title": "L'API state stocke des paires clé/valeur via de simples appels HTTP.",
+          "body": "/images/lessons/lire-ecrire-un-etat-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Des state stores pluggables",
-          "position": 1,
+          "position": 2,
           "body": "Le `<store>` dans l'URL est un **nom logique** : c'est l'`name` d'un **composant** `state` que tu déclares en YAML. Derrière ce nom, Dapr peut brancher **de nombreux backends** : **Redis** (le store par défaut en self-hosted), **PostgreSQL**, MySQL, Cassandra, ou des stores managés (Azure Cosmos DB, AWS DynamoDB, GCP Firestore...).\n\nL'intérêt est double. Ton **code reste identique** quel que soit le backend : il parle toujours à la même API `/v1.0/state/...`. Et **changer de store** (passer de Redis à PostgreSQL, par exemple) se fait **dans la configuration du composant**, sans toucher une ligne de ta logique métier.\n\n> À retenir : le nom du store dans l'URL ne désigne pas une technologie, mais un **composant** que tu configures librement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le même code fonctionne quel que soit le backend de stockage choisi.",
+          "body": "/images/lessons/lire-ecrire-un-etat-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Écrire puis relire une valeur",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# 1) Ecrire une cle \"order-1\" dans le store nomme \"statestore\".\n# Le corps est un TABLEAU : on peut envoyer plusieurs paires d'un coup.\ncurl -X POST http://localhost:3500/v1.0/state/statestore \\\n  -H \"Content-Type: application/json\" \\\n  -d '[{ \"key\": \"order-1\", \"value\": { \"produit\": \"clavier\", \"quantite\": 2 } }]'\n\n# Reponse : 204 No Content (ecriture reussie, pas de corps).\n\n# 2) Relire la cle : un simple GET sur /v1.0/state/<store>/<key>\ncurl http://localhost:3500/v1.0/state/statestore/order-1\n\n# Reponse : { \"produit\": \"clavier\", \"quantite\": 2 }\n# Aucune requete SQL, aucun client Redis : juste l'API state de Dapr."
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "state-management-lire-ecrire-un-etat-check"
         }
       ]
@@ -45,15 +57,27 @@
           "body": "Que se passe-t-il si **deux requêtes** modifient la même clé **en même temps** ? Sans précaution, la seconde écrase la première sans le savoir : une mise à jour est **perdue**.\n\nDapr propose la **concurrence optimiste** via les **ETags**. Chaque valeur stockée possède un ETag, une sorte de **numéro de version**. Quand tu lis une clé, Dapr renvoie son ETag (dans l'en-tête `ETag` de la réponse). Quand tu réécris, tu **renvoies cet ETag** dans le champ `etag` de ton objet.\n\nSi la valeur en base a **changé entre-temps**, son ETag ne correspond plus au tien : Dapr **rejette** l'écriture avec un `409 Conflict`. À toi de **relire** la dernière version et de réessayer. On parle d'optimiste car on ne verrouille rien : on parie qu'il n'y aura pas de conflit, et on ne paie le prix qu'en cas de collision réelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Les ETags versionnent chaque valeur pour éviter les écrasements silencieux.",
+          "body": "/images/lessons/concurrence-et-consistance-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Consistance et stratégie de concurrence",
-          "position": 1,
+          "position": 2,
           "body": "Deux options de métadonnées affinent le comportement d'une écriture ou d'une lecture.\n\nLa **consistance** (`consistency`) : `eventual` (par défaut) accepte un court délai avant que tous les réplicas voient la même valeur, pour plus de performance ; `strong` garantit que toute lecture suivante verra bien la dernière écriture, au prix de la latence. Tous les stores ne supportent pas `strong`.\n\nLa **concurrence** (`concurrency`) : `last-write` (par défaut) ignore les ETags et laisse la **dernière écriture gagner** ; `first-write` **exige un ETag** et fait gagner la **première écriture**, rejetant les suivantes en conflit. Tu choisis `first-write` dès que la perte silencieuse d'une mise à jour est inacceptable (un solde, un stock).\n\n> À retenir : `first-write` + ETags protègent tes données contre les écrasements ; `strong` garantit ce que verront les lectures."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Consistance et concurrence ajustent l'équilibre entre performance et sûreté.",
+          "body": "/images/lessons/concurrence-et-consistance-2.jpg",
+          "position": 3
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 2,
+          "position": 4,
           "quizRef": "state-management-concurrence-et-consistance-check"
         }
       ]
@@ -70,22 +94,34 @@
           "body": "Parfois, **plusieurs écritures doivent réussir ou échouer ensemble** : débiter un compte et créditer l'autre, par exemple. Les faire une par une risque de laisser l'état **à moitié modifié** si une panne survient entre les deux.\n\nDapr offre pour cela l'**API transactionnelle** : un `POST` sur `/v1.0/state/<store>/transaction` avec une liste d'`operations`. Chaque opération est un `upsert` (écrire) ou un `delete` (supprimer). Dapr applique **l'ensemble de manière atomique** : tout passe, ou rien ne passe.\n\nAttention : toutes les technologies ne savent pas faire de transactions. Seuls les stores qui supportent la capacité **transactionnelle** (Redis, PostgreSQL, Cosmos DB...) acceptent cet appel ; les autres renvoient une erreur."
         },
         {
+          "type": "IMAGE",
+          "title": "Une transaction applique plusieurs écritures de façon atomique, tout ou rien.",
+          "body": "/images/lessons/transactions-et-requetes-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "L'API Query et le TTL",
-          "position": 1,
+          "position": 2,
           "body": "Par défaut, un store clé/valeur ne sait **que** retrouver une valeur par sa **clé exacte**. Pour aller plus loin, Dapr propose l'**API Query** (encore en **alpha** : `/v1.0-alpha1/state/<store>/query`) : elle permet de **filtrer**, **trier** et **paginer** sur le contenu des valeurs, comme un mini moteur de requêtes. Elle n'est disponible que sur les stores qui savent interroger leur contenu (PostgreSQL, Cosmos DB, MongoDB...).\n\nAutre fonctionnalité pratique : le **TTL** (*time to live*). En ajoutant la métadonnée `ttlInSeconds` à une écriture, tu demandes à Dapr d'**expirer automatiquement** la clé après ce délai. Idéal pour des données éphémères : une session, un cache, un jeton temporaire, sans aucun nettoyage manuel.\n\n> À retenir : l'API Query et le TTL sont des fonctionnalités de **niveau expert**, dont le support dépend du store choisi."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'API Query filtre les données et le TTL expire automatiquement les clés.",
+          "body": "/images/lessons/transactions-et-requetes-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Une écriture transactionnelle de plusieurs clés",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "json",
           "body": "{\n  \"operations\": [\n    {\n      \"operation\": \"upsert\",\n      \"request\": {\n        \"key\": \"compte-A\",\n        \"value\": { \"solde\": 80 }\n      }\n    },\n    {\n      \"operation\": \"upsert\",\n      \"request\": {\n        \"key\": \"compte-B\",\n        \"value\": { \"solde\": 120 }\n      }\n    },\n    {\n      \"operation\": \"delete\",\n      \"request\": {\n        \"key\": \"transfert-en-cours\"\n      }\n    }\n  ]\n}"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "state-management-transactions-et-requetes-check"
         }
       ]

@@ -13,22 +13,34 @@
           "body": "La **CLI Dapr** (`dapr`) est l'outil en ligne de commande qui te sert de **point d'entrée** pour tout le reste. C'est elle que tu utiliseras au quotidien.\n\nElle sait **installer** l'environnement d'exécution (`dapr init`), **lancer** une application avec son sidecar (`dapr run`), **inspecter** l'état du système (`dapr status`, `dapr list`), **gérer les composants** et ouvrir le **dashboard**.\n\nRetiens bien la distinction : la **CLI** est l'outil que tu tapes au clavier ; `daprd` est le **runtime** (le sidecar) qui tourne à côté de ton app. Installer la CLI est la toute première étape, avant même d'avoir un runtime en place."
         },
         {
+          "type": "IMAGE",
+          "title": "La CLI Dapr, ta télécommande en ligne de commande",
+          "body": "/images/lessons/installer-la-cli-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Trois façons d'installer, puis on vérifie",
-          "position": 1,
+          "position": 2,
           "body": "La CLI s'installe de la manière la plus naturelle pour ton système.\n\n**Script shell** (Linux et macOS) : une commande `curl` qui télécharge et place le binaire. C'est l'option universelle.\n\n**Homebrew** (macOS, Linux) : `brew install dapr/tap/dapr-cli`, pratique si tu utilises déjà Homebrew.\n\n**Chocolatey** (Windows) : `choco install dapr-cli`, l'équivalent sur Windows.\n\nDans tous les cas, on **vérifie** l'installation avec `dapr --version`. Attention à ce que la commande affiche : elle donne la version de la **CLI** et celle du **Runtime**. Juste après avoir installé la CLI, le Runtime apparaît comme non initialisé (`n/a`) : c'est normal, il sera installé à l'étape suivante avec `dapr init`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Installer puis vérifier la CLI selon ton système",
+          "body": "/images/lessons/installer-la-cli-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Installer la CLI selon ton système",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# Linux / macOS : script d'installation officiel\nwget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash\n\n# macOS ou Linux avec Homebrew\nbrew install dapr/tap/dapr-cli\n\n# Windows avec Chocolatey (dans un terminal administrateur)\nchoco install dapr-cli\n\n# Verifier que la CLI est bien installee.\n# La ligne \"Runtime version\" affiche n/a tant que 'dapr init' n'a pas ete lance.\ndapr --version\n# CLI version: 1.15.0\n# Runtime version: n/a"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "installation-setup-installer-la-cli-check"
         }
       ]
@@ -45,22 +57,34 @@
           "body": "Une fois la CLI installée, `dapr init` prépare tout l'environnement local en **une seule commande**.\n\nConcrètement, il **télécharge et installe les binaires** du runtime, dont `daprd` (le sidecar) et le service **placement** (indispensable aux acteurs). Il démarre aussi **deux conteneurs Docker** très pratiques pour développer : un **Redis** (qui sert de state store et de message broker par défaut) et un **Zipkin** (pour visualiser les traces distribuées).\n\nEnfin, il crée un dossier `~/.dapr` dans ton répertoire personnel. Ce dossier contient les binaires, et surtout un sous-dossier `components/` avec des **composants par défaut** déjà configurés (le state store et le pub/sub pointant vers le Redis local)."
         },
         {
+          "type": "IMAGE",
+          "title": "dapr init installe les binaires et démarre des conteneurs Docker",
+          "body": "/images/lessons/dapr-init-self-hosted-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Pourquoi c'est l'environnement de dev idéal",
-          "position": 1,
+          "position": 2,
           "body": "Ce que `dapr init` met en place te donne un **bac à sable complet** sans aucune configuration manuelle.\n\nGrâce aux composants par défaut dans `~/.dapr/components/`, tu peux **immédiatement** tester la gestion d'état et le pub/sub : pas besoin de déclarer un seul fichier YAML pour démarrer. Le Redis local joue les deux rôles, le Zipkin capture les traces.\n\nC'est le mode **self-hosted** : Dapr et tes applications tournent **directement sur ta machine** (ou dans des conteneurs locaux), sans Kubernetes. C'est parfait pour **apprendre**, **prototyper** et **développer** rapidement, avant de penser au déploiement. Prérequis : avoir **Docker** installé et démarré, puisque Redis et Zipkin tournent dans des conteneurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un bac à sable complet pour apprendre et prototyper rapidement",
+          "body": "/images/lessons/dapr-init-self-hosted-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Initialiser puis confirmer la version",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# Installe le runtime en self-hosted :\n# binaires (daprd, placement) + conteneurs Redis et Zipkin + dossier ~/.dapr\ndapr init\n\n# On peut verifier les conteneurs crees par Dapr\ndocker ps\n# dapr_redis, dapr_zipkin, dapr_placement\n\n# Maintenant 'Runtime version' n'est plus n/a : le runtime est installe\ndapr --version\n# CLI version: 1.15.0\n# Runtime version: 1.15.0"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "installation-setup-dapr-init-self-hosted-check"
         }
       ]
@@ -77,22 +101,34 @@
           "body": "Dapr s'installe dans **deux modes** distincts, selon où tournent tes applications.\n\nLe mode **self-hosted** (`dapr init`), vu à la leçon précédente, installe le runtime **sur ta machine**. Les sidecars sont lancés comme des **processus locaux** à côté de tes apps. C'est le mode du **développement**.\n\nLe mode **Kubernetes** (`dapr init -k`) installe le **control plane** de Dapr **dans ton cluster**, sous forme de pods : les services `dapr-operator`, `dapr-sidecar-injector`, `dapr-placement` et `dapr-sentry`. Là, les sidecars ne sont plus lancés à la main : ils sont **injectés automatiquement** dans tes pods dès qu'une annotation `dapr.io/enabled: \"true\"` est présente. C'est le mode de la **production**."
         },
         {
+          "type": "IMAGE",
+          "title": "Deux modes : la machine locale pour le dev, Kubernetes pour la production",
+          "body": "/images/lessons/self-hosted-vs-kubernetes-1.jpg",
+          "position": 1
+        },
+        {
           "type": "DIAGRAM",
           "title": "Les deux cibles d'installation",
-          "position": 1,
+          "position": 2,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n  CLI[\"CLI Dapr\"] -->|dapr init| SH[\"Mode self-hosted\\nMachine locale\"]\n  CLI -->|dapr init -k| K8S[\"Mode Kubernetes\\nControl plane dans le cluster\"]\n  SH --> P[\"Sidecars = processus locaux\\nRedis + Zipkin\"]\n  K8S --> I[\"Sidecars injectes dans les pods\\n(annotation dapr.io/enabled)\"]"
         },
         {
           "type": "CONCEPT",
           "title": "Le mode slim, et comment choisir (niveau expert)",
-          "position": 2,
+          "position": 3,
           "body": "Il existe une variante du self-hosted : le mode **slim**, lancé avec `dapr init --slim`. Il installe **uniquement les binaires** (daprd et placement) **sans Docker** : donc **pas** de conteneurs Redis ni Zipkin.\n\nQuand le choisir ? Quand tu ne peux (ou ne veux) **pas utiliser Docker**, par exemple sur un poste verrouillé ou dans un pipeline CI léger. Le revers : tu devras **fournir toi-même** un state store et un broker, et déclarer leurs composants à la main, puisque les composants par défaut pointant vers Redis n'ont plus de Redis derrière eux.\n\n**Comment choisir, en résumé :** `dapr init` (self-hosted complet) pour apprendre et développer sur ta machine ; `--slim` si Docker est indisponible et que tu acceptes de configurer l'infra toi-même ; `dapr init -k` dès que tu cibles un **cluster Kubernetes**, en dev partagé comme en production."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le mode slim, minimal et sans Docker, à choisir selon le contexte",
+          "body": "/images/lessons/self-hosted-vs-kubernetes-2.jpg",
+          "position": 4
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "installation-setup-self-hosted-vs-kubernetes-check"
         }
       ]

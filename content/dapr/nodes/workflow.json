@@ -13,22 +13,34 @@
           "body": "Beaucoup de processus métier ne sont pas une simple requête/réponse : une commande e-commerce doit **réserver le stock**, **débiter le paiement**, **préparer l'expédition**, **notifier le client**. Ces étapes s'enchaînent, peuvent durer des minutes (voire des jours en attendant un événement externe), et chacune peut **échouer**.\n\n**Dapr Workflow** est le building block qui orchestre ce genre de processus. Tu décris le déroulé **directement en code**, dans ton langage (Python, Go, Java, .NET, JavaScript), avec de vraies boucles, conditions et appels de fonctions, pas dans un fichier YAML ou un éditeur graphique.\n\nL'idée clé : ton code de workflow **décrit l'orchestration** (quoi faire, dans quel ordre), et Dapr se charge de l'**exécuter de façon fiable**."
         },
         {
+          "type": "IMAGE",
+          "title": "Un workflow orchestre un processus long décrit directement en code.",
+          "body": "/images/lessons/cest-quoi-dapr-workflow-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Durable : il survit aux pannes et aux redémarrages",
-          "position": 1,
+          "position": 2,
           "body": "Ce qui rend un workflow Dapr spécial, c'est qu'il est **durable**. Dapr **persiste automatiquement** l'avancement du workflow (quelles étapes sont terminées, avec quels résultats) dans un **state store**.\n\nConséquence : si le processus qui héberge le workflow **plante** ou **redémarre** au milieu, Dapr **reprend exactement là où il en était**. Il ne recommence pas tout, et ne rejoue pas les étapes déjà réussies.\n\nTechniquement, Dapr y parvient en **rejouant** l'historique des événements déjà enregistrés pour reconstruire l'état du workflow, puis en continuant à partir de la première étape non encore terminée. Ce mécanisme s'appuie sur le **moteur d'acteurs** de Dapr : chaque instance de workflow est portée par un acteur, ce qui lui donne un état persistant et un traitement à un seul thread. Tu n'as pas à gérer cette plomberie toi-même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Durable : l'état est persisté, le workflow reprend exactement après une panne.",
+          "body": "/images/lessons/cest-quoi-dapr-workflow-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "Un workflow orchestre des activités",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n  Start([\"Début du workflow commande\"]) --> A1[\"Activité : réserver le stock\"]\n  A1 --> A2[\"Activité : débiter le paiement\"]\n  A2 --> A3[\"Activité : préparer l'expédition\"]\n  A3 --> A4[\"Activité : notifier le client\"]\n  A4 --> End([\"Fin : commande traitée\"])\n  A1 -.->|état persisté| Store[(\"State store Dapr\")]\n  A2 -.->|état persisté| Store\n  A3 -.->|état persisté| Store"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "workflow-cest-quoi-dapr-workflow-check"
         }
       ]
@@ -45,15 +57,27 @@
           "body": "Le pattern le plus simple est le **chaînage de tâches** (*task chaining*) : les activités s'exécutent **l'une après l'autre**, et le résultat de l'une alimente la suivante. C'est le cas de notre workflow de commande.\n\nQuand les étapes sont **indépendantes**, on les lance en **parallèle** : c'est le pattern **fan-out / fan-in**. Le workflow déclenche plusieurs activités d'un coup (le *fan-out*), attend qu'**elles soient toutes terminées**, puis agrège leurs résultats (le *fan-in*). Exemple : traiter en parallèle les 100 lignes d'un fichier, puis calculer un total.\n\nComme tu écris du vrai code, le fan-out n'est souvent qu'une boucle qui démarre des tâches sans les attendre tout de suite, suivie d'une attente groupée."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaînage des tâches en séquence, ou fan-out/fan-in pour l'exécution parallèle.",
+          "body": "/images/lessons/les-patterns-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Monitor, attente d'événements, timers et workflows enfants",
-          "position": 1,
+          "position": 2,
           "body": "Dapr Workflow couvre aussi des besoins plus avancés :\n\n- **Monitor** : un workflow qui tourne **en boucle** pour surveiller quelque chose à intervalle régulier (par exemple l'état d'une ressource), éventuellement sans fin.\n- **Attente d'un événement externe** : le workflow se met **en pause** jusqu'à recevoir un événement venu de l'extérieur (une validation humaine, le retour d'un système tiers). Pendant l'attente, il ne consomme **pas** de ressources : son état est persisté.\n- **Timers / durable delays** : le workflow peut « **dormir** » pendant une durée précise (attendre 24 h avant une relance) de façon fiable, même si le processus redémarre entre-temps.\n- **Workflows enfants** (*child workflows*) : un workflow peut en **appeler un autre** comme sous-processus, pour composer et réutiliser des orchestrations.\n\nTous ces patterns se combinent librement, puisque ce ne sont que des constructions de ton langage."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Monitors, attente d'événements, timers et workflows enfants couvrent les besoins avancés.",
+          "body": "/images/lessons/les-patterns-2.jpg",
+          "position": 3
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 2,
+          "position": 4,
           "quizRef": "workflow-les-patterns-check"
         }
       ]
@@ -70,22 +94,34 @@
           "body": "Dans Dapr Workflow, il faut distinguer deux rôles.\n\nLe **workflow** est le **chef d'orchestre** : il décide de l'enchaînement, mais ne fait lui-même aucun travail « risqué ».\n\nLes **activités** (*activities*) sont les **exécutants** : ce sont elles qui réalisent le vrai travail, celui qui touche au monde extérieur : appeler une API, écrire en base, envoyer un e-mail, invoquer un autre service via Dapr.\n\nLa règle : **toute opération non déterministe ou qui a des effets de bord doit vivre dans une activité**, jamais directement dans le code du workflow. Dapr garantit qu'une activité terminée avec succès ne sera **pas ré-exécutée** lors d'une reprise, car son résultat a été persisté dans l'historique."
         },
         {
+          "type": "IMAGE",
+          "title": "Les activités sont les exécutants : c'est là que le vrai travail s'effectue.",
+          "body": "/images/lessons/activites-et-compensation-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Compensation (saga) et règle de déterminisme",
-          "position": 1,
+          "position": 2,
           "body": "Deux points de niveau expert.\n\n**La compensation (pattern saga).** Un workflow distribué n'a pas de transaction globale : on ne peut pas faire un `ROLLBACK` sur plusieurs services. Si une étape tardive échoue, on « annule » les précédentes en appelant leurs **actions de compensation** (rembourser le paiement déjà débité, libérer le stock déjà réservé). En code, c'est simplement un bloc qui, en cas d'erreur, rejoue **en sens inverse** les activités compensatoires des étapes déjà réussies.\n\n**La règle de déterminisme.** Puisque Dapr **rejoue** le code du workflow pour reconstruire son état après une panne, ce code doit être **déterministe** : rejoué avec le même historique, il doit prendre **exactement les mêmes décisions**. Donc, dans le corps d'un workflow, **interdit** d'appeler directement `now()`, de générer un UUID ou un nombre aléatoire, ou de faire un appel réseau. Pour ces besoins, on utilise les **API déterministes fournies par le SDK** (horloge du workflow, génération d'ID) ou on délègue à une **activité**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La compensation annule les étapes en sens inverse ; le code du workflow reste déterministe.",
+          "body": "/images/lessons/activites-et-compensation-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un workflow de commande avec compensation (SDK Python)",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "python",
           "body": "# Pseudo-code simplifie base sur le SDK Dapr Workflow en Python.\n# Le workflow ORCHESTRE ; les activites font le vrai travail.\n\ndef order_workflow(ctx, order):\n    reserved = False\n    charged = False\n    try:\n        # Chainage de taches : chaque etape attend la precedente.\n        yield ctx.call_activity(reserve_stock, input=order)\n        reserved = True\n\n        yield ctx.call_activity(charge_payment, input=order)\n        charged = True\n\n        yield ctx.call_activity(ship_order, input=order)\n        return \"commande traitee\"\n\n    except Exception:\n        # Compensation (saga) : on annule en sens inverse\n        # uniquement les etapes deja reussies.\n        if charged:\n            yield ctx.call_activity(refund_payment, input=order)\n        if reserved:\n            yield ctx.call_activity(release_stock, input=order)\n        raise\n\n# Une activite : ici le vrai effet de bord (appel externe, ecriture...).\ndef reserve_stock(ctx, order):\n    # ... appel au service d'inventaire via Dapr ...\n    return {\"reserved\": True}\n\n# Rappel : NE PAS appeler datetime.now() ou uuid4() dans order_workflow.\n# Utiliser l'horloge/les ID deterministes du SDK, ou une activite."
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "workflow-activites-et-compensation-check"
         }
       ]

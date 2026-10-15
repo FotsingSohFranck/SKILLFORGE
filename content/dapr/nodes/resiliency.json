@@ -13,22 +13,34 @@
           "body": "Dans un système distribué, **tout appel réseau peut échouer**, et souvent pour des raisons **temporaires** : un service qui redémarre, un pic de charge, une micro-coupure réseau, une base momentanément saturée.\n\nCe sont des **pannes transitoires** : si tu réessayais quelques instants plus tard, l'appel réussirait probablement. Le problème, c'est qu'une erreur ponctuelle ne devrait **pas** faire échouer toute une opération métier.\n\nLa règle d'or du distribué : le réseau n'est **pas fiable**. Ton application doit donc être conçue pour **absorber ces défaillances** sans s'effondrer."
         },
         {
+          "type": "IMAGE",
+          "title": "Dans un système distribué, tout appel réseau peut échouer de façon transitoire.",
+          "body": "/images/lessons/pourquoi-la-resilience-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Trois leviers : retries, timeouts, circuit breakers",
-          "position": 1,
+          "position": 2,
           "body": "Pour rendre un appel robuste, trois mécanismes se combinent.\n\n**Les *retries* (réessais)** : si un appel échoue, on le rejoue automatiquement, généralement après un court délai. C'est la réponse directe aux pannes transitoires.\n\n**Les *timeouts* (délais max)** : on refuse d'attendre indéfiniment. Passé un seuil, l'appel est abandonné, ce qui libère les ressources et évite qu'un service lent n'en bloque d'autres.\n\n**Les *circuit breakers* (coupe-circuits)** : si un service échoue **sans arrêt**, on arrête de le solliciter pendant un temps, pour lui laisser le temps de récupérer et éviter de l'enfoncer davantage. Comme un disjoncteur électrique qui s'ouvre pour protéger l'installation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois leviers combinés : retries, timeouts et circuit breakers.",
+          "body": "/images/lessons/pourquoi-la-resilience-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "Les trois leviers en un coup d'œil",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n  Call[\"Appel sortant\"] --> Timeout{\"Réponse avant le timeout ?\"}\n  Timeout -->|Oui| Ok[\"Succès\"]\n  Timeout -->|Non / erreur| Retry{\"Retries restants ?\"}\n  Retry -->|Oui| Call\n  Retry -->|Non| Breaker[\"Échec compté par le circuit breaker\"]\n  Breaker --> Open{\"Trop d'échecs ?\"}\n  Open -->|Oui| Trip[\"Circuit ouvert : on arrête d'appeler\"]\n  Open -->|Non| Fail[\"Échec remonté à l'appelant\"]"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "resiliency-pourquoi-la-resilience-check"
         }
       ]
@@ -45,22 +57,34 @@
           "body": "Avec Dapr, tu ne codes pas ces mécanismes à la main : tu les **déclares** dans une ressource **Resiliency** (une spec YAML, comme un composant).\n\nLa logique se divise en deux temps.\n\n**D'abord on définit des *policies*** réutilisables, regroupées en trois familles : `retries`, `timeouts` et `circuitBreakers`. Chacune porte un nom et ses paramètres.\n\n**Ensuite on les *cible*** dans une section `targets` : on applique telle policy de retry, tel timeout, tel circuit breaker à une cible précise. Séparer la **définition** de l'**application** permet de réutiliser une même policy à plusieurs endroits."
         },
         {
+          "type": "IMAGE",
+          "title": "La résilience se déclare dans une ressource Resiliency, pas dans le code.",
+          "body": "/images/lessons/la-policy-declarative-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Cibler des apps, des composants ou des acteurs",
-          "position": 1,
+          "position": 2,
           "body": "Les `targets` se déclinent en trois types, ce qui couvre tous les appels que le sidecar gère pour toi.\n\n**`apps`** : la résilience s'applique aux appels d'**invocation de service** vers un autre app-id.\n\n**`components`** : elle s'applique aux interactions avec un **composant** (state store, pub/sub, binding...), et on peut même distinguer les opérations sortantes (`outbound`) des entrantes (`inbound`).\n\n**`actors`** : elle s'applique aux appels vers un **type d'acteur**.\n\nLe gros intérêt : tout cela est **transparent pour ton code applicatif**. C'est le sidecar Dapr qui applique les policies, sans que tu touches à ta logique métier."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les targets appliquent les policies aux apps, composants ou acteurs.",
+          "body": "/images/lessons/la-policy-declarative-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Une ressource Resiliency complète",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "yaml",
           "body": "apiVersion: dapr.io/v1alpha1\nkind: Resiliency\nmetadata:\n  name: ma-resilience\nspec:\n  policies:\n    retries:\n      reessaiStandard:\n        policy: exponential\n        maxRetries: 3\n        maxInterval: 10s\n    timeouts:\n      rapide: 5s\n    circuitBreakers:\n      coupeCircuit:\n        maxRequests: 1\n        interval: 60s\n        timeout: 30s\n        trip: consecutiveFailures >= 5\n  targets:\n    apps:\n      panier:\n        retry: reessaiStandard\n        timeout: rapide\n        circuitBreaker: coupeCircuit\n    components:\n      statestore:\n        outbound:\n          retry: reessaiStandard\n          circuitBreaker: coupeCircuit\n    actors:\n      panierActor:\n        retry: reessaiStandard\n        circuitBreaker: coupeCircuit"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "resiliency-la-policy-declarative-check"
         }
       ]
@@ -77,15 +101,27 @@
           "body": "Un *retry* rejoue le **même appel**. Mais si le premier appel avait **en fait réussi** côté serveur (et que seule la réponse s'est perdue), le réessai va exécuter l'opération **une seconde fois**.\n\nPour une lecture, aucun souci. Mais pour une écriture (« débiter 50 € », « créer la commande »), rejouer l'appel peut **doubler l'effet**. C'est la conséquence directe de la garantie *at-least-once* qu'apportent les retries.\n\nLa parade est l'**idempotence** : concevoir l'opération pour que la **rejouer plusieurs fois** produise **le même résultat** qu'une seule exécution. En pratique, on utilise souvent une **clé d'idempotence** (un identifiant unique de l'opération) que le serveur reconnaît pour ne traiter la demande qu'une seule fois. Sans idempotence, activer des retries peut **aggraver** les choses au lieu de les réparer."
         },
         {
+          "type": "IMAGE",
+          "title": "L'idempotence évite qu'un retry ne double l'effet d'une écriture.",
+          "body": "/images/lessons/eviter-les-pieges-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Backoff exponentiel et réglage du circuit breaker",
-          "position": 1,
+          "position": 2,
           "body": "**Le *backoff* exponentiel** : réessayer **immédiatement** et en boucle, c'est inonder un service déjà en difficulté. Le backoff exponentiel **espace** les tentatives de plus en plus (par ex. 1s, 2s, 4s, 8s...), laissant au service le temps de récupérer. On y ajoute souvent du *jitter* (un aléa) pour éviter que tous les clients ne réessaient **en même temps** (l'effet « troupeau »). Dans Dapr, c'est le mode `policy: exponential`, borné par `maxInterval` et `maxRetries`.\n\n**Le réglage fin du circuit breaker** : `trip` définit la condition d'ouverture (ex. `consecutiveFailures >= 5`), `timeout` combien de temps le circuit reste **ouvert** (on n'appelle plus), puis il passe **entrouvert** (*half-open*) et laisse passer `maxRequests` appels d'essai. S'ils réussissent, le circuit se **referme** ; sinon il se **rouvre**. Un seuil trop bas ouvre le circuit pour rien ; trop haut, il protège trop tard. Ce réglage se **mesure**, il ne se devine pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le backoff exponentiel espace les tentatives ; le circuit breaker se règle finement.",
+          "body": "/images/lessons/eviter-les-pieges-2.jpg",
+          "position": 3
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 2,
+          "position": 4,
           "quizRef": "resiliency-eviter-les-pieges-check"
         }
       ]

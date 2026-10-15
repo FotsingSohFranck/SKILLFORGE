@@ -13,22 +13,34 @@
           "body": "Dans une application distribuée, une seule requête utilisateur traverse **plusieurs services**. Quand quelque chose est lent ou casse, la question devient : **où**, et **pourquoi** ?\n\nL'**observabilité** répond à cela avec **trois piliers** complémentaires :\n\n- les **traces distribuées** : le chemin complet d'une requête à travers tous les services.\n- les **métriques** : des mesures chiffrées et agrégées (débit, latence, taux d'erreur).\n- les **logs** : les événements détaillés émis par chaque composant.\n\nSéparément, chacun donne une vue partielle. Ensemble, ils permettent de **comprendre** le comportement du système sans l'avoir instrumenté à la main."
         },
         {
+          "type": "IMAGE",
+          "title": "Les trois piliers de l'observabilité éclairent un système distribué.",
+          "body": "/images/lessons/les-trois-piliers-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le sidecar émet tout cela automatiquement",
-          "position": 1,
+          "position": 2,
           "body": "La bonne nouvelle : avec Dapr, tu n'as **presque rien à instrumenter**. Comme **tout le trafic** entre tes services passe par le **sidecar** Dapr, c'est lui qui est le mieux placé pour observer.\n\nPour **chaque appel** d'invocation de service, chaque publication/consommation de message, chaque accès à un state store, le sidecar :\n\n- génère ou propage un **span de trace**,\n- incrémente ses **métriques** internes,\n- écrit des **logs** structurés.\n\nTu récoltes donc une observabilité **cohérente et transversale** sans ajouter de code dans ta logique métier. Il te reste surtout à **brancher les backends** (où envoyer les traces, les métriques, les logs) via la **configuration**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le sidecar Dapr produit traces, métriques et logs sans instrumentation.",
+          "body": "/images/lessons/les-trois-piliers-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "De l'application aux backends d'observabilité",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n  App[\"Ton application\"] -->|HTTP / gRPC| Dapr[\"Sidecar Dapr\"]\n  Dapr -->|traces| Tracing[(\"Zipkin / OTel Collector\")]\n  Dapr -->|metriques| Prom[(\"Prometheus\")]\n  Dapr -->|logs| Logs[(\"stdout / collecteur de logs\")]\n  Tracing --> UI[\"Visualisation\\nJaeger, Grafana...\"]\n  Prom --> UI"
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "observability-les-trois-piliers-check"
         }
       ]
@@ -45,22 +57,34 @@
           "body": "Une **trace** représente le voyage complet d'une requête. Elle est composée de **spans** : chaque span est une étape (un appel de service, un accès au state store...), avec sa durée et son parent.\n\nPour relier les spans produits par des sidecars **différents** sur une même requête, il faut un **contexte de trace** partagé. Dapr suit le standard **W3C Trace Context** : il propage un en-tête HTTP **`traceparent`** (et `tracestate`) d'un sidecar à l'autre.\n\nConcrètement : si ton application **transmet** ces en-têtes reçus d'un appel entrant vers ses appels sortants, les spans se **rattachent** entre eux et tu obtiens **une seule trace** cohérente, même à travers une dizaine de services écrits dans des langages différents."
         },
         {
+          "type": "IMAGE",
+          "title": "Une trace relie chaque étape d'une requête à travers les services.",
+          "body": "/images/lessons/traces-distribuees-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Exporteurs et échantillonnage",
-          "position": 1,
+          "position": 2,
           "body": "Le sidecar produit les traces, mais il faut les **envoyer quelque part**. Dapr sait exporter vers :\n\n- **Zipkin** (et tout backend compatible avec son endpoint, comme Jaeger via l'API Zipkin),\n- un **OpenTelemetry (OTLP) Collector**, qui relaie ensuite vers le backend de ton choix.\n\nSecond réglage important : l'**échantillonnage** (`samplingRate`). Tracer **100 %** des requêtes coûte cher en production. La valeur va de `\"0\"` (aucune trace) à `\"1\"` (toutes). Une valeur comme `\"0.1\"` conserve environ **10 %** des traces, un bon compromis pour voir des exemples représentatifs sans saturer le backend.\n\n> À retenir : l'exporteur et le taux d'échantillonnage se définissent dans une ressource **Configuration**, pas dans le code."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'échantillonnage ne conserve qu'une fraction des traces exportées.",
+          "body": "/images/lessons/traces-distribuees-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Une Configuration qui active le tracing",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "yaml",
           "body": "apiVersion: dapr.io/v1alpha1\nkind: Configuration\nmetadata:\n  name: tracing\nspec:\n  tracing:\n    # Echantillonne 10% des requetes (\"1\" = toutes, \"0\" = aucune)\n    samplingRate: \"0.1\"\n    # Exporter vers un backend compatible Zipkin\n    zipkin:\n      endpointAddress: \"http://localhost:9411/api/v2/spans\"\n    # Variante : exporter vers un OpenTelemetry Collector (OTLP)\n    otel:\n      endpointAddress: \"otel-collector:4317\"\n      isSecure: false\n      protocol: grpc\n\n# On attache ensuite cette Configuration au sidecar, p.ex. :\n#   dapr run --config tracing.yaml --app-id monservice -- ...\n# ou, sur Kubernetes, via l'annotation dapr.io/config sur le pod."
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 3,
+          "position": 5,
           "quizRef": "observability-traces-distribuees-check"
         }
       ]
@@ -77,15 +101,27 @@
           "body": "Chaque sidecar Dapr expose, par défaut, ses **métriques au format Prometheus** sur un endpoint HTTP dédié (par défaut le port **9090**, chemin `/metrics`). Prometheus vient les **scraper** périodiquement, puis Grafana les visualise.\n\nDapr publie des métriques très riches **sans aucune instrumentation** de ta part, par exemple :\n\n- `dapr_http_server_request_count` et la latence des requêtes servies,\n- le nombre de messages pub/sub publiés et délivrés,\n- les opérations sur les state stores, les appels d'invocation de service, l'activité des acteurs.\n\nCes métriques portent des **labels** (app-id, méthode, code de statut...) qui permettent de filtrer et d'agréger. On peut ajuster le port, désactiver les métriques, ou réduire leur cardinalité via la Configuration et les options du runtime."
         },
         {
+          "type": "IMAGE",
+          "title": "Les métriques au format Prometheus mesurent débit, latence et erreurs.",
+          "body": "/images/lessons/metriques-et-logs-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Logs structurés et endpoints de santé (niveau expert)",
-          "position": 1,
+          "position": 2,
           "body": "Le sidecar écrit ses **logs sur la sortie standard**. En production, active le **format JSON** (`--log-as-json`) : des logs **structurés** sont bien plus faciles à indexer et requêter dans un collecteur (Loki, Elasticsearch, Fluentd...). Le niveau se règle avec `--log-level` (`debug`, `info`, `warn`, `error`).\n\nEnfin, pour qu'un orchestrateur sache si le sidecar est **vivant** et **prêt**, Dapr expose deux endpoints de santé sur son port public :\n\n- **`/v1.0/healthz`** : *liveness*, le sidecar fonctionne.\n- **`/v1.0/healthz/outbound`** : *readiness* orientée sortie, le sidecar est prêt à émettre des appels.\n\nSur Kubernetes, ces endpoints alimentent les **liveness/readiness probes** du conteneur daprd. En parallèle, Dapr peut surveiller la **santé de ton application** (app health checks) pour cesser de lui router du trafic tant qu'elle n'est pas prête. Métriques, logs structurés et sondes de santé forment ensemble le socle d'exploitation d'une app Dapr en production."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Logs structurés et sondes de santé forment le socle d'exploitation.",
+          "body": "/images/lessons/metriques-et-logs-2.jpg",
+          "position": 3
         },
         {
           "type": "QUIZ",
           "title": "Vérifie tes acquis",
-          "position": 2,
+          "position": 4,
           "quizRef": "observability-metriques-et-logs-check"
         }
       ]
