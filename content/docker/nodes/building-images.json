@@ -13,28 +13,40 @@
           "body": "Avant tout, deux mots à poser. Une **image** Docker, c'est un **modèle figé** qui contient tout ce qu'il faut pour faire tourner une application : le système de fichiers, les dépendances, ton code, la commande de départ. À partir d'une image, on lance des **conteneurs** (les exécutions vivantes de ce modèle). 👉 **Analogie** : l'image est le **moule à gâteau** (un modèle réutilisable), le conteneur est le **gâteau** qu'on en sort.\n\nMais comment fabrique-t-on cette image ? Avec un **Dockerfile** : un simple fichier texte (nommé littéralement `Dockerfile`, sans extension) qui décrit, **étape par étape**, comment construire l'image : quelle image de départ utiliser, quelles dépendances installer, quels fichiers copier, quelle commande lancer. 👉 **Analogie** : c'est la **recette de cuisine** écrite noir sur blanc ; en la suivant, n'importe qui (ou n'importe quelle machine) obtient exactement le même plat. On dit qu'elle est **reproductible** : même recette = même résultat, aujourd'hui comme dans six mois, sur ta machine comme sur le serveur.\n\nLa commande **`docker build`** lit ce Dockerfile et produit l'image. Chaque **instruction** du Dockerfile (les mots en majuscules comme `FROM`, `COPY`, `RUN`...) crée une **couche** (en anglais *layer*) : une fine strate empilée sur la précédente, comme les feuilles d'un mille-feuille (déjà vu au nœud Union FS). Exemple concret : un Dockerfile de 6 lignes d'instructions produit une image faite de 6 couches empilées.\n\nComme ce fichier est du texte, on le **versionne avec le code** (dans Git) : l'environnement devient une partie du projet, pas un bricolage manuel. Savoir écrire de bons Dockerfiles est une compétence centrale : c'est là que se jouent la **reproductibilité**, la **taille** et la **sécurité** de tes images."
         },
         {
+          "type": "IMAGE",
+          "title": "Le Dockerfile : une recette reproductible.",
+          "body": "/images/lessons/le-dockerfile-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Les instructions essentielles",
           "codeLanguage": "bash",
           "body": "FROM node:22-alpine          # image de départ (base)\nWORKDIR /app                 # dossier de travail dans l'image\nCOPY package*.json ./        # copier les manifestes de dépendances\nRUN npm ci --omit=dev        # exécuter une commande à la construction\nCOPY . .                     # copier le reste du code\nEXPOSE 3000                  # documenter le port écouté (informatif)\nENV NODE_ENV=production      # variable d'environnement par défaut\nCMD [\"node\", \"server.js\"]     # commande lancée au démarrage du conteneur"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "RUN vs CMD vs ENTRYPOINT",
           "body": "Trois instructions qu'on confond tout le temps. La clé pour ne plus s'emmêler : distinguer deux moments. **Le build** (la construction), c'est quand `docker build` fabrique l'image. **Le runtime** (l'exécution), c'est plus tard, quand `docker run` lance un conteneur à partir de l'image. Ce sont deux instants différents. 👉 **Analogie** : le build, c'est **cuisiner le plat à l'avance** ; le runtime, c'est **le réchauffer et le servir** au moment de manger.\n\n**`RUN`** s'exécute **pendant le build** : il sert à préparer l'image (installer des paquets, compiler du code) et **fige son résultat dans une couche**. Exemple : `RUN npm ci` télécharge les dépendances une fois pour toutes, au moment de construire l'image.\n\n**`CMD`** et **`ENTRYPOINT`** ne s'exécutent **pas** au build : ils définissent ce qui se lancera **au démarrage du conteneur**. La nuance entre les deux : `ENTRYPOINT` fixe **l'exécutable** (le « quoi » : par ex. `java`), et `CMD` fournit les **arguments par défaut** (le « avec quoi » : par ex. `-jar app.jar`), qu'on peut remplacer au `docker run`. Exemple : `ENTRYPOINT [\"ping\"]` plus `CMD [\"localhost\"]` donne `ping localhost` par défaut, mais `docker run image google.com` lance `ping google.com`.\n\nDernier point : on écrit `CMD [\"node\", \"server.js\"]` sous forme de **tableau JSON** (on appelle ça la forme **exec**), plutôt que `CMD node server.js` (forme **shell**). Pourquoi ? En forme exec, ton programme devient le **PID 1** (le tout premier processus du conteneur, son processus « chef »). Résultat : quand Docker demande l'arrêt, ton programme **reçoit directement le signal** et peut s'arrêter proprement (arrêt gracieux). En forme shell, c'est un shell qui devient PID 1 et le signal risque de ne jamais atteindre ton application."
         },
         {
+          "type": "IMAGE",
+          "title": "RUN vs CMD vs ENTRYPOINT.",
+          "body": "/images/lessons/le-dockerfile-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Quelle est la différence entre une instruction `RUN npm install` et `CMD [\"npm\", \"start\"]` dans un Dockerfile ?",
           "solution": "RUN s'exécute lors de la CONSTRUCTION de l'image (docker build) : `RUN npm install` télécharge et installe les dépendances, et le résultat est figé dans une couche de l'image. CMD définit la commande exécutée au DÉMARRAGE du conteneur (docker run) : `CMD [\"npm\", \"start\"]` lance l'application quand on crée un conteneur à partir de l'image, mais ne s'exécute pas pendant le build. En résumé : RUN = pendant le build (prépare l'image), CMD = au runtime (lance l'application). Un Dockerfile peut avoir plusieurs RUN mais un seul CMD effectif (le dernier)."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Le Dockerfile",
           "quizRef": "building-images-le-dockerfile-check"
         }
@@ -52,35 +64,47 @@
           "body": "Rappel : chaque instruction d'un Dockerfile crée une **couche**. Nouveauté ici : `docker build` **met chaque couche en cache**. Le **cache** (la « mémoire tampon »), c'est le fait de **garder le résultat d'un travail déjà fait** pour ne pas le refaire. 👉 **Analogie** : tu as déjà épluché et coupé tes légumes hier ; aujourd'hui tu les ressors du frigo au lieu de recommencer. Docker fait pareil avec chaque couche.\n\nLa règle : au build suivant, Docker **réutilise** une couche tant que son instruction **et tout ce qui la précède** n'ont pas changé. Dès qu'une instruction change, cette couche **et toutes les suivantes** sont reconstruites : on dit que le cache est **invalidé en cascade** (comme une rangée de dominos : si un domino tombe, tous ceux d'après tombent aussi). Exemple : si tu modifies la 3e instruction sur 6, les couches 1 et 2 sont réutilisées (rapides), mais les couches 3, 4, 5 et 6 sont refaites.\n\nConséquence directe et fondamentale : **l'ordre des instructions détermine la vitesse des builds**. On met ce qui change **rarement** en haut, et ce qui change **souvent** en bas. Bien ordonner un Dockerfile, c'est transformer des builds de plusieurs minutes en builds de quelques secondes."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaque couche est mise en cache.",
+          "body": "/images/lessons/cache-de-couches-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Le bon ordre : dépendances avant code",
           "codeLanguage": "bash",
           "body": "# MAUVAIS : le code copié avant l'install => toute modif de code\n# réinstalle TOUTES les dépendances (cache cassé)\nCOPY . .\nRUN npm ci\n\n# BON : copier d'abord les manifestes, installer, PUIS le code\nCOPY package*.json ./     # ne change que si les dépendances changent\nRUN npm ci                # réutilisé tant que package.json est identique\nCOPY . .                  # une modif de code n'invalide QUE cette couche"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": ".dockerignore : ne pas envoyer n'importe quoi",
           "body": "Au moment du build, Docker envoie le **contexte** au **daemon**. Précisons ces deux mots. Le **contexte de build**, c'est **le dossier** que tu passes à `docker build` (souvent `.`, le dossier courant) : Docker en fait un paquet et l'expédie. Le **daemon** (prononcé « dé-mone »), c'est le **programme Docker qui tourne en arrière-plan** sur ta machine et qui fait le vrai travail de construction. 👉 **Analogie** : toi (le client) tu donnes un carton de courses (le contexte) au cuisinier en cuisine (le daemon) pour qu'il prépare le plat.\n\nLe souci : sans précaution, ce carton inclut **tout** le dossier, y compris `node_modules/` (des milliers de fichiers de dépendances), `.git/` (tout l'historique), des fichiers de build, voire des **secrets**. C'est inutile, lent, et parfois dangereux.\n\nLa parade : un fichier nommé **`.dockerignore`** (exactement comme un `.gitignore`, mais pour Docker). Tu y listes, ligne par ligne, ce que Docker doit **ignorer** et ne pas envoyer. Résultat : build plus rapide (carton plus léger), image plus propre, et surtout **moins de risque de fuite** (un `.env` ou une clé qui traînerait ne partira pas). C'est aussi ce qui empêche un `COPY . .` d'embarquer par accident des fichiers sensibles ou volumineux. Exemple : ajouter `node_modules` et `.env` au `.dockerignore` évite d'expédier des mégaoctets inutiles et un fichier de secrets."
         },
         {
+          "type": "IMAGE",
+          "title": ".dockerignore : ne pas envoyer n'importe quoi.",
+          "body": "/images/lessons/cache-de-couches-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CODE",
-          "position": 3,
+          "position": 5,
           "title": "Un .dockerignore typique",
           "codeLanguage": "bash",
           "body": "# .dockerignore\nnode_modules\n.git\n.env\n*.log\ndist\ncoverage\nDockerfile\n.dockerignore\nREADME.md"
         },
         {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Un développeur se plaint que chaque build Docker de son app Node prend 3 minutes, même quand il ne change qu'une ligne de code. Son Dockerfile fait `COPY . .` puis `RUN npm ci`. Que corriger ?",
           "solution": "Le problème est l'ordre des instructions : `COPY . .` copie tout le code AVANT `RUN npm ci`. Comme la moindre modification de code change cette couche COPY, le cache est invalidé pour elle ET toutes les couches suivantes, dont `npm ci`, qui réinstalle donc toutes les dépendances à chaque build (3 minutes). Correction : copier d'abord uniquement les manifestes de dépendances, les installer, PUIS copier le code : `COPY package*.json ./` → `RUN npm ci` → `COPY . .`. Ainsi `npm ci` reste en cache tant que package.json ne change pas ; une simple modif de code n'invalide que la dernière couche COPY, et le build devient quasi instantané. Ajouter un .dockerignore (excluant node_modules.git) accélère encore en réduisant le contexte."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Cache de couches",
           "quizRef": "building-images-cache-check"
         }
@@ -98,35 +122,47 @@
           "body": "Pour **fabriquer** une application, il faut des **outils lourds** : un **compilateur** (le programme qui traduit ton code source en programme exécutable), un **SDK** (de l'anglais *Software Development Kit*, la « boîte à outils du développeur » : compilateur plus bibliothèques plus utilitaires) et les dépendances de build. Mais pour **exécuter** l'application une fois fabriquée, tout cet outillage devient **inutile** : on n'a plus besoin de la bétonnière une fois la maison construite.\n\nUn **build multi-stage** (« construction en plusieurs étapes ») exploite exactement cette idée. Un **stage** (une « étape ») est un bloc du Dockerfile qui commence par `FROM`. L'astuce : en avoir **plusieurs**.\n- La **première étape** (`FROM ... AS build` ; le `AS build` lui donne un nom) part d'une image contenant tout l'outillage et **compile** l'application. Elle produit un **artefact** (le « produit fini » : par ex. un fichier `.jar` en Java, un binaire en Go).\n- La **seconde étape** repart d'une image **minimale** (juste ce qu'il faut pour exécuter) et **copie uniquement l'artefact** de la première, grâce à `COPY --from=build`.\n\n👉 **Analogie** : tu cuisines dans une grande cuisine pleine d'ustensiles (l'étape de build), puis tu **dresses juste l'assiette** que tu emportes (l'étape finale). Toute la vaisselle sale reste en cuisine, elle ne voyage pas avec le plat.\n\nRésultat : l'image finale ne contient **ni** le compilateur, **ni** les sources, **ni** les dépendances de build, seulement ce qui tourne réellement. On passe couramment de plusieurs **Go** (gigaoctets) à quelques dizaines de **Mo** (mégaoctets)."
         },
         {
+          "type": "IMAGE",
+          "title": "Multi-stage : compiler lourd, livrer léger.",
+          "body": "/images/lessons/multi-stage-builds-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Un multi-stage (Java, comme cette plateforme)",
           "codeLanguage": "bash",
           "body": "# Étape 1 : build avec Maven + JDK (lourd)\nFROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /app\nCOPY pom.xml .\nRUN mvn -q dependency:go-offline    # cache des dépendances\nCOPY src ./src\nRUN mvn -q package -DskipTests\n\n# Étape 2 : image d'exécution minimale (JRE seul)\nFROM eclipse-temurin:21-jre\nWORKDIR /app\nCOPY --from=build /app/target/app.jar app.jar   # on ne garde QUE le jar\nEXPOSE 8080\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]"
         },
         {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 3,
           "title": "Le trajet des deux étapes",
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n  A[\"Etape 1 : build<br/>FROM maven + JDK (lourd)\"] -->|compile| B[\"Artefact<br/>app.jar\"]\n  B -->|COPY --from=build| C[\"Etape 2 : image finale<br/>FROM JRE minimal (leger)\"]\n  C --> D[\"Image livree<br/>quelques dizaines de Mo\"]\n  A -.x.-> E[\"Compilateur, SDK, sources<br/>restent dans l'etape build,<br/>PAS dans l'image finale\"]"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 4,
           "title": "Pourquoi c'est un double gain",
           "body": "Le multi-stage apporte deux bénéfices d'un seul coup.\n\n**Taille** : l'image finale est bien plus petite. Concrètement, elle se **télécharge** plus vite, se **déploie** plus vite, **démarre** plus vite et **occupe moins de stockage**. Sur un serveur qui tire l'image des dizaines de fois par jour, la différence est énorme.\n\n**Sécurité** : moins il y a de choses dans l'image, moins il y a de **surface d'attaque**. La **surface d'attaque**, c'est l'ensemble des points par lesquels un attaquant pourrait entrer ou nuire (chaque programme, outil ou paquet présent est une porte potentielle). Pas de compilateur ni d'outils qu'un intrus pourrait détourner, pas de code source exposé, et **moins de paquets donc moins de CVE**. Une **CVE** (de l'anglais *Common Vulnerabilities and Exposures*), c'est une **faille de sécurité connue et répertoriée** publiquement, avec un identifiant (par ex. `CVE-2024-1234`). Chaque paquet installé peut traîner des CVE ; en retirer un tas, c'est retirer d'autant de failles potentielles.\n\n👉 **Analogie** : une maison avec 20 portes et fenêtres est plus dure à surveiller qu'un bunker avec une seule porte. Le multi-stage, c'est réduire l'image à ce bunker minimal.\n\nC'est la pratique **standard** pour toute image de production d'application compilée (Java, Go, Rust, front-end buildé...)."
         },
         {
+          "type": "IMAGE",
+          "title": "Multi-stage : un double gain.",
+          "body": "/images/lessons/multi-stage-builds-2.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Une équipe livre une image de 1,2 Go pour une petite application Go, en incluant tout le SDK Go dans l'image finale. Comment réduire drastiquement la taille, et quel bénéfice de sécurité en plus ?",
           "solution": "Utiliser un build multi-stage : une première étape avec l'image golang complète (SDK, compilateur) compile le binaire, puis une seconde étape repart d'une image minimale (voire `scratch` ou `distroless` pour Go, car un binaire Go statique n'a pas besoin d'OS) et copie UNIQUEMENT le binaire compilé avec `COPY --from=build`. L'image finale passe de 1,2 Go à quelques Mo (juste le binaire). Bénéfice de sécurité en plus : l'image ne contient plus le SDK/compilateur, ni les sources, ni un shell ou des utilitaires, la surface d'attaque est quasi nulle (rien à exploiter en cas d'intrusion) et il n'y a presque plus de paquets susceptibles d'avoir des CVE."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Les builds multi-stage",
           "quizRef": "building-images-multi-stage-check"
         }
@@ -144,34 +180,52 @@
           "body": "L'**image de base** (la ligne `FROM` tout en haut du Dockerfile), c'est le **point de départ** sur lequel tu empiles ton application. Elle détermine en grande partie la **taille** finale et la **surface d'attaque** (les portes d'entrée potentielles pour un attaquant). Bien la choisir est donc un vrai levier.\n\nLes options, de la plus lourde à la plus légère :\n- Une image **complète** comme `ubuntu` ou `debian` : un système Linux confortable et familier, mais **gros** (des centaines de Mo).\n- Une variante **slim** (par ex. `debian:12-slim`) : la même en version allégée, débarrassée du superflu.\n- **Alpine** (`alpine`) : une mini-distribution Linux d'environ **5 Mo**, très populaire pour sa légèreté. Attention : elle utilise **musl libc** (une implémentation légère de la bibliothèque C standard, à la place de la `glibc` habituelle), ce qui peut créer des soucis de compatibilité avec certains programmes.\n- **Distroless** (proposée par Google) : une image qui contient **l'application et ses dépendances de runtime, mais ni shell ni gestionnaire de paquets**. Pas de shell signifie presque rien à exploiter pour un intrus : la surface d'attaque est quasi nulle.\n- **`scratch`** : l'image **totalement vide** (zéro fichier). Réservée aux **binaires statiques** (un programme qui embarque déjà tout ce dont il a besoin, typiquement compilé en Go ou en Rust) car il n'a besoin d'aucun système autour de lui.\n\n👉 **Analogie** : choisir sa base, c'est choisir son **véhicule**. Un camping-car tout équipé (`ubuntu`) est confortable mais lourd et lent ; une moto (`alpine`) file mais transporte peu ; et pour un colis qui se suffit à lui-même, un simple diable (`scratch`) suffit. Exemple : une même app Go peut passer de ~800 Mo sur `ubuntu` à ~10 Mo sur `scratch`."
         },
         {
+          "type": "IMAGE",
+          "title": "Choisir une base minimale.",
+          "body": "/images/lessons/taille-et-securite-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Ne jamais tourner en root",
           "body": "Par défaut, un conteneur tourne en **root**. Le compte **root**, c'est le **super-administrateur** d'un système Linux : il a **tous les droits** (installer, supprimer, modifier n'importe quoi). Pratique, mais dangereux.\n\nLe problème : si un attaquant compromet ton application, il se retrouve **root à l'intérieur du conteneur**. Or le conteneur partage le **noyau** (le cœur du système d'exploitation) avec la machine hôte. Une faille du noyau ou un montage mal configuré peut alors lui permettre de passer de « root dans le conteneur » à **root sur l'hôte** (la vraie machine) : la catastrophe.\n\nLa règle simple : **ne pas tourner en root**. On crée un **utilisateur non privilégié** (un compte ordinaire, sans les pleins pouvoirs) et on l'active avec l'instruction **`USER`** dans le Dockerfile. Tout ce qui s'exécute après `USER` tourne avec ce compte limité. 👉 **Analogie** : tu ne donnes pas le **passe-partout de tout l'immeuble** à un employé ; tu lui donnes juste la **clé de son bureau**. Si sa clé est volée, le voleur n'accède qu'au bureau, pas à tout l'immeuble.\n\nC'est l'une des mesures de durcissement (« renforcement de la sécurité ») les plus **simples** et les plus **efficaces**. Les images distroless proposent d'ailleurs une variante `:nonroot` prête à l'emploi."
         },
         {
+          "type": "IMAGE",
+          "title": "Ne jamais tourner en root.",
+          "body": "/images/lessons/taille-et-securite-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Durcir une image : USER non-root",
           "codeLanguage": "bash",
           "body": "FROM eclipse-temurin:21-jre\nWORKDIR /app\nCOPY --from=build /app/target/app.jar app.jar\n\n# Créer un utilisateur non privilégié et basculer dessus\nRUN useradd -r -u 10001 appuser\nUSER appuser                 # tout ce qui suit tourne en non-root\n\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Scanner, secrets, reproductibilité (niveau expert)",
           "body": "Une image de production professionnelle est **scannée**, **sans secret** et **reproductible**. Trois réflexes d'expert.\n\n**Scanner** : un **scanner d'images** est un outil qui **inspecte** une image pour y repérer les **CVE** (les failles de sécurité connues) des paquets qu'elle contient. Des outils comme **Trivy** ou **`docker scout`** s'intègrent dans la **CI** (l'*intégration continue* : la chaîne automatique qui build et teste à chaque changement) pour **bloquer** une image porteuse de failles critiques. 👉 **Analogie** : c'est le **portique de sécurité de l'aéroport** pour tes images. Et il faut **mettre à jour** régulièrement ces images : une image figée « pourrit » (de nouvelles CVE sont découvertes après sa construction).\n\n**Secrets** : ne **jamais** mettre de clé ou de mot de passe dans un Dockerfile (via `ENV`, ou en copiant un `.env`). Ces valeurs **restent gravées dans les couches** de l'image et sont **extractibles** par quiconque récupère l'image, même si tu « supprimes » la ligne plus tard. Il faut utiliser les **build secrets** (`RUN --mount=type=secret`, un secret disponible seulement le temps d'une commande, sans trace) ou injecter le secret **au runtime** (au démarrage du conteneur).\n\n**Reproductibilité** : **épingler** les versions (fixer précisément la version de l'image de base et des paquets, au lieu d'un vague `latest` qui change dans le temps), pousser une image **signée** avec **cosign** (une signature cryptographique qui prouve que l'image vient bien de toi et n'a pas été altérée), accompagnée d'un **SBOM** (*Software Bill of Materials*, la « liste d'ingrédients » de l'image : tous les composants et versions qu'elle contient).\n\n👉 **En résumé** : une image est un **artefact de la chaîne d'approvisionnement** (la suite d'étapes qui mène du code au logiciel livré). On la traite avec le même sérieux que du code de production."
         },
         {
+          "type": "IMAGE",
+          "title": "Scanner, secrets, reproductibilité.",
+          "body": "/images/lessons/taille-et-securite-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Un développeur met le mot de passe de la base dans son Dockerfile via `ENV DB_PASSWORD=super-secret` « pour que ça marche partout ». Pourquoi est-ce une faille grave, même s'il supprime la ligne plus tard ?",
           "solution": "Mettre un secret dans un Dockerfile l'inscrit dans une COUCHE de l'image, de façon permanente. Quiconque récupère l'image peut extraire ce secret : `docker history` révèle les instructions, et on peut inspecter/extraire le contenu des couches, même si l'ENV est « écrasé » ou supprimé dans une instruction ultérieure, la couche qui le contient reste présente dans l'historique de l'image. C'est comme committer un secret dans Git : il faut le considérer comme COMPROMIS et le faire tourner (rotation) immédiatement. Bonnes pratiques : ne jamais mettre de secret dans l'image ; le fournir au RUNTIME (variable d'environnement à `docker run`, fichier monté, gestionnaire de secrets) ou, pour un secret nécessaire au build, utiliser les build secrets BuildKit (`RUN --mount=type=secret=...`) qui ne persistent pas dans les couches."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Construire des images",
           "quizRef": "building-images-check"
         }
@@ -189,34 +243,52 @@
           "body": "Le **moteur de build** (le programme qui exécute réellement la construction de l'image) utilisé par défaut aujourd'hui s'appelle **BuildKit**. Il remplace l'ancien moteur et va bien plus loin que le simple cache de couches.\n\nSes atouts :\n- Il construit un **graphe** des étapes : une **carte des dépendances** entre les instructions (qui a besoin de quoi). 👉 **Analogie** : comme un chef qui voit que la sauce et la garniture peuvent mijoter **en même temps**, il **parallélise** (exécute simultanément) les étapes indépendantes, par exemple les étapes de plusieurs stages qui ne dépendent pas l'une de l'autre.\n- Il n'exécute que ce qui est **nécessaire** : il **saute** (skip) les stages dont personne n'a besoin pour le résultat demandé.\n- Il débloque les **mounts** au build (`RUN --mount=...`). Un **mount** (« montage »), c'est le fait de **rendre un dossier ou une donnée disponible temporairement** pendant une commande. BuildKit permet ainsi des **caches persistants**, des **secrets** et des accès SSH **le temps d'un `RUN`**, sans en laisser la moindre trace dans les couches finales.\n\nPour activer cette syntaxe moderne, on met tout en haut du Dockerfile la ligne magique `# syntax=docker/dockerfile:1`. Exemple : sans cette ligne, `RUN --mount=type=secret` n'est pas compris."
         },
         {
+          "type": "IMAGE",
+          "title": "BuildKit change la donne.",
+          "body": "/images/lessons/buildkit-a-fond-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Cache mounts & secrets de build",
           "codeLanguage": "bash",
           "body": "# syntax=docker/dockerfile:1\nFROM node:22-alpine\nWORKDIR /app\nCOPY package*.json ./\n\n# Cache PERSISTANT du cache npm entre builds (n'est PAS dans l'image) :\nRUN --mount=type=cache,target=/root/.npm \\\n    npm ci\n\nCOPY . .\n\n# Secret disponible SEULEMENT pendant ce RUN, jamais dans une couche :\nRUN --mount=type=secret,id=npmrc,target=/root/.npmrc \\\n    npm run build\n# build : docker build --secret id=npmrc,src=$HOME/.npmrc -t app ."
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Cache mounts vs cache de couches",
           "body": "Distinction d'expert, mais très utile. Il existe **deux caches** différents, à ne pas confondre.\n\nLe **cache de couches** met en cache le **résultat d'une instruction** : la couche entière. Il est **invalidé** dès que l'instruction, ou quelque chose avant elle, change. C'est tout ou rien : soit la couche est réutilisée telle quelle, soit elle est entièrement refaite.\n\nUn **cache mount** (`--mount=type=cache`) est d'une autre nature : c'est un **répertoire persistant** monté pendant un `RUN`, **partagé entre tous les builds**, et qui **survit même quand la couche est reconstruite**. 👉 **Analogie** : le cache de couches, c'est **garder le plat déjà cuisiné** (inutile si la recette change) ; le cache mount, c'est **garder le garde-manger** (tes ingrédients restent là, même quand tu dois refaire le plat).\n\nSon usage idéal : les **répertoires de cache** des gestionnaires de paquets (`~/.npm` pour npm, `~/.m2` pour Maven, `~/.cache/go-build` pour Go, `~/.cache/pip` pour pip). Concrètement : même si `npm ci` doit se **réexécuter** (parce que le `package.json` a changé), il **retrouve** dans le cache mount les paquets déjà téléchargés au lieu de tout re-télécharger depuis Internet. C'est précisément ce qui garde les builds rapides **même quand le cache de couches est invalidé**."
         },
         {
+          "type": "IMAGE",
+          "title": "Cache mounts vs cache de couches.",
+          "body": "/images/lessons/buildkit-a-fond-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Multi-arch & cache CI (niveau expert)",
           "body": "Deux capacités BuildKit indispensables en équipe.\n\n**Multi-arch**. Une **architecture** de processeur, c'est le « type » de puce qui exécute le code : par exemple **amd64** (les PC et serveurs Intel/AMD classiques) ou **arm64** (les Mac Apple Silicon, les Raspberry Pi, beaucoup de serveurs cloud récents). Un programme compilé pour l'une ne tourne pas sur l'autre. **buildx** (l'outil de build avancé de Docker) sait construire **une variante par architecture** en une commande : `docker buildx build --platform linux/amd64,linux/arm64 -t org/app:1.0 --push .`. Il publie alors un **manifest list** : un **index** (un seul tag `org/app:1.0`) qui pointe vers plusieurs images, une par archi (vu au nœud OCI). 👉 **Analogie** : un même titre de livre disponible en plusieurs langues ; le lecteur reçoit automatiquement l'édition dans sa langue. Ici, chaque machine tire automatiquement la variante adaptée à sa puce.\n\n**Cache distant pour la CI**. En **CI** (la chaîne d'automatisation qui build à chaque changement), les **runners** (les machines qui exécutent les jobs) sont **éphémères** : on les crée pour un job, puis on les jette. Le cache local disparaît donc à chaque fois, et sans rien de plus, **chaque build CI repart de zéro** (lent). La parade : **exporter/importer** le cache vers un **registre** (un serveur qui stocke des images) : `--cache-to type=registry,ref=...` puis `--cache-from` au job suivant, qui réutilise ainsi le cache du précédent.\n\nMulti-arch plus cache distant, c'est la marque d'une chaîne de build **rapide et portable**, digne d'une équipe professionnelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Multi-arch & cache CI.",
+          "body": "/images/lessons/buildkit-a-fond-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Dans un Dockerfile, `RUN npm ci` doit parfois se réexécuter (le package.json a changé) et re-télécharge alors tous les paquets depuis Internet, ce qui est lent. Comment garder les paquets déjà téléchargés en cache entre les builds, même quand la couche est reconstruite ?",
           "solution": "On utilise un cache mount BuildKit sur le répertoire de cache de npm : `RUN --mount=type=cache,target=/root/.npm npm ci` (avec `# syntax=docker/dockerfile:1` en tête). Contrairement au cache de couches, qui met en cache la couche entière et est invalidé dès que package.json change,  le cache mount est un répertoire persistant, partagé entre tous les builds, qui SURVIT à la reconstruction de la couche. Ainsi, même quand `npm ci` doit se réexécuter, npm retrouve dans /root/.npm les paquets déjà téléchargés lors des builds précédents et ne re-télécharge que ce qui manque réellement, le build reste rapide. Le contenu du cache mount n'est PAS inclus dans l'image finale (c'est un cache de build, pas une couche). Ce pattern s'applique de la même façon à Maven (~/.m2), Go (~/.cache/go-build), pip (~/.cache/pip), etc."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, BuildKit à fond (expert)",
           "quizRef": "buildkit-expert"
         }
@@ -234,34 +306,52 @@
           "body": "Confusion classique à trancher une bonne fois. Il s'agit de deux sortes de variables, actives à deux moments différents.\n\n**`ARG`** est une variable de **build** (construction) : elle n'existe **que pendant** `docker build`. On lui passe une valeur avec `--build-arg`, et elle **disparaît** ensuite : elle n'est **pas** présente dans le conteneur au runtime. Usage typique : paramétrer la construction, par exemple `ARG APP_VERSION=1.4.0` pour choisir la version à installer.\n\n**`ENV`** est une variable **d'environnement** : elle **persiste dans l'image** et reste disponible dans le conteneur **en exécution**. Usage typique : une **configuration par défaut** du runtime, par exemple `ENV NODE_ENV=production`. 👉 **Analogie** : `ARG`, c'est une **note collée sur le carton pendant l'emballage** que tu jettes une fois le colis fermé ; `ENV`, c'est une **étiquette imprimée sur le produit** qui reste dessus jusque chez le client.\n\nPiège de sécurité majeur : un **secret passé en `ARG`** n'est **pas** sûr pour autant. Sa valeur reste visible dans l'**historique de l'image**, que la commande `docker history` affiche (elle liste, couche par couche, les instructions ayant servi à construire l'image). Donc **jamais de secret** dans un `ARG` (ni dans un `ENV`) : pour ça, on utilise les **build secrets** vus précédemment. Règle à retenir : `ARG` pour paramétrer le build, `ENV` pour la config par défaut du runtime, **aucun secret** dans l'un ni l'autre."
         },
         {
+          "type": "IMAGE",
+          "title": "ARG vs ENV : deux variables très différentes.",
+          "body": "/images/lessons/instructions-avancees-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Instructions qui font un Dockerfile de pro",
           "codeLanguage": "bash",
           "body": "# syntax=docker/dockerfile:1\nFROM eclipse-temurin:21-jre\n\n# Métadonnées standard OCI (traçabilité : source, version, auteur)\nLABEL org.opencontainers.image.source=\"https://github.com/org/app\" \\\n      org.opencontainers.image.version=\"1.4.0\"\n\nARG APP_VERSION=1.4.0            # variable de build (pas dans le runtime)\nENV JAVA_OPTS=\"-XX:MaxRAMPercentage=75\"   # config runtime par défaut\n\nCOPY --from=build /app/app.jar app.jar\n\n# Signal d'arrêt personnalisé (défaut SIGTERM)\nSTOPSIGNAL SIGTERM\n# Santé intégrée à l'image (Docker/Compose la lisent)\nHEALTHCHECK --interval=15s --timeout=3s --start-period=30s \\\n  CMD wget -qO- http://localhost:8080/health || exit 1\n\nUSER 10001\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "HEALTHCHECK, STOPSIGNAL, LABEL, ONBUILD",
           "body": "Quatre instructions qui séparent un Dockerfile d'amateur d'un Dockerfile de pro.\n\n**`HEALTHCHECK`** intègre une **vérification de santé directement dans l'image** : une petite commande que Docker relance périodiquement pour savoir si l'application va bien. Docker/Compose s'en servent pour marquer le conteneur *healthy* (en bonne santé) ou *unhealthy* (malade), vu au nœud Exécution. 👉 **Analogie** : c'est le **capteur de pouls** intégré au conteneur. Exemple : `HEALTHCHECK CMD wget -qO- http://localhost:8080/health || exit 1`.\n\n**`STOPSIGNAL`** définit le **signal d'arrêt** envoyé au conteneur quand on l'arrête. Un **signal**, c'est un petit message que le système envoie à un programme (par défaut `SIGTERM`, « demande poliment de t'arrêter »). Utile si ton application attend un autre signal pour se fermer proprement.\n\n**`LABEL`** ajoute des **métadonnées** à l'image : des informations *sur* l'image (et non du code). Les **annotations OCI** standard (`org.opencontainers.image.source` pour l'URL du code source, `.version`, `.revision`) **relient l'image à son code** et à sa version : traçabilité, et affichage propre dans les registres. 👉 **Analogie** : c'est l'**étiquette de composition** cousue sur un vêtement (origine, taille, matière).\n\n**`ONBUILD`** définit des instructions **en sommeil**, déclenchées seulement quand ton image sert de **base** (`FROM`) à une **autre** image. Pratique pour des images « socle » partagées dans une équipe. Bien utilisées, ces quatre instructions rendent l'image **auto-documentée, observable et prévisible**."
         },
         {
+          "type": "IMAGE",
+          "title": "HEALTHCHECK, STOPSIGNAL, LABEL, ONBUILD.",
+          "body": "/images/lessons/instructions-avancees-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Builds reproductibles (niveau expert)",
           "body": "Un raffinement d'expert : la **reproductibilité binaire**. L'idéal : deux builds du **même code source** produisent une image **strictement identique**, avec le même **digest**. Le **digest**, c'est l'**empreinte unique** d'une image : une longue suite de caractères calculée à partir de son contenu (comme une empreinte digitale ; si un seul octet change, le digest change). Deux images au même digest sont garanties identiques.\n\nPourquoi c'est difficile ? À cause de sources de hasard qui se glissent dans l'image :\n- les **horodatages** (chaque fichier est gravé avec l'heure exacte du build, donc jamais deux fois pareil) ;\n- l'**ordre non déterministe** de certaines opérations ;\n- les **versions non épinglées** (un `latest` qui pointe vers un contenu différent d'un jour à l'autre).\n\nLes parades :\n- **épingler** tout : l'image de base par son **digest** précis, les paquets par leur **version** exacte (au lieu de « la dernière ») ;\n- fixer les horodatages via la variable **`SOURCE_DATE_EPOCH`** (elle impose une date de référence unique à tous les fichiers) ;\n- s'appuyer sur BuildKit, qui progresse sur ce terrain.\n\n👉 **L'intérêt** : combiné à la **signature** (cosign) et au **SBOM** (la liste d'ingrédients de l'image), un build reproductible permet de **prouver** que l'image déployée correspond **exactement** au code audité. C'est le cœur de la sécurité de la **chaîne d'approvisionnement**, formalisée par le cadre **SLSA** (prononcé « salsa », un ensemble de niveaux d'exigence pour sécuriser la fabrication des logiciels)."
         },
         {
+          "type": "IMAGE",
+          "title": "Builds reproductibles bit à bit.",
+          "body": "/images/lessons/instructions-avancees-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Un développeur passe le mot de passe d'un dépôt privé via `ARG NPM_TOKEN` dans son Dockerfile « puisque ARG n'existe pas au runtime, c'est sûr ». Pourquoi se trompe-t-il, et quelle est la bonne approche ?",
           "solution": "Il se trompe car, même si un ARG n'est effectivement pas présent comme variable d'environnement dans le conteneur en exécution, sa VALEUR reste inscrite dans l'HISTORIQUE de l'image : `docker history --no-trunc <image>` (et l'inspection des métadonnées de build) révèle les build-args utilisés et les commandes RUN qui les référencent. Un ARG contenant un token/mot de passe est donc extractible par quiconque récupère l'image, c'est une fuite de secret, au même titre qu'un ENV. La bonne approche : utiliser les build secrets de BuildKit, qui montent le secret uniquement pendant un RUN sans jamais l'écrire dans une couche ni l'historique : `RUN --mount=type=secret,id=npm_token ...` avec `docker build --secret id=npm_token,src=./token`. Le secret est disponible le temps de la commande, puis disparaît sans laisser de trace dans l'image. Règle : ni ARG ni ENV pour un secret, toujours les build secrets (au build) ou l'injection au runtime (pour la config runtime)."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Instructions avancées (expert)",
           "quizRef": "dockerfile-advanced-expert"
         }

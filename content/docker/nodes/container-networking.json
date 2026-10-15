@@ -13,34 +13,52 @@
           "body": "Un **conteneur** est un programme isolé qui tourne sur ta machine (imagine une mini-boîte étanche autour d'une application). La question de cette leçon : comment ces boîtes communiquent-elles entre elles et avec le monde extérieur ?\n\nPour l'isolation réseau, Linux fournit un mécanisme appelé **network namespace** (littéralement *espace de noms réseau*) : c'est une **cloison** qui donne à chaque conteneur sa **propre pile réseau**. La **pile réseau**, c'est l'ensemble du matériel réseau *virtuel* d'une machine : ses **interfaces** (les cartes réseau, ici virtuelles), son **adresse IP** (le numéro unique qui identifie la machine sur le réseau, par exemple `172.17.0.2`), et ses **ports** (les numéros de porte par lesquels un programme reçoit des connexions, par exemple `80` pour un site web).\n\n👉 **Analogie** : imagine un immeuble (ta machine, l'**hôte**). Chaque conteneur est un **appartement** avec sa propre porte d'entrée, sa propre adresse et ses propres prises. Ce qui se passe dans un appartement ne déborde pas chez le voisin : c'est ça, l'**isolation**.\n\nPar défaut, Docker relie les conteneurs à un réseau de type **bridge** (*pont* en anglais) : un **pont virtuel** posé sur l'hôte, une sorte de mini-switch logiciel auquel les conteneurs se branchent. **Exemple concret** : deux conteneurs `api` et `db` sur le même bridge peuvent se parler ; un conteneur placé sur un *autre* réseau, lui, ne les voit pas (il est **isolé**). Comprendre les réseaux Docker, c'est savoir répondre à trois questions : comment deux conteneurs communiquent, comment on **expose** un service à l'extérieur, et comment on **isole** ce qui doit l'être."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaque conteneur a sa pile réseau.",
+          "body": "/images/lessons/les-reseaux-docker-1.jpg",
+          "position": 1
+        },
+        {
           "type": "DIAGRAM",
-          "position": 1,
+          "position": 2,
           "title": "Vue d'ensemble : qui parle à qui",
           "diagramFormat": "MERMAID",
           "body": "flowchart TB\n    EXT[\"Exterieur (Internet, navigateur)\"]\n    subgraph HOTE[\"Hote : ta machine\"]\n      subgraph NET[\"Reseau bridge personnalise\"]\n        API[\"Conteneur api (port 8080 publie)\"]\n        DB[\"Conteneur db (port 5432 prive)\"]\n      end\n    end\n    EXT -->|\"-p 8080:8080\"| API\n    API -->|\"appelle 'db' via le DNS interne\"| DB"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Les drivers réseau",
           "body": "Un **driver** (*pilote* en français) est le **type** de réseau que Docker fabrique : chaque driver a un comportement différent. Voici les principaux.\n\n- **bridge** (le défaut) : un réseau privé virtuel sur l'hôte, le cas courant quand tu travailles sur une seule machine. Les conteneurs y reçoivent une IP privée et se parlent via le pont.\n- **host** : le conteneur **partage directement** la pile réseau de l'hôte, sans cloison. Il n'y a donc **pas d'isolation** réseau ni de traduction de ports (le port 80 du conteneur *est* le port 80 de la machine), en échange de performances maximales. 👉 **Analogie** : au lieu d'avoir son propre appartement, le conteneur emménage **directement dans le salon** de l'hôte.\n- **none** : **aucun réseau** du tout, isolation totale. Utile pour un traitement purement local qui ne doit jamais communiquer.\n- **overlay** : un réseau qui s'étend sur **plusieurs machines**. Il sert quand des conteneurs tournent sur des hôtes différents (avec Swarm ou Kubernetes) et doivent communiquer comme s'ils étaient côte à côte.\n- **macvlan** : donne au conteneur sa **propre adresse MAC** (l'identifiant matériel unique d'une carte réseau) et une IP **sur le réseau physique**, comme s'il était une vraie machine branchée au réseau de l'entreprise.\n\n**Exemple concret** : pour un site web local avec sa base de données, tu restes sur **bridge**. Pour un cluster de plusieurs serveurs, tu passes à **overlay**. On choisit selon trois critères : le besoin d'**isolation**, de **performance**, et de **portée** (une seule machine ou plusieurs)."
         },
         {
+          "type": "IMAGE",
+          "title": "Les drivers réseau.",
+          "body": "/images/lessons/les-reseaux-docker-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Le DNS interne : parler par nom",
           "body": "Sur Internet, le **DNS** (*Domain Name System*, « système de noms de domaine ») est l'**annuaire** qui traduit un **nom** lisible en **adresse IP** : c'est grâce à lui que tu tapes `google.com` au lieu d'une suite de chiffres. Docker fournit exactement le même service, mais **à l'intérieur** de tes réseaux.\n\nSur un réseau Docker **personnalisé** (que tu crées toi-même, ou que **Compose** crée pour toi), les conteneurs s'atteignent par leur **nom de service ou de conteneur**, jamais par une IP. Pourquoi éviter l'IP ? Parce qu'une IP de conteneur est **attribuée dynamiquement** et **change à chaque recréation** (un simple redémarrage peut lui en donner une autre). Le nom, lui, reste stable.\n\n👉 **Analogie** : tu enregistres un contact « Maman » dans ton téléphone plutôt que d'apprendre son numéro par cœur. Si elle change de numéro, tu continues d'appeler « Maman » sans rien changer. Le nom `db` joue le même rôle : Docker le traduit vers l'IP courante du conteneur, quelle qu'elle soit.\n\n**Exemple concret** : dans un stack Compose, l'API se connecte à la base via l'hôte `db` (par exemple `DATABASE_URL=postgres://db:5432/app`). Docker résout `db` vers l'IP du moment. On ne code **jamais** une IP en dur. (Attention : ce DNS par nom ne fonctionne **pas** sur le réseau bridge **par défaut** non nommé ; il faut un réseau **personnalisé**, ce que Compose crée automatiquement.)"
         },
         {
+          "type": "IMAGE",
+          "title": "Le DNS interne : parler par nom.",
+          "body": "/images/lessons/les-reseaux-docker-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Dans un stack Compose, votre API se connecte à la base via `DATABASE_URL=...://db:5432/...`. Pourquoi utilise-t-on le nom `db` plutôt que l'adresse IP du conteneur de base ?",
           "solution": "Parce que l'adresse IP d'un conteneur est attribuée dynamiquement et CHANGE à chaque recréation (redémarrage, redéploiement, scaling) : coder une IP en dur casserait dès que la base est recréée. Le nom `db` (le nom du service Compose) est stable : Docker fournit une résolution DNS interne sur le réseau du stack qui traduit `db` vers l'IP courante du conteneur de base, quelle qu'elle soit. On utilise donc toujours les noms de services, pas les IP, c'est robuste face aux recréations et c'est ce qui rend un stack Compose fiable. (Cela suppose un réseau Docker personnalisé, que Compose crée automatiquement.)"
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Les réseaux Docker",
           "quizRef": "container-networking-reseaux-check"
         }
@@ -58,34 +76,52 @@
           "body": "Deux notions souvent confondues, alors qu'elles n'ont rien à voir.\n\n**`EXPOSE`** est une instruction qu'on écrit dans le **Dockerfile** (le fichier de recette qui décrit comment construire une image). Elle est **purement documentaire** : elle **indique** quel port le programme du conteneur écoute, mais elle **n'ouvre rien** du tout. C'est une étiquette informative, pas une action.\n\n**Publier** un port, avec l'option **`-p hôte:conteneur`** (au `docker run`, ou `ports:` dans Compose), crée réellement un **pont** entre un port de ta machine (l'**hôte**) et un port du conteneur. C'est ce qui rend le service **joignable depuis l'extérieur**. Dans `-p 8080:80`, le premier nombre est le port **côté hôte** (celui que tu tapes dans ton navigateur, `localhost:8080`) et le second le port **côté conteneur** (celui qu'écoute le programme, ici `80`).\n\n👉 **Analogie** : `EXPOSE`, c'est écrire « Accueil au 2e étage » sur le **plan** affiché à l'entrée : ça informe, mais ça n'ouvre aucune porte. **Publier** avec `-p`, c'est **percer une vraie porte** entre la rue et le bureau.\n\n**Exemple concret** : un conteneur peut parler à un autre sur le **même réseau sans publier aucun port** (communication interne). On ne publie **que** ce qui doit être accessible depuis l'hôte ou l'extérieur, typiquement le point d'entrée (l'API), et surtout pas la base de données."
         },
         {
+          "type": "IMAGE",
+          "title": "EXPOSE vs publier (-p).",
+          "body": "/images/lessons/ports-isolation-segmentation-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Réseaux personnalisés & segmentation",
           "codeLanguage": "bash",
           "body": "# Créer un réseau et y attacher des conteneurs (DNS par nom activé)\ndocker network create backend-net\ndocker run -d --name db --network backend-net postgres:18\ndocker run -d --name api --network backend-net -p 8080:8080 monorg/api\n#  api atteint la base via l'hôte \"db\", et SEUL api publie un port (8080)\n#  la base n'est PAS exposée à l'extérieur : elle n'est joignable que sur backend-net\n\ndocker network ls                 # lister les réseaux\ndocker network inspect backend-net  # voir les conteneurs connectés"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Ne pas exposer ce qui doit rester privé",
           "body": "Erreur de sécurité très fréquente : **publier** le port de la **base de données** (`-p 5432:5432`) alors que **seule l'API** a besoin de lui parler. Résultat : la base se retrouve joignable sur le réseau de l'hôte, et selon la configuration, potentiellement depuis Internet. C'est une **porte ouverte** sur tes données.\n\nLe bon modèle : placer l'API et la base sur un **réseau interne** commun (un réseau Docker que l'extérieur ne voit pas), **publier uniquement** le port de l'API (le point d'entrée), et laisser la base **injoignable de l'extérieur** : elle n'est accessible que par l'API, via le réseau interne.\n\nPour aller plus loin, on pratique la **segmentation réseau** : découper en **plusieurs réseaux** selon le niveau de confiance, par exemple un réseau **public** (où l'API reçoit le trafic externe) et un réseau **privé** (où l'API et la base dialoguent, à l'abri). 👉 **Analogie** : dans un magasin, les clients entrent dans la **boutique** (réseau public), mais la **réserve** et le **coffre** (la base) sont derrière une porte réservée au personnel (réseau privé). Segmenter, c'est **limiter ce qu'un intrus peut atteindre** s'il franchit la première porte.\n\n**Exemple concret** : `api` connecté à `public-net` **et** `private-net`, `db` connecté **uniquement** à `private-net`, et seul `api` publie son port. Une personne venue d'Internet atteint l'API, jamais directement la base."
         },
         {
+          "type": "IMAGE",
+          "title": "Ne pas exposer ce qui doit rester privé.",
+          "body": "/images/lessons/ports-isolation-segmentation-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Multi-hôtes & au-delà (niveau expert)",
           "body": "Sur un **seul** hôte, le driver **bridge** suffit largement. Mais dès qu'on **répartit** des conteneurs sur **plusieurs machines** (avec **Swarm** ou **Kubernetes**, des outils qui orchestrent des conteneurs sur un groupe de serveurs appelé *cluster*), il faut un réseau **overlay**.\n\nUn réseau **overlay** (« par-dessus ») crée un réseau virtuel **au-dessus** du réseau physique existant : il **encapsule** (emballe) les paquets d'un conteneur dans d'autres paquets pour les faire voyager d'une machine à l'autre, puis les déballe à l'arrivée. La technique la plus courante s'appelle **VXLAN**. Le conteneur, lui, a l'illusion que tous ses voisins sont sur le même réseau local.\n\n👉 **Analogie** : pour envoyer une lettre à l'étranger, tu la glisses dans une **enveloppe internationale** (l'encapsulation) ; le facteur du pays d'arrivée la sort de l'enveloppe et la livre normalement. VXLAN fait pareil avec les paquets réseau.\n\n**Kubernetes** va plus loin : chaque **Pod** (la plus petite unité déployable, un ou plusieurs conteneurs groupés) reçoit une **IP routable**, gérée par un **plugin CNI** (*Container Network Interface*, l'interface standard qui branche le réseau des conteneurs, par exemple **Calico** ou **Cilium**). On y ajoute des **NetworkPolicies** (des règles qui autorisent ou bloquent le trafic entre Pods) pour segmenter finement. Le principe reste **identique** à ce que tu fais en local : connectivité par **nom**, isolation par **réseau**, exposition **explicite** ; simplement à plus grande échelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Multi-hôtes & au-delà.",
+          "body": "/images/lessons/ports-isolation-segmentation-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Un stack expose la base de données avec `ports: [\"5432:5432\"]` dans son compose.yaml, alors que seule l'API l'utilise. Quel est le risque, et quelle est la bonne configuration ?",
           "solution": "Le risque : publier le port 5432 rend la base de données joignable depuis l'hôte, et selon la configuration réseau/pare-feu de la machine, potentiellement depuis d'autres machines voire Internet. C'est une surface d'attaque directe sur la base (tentatives de connexion, exploitation d'identifiants). Or l'API n'a pas besoin de ce port publié : elle atteint la base par le réseau interne du stack, via le nom `db`. Bonne configuration : NE PAS publier le port de la base (retirer `ports:` du service db), et mettre api et db sur le même réseau. Seule l'API publie son port (le point d'entrée). La base reste accessible uniquement en interne, par l'API, jamais exposée à l'extérieur. Pour aller plus loin, on segmente (réseau public pour l'API, réseau privé pour api↔db)."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Réseau des conteneurs",
           "quizRef": "container-networking-check"
         }
@@ -103,33 +139,57 @@
           "body": "Le réseau bridge n'a rien de magique : ce sont des **primitives Linux** (des briques de base fournies par le système d'exploitation). Décortiquons.\n\nDocker crée un **pont virtuel** nommé **`docker0`** : une **interface réseau** logique sur l'hôte (une carte réseau virtuelle) qui joue le rôle de **commutateur** (*switch* : l'appareil qui relie plusieurs machines d'un même réseau et aiguille les paquets entre elles).\n\nPour chaque conteneur, Docker crée ensuite une **paire d'interfaces virtuelles** appelée **veth pair** (*virtual ethernet pair*). Imagine un **câble** avec deux bouts : un bout **dans** le conteneur (il y apparaît comme `eth0`, sa carte réseau), l'autre **branché sur `docker0`** côté hôte. Les conteneurs d'un même pont communiquent alors à travers ce commutateur virtuel, exactement comme des ordinateurs branchés au même switch.\n\n👉 **Analogie** : `docker0` est une **multiprise réseau** (un switch), et chaque **veth pair** est un **câble** qui relie un appartement (le conteneur) à cette multiprise.\n\n**Exemple concret** : sur l'hôte, la commande `ip link` (qui liste les interfaces réseau) te montre `docker0` et une série d'interfaces `veth...`. Tu **vois** ainsi l'infrastructure que Docker a fabriquée. Il n'existe pas de « réseau Docker » abstrait et mystérieux : il y a des **ponts**, des **veth** et des **règles**."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Publication de ports = iptables NAT",
-          "body": "Que fait vraiment **`-p 8080:80`** ? Il configure **iptables**, le **pare-feu et routeur intégré** de Linux (l'outil qui décide quoi faire de chaque paquet réseau qui traverse la machine). iptables range ses règles dans des listes appelées **chaînes**.\n\nDocker insère deux sortes de règles dans les chaînes de **NAT**. Le **NAT** (*Network Address Translation*, « traduction d'adresses réseau ») est la technique qui **réécrit** l'adresse ou le port d'un paquet au passage.\n- Une règle **DNAT** (*Destination NAT*) réécrit la **destination** des paquets arrivant sur le port **8080 de l'hôte** pour les rediriger vers l'**IP:80 du conteneur**. C'est le pont d'entrée.\n- Du **masquerade** (une forme de **SNAT**, *Source NAT*) réécrit la **source** du trafic **sortant** des conteneurs pour qu'il paraisse venir de l'hôte.\n\n👉 **Analogie** : le NAT est un **standardiste** d'entreprise. Un appel externe arrive sur le **numéro public** (le port 8080 de l'hôte) ; le standardiste le **transfère** au bon poste interne (l'IP:80 du conteneur). L'appelant ne connaît jamais le numéro interne.\n\n**Exemple concret** : c'est pour ça qu'un conteneur est **injoignable sans `-p`** (aucune règle ne route le trafic externe vers son réseau privé), et qu'on peut **inspecter** la publication avec `iptables -t nat -L DOCKER`. Le réseau Docker **est**, concrètement, de la configuration iptables générée automatiquement."
+          "type": "IMAGE",
+          "title": "Comment marche vraiment le bridge.",
+          "body": "/images/lessons/reseau-sous-le-capot-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Publication de ports = iptables NAT",
+          "body": "Que fait vraiment **`-p 8080:80`** ? Il configure **iptables**, le **pare-feu et routeur intégré** de Linux (l'outil qui décide quoi faire de chaque paquet réseau qui traverse la machine). iptables range ses règles dans des listes appelées **chaînes**.\n\nDocker insère deux sortes de règles dans les chaînes de **NAT**. Le **NAT** (*Network Address Translation*, « traduction d'adresses réseau ») est la technique qui **réécrit** l'adresse ou le port d'un paquet au passage.\n- Une règle **DNAT** (*Destination NAT*) réécrit la **destination** des paquets arrivant sur le port **8080 de l'hôte** pour les rediriger vers l'**IP:80 du conteneur**. C'est le pont d'entrée.\n- Du **masquerade** (une forme de **SNAT**, *Source NAT*) réécrit la **source** du trafic **sortant** des conteneurs pour qu'il paraisse venir de l'hôte.\n\n👉 **Analogie** : le NAT est un **standardiste** d'entreprise. Un appel externe arrive sur le **numéro public** (le port 8080 de l'hôte) ; le standardiste le **transfère** au bon poste interne (l'IP:80 du conteneur). L'appelant ne connaît jamais le numéro interne.\n\n**Exemple concret** : c'est pour ça qu'un conteneur est **injoignable sans `-p`** (aucune règle ne route le trafic externe vers son réseau privé), et qu'on peut **inspecter** la publication avec `iptables -t nat -L DOCKER`. Le réseau Docker **est**, concrètement, de la configuration iptables générée automatiquement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Publication de ports = iptables NAT.",
+          "body": "/images/lessons/reseau-sous-le-capot-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Le piège UFW : Docker contourne votre pare-feu",
           "body": "**Le** piège de production le plus célèbre. Tu configures **UFW** (*Uncomplicated Firewall*, le pare-feu simplifié très courant sur Ubuntu) pour **tout bloquer sauf** le port 443. Puis tu publies une base avec `-p 5432:5432`. Résultat stupéfiant : la base est **exposée à Internet**, UFW ne la bloque **pas** !\n\nPourquoi ? UFW travaille dans la chaîne iptables nommée **INPUT** (le trafic destiné à l'hôte lui-même). Or Docker insère ses règles **dans la chaîne NAT**, qui est traitée **avant** et **indépendamment** de la chaîne INPUT. Le trafic vers le conteneur est donc aiguillé par le NAT **sans jamais passer** par les règles d'UFW. Autrement dit, **`-p` perce ton pare-feu à ton insu**.\n\n👉 **Analogie** : le videur (UFW) contrôle la **porte principale** de la boîte de nuit. Mais Docker a ouvert une **porte de service à l'arrière** dont le videur ignore l'existence : les gens entrent par là sans être filtrés.\n\n**Parades** (à connaître absolument) :\n- Publier **seulement sur loopback** : `-p 127.0.0.1:5432:5432`. Le **loopback** (`127.0.0.1`, aussi appelé *localhost*) est l'adresse « moi-même » : le service n'est alors joignable **que depuis l'hôte**, pas de l'extérieur.\n- **Ne pas publier** ce qui doit rester interne (le laisser sur le réseau Docker seulement).\n- Configurer UFW pour Docker (le projet **`ufw-docker`**), ou filtrer dans la chaîne **`DOCKER-USER`**, la seule chaîne que Docker traite **avant** ses propres règles et où tes filtres sont donc respectés.\n\nIgnorer ce comportement, c'est exposer des services qu'on **croyait** protégés."
         },
         {
+          "type": "IMAGE",
+          "title": "Le piège UFW : Docker contourne ton pare-feu.",
+          "body": "/images/lessons/reseau-sous-le-capot-3.jpg",
+          "position": 5
+        },
+        {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 6,
           "title": "DNS embarqué & dépannage (niveau expert)",
           "body": "Sur un réseau personnalisé, la résolution par nom (vue plus tôt) est assurée par un **résolveur DNS embarqué** que Docker fait écouter à l'adresse **`127.0.0.11`** à l'intérieur de chaque conteneur (tu la vois dans son fichier `/etc/resolv.conf`, qui liste les serveurs DNS à interroger). Ce résolveur traduit les **noms de services** vers les IP courantes et **transmet le reste** (les vrais domaines Internet) au DNS de l'hôte.\n\nPour le **dépannage** (*troubleshooting*), voici l'arsenal :\n- **`docker network inspect`** : montre qui est connecté à un réseau et avec quelle IP.\n- Entrer dans le **netns** (le *network namespace*, la cloison réseau du conteneur) depuis l'hôte avec **`nsenter -t <pid> -n ...`** : ça permet de lancer des outils réseau **dans** le conteneur même si son image est **minimale** et n'en contient aucun. Utiles là-dedans : **`ip`** (voir interfaces et routes), **`ss`** (voir les ports en écoute et les connexions, le successeur de `netstat`), **`tcpdump`** (capturer et observer les paquets qui circulent).\n- Vérifier la **MTU** (*Maximum Transmission Unit*, la **taille maximale** d'un paquet réseau) : sur un overlay, une MTU mal réglée **casse les gros paquets** de façon déroutante (des connexions qui « pendent », se figent sans erreur claire).\n\n👉 **Analogie** : quand la plomberie fuit, le débutant **subit** la fuite ; le pro **ouvre le mur** avec les bons outils pour voir les tuyaux. `nsenter`, `ss` et `tcpdump` sont ces outils, mais pour le réseau.\n\n**Exemple concret** : un `curl` entre deux conteneurs se fige sans message ? Regarde la **MTU** de l'overlay et capture le trafic avec `tcpdump` pour repérer où les paquets se perdent. Savoir descendre à ce niveau distingue celui qui **subit** le réseau Docker de celui qui le **maîtrise**."
         },
         {
+          "type": "IMAGE",
+          "title": "DNS embarqué & dépannage.",
+          "body": "/images/lessons/reseau-sous-le-capot-4.jpg",
+          "position": 7
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 8,
           "title": "À vous",
           "body": "Une équipe a un pare-feu UFW qui bloque tout sauf le port 443. Ils lancent `docker run -d -p 5432:5432 postgres` et sont surpris de découvrir que leur base est accessible depuis Internet. Expliquez le mécanisme et donnez deux corrections.",
           "solution": "Mécanisme : la publication de port (-p 5432:5432) fait insérer par Docker des règles iptables dans la chaîne NAT (DNAT vers le conteneur). Ces règles opèrent AVANT et indépendamment de la chaîne INPUT que gère UFW : le trafic destiné au conteneur est routé par le NAT sans passer par les règles de filtrage d'UFW. UFW croit tout bloquer, mais Docker a « percé » un chemin direct vers le port 5432 du conteneur, la base est exposée à Internet à l'insu de l'équipe. Corrections (deux au choix) : (1) ne PAS publier le port de la base du tout, la laisser sur le réseau Docker interne, seule l'API y accédant (bonne pratique de segmentation) ; (2) publier uniquement sur loopback : `-p 127.0.0.1:5432:5432`, ce qui la rend joignable seulement depuis l'hôte, pas depuis l'extérieur ; (3) régler le problème à la source avec ufw-docker ou en filtrant dans la chaîne DOCKER-USER (que Docker respecte, contrairement à INPUT). La leçon d'expert : `-p` contourne UFW ; on ne publie jamais un service sensible sans en tenir compte."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 9,
           "title": "Quiz, Réseau sous le capot (expert)",
           "quizRef": "networking-internals-expert"
         }
