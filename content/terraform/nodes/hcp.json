@@ -13,34 +13,52 @@
           "body": "Avant de parler de HCP, un petit rappel. **Terraform** est un outil d'**Infrastructure as Code** (souvent abrégé **IaC**) : au lieu de créer tes serveurs et tes bases de données en **cliquant** dans la console web d'un cloud, tu les **décris dans des fichiers texte**, et Terraform les fabrique pour toi.\n\n👉 **Analogie** : au lieu de monter un meuble à la main, à ta façon, à chaque fois, tu écris la **notice de montage**. N'importe qui (ou une machine) peut la rejouer et obtenir exactement le même meuble, autant de fois que voulu.\n\nQuand tu utilises Terraform **seul sur ton poste**, tout va bien. Mais dès qu'on travaille **en équipe**, des questions gênantes apparaissent :\n- Où ranger le fichier d'**état** (le fichier où Terraform note ce qu'il a déjà créé) pour que **tout le monde partage le même** ?\n- Comment **empêcher deux personnes** de modifier l'infrastructure **en même temps** (ce qui la casserait) ?\n- Où stocker les **mots de passe et clés** (les *secrets*) sans les écrire en clair dans le code ?\n- Qui a le **droit** de créer ou détruire quoi, et comment **garder une trace** de qui a fait quoi ?\n\nOn peut répondre à tout ça soi-même, mais c'est beaucoup de **plomberie** à construire et à entretenir. C'est exactement là qu'intervient HCP Terraform."
         },
         {
+          "type": "IMAGE",
+          "title": "En équipe, exécuter Terraform depuis chaque poste devient vite risqué.",
+          "body": "/images/lessons/hcp-terraform-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Ce qu'est HCP Terraform (et ce que « managé » veut dire)",
           "body": "**HCP Terraform** (son ancien nom : **Terraform Cloud**) est un **service en ligne** créé par **HashiCorp**, l'entreprise qui développe Terraform. C'est une **plateforme managée** : un service **tout prêt** que tu utilises au lieu de bricoler toi-même la plomberie décrite juste avant.\n\nLe mot **managé** (de l'anglais *managed*, « géré ») signifie : **quelqu'un d'autre s'occupe de la machinerie** (les serveurs, la sécurité, les mises à jour), et **toi tu profites du résultat**. 👉 **Analogie** : c'est la différence entre **installer et entretenir ton propre serveur de courrier électronique** (long, technique, à ta charge) et **ouvrir un compte Gmail** (tout est déjà géré, tu te contentes d'écrire tes mails). HCP, c'est le « Gmail de Terraform en équipe ».\n\nVoici ce que HCP fournit, **prêt à l'emploi**. Chaque terme est défini simplement :\n- **Le stockage d'état à distance** : ton fichier d'état est rangé **chez HCP**, chiffré et **versionné** (HCP garde les versions successives, comme un historique). Tu n'as **plus de *backend* à configurer** toi-même (le *backend*, c'est l'endroit où Terraform range l'état ; ici, c'est HCP).\n- **Le verrouillage automatique** (*locking*) : quand quelqu'un modifie l'infra, HCP pose un **verrou** pour que **personne d'autre ne touche en même temps**. 👉 Comme la **petite serrure « occupé »** d'une cabine d'essayage : un seul à la fois.\n- **L'exécution à distance** : les commandes `terraform plan` (prévisualiser les changements) et `terraform apply` (les appliquer) ne tournent **pas sur ton portable**, mais sur des **serveurs de HCP** appelés *runners*. Avantage : c'est **tracé, centralisé et reproductible** (pas « ça marche sur ma machine »).\n- **La gestion des variables et des secrets** : tu ranges tes **valeurs de configuration** et tes **mots de passe/clés** dans HCP, **chiffrés**, par projet. Ils ne traînent plus dans le code.\n- **L'intégration VCS** : **VCS** veut dire *Version Control System* (système de gestion de versions, comme **Git/GitHub**). HCP peut **se brancher sur ton dépôt** et **lancer automatiquement** un `plan` dès qu'on **pousse du code ou ouvre une pull request**.\n- **Les *run tasks*** : des **crochets** pour brancher d'autres outils dans le processus (par exemple **Infracost** qui estime le coût, ou un scanner de sécurité) avant d'appliquer.\n- **Sentinel** : l'outil de **policy as code** de HashiCorp, c'est-à-dire des **règles écrites** qui **bloquent** un changement interdit. 👉 **Exemple concret** : une règle Sentinel qui **refuse** tout `apply` créant un stockage **accessible publiquement**, ou sans **chiffrement**. Le garde-fou est automatique, pas humain.\n\nEn résumé : HCP est un **socle intégré** qui réunit, au même endroit, tout ce dont une équipe a besoin pour faire de l'IaC proprement."
         },
         {
+          "type": "IMAGE",
+          "title": "HCP Terraform: un service managé qui exécute Terraform à ta place.",
+          "body": "/images/lessons/hcp-terraform-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "title": "Le circuit d'un changement avec HCP",
           "body": "flowchart TD\n    Dev[\"Developpeur\\n(ecrit du code Terraform)\"] -->|1. push / pull request| VCS[\"Depot Git\\n(GitHub / GitLab)\"]\n    VCS -->|2. declenche un run| HCP[\"HCP Terraform\\n(plateforme managee)\"]\n    HCP -->|3. plan sur un runner distant| Plan[\"Plan a valider\"]\n    Plan -->|4. verifie les regles| Sentinel[\"Sentinel\\n(policy as code)\"]\n    Sentinel -->|5. si conforme : apply| Cloud[\"Cloud\\n(AWS / GCP / Azure)\"]\n    HCP -.stocke.-> State[(\"Etat distant\\nchiffre + verrouille\")]\n    HCP -.garde.-> Secrets[(\"Variables\\n& secrets chiffres\")]"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Quand (et quand ne pas) l'utiliser",
           "body": "HCP n'est **pas obligatoire**, et ce n'est pas toujours le bon choix. Sache **quand il brille** et **quand il est surdimensionné**.\n\n**HCP brille pour une équipe ou une organisation** qui veut un workflow **collaboratif, sécurisé et gouverné** sans construire elle-même toute la plomberie (état partagé, verrou, exécution automatisée, règles, permissions, traçabilité). Ses fonctions **entreprise** répondent à des besoins de **conformité** et de **passage à l'échelle** :\n- **SSO** (*Single Sign-On*, « authentification unique ») : les employés se connectent avec le **compte de l'entreprise** (une seule identité pour tous les outils).\n- **RBAC** (*Role-Based Access Control*, « contrôle d'accès par rôle ») : on donne des droits **selon le rôle** de chacun. 👉 Comme un **badge d'immeuble** : le stagiaire ouvre certaines portes, le directeur toutes.\n- **Audit** : un **journal** de qui a fait quoi et quand (utile pour la sécurité et les contrôles).\n- **Registre privé de modules** : un **catalogue interne** de briques Terraform réutilisables, réservé à l'organisation (on y revient dans la leçon suivante).\n\n**Mais pour un projet simple ou une petite équipe, c'est trop.** Dans ce cas, deux briques gratuites suffisent :\n- un **backend distant** (par exemple **S3** chez AWS ou **GCS** chez Google) pour ranger l'état, chiffré et verrouillé ;\n- un **pipeline CI** maison (un enchaînement automatique de tâches, comme **GitHub Actions** ou **GitLab CI**) pour lancer `plan` et `apply`.\n\n👉 **L'idée à retenir** : c'est le **compromis « managé contre auto-géré »**. Soit tu **délègues** l'outillage à une plateforme (contre un coût), soit tu le **construis et l'entretiens toi-même** (gratuit, mais du travail). C'est **exactement la même logique** que « base de données managée contre base que j'installe moi-même », ou « Kubernetes managé contre cluster monté à la main ». Plus l'organisation est **grande et exigeante en gouvernance**, plus la plateforme managée se justifie."
         },
         {
+          "type": "IMAGE",
+          "title": "Choisir HCP selon la taille de l'équipe et les besoins réels.",
+          "body": "/images/lessons/hcp-terraform-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Une grande entreprise avec plusieurs équipes veut un workflow Terraform collaboratif, avec état managé, exécution à distance, gestion des secrets, intégration VCS, policy as code et audit, sans construire et maintenir toute cette plomberie elle-même. Qu'est-ce qui répond à ce besoin, et pour quel type de projet est-ce en revanche surdimensionné ?",
           "solution": "HCP Terraform (anciennement Terraform Cloud), et pour de gros besoins de gouvernance sa version Enterprise, répond directement à ce besoin : c'est une plateforme MANAGÉE qui fournit, intégrés et prêts à l'emploi, exactement les éléments demandés, (1) le stockage d'état distant, chiffré, versionné, avec verrouillage automatique (plus de backend à configurer/maintenir soi-même) ; (2) l'exécution À DISTANCE des plan/apply sur des runners managés (pas d'apply depuis les postes, traçabilité centralisée) ; (3) la gestion des variables et SECRETS chiffrés par workspace ; (4) l'INTÉGRATION VCS pour déclencher des runs sur push/PR, avec le plan affiché pour revue ; (5) la POLICY AS CODE via Sentinel (barrières bloquantes) et les run tasks pour brancher des outils (Infracost, scanners) ; (6) la gouvernance d'organisation, SSO, RBAC par équipe/workspace, AUDIT, private registry de modules. L'intérêt est de DÉLÉGUER toute cette plomberie (état, verrou, CI, secrets, policies, RBAC, audit) plutôt que de la construire et la maintenir soi-même, ce qui est précieux pour une grande organisation multi-équipes soucieuse de collaboration, sécurité et conformité, et qui passe à l'échelle. En revanche, c'est SURDIMENSIONNÉ (et payant) pour un projet simple ou une petite équipe : dans ce cas, un backend distant classique (S3/GCS/Azure Blob) pour l'état chiffré et verrouillé, plus un pipeline CI maison (GitHub Actions/GitLab CI avec OIDC) pour plan/apply, couvrent l'essentiel gratuitement, sans le coût ni la dépendance à une plateforme managée. Le choix relève du compromis classique « managé vs auto-géré » : on adopte HCP Terraform quand la valeur (workflow intégré, gouvernance, gain de temps, conformité à l'échelle) dépasse son coût et qu'on ne veut pas maintenir soi-même l'outillage ; on reste sur backend distant + CI maison quand le besoin est modeste et qu'on préfère éviter le coût/la dépendance. Comme pour Kubernetes managé vs kubeadm : plus l'organisation est grande et exigeante en gouvernance, plus la plateforme managée se justifie."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, HCP Terraform",
           "quizRef": "hcp-check"
         }
@@ -58,21 +76,33 @@
           "body": "Rappel utile : en Terraform, un **module** est un **paquet de code réutilisable** (« une brique »). Par exemple, un module « base de données » sait créer une base bien configurée, et tu le réutilises partout sans réécrire le détail. 👉 **Analogie** : un module est une **recette de cuisine** toute prête ; tu la réutilises au lieu de réinventer le plat à chaque repas.\n\n**Le registre privé de modules.** Un **registre** (*registry*) est un **catalogue** où l'on publie des modules pour les retrouver et les réutiliser. Il existe un registre **public** (ouvert à tous), mais HCP offre un **registre privé** : un catalogue **réservé à ton organisation**. Les équipes y publient leurs **modules internes**, **versionnés** (chaque module a un numéro de version, comme `1.2.0`) et **découvrables** par toutes les autres équipes. 👉 **Analogie** : c'est le **catalogue de pièces détachées maison** de l'entreprise, que seuls ses employés consultent.\n\n**Les no-code modules.** Voici l'étape plus poussée. Un module publié peut être marqué **« no-code »** (« sans code »). Cela permet de **créer de l'infrastructure sans écrire une seule ligne de HCL**. Petit rappel : **HCL** (*HashiCorp Configuration Language*) est le **langage** dans lequel on écrit le code Terraform. Avec un no-code module, un utilisateur qui **ne connaît pas** Terraform remplit simplement un **formulaire** dans l'interface de HCP (quelques cases : nom, taille, environnement), clique, et HCP **déploie** le module pour lui.\n\n👉 **Exemple concret** : l'équipe plateforme publie un module « bucket de stockage conforme » (chiffré, jamais public, bien étiqueté). Un développeur qui a besoin d'un bucket **remplit trois champs** dans un formulaire au lieu d'écrire du HCL, et obtient un bucket **déjà aux normes**.\n\nC'est un outil de **self-service gouverné** : les équipes plateforme publient des **modules validés** (sûrs, conformes), et les autres les **consomment sans coder**, sans pouvoir dévier des standards. C'est l'équivalent, pour l'infrastructure, d'une **Internal Developer Platform** (une « plateforme interne pour développeurs » : un portail qui offre des briques prêtes à l'emploi et cache la complexité)."
         },
         {
+          "type": "IMAGE",
+          "title": "Un registre privé centralise les modules réutilisables de l'organisation.",
+          "body": "/images/lessons/hcp-fonctionnalites-avancees-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Agents, modes d'exécution & run triggers (niveau expert)",
           "body": "Trois fonctionnalités d'exploitation, expliquées pas à pas.\n\n**Les agents.** Par défaut, HCP exécute les runs (les `plan`/`apply`) **sur ses propres serveurs**, qui vivent **sur Internet**. Problème : certaines infrastructures sont **privées**, c'est-à-dire **injoignables depuis Internet**. Par exemple un **réseau interne** d'entreprise, ou un serveur **on-premise** (*on-premise* veut dire « dans les locaux de l'entreprise », par opposition au cloud). Comment HCP peut-il agir sur quelque chose qu'il **ne voit pas** ?\n\nRéponse : on installe un **agent HCP** **à l'intérieur** du réseau privé. Un **agent** est un **petit programme relais** : HCP lui **délègue** le travail, et **c'est lui**, depuis l'intérieur, qui atteint l'infrastructure interne. 👉 **Analogie** : tu ne peux pas entrer dans un immeuble sécurisé, alors tu **envoies un coursier de confiance** qui, lui, a le badge et fait la course pour toi.\n\n**Les modes d'exécution.** C'est la **façon dont un run est déclenché**. Trois modes :\n- **VCS-driven** (« piloté par le dépôt de code ») : un **push ou une pull request** déclenche le run. C'est le **plus courant**.\n- **CLI-driven** (« piloté par la ligne de commande ») : tu lances `terraform` **depuis ton poste**, mais l'exécution se fait **à distance** chez HCP.\n- **API-driven** (« piloté par programme ») : un **système externe** commande les runs via l'**API** de HCP (une API est l'interface par laquelle deux logiciels se parlent).\n\n**Les run triggers.** Un **run trigger** (« déclencheur de run ») permet à un **espace de travail** (*workspace*) d'en **déclencher un autre** quand il change. À quoi ça sert ? À **propager** un changement d'un périmètre vers les périmètres qui en dépendent. 👉 **Exemple concret** : le workspace **« réseau »** change (nouvelle plage d'adresses). Grâce à un run trigger, les workspaces **« applications »**, qui s'appuient sur ce réseau, se **relancent automatiquement** pour se mettre à jour. Comme une **rangée de dominos** : le premier tombe, les suivants suivent.\n\nEnsemble, ces trois fonctions font de HCP une véritable **plateforme d'orchestration** de l'infrastructure d'une organisation."
         },
         {
+          "type": "IMAGE",
+          "title": "Les agents exécutent Terraform au sein de réseaux privés.",
+          "body": "/images/lessons/hcp-fonctionnalites-avancees-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Une équipe plateforme veut permettre à des développeurs non-experts en Terraform de provisionner eux-mêmes de l'infrastructure standard (une base, un bucket) de façon sûre et conforme, sans écrire de HCL ni pouvoir dévier des standards de l'entreprise. Quelle fonctionnalité de HCP répond à ce besoin, et pourquoi est-ce « gouverné » ?",
           "solution": "La fonctionnalité est les no-code modules de HCP Terraform (associés au registre privé de modules). Le besoin, du self-service pour des non-experts, sûr et conforme, sans écrire de HCL, correspond exactement à ce que les no-code modules apportent. Fonctionnement : l'équipe PLATEFORME conçoit des modules Terraform validés (une base de données standard, un bucket conforme aux règles de l'entreprise : chiffrement activé, tags obligatoires, pas d'accès public, réseau correct...), les publie dans le registre PRIVÉ de l'organisation, et les marque « no-code ». Dès lors, un développeur non-expert peut, depuis l'INTERFACE HCP, provisionner l'infrastructure correspondante en remplissant simplement un FORMULAIRE (quelques variables : nom, taille, environnement...), SANS écrire une seule ligne de HCL, sans connaître Terraform. HCP instancie le module validé avec ces variables et déploie. Pourquoi c'est « GOUVERNÉ » : les développeurs ne peuvent PAS dévier des standards, car ils ne provisionnent QUE via les modules approuvés par l'équipe plateforme, dont les variables et les garde-fous sont contrôlés. (1) Les choix sont bornés : le module n'expose que les variables prévues (et applique des valeurs par défaut/contraintes sécurisées pour le reste), impossible d'ouvrir un bucket au public si le module ne le permet pas. (2) La sécurité et la conformité sont encodées DANS le module (chiffrement, tags, réseau, moindre privilège), validées une fois par les experts, puis réutilisées par tous. (3) On peut ajouter des policies (Sentinel) et du RBAC par-dessus. Résultat : les développeurs obtiennent de l'infrastructure en self-service (autonomie, rapidité), tout en restant DANS le cadre défini par la plateforme (sûr, conforme, cohérent), sans que chacun réinvente ou dévie. C'est l'équivalent, pour l'infrastructure, d'une Internal Developer Platform : l'équipe plateforme fournit des « briques » validées et faciles à consommer, et cache la complexité (et les pièges) de Terraform. Les no-code modules + registre privé sont donc la réponse : self-service gouverné, sans HCL, sans dérive possible par rapport aux standards. (Alternative/complément hors HCP : des outils comme Backstage ou des portails internes appellent des modules Terraform en arrière-plan, mais HCP l'offre nativement.)"
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, HCP : fonctionnalités avancées (expert)",
           "quizRef": "hcp-advanced-expert"
         }

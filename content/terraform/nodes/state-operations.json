@@ -13,22 +13,28 @@
           "body": "Quand on découvre Terraform, on part rarement d'une page blanche. Le plus souvent, une **infrastructure** (les serveurs, bases de données et réseaux qui font tourner une application) existe déjà, et elle a été **créée à la main**, par exemple en cliquant dans la console web d'un fournisseur de cloud comme AWS. On aimerait maintenant la gérer proprement avec Terraform.\n\nPetit rappel : **Terraform** est un outil d'*Infrastructure as Code* (on décrit son infrastructure dans des fichiers texte au lieu de cliquer à la souris). Pour savoir ce qu'il gère, Terraform tient un fichier spécial appelé le **state** (en français l'**état**) : c'est son inventaire, qui relie *chaque morceau de ton code* à *l'objet réel* correspondant dans le cloud.\n\nVoici le piège. Si tu écris simplement le code d'une ressource qui existe déjà, puis que tu lances Terraform, il consulte son inventaire (le state), n'y trouve pas cet objet, et en déduit qu'il doit le **créer**. Deux issues possibles : soit une erreur (« cet objet existe déjà »), soit la création d'un **doublon**. Terraform ne devine pas tout seul qu'un objet présent dans le cloud correspond à ton code.\n\n👉 **Analogie** : le state est le **registre d'un vestiaire**. Chaque manteau (objet réel) reçoit un ticket (ligne de code) noté dans le registre. Si tu déposes un manteau sans l'inscrire au registre, l'employé ne sait pas qu'il est déjà là : il t'en tendra un deuxième au lieu de reconnaître le tien.\n\nLa solution s'appelle l'**import** : une opération qui **relie une ressource réelle déjà existante à une ressource de ton code**, en l'ajoutant au state, **sans rien recréer**. L'objet passe alors « sous gestion Terraform », et les commandes suivantes le traitent normalement.\n\nLa façon **moderne** de faire un import (Terraform 1.5 et au-delà) est le **bloc `import`**, que l'on écrit directement dans le code : `import { to = ..., id = ... }`. Ici `to` est l'**adresse** de la ressource dans ton code (par exemple `aws_s3_bucket.existant`) et `id` l'**identifiant réel** de l'objet dans le cloud (son nom, ou son *ARN*, l'identifiant unique attribué par AWS). On applique ensuite ce bloc avec deux commandes de base de Terraform : **`terraform plan`** (qui *prévisualise* ce qui va se passer, sans rien changer) puis **`terraform apply`** (qui *exécute* réellement). Terraform peut même **générer** le code de la ressource à ta place.\n\n**Exemple concret** : un *bucket* S3 (un espace de stockage de fichiers dans le cloud AWS) nommé `mon-bucket-cree-a-la-main`, créé il y a deux ans à la souris. Avec un bloc import qui pointe vers lui, Terraform l'inscrit dans son inventaire et l'associe à ton code, sans toucher au bucket ni à son contenu."
         },
         {
+          "type": "IMAGE",
+          "title": "L'import relie une ressource existante au code sans rien recreer.",
+          "body": "/images/lessons/importer-lexistant-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Importer une ressource existante",
           "codeLanguage": "hcl",
           "body": "# 1) Bloc import déclaratif (Terraform 1.5+)\nimport {\n  to = aws_s3_bucket.existant\n  id = \"mon-bucket-cree-a-la-main\"\n}\n\n# 2) Écrire (ou faire générer) le code de la ressource\nresource \"aws_s3_bucket\" \"existant\" {\n  bucket = \"mon-bucket-cree-a-la-main\"\n  # ... aligner les attributs sur l'objet réel ...\n}\n\n# terraform plan -generate-config-out=genere.tf   (peut générer le code)\n# terraform apply    -> importe dans le state, sans recréer"
         },
         {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 3,
           "title": "À vous",
           "body": "Une équipe a un bucket S3 de production créé manuellement il y a deux ans, qu'elle veut désormais gérer avec Terraform. Pourquoi ne peut-elle pas simplement écrire un bloc `resource` et faire `apply`, et quelle est la bonne démarche ?",
           "solution": "Elle ne peut pas simplement écrire un bloc resource et appliquer, parce que Terraform ne connaît que ce qui est dans son STATE : un bucket créé à la main n'y figure pas. Si elle ajoute un bloc `resource \"aws_s3_bucket\"` pour ce bucket et lance apply, Terraform, ne le voyant pas dans son état, croira qu'il doit le CRÉER, et tentera de créer un bucket portant ce nom. Or les noms de bucket S3 sont uniques globalement : la création échouera avec un conflit (« bucket already exists »), ou, dans d'autres cas de ressources, Terraform créerait un DOUBLON de l'infrastructure existante. Dans tous les cas, il ne « reprend » pas l'objet existant. La bonne démarche est d'IMPORTER la ressource existante dans le state pour la relier au code sans la recréer : (1) Écrire le bloc import déclaratif (Terraform 1.5+) indiquant l'adresse cible dans le code (to = aws_s3_bucket.prod) et l'identifiant réel de l'objet (id = le nom/ARN du bucket existant). (2) Écrire le bloc resource correspondant, en ALIGNANT ses attributs sur la configuration réelle du bucket (on peut s'aider de terraform plan -generate-config-out pour générer une première version du code à partir de l'objet importé). (3) Lancer terraform plan puis apply : Terraform importe l'objet dans le state (il l'associe à aws_s3_bucket.prod) SANS le recréer, et le plan doit ensuite montrer « aucun changement » (ou seulement des ajustements mineurs si le code ne correspond pas exactement au réel, qu'on corrige jusqu'à obtenir un plan vide). À partir de là, le bucket est géré par Terraform : les futurs plans le traitent normalement (modifications via le code, détection de dérive, etc.). Point de vigilance : bien faire correspondre le code à l'état réel avant/juste après l'import, pour éviter que le premier plan ne propose des changements non voulus (voire destructeurs) sur une ressource de production. L'import est donc l'étape indispensable pour faire passer sous Terraform une ressource préexistante, au lieu de la recréer."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 4,
           "title": "Quiz, Importer l'existant",
           "quizRef": "state-operations-import-check"
         }
@@ -46,35 +52,47 @@
           "body": "Terraform fournit une famille de commandes qui **modifient directement le state** (l'inventaire des ressources gérées). Elles sont très **puissantes**, donc à manier avec **soin** : elles réécrivent l'inventaire, et une erreur ici peut *désynchroniser* ton code et la réalité du cloud.\n\nPassons-les en revue, avec une définition simple pour chacune.\n\n- **`terraform state mv`** (*move*, déplacer) : **renomme ou déplace** une ressource *à l'intérieur du state*, **sans** la recréer dans le cloud. Utile lors d'un **refactoring** (réorganisation du code sans changer son comportement), par exemple quand tu ranges une ressource dans un **module** (un dossier de code réutilisable qui regroupe plusieurs ressources). L'adresse `aws_instance.web` devient `module.app.aws_instance.web`, mais le serveur réel, lui, ne bouge pas.\n- **`terraform state rm`** (*remove*, retirer) : **enlève** une ressource du state **sans la détruire** dans le cloud. Terraform « oublie » l'objet, qui continue pourtant d'exister et de tourner. On s'en sert pour **cesser de gérer** une ressource avec Terraform tout en la gardant en vie.\n- **`terraform state show`** : **affiche** les attributs d'une ressource tels qu'ils sont enregistrés dans le state (son id, sa région, ses tags...). Pratique pour inspecter sans rien modifier.\n- **`-replace`** (l'option de `terraform apply -replace=...`, qui remplace l'ancienne commande `taint`) : **force la recréation** d'une ressource au prochain apply. Utile quand un objet est « abîmé » (par exemple un serveur dans un état incohérent) et qu'on veut le reconstruire à neuf.\n\n👉 **Analogie** : ces commandes reviennent à **corriger un inventaire à la main** dans un entrepôt. Bien utilisées, elles remettent le registre d'aplomb sans toucher aux cartons. Mal utilisées, le registre ne correspond plus aux cartons réels, et plus personne ne sait ce qu'il y a vraiment sur les étagères.\n\n**Règle d'or** : avant toute manipulation du state, on **sauvegarde** l'état (une copie de secours), et on s'assure de bien comprendre l'impact de la commande. Une erreur de manipulation peut faire croire à Terraform qu'une ressource existe alors qu'elle a disparu (ou l'inverse), ce qui provoque au prochain apply des créations ou des destructions non voulues."
         },
         {
+          "type": "IMAGE",
+          "title": "Les commandes state corrigent l'inventaire a la main, avec precaution.",
+          "body": "/images/lessons/commandes-state-et-decoupage-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Découper l'état : le blast radius (niveau expert)",
           "body": "Garder **un seul** state géant pour **toute** l'infrastructure est une mauvaise idée dès que le projet grandit. Voici pourquoi.\n\nD'abord, chaque `plan` et chaque `apply` opèrent sur **tout** l'inventaire à la fois : le moindre changement oblige Terraform à examiner l'ensemble des ressources, ce qui devient **lent** quand elles se comptent par centaines. Ensuite, pour éviter que deux personnes modifient l'état en même temps (et le corrompent), Terraform pose un **verrou** (*lock*) : le temps d'un apply, l'état est réservé. Avec un state unique, ce verrou **bloque tout le monde** en même temps. Enfin, une erreur (mauvais changement, bug, commande `state` malheureuse) peut toucher **n'importe quelle** ressource, y compris des composants critiques sans rapport avec ce que tu voulais modifier.\n\nC'est ce dernier point qu'on appelle le **blast radius** (littéralement le « rayon d'explosion ») : l'**étendue des dégâts** qu'une seule erreur peut provoquer. Avec un état unique, ce rayon est **maximal**.\n\n👉 **Analogie** : un state géant, c'est un immeuble entier sur **un seul disjoncteur**. Un court-circuit dans un appartement, et *tout* l'immeuble est plongé dans le noir. En posant **un disjoncteur par appartement** (plusieurs états), un incident reste confiné à une seule zone.\n\nLa bonne pratique est donc de **découper** l'état en **plusieurs** états indépendants, par périmètre logique : par **couche** (réseau, puis données, puis applicatif), par **environnement** (dev, *staging* c'est-à-dire pré-production, et prod), ou par **équipe**. Chaque périmètre possède son propre state, son propre verrou et son propre cycle de vie.\n\nCes périmètres ont parfois besoin de se parler. On les **relie** proprement grâce au **remote state** : un état lit les **outputs** (les valeurs publiées) d'un autre état, via la source de données `terraform_remote_state`. Par exemple, l'état applicatif lit le `subnet_id` (l'identifiant d'un sous-réseau) publié par l'état réseau, au lieu de le coder en dur. (Le mot **backend** désigne l'endroit où l'état est stocké, par exemple un bucket S3 partagé ; chaque périmètre y a sa propre clé.)\n\nLes bénéfices sont concrets : des applies **plus rapides** (on ne rafraîchit que le périmètre concerné) et **ciblés**, un **blast radius réduit** (une erreur sur l'applicatif ne peut pas casser le réseau), et des **équipes autonomes** qui travaillent en parallèle sans se bloquer. Découper l'état est une **décision d'architecture** Terraform majeure, à prendre tôt."
         },
         {
+          "type": "IMAGE",
+          "title": "Un disjoncteur par zone confine les degats d'une seule erreur.",
+          "body": "/images/lessons/commandes-state-et-decoupage-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "D'un état géant à des états découpés",
           "diagramFormat": "MERMAID",
           "body": "graph LR\n  subgraph Avant[\"Avant : 1 seul etat geant\"]\n    G[\"State unique<br/>reseau + donnees + apps<br/>blast radius MAXIMAL\"]\n  end\n  subgraph Apres[\"Apres : etats decoupes\"]\n    R[\"State reseau\"]\n    D[\"State donnees\"]\n    A[\"State applicatif\"]\n  end\n  G ==> R\n  G ==> D\n  G ==> A\n  A -. lit outputs via terraform_remote_state .-> R"
         },
         {
           "type": "CODE",
-          "position": 3,
+          "position": 5,
           "title": "Commandes state & remote state",
           "codeLanguage": "bash",
           "body": "terraform state mv aws_instance.web module.app.aws_instance.web  # refactor\nterraform state rm aws_s3_bucket.legacy   # cesser de gérer (sans détruire)\nterraform state show aws_instance.web     # attributs dans l'état\nterraform apply -replace=aws_instance.web # forcer la recréation\n\n# Relier deux états découpés : lire les outputs d'un autre state\n#   data \"terraform_remote_state\" \"reseau\" { backend=\"s3\" config={...} }\n#   subnet_id = data.terraform_remote_state.reseau.outputs.subnet_id"
         },
         {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Une entreprise gère TOUTE son infrastructure (réseau, bases, dizaines d'applications, tous les environnements) dans un seul et unique fichier d'état. Quels problèmes cela pose-t-il, et quelle stratégie adopter ?",
           "solution": "Un state unique et géant pose plusieurs problèmes sérieux. (1) BLAST RADIUS maximal : chaque plan/apply opère sur TOUTE l'infrastructure ; une erreur, un mauvais changement, un bug de provider ou une commande state malheureuse peut affecter n'importe quelle ressource, y compris des composants critiques sans rapport avec ce qu'on voulait changer. Le rayon d'explosion d'une faute est énorme. (2) VERROU global : le state locking sérialise les opérations sur un état ; avec un seul state, dès qu'une personne (ou un pipeline) applique, TOUT LE MONDE est bloqué, les équipes ne peuvent pas travailler en parallèle, ce qui ne passe pas à l'échelle organisationnelle. (3) LENTEUR : chaque plan doit rafraîchir et comparer l'état de TOUTES les ressources, ce qui devient très lent quand l'infrastructure grossit (des centaines/milliers de ressources), alors qu'on ne change souvent qu'une petite partie. (4) Couplage et risque : mélanger réseau, bases et applications de tous les environnements dans un même état couple des cycles de vie qui devraient être indépendants (le réseau change rarement, les apps souvent ; la prod ne doit pas être exposée aux mêmes manipulations que le dev). Stratégie à adopter : DÉCOUPER l'état en plusieurs états indépendants, par périmètre logique, par couche (réseau / données / applicatif), par environnement (dev/staging/prod), et/ou par équipe/application. Chaque périmètre a son propre backend/clé de state, son propre verrou et son propre cycle d'apply. Les périmètres se relient proprement via les outputs partagés : on lit les valeurs d'un autre état avec terraform_remote_state (ou des data sources), par exemple l'applicatif lit le subnet_id exposé par l'état réseau. Bénéfices : applies plus rapides et ciblés (on ne rafraîchit que le périmètre concerné), rayon d'explosion RÉDUIT (une erreur sur une app ne peut pas casser le réseau ou une autre app), verrous locaux (les équipes travaillent en parallèle sans se bloquer), et cycles de vie séparés (on applique le réseau et les apps indépendamment, prod isolée de dev). Le découpage de l'état est une décision d'architecture Terraform majeure, essentielle dès que l'infrastructure et l'équipe grandissent ; des outils comme Terragrunt aident à gérer proprement ces multiples états et leurs dépendances."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Opérations sur l'état",
           "quizRef": "state-operations-check"
         }
@@ -92,28 +110,40 @@
           "body": "Reprendre sous Terraform une infrastructure **créée à la main** est déjà un petit chantier pour une ou deux ressources. À **grande échelle** (des dizaines de buckets, règles, rôles), ça peut devenir un vrai projet. Bonne nouvelle : les outils modernes rendent ça beaucoup plus rapide.\n\nIl faut d'abord distinguer deux styles de commandes. Un style **impératif** dit *comment* faire, étape par étape, en tapant des commandes une à une (« importe ceci, puis importe cela »). Un style **déclaratif** dit *ce qu'on veut obtenir*, écrit dans des fichiers, et laisse l'outil s'occuper du reste.\n\n👉 **Analogie** : l'impératif, c'est **dicter un itinéraire virage par virage** à voix haute. Le déclaratif, c'est **donner l'adresse d'arrivée au GPS** et le laisser calculer la route. Terraform est un outil déclaratif : on préfère décrire le résultat voulu dans le code.\n\nL'ancienne commande `terraform import` était **impérative** : une commande à taper manuellement par ressource, rien dans le code, donc rien de relu ni versionné. La voie **moderne** est le **bloc `import`** (Terraform 1.5 et au-delà) : **déclaratif**, écrit dans les fichiers `.tf`, versionné (suivi dans Git) et **relu en revue de code**. Pour chaque ressource à reprendre, un bloc `import { to = ..., id = ... }` indique l'adresse cible dans le code et l'identifiant réel de l'objet.\n\nEt surtout, une commande change tout pour les gros volumes : **`terraform plan -generate-config-out=genere.tf`**. Terraform lit l'état réel de chaque objet visé par un bloc import et **génère automatiquement** le code **HCL** correspondant (*HCL*, pour *HashiCorp Configuration Language*, est le langage dans lequel on écrit le code Terraform). On passe ainsi de « j'écris tout le code à la main puis j'importe un par un » à « je déclare les imports, Terraform génère le code, j'ajuste ». Le gain de temps est énorme pour reprendre un existant volumineux."
         },
         {
+          "type": "IMAGE",
+          "title": "Le declaratif donne l'adresse au GPS et le laisse calculer la route.",
+          "body": "/images/lessons/import-en-masse-generation-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Import en masse avec génération",
           "codeLanguage": "hcl",
           "body": "# Déclarer les imports (déclaratif, versionné)\nimport {\n  to = aws_s3_bucket.logs\n  id = \"org-logs-bucket\"\n}\nimport {\n  to = aws_s3_bucket.assets\n  id = \"org-assets-bucket\"\n}\n\n# Générer le code HCL des ressources importées :\n#   terraform plan -generate-config-out=generated.tf\n# -> Terraform écrit les blocs resource à partir du réel ; on ajuste, puis apply."
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Vérifier après import (niveau expert)",
           "body": "Un import ne se termine pas au moment où la ressource entre dans le state : il faut **vérifier** que tout est cohérent. Le point de vigilance est simple à énoncer : le code (que tu l'aies écrit ou fait générer) doit **correspondre exactement** à l'état réel de l'objet.\n\nPourquoi ? Parce que Terraform compare en permanence *ton code* à *la réalité*. Si les deux diffèrent, le prochain `plan` proposera des **changements** pour « rapprocher » le réel de ton code. Sur une ressource de **production**, ces changements peuvent aller jusqu'à un **remplacement destructeur** (détruire puis recréer l'objet), simplement parce qu'un attribut du code ne collait pas à l'existant. C'est exactement ce qu'on veut éviter.\n\nLa démarche sûre tient en un mot : **itérer** jusqu'au **plan vide**. On importe, on lance `terraform plan`, et on **corrige le code** tant que le plan n'affiche pas « **No changes** » (aucun changement). Un plan vide est la **preuve** que Terraform gère désormais la ressource **à l'identique**, sans vouloir la modifier.\n\n👉 **Analogie** : c'est comme **recopier un contrat existant** mot pour mot. Tant qu'il reste la moindre différence entre ta copie et l'original, le « correcteur » (le plan) te la signale. Quand il ne signale plus rien, c'est que ta copie est fidèle.\n\nDernier conseil : le code généré par `-generate-config-out` est un **point de départ** à relire, pas un résultat final. Il peut contenir des attributs inutiles, des valeurs par défaut redondantes ou des valeurs en dur à remplacer par des variables. Un import réussi se solde par un plan **neutre** : Terraform a « adopté » l'existant sans le perturber."
         },
         {
+          "type": "IMAGE",
+          "title": "On itere jusqu'au plan vide, preuve d'une copie fidele du reel.",
+          "body": "/images/lessons/import-en-masse-generation-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Vous devez reprendre sous Terraform 40 ressources créées à la main (buckets, règles, rôles). Écrire les 40 blocs à la main puis les importer un par un serait très long. Quelle approche moderne accélère cela, et quelle vérification est indispensable ?",
           "solution": "L'approche moderne combine les blocs import déclaratifs (Terraform 1.5+) et la génération automatique de code (-generate-config-out). Au lieu d'écrire les 40 blocs resource à la main puis de lancer 40 commandes `terraform import` impératives (long, fastidieux, error-prone), on procède ainsi : (1) Déclarer les imports en HCL, un bloc import par ressource à reprendre : `import { to = aws_s3_bucket.logs  id = \"org-logs-bucket\" }`, etc., ces blocs sont déclaratifs, versionnés dans le code et revus en PR (contrairement aux commandes import manuelles). (2) Générer automatiquement le code des ressources : lancer `terraform plan -generate-config-out=generated.tf`. Terraform lit l'état réel de chaque ressource ciblée par un bloc import et ÉCRIT pour nous les blocs resource correspondants dans generated.tf, à partir de la configuration réelle. On obtient ainsi une première version du code des 40 ressources sans tout écrire à la main. (3) Ajuster le code généré (le relire, nettoyer les attributs redondants/valeurs par défaut, réorganiser, remplacer des valeurs en dur par des variables/data sources si pertinent). (4) Appliquer : Terraform importe les ressources dans le state (les relie au code) sans les recréer. Vérification INDISPENSABLE : après import, s'assurer que le code correspond EXACTEMENT à l'état réel, en lançant terraform plan et en ITÉRANT sur le code jusqu'à obtenir un PLAN VIDE (« no changes »). C'est crucial car, si le code (même généré) diverge du réel, le premier plan/apply proposera des CHANGEMENTS, potentiellement des remplacements DESTRUCTEURS, sur des ressources de production. Un plan vide prouve que Terraform gère désormais ces ressources à l'identique, sans vouloir les modifier : l'adoption de l'existant est neutre. Tant que le plan n'est pas vide, on corrige le code (attributs manquants/différents) et on relance. En résumé : blocs import + -generate-config-out pour reprendre 40 ressources rapidement et déclarativement, puis itération jusqu'à un plan vide pour garantir qu'on n'altère rien. Le code généré est un point de départ à relire, pas un résultat final à appliquer aveuglément."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Import en masse (expert)",
           "quizRef": "import-blocks-expert"
         }
@@ -131,28 +161,40 @@
           "body": "Pour dialoguer avec un cloud (AWS, Google Cloud, Azure...), Terraform utilise un **provider** : un *plugin*, c'est-à-dire un petit module d'extension, qui sait parler à un service donné et y créer ou modifier des ressources. Dans le state, Terraform note, **pour chaque ressource, quel provider la gère** : plus précisément la **source** de ce provider, son adresse de téléchargement, par exemple `registry.terraform.io/hashicorp/aws`.\n\nPetit point de vocabulaire : un **registry** (registre) est le **catalogue en ligne** d'où Terraform télécharge ses providers, un peu comme un magasin d'applications. `registry.terraform.io` est celui de HashiCorp, l'éditeur de Terraform.\n\nDans certains cas, cette référence de provider doit **changer dans l'état**. Le cas le plus courant : une **migration de Terraform vers OpenTofu**. **OpenTofu** est un *fork* de Terraform (une copie indépendante du projet, repartie sur sa propre voie) né quand la licence de Terraform a changé ; il utilise un **autre registry** (`registry.opentofu.org`). Autre cas : passer à un *fork* d'un provider.\n\n👉 **Analogie** : chaque ressource du state porte l'étiquette du **fournisseur** qui s'en occupe. Changer d'outil (Terraform vers OpenTofu), c'est comme changer d'enseigne de fournisseur : le produit sur l'étagère ne change pas, mais l'**étiquette du fournisseur** doit être mise à jour partout.\n\nLa commande **`terraform state replace-provider`** fait exactement cela : elle met à jour la référence de provider dans l'état, **sans** recréer les ressources. Exemple : `terraform state replace-provider registry.terraform.io/hashicorp/aws registry.opentofu.org/hashicorp/aws`. C'est une opération d'exploitation **ponctuelle** mais importante à connaître, précisément pour ces migrations : elle évite de tout **recréer** juste parce que la « source » du provider a changé."
         },
         {
+          "type": "IMAGE",
+          "title": "On met a jour l'etiquette du fournisseur sans changer le produit.",
+          "body": "/images/lessons/replace-provider-et-force-unlock-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "force-unlock : débloquer avec précaution (niveau expert)",
           "body": "Rappel : pour éviter que deux `apply` s'exécutent **en même temps** sur le même état (ce qui le corromprait), Terraform pose un **verrou d'état** (*state lock*). Le temps d'une opération, l'état est réservé ; toute autre tentative attend son tour.\n\nLe problème survient quand un apply **plante brutalement** *en tenant le verrou* : un crash, une coupure réseau, ou un **runner** de CI tué en plein travail. (Un **runner**, dans une chaîne d'**intégration continue** ou *CI*, est la machine automatique qui exécute les commandes à ta place.) Le verrou n'a alors pas été relâché proprement : il reste **bloqué**, « orphelin ». Plus personne ne peut appliquer, et Terraform répond « *state locked by...* ».\n\nLa commande **`terraform force-unlock <LOCK_ID>`** libère ce verrou. Le **`LOCK_ID`** est l'**identifiant du verrou**, affiché dans le message d'erreur.\n\n⚠️ **Le danger est réel.** Si tu forces le déverrouillage alors qu'un apply tourne **encore** pour de vrai (un autre pipeline, ou le runner « tué » qui en réalité continue), tu autorises une **seconde** opération d'écriture simultanée : exactement la **corruption** que le verrou empêchait (état entremêlé, ressources dupliquées ou orphelines, correspondances perdues).\n\n👉 **Analogie** : le verrou, c'est le **loquet « occupé » des toilettes d'un train**. S'il reste coincé alors que la cabine est vide, on peut forcer l'ouverture. Mais forcer le loquet **pendant que quelqu'un est à l'intérieur**, c'est provoquer précisément l'accident qu'on voulait éviter.\n\nDémarche sûre : d'abord **vérifier** qu'**aucun** apply ne tourne réellement (aucun pipeline actif, le runner concerné bien mort, aucun collègue en train d'appliquer), lire au besoin les infos du verrou (qui, quand, quelle opération) dans le message d'erreur, **puis** seulement récupérer le `LOCK_ID` et lancer `force-unlock`. C'est une commande de **dépannage**, à utiliser avec discernement, jamais par réflexe dès que « ça bloque »."
         },
         {
+          "type": "IMAGE",
+          "title": "On ne force le loquet qu'apres avoir verifie que la cabine est vide.",
+          "body": "/images/lessons/replace-provider-et-force-unlock-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "replace-provider & force-unlock",
           "codeLanguage": "bash",
           "body": "# Migrer la référence de provider dans l'état (ex. Terraform -> OpenTofu)\nterraform state replace-provider \\\n  registry.terraform.io/hashicorp/aws \\\n  registry.opentofu.org/hashicorp/aws\n\n# Débloquer un verrou resté pris après un crash (APRÈS avoir vérifié)\n#   Error: state locked. Lock Info: ID: 1a2b3c...\nterraform force-unlock 1a2b3c...     # seulement si AUCUN apply ne tourne"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un `terraform apply` en CI a été interrompu brutalement (runner tué). Depuis, toute tentative d'apply échoue avec « Error: state locked ». Un collègue veut immédiatement lancer `terraform force-unlock`. Quelle précaution est absolument nécessaire avant, et pourquoi ?",
           "solution": "La précaution absolument nécessaire est de VÉRIFIER qu'AUCUN apply n'est réellement en cours d'exécution avant de forcer le déverrouillage. Contexte : le verrou d'état (state lock) sérialise les opérations d'écriture pour éviter que deux applies simultanés ne corrompent l'état. Ici, l'apply en CI a été tué brutalement (runner interrompu) SANS libérer proprement le verrou, d'où un verrou « orphelin » qui reste pris, bloquant tout nouvel apply (« state locked »). terraform force-unlock <LOCK_ID> libère ce verrou. MAIS le danger est réel : si l'on force le déverrouillage alors qu'un apply tourne ENCORE (par exemple un autre pipeline, ou le runner « tué » qui en réalité continue de s'exécuter, ou une reprise), on autorise une SECONDE opération d'écriture concurrente sur le même état, ce qui provoque exactement la CORRUPTION que le verrou était censé empêcher (états entrelacés, ressources dupliquées/orphelines, mapping perdu). C'est pourquoi il faut d'abord CONFIRMER qu'aucune opération n'est active : vérifier qu'aucun pipeline/job Terraform n'est en cours (interface CI, historique des runs), que le runner concerné est bien mort/terminé (pas juste « détaché »), qu'aucun collègue n'applique en parallèle, et éventuellement inspecter les infos du verrou (le message d'erreur affiche le Lock Info : qui/quand/quelle opération) pour comprendre son origine. Une fois CERTAIN qu'aucun apply ne tourne, on récupère le LOCK_ID affiché dans le message d'erreur et on lance `terraform force-unlock <LOCK_ID>`. force-unlock est une commande de DÉPANNAGE, à manier avec discernement, jamais par réflexe automatique « ça bloque, je débloque ». La bonne posture : diagnostiquer d'abord (le verrou est-il vraiment orphelin, ou une opération est-elle active ?), puis débloquer seulement si l'on est sûr. Prévention : configurer des timeouts de lock raisonnables, et concevoir la CI pour ne pas lancer d'applies concurrents sur le même état."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, replace-provider & force-unlock (expert)",
           "quizRef": "replace-provider-unlock-expert"
         }

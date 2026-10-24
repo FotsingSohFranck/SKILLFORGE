@@ -13,21 +13,33 @@
           "body": "Avant de parler de Terraform, il faut comprendre le problème qu'il résout. Et pour ça, définissons deux mots qui vont revenir sans arrêt.\n\n**L'infrastructure**, en informatique, c'est l'ensemble des **machines et services** sur lesquels tourne une application : les **serveurs** (des ordinateurs, souvent distants, qui exécutent ton programme), le **réseau** (ce qui relie ces machines entre elles et à Internet), la **base de données** (là où l'application range ses données), etc. Bref, tout le « matériel » (aujourd'hui virtuel) nécessaire pour faire vivre un logiciel.\n\n**Le cloud**, c'est le fait de **louer** cette infrastructure à un fournisseur (Amazon avec AWS, Google avec GCP, Microsoft avec Azure) au lieu d'acheter tes propres machines. Tu ne possèdes rien physiquement : tu demandes « donne-moi un serveur » et il apparaît en quelques secondes, tu paies à l'usage.\n\nPour créer ces ressources, le fournisseur te donne une **console**, c'est-à-dire un **site web avec des boutons et des formulaires** où tu cliques pour dire « je veux un serveur de cette taille, dans cette région ». Créer son infrastructure en cliquant partout dans cette console, on appelle ça familièrement le **« clickops »** (de *click*, cliquer, et *ops*, opérations).\n\n👉 **Analogie** : le clickops, c'est comme monter un meuble compliqué **sans noter aucune étape**. Ça marche une fois, dans ton salon. Mais si on te demande d'en monter dix identiques, ou de le remonter dans un an, tu ne te souviens plus de rien.\n\n**Exemple concret** : tu crées à la main, un vendredi soir, un serveur + une base + trois règles de réseau pour ton site. Six mois plus tard, il faut créer un environnement de test **identique**. Tu ne te rappelles plus la taille exacte du serveur, ni les réglages du réseau. Tu recliques « à peu près pareil »… et le test se comporte différemment de la prod.\n\nLe clickops pose donc quatre problèmes majeurs :\n- **non reproductible** : impossible de recréer un environnement à l'identique ;\n- **non documenté** : personne ne sait qui a créé quoi, ni pourquoi ;\n- **source d'erreurs** : un clic oublié, un paramètre différent entre l'environnement de **développement** (« dev », là où on code et teste) et celui de **production** (« prod », celui qu'utilisent les vrais utilisateurs) ;\n- **impossible à réviser** : aucune trace des changements, donc aucune relecture possible.\n\nIl manque un moyen de **décrire** son infrastructure de façon fiable et rejouable, plutôt que de la cliquer."
         },
         {
+          "type": "IMAGE",
+          "title": "Le clickops, cliquer dans la console pour tout créer à la main",
+          "body": "/images/lessons/le-probleme-du-clickops-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "La dérive de configuration",
           "body": "Il y a pire que l'oubli initial : l'infrastructure **change toute seule** avec le temps, sans que personne ne le note.\n\nImagine la scène. Un mardi, un serveur sature ; quelqu'un modifie « en urgence » un paramètre à la main dans la console pour éteindre l'incendie. Une semaine plus tard, un collègue ajoute une **règle de pare-feu** (le pare-feu, ou *firewall*, est le filtre qui décide quels échanges réseau sont autorisés ou bloqués). Ni l'un ni l'autre ne l'écrit nulle part. Multiplie ça par des dizaines de petites retouches sur plusieurs mois.\n\nRésultat : l'état **réel** de l'infrastructure ne correspond plus à ce que l'équipe **croit** avoir. On appelle cet écart la **dérive de configuration** (en anglais *configuration drift*, où *drift* veut dire « dérive », comme un bateau qui s'éloigne lentement de sa position sans qu'on s'en aperçoive).\n\n👉 **Analogie** : c'est une **recette de cuisine** que plusieurs personnes modifient de tête, sans jamais réécrire la fiche. Chacun rajoute « juste une pincée » de son côté. Au bout de dix fois, le plat n'a plus rien à voir avec la recette écrite, et personne ne sait exactement ce qu'on met dedans.\n\n**Exemple concret** : un bug apparaît en production mais pas en dev. On cherche pendant des heures… parce que les deux environnements ont **dérivé** différemment, chacun bricolé à la main de son côté. Le fameux « ça marche chez moi » vient souvent de là.\n\nLa dérive rend les environnements **imprévisibles**, complique le débogage, et fragilise tout le système. On a donc besoin de deux choses : une **source de vérité** (un document de référence unique qui décrit l'infrastructure **voulue**), et un **outil** capable de **maintenir** le réel conforme à cette description. C'est exactement ce que va apporter l'Infrastructure as Code."
         },
         {
+          "type": "IMAGE",
+          "title": "La dérive de configuration, le réel qui s'écarte peu à peu du voulu",
+          "body": "/images/lessons/le-probleme-du-clickops-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Une équipe a créé son infrastructure de production à la main dans la console cloud. Un incident majeur détruit une partie de l'environnement, et personne ne se souvient de la configuration exacte (règles réseau, tailles de machines, paramètres). Quel problème fondamental cela illustre-t-il, et qu'est-ce qui l'aurait évité ?",
           "solution": "Cela illustre le problème fondamental de l'infrastructure créée manuellement (clickops) : elle n'est ni reproductible, ni documentée, ni versionnée. La configuration exacte n'existe que dans l'état vivant du cloud (et dans la mémoire, faillible, des personnes) ; rien ne décrit de façon fiable « voici l'infrastructure que nous voulons ». Après l'incident, il n'y a donc aucune source de vérité pour recréer à l'identique, d'où le cauchemar de reconstruction, avec le risque de divergences et d'oublis. Ce qui l'aurait évité : décrire toute l'infrastructure comme du CODE (Infrastructure as Code), versionné dans Git. Avec une description déclarative de l'infrastructure (machines, réseaux, règles, paramètres) stockée et revue dans un dépôt, on peut recréer l'environnement complet en une commande, à l'identique, autant de fois que nécessaire, la reprise après sinistre devient une simple ré-application du code. On obtient aussi la traçabilité (qui a changé quoi, via l'historique Git), la revue par pull request, et la cohérence entre environnements. C'est précisément le rôle de Terraform : transformer l'infrastructure d'un état manuel et fragile en un code fiable, rejouable et auditable."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, Le problème du clickops",
           "quizRef": "what-is-terraform-clickops-check"
         }
@@ -45,28 +57,40 @@
           "body": "La solution au clickops porte un nom : l'**Infrastructure as Code**, presque toujours abrégée **IaC** (littéralement « infrastructure en tant que code »).\n\nL'idée est simple à énoncer : au lieu de **cliquer** dans une console pour créer tes serveurs et tes réseaux, tu les **décris dans des fichiers texte**, exactement comme du code de programme. Puis tu laisses un outil (ici, Terraform) **lire ces fichiers** et **créer l'infrastructure** à ta place, puis la **maintenir** conforme.\n\nConcrètement, tu écris quelque chose comme « je veux **un** serveur de **cette** taille, **ce** réseau, **cette** base de données », tu **révises** ce fichier avec tes collègues, puis tu l'**appliques**. L'infrastructure n'est plus une suite de clics volatils : c'est un **fichier** que tu gardes.\n\n👉 **Analogie** : passe du meuble monté « à l'instinct » à la **notice de montage écrite**. Tant que tu as la notice, n'importe qui peut remonter le meuble à l'identique, autant de fois qu'il veut, et proposer d'améliorer une étape avant de la suivre.\n\nComme c'est du texte dans des fichiers, tu peux le ranger dans **Git** (le gestionnaire de versions vu dans le parcours Backend). Et là, tu récupères **gratuitement** tous les super-pouvoirs du code :\n- **reproductibilité** : recréer un environnement entier à l'identique en une commande ;\n- **versionnage** : un historique de tous les changements, et la possibilité de revenir en arrière (*rollback*) ;\n- **revue** : tes pairs relisent et valident le changement (via une *pull request*) **avant** qu'il ne touche le réel ;\n- **cohérence** : dev, *staging* (l'environnement de pré-production, une copie de la prod pour tester juste avant de livrer) et prod sont générés depuis le **même** code ;\n- **automatisation** : un robot (un *pipeline* d'intégration continue) peut appliquer le code tout seul.\n\n**Exemple concret** : ton fichier décrit « 1 serveur + 1 base ». Pour monter un deuxième environnement identique, tu copies le dossier, tu changes un nom, tu appliques : en deux minutes tu as un clone parfait. En clickops, c'était une demi-journée de clics fragiles. L'infrastructure devient un vrai **artefact d'ingénierie**, pas une suite de gestes à la souris."
         },
         {
+          "type": "IMAGE",
+          "title": "L'infrastructure décrite dans des fichiers texte, comme du code",
+          "body": "/images/lessons/linfrastructure-as-code-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Déclaratif : décrire le quoi, pas le comment",
           "body": "Un mot revient toujours à propos de Terraform : il est **déclaratif**. C'est un concept central, prenons le temps de le poser.\n\nIl existe deux grandes façons de dire à un ordinateur ce qu'il doit faire.\n\n- **Impératif** : tu écris la **suite d'étapes** à exécuter, dans l'ordre. « Crée le serveur. Puis crée le réseau. Puis branche-les. Puis ajoute la règle. » Tu décris **comment** faire, action par action. Un script shell classique, c'est ça.\n- **Déclaratif** : tu décris seulement le **résultat voulu** (« l'état désiré »), et c'est l'**outil** qui trouve tout seul les actions pour y arriver. Tu décris **quoi** obtenir, pas **comment** l'obtenir.\n\nTerraform est déclaratif : tu écris « voici les ressources que je veux » et Terraform **calcule** de lui-même quoi **créer**, quoi **modifier** et quoi **supprimer** pour que le réel corresponde à ta description.\n\n👉 **Analogie** : la différence entre un **itinéraire** et une **destination sur un GPS**. L'impératif, c'est dicter chaque virage (« tourne à gauche, puis tout droit sur 2 km… ») : si un imprévu survient, tout déraille. Le déclaratif, c'est juste dire « emmène-moi à cette adresse » : le GPS calcule le trajet, et **recalcule** tout seul si tu t'es trompé ou si la route est bloquée.\n\nCe fonctionnement apporte une propriété précieuse : l'**idempotence**. Le mot fait savant, l'idée est limpide : **appliquer deux fois la même chose donne le même résultat qu'une seule fois**. Si tu relances Terraform sans avoir changé ton fichier, il **compare** le réel à ta description, constate qu'il n'y a **aucune différence**, et ne fait… rien. Il ne recrée pas tes serveurs, il ne casse rien.\n\n**Exemple concret** : ton fichier demande « 1 serveur ». Tu lances Terraform : il crée le serveur. Tu relances Terraform (par erreur, ou par prudence) : il ne crée **pas** un deuxième serveur, il voit que le désiré est déjà atteint. Avec un script impératif « crée un serveur », le relancer en créerait un **deuxième** (à moins de coder soi-même la vérification « existe déjà ? »). C'est ce même principe déclaratif que **Kubernetes** applique aux conteneurs : on maintient en permanence le réel conforme à une description, au lieu de lancer des commandes à l'aveugle."
         },
         {
+          "type": "IMAGE",
+          "title": "Déclaratif, on décrit la destination et l'outil calcule le chemin",
+          "body": "/images/lessons/linfrastructure-as-code-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "Le cycle déclaratif de Terraform",
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"Fichiers HCL<br/>etat desire\"] --> B[\"terraform plan<br/>compare desire et reel\"]\n    B --> C[\"terraform apply<br/>cree, modifie, supprime\"]\n    C --> D[\"Infrastructure reelle<br/>dans le cloud\"]\n    D -. \"Terraform relit le reel<br/>pour la prochaine comparaison\" .-> B\n    B -. \"aucune difference :<br/>rien a faire (idempotence)\" .-> E[\"Stop\"]"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Quelle est la différence entre une approche impérative (un script shell qui crée des ressources cloud via des commandes CLI) et l'approche déclarative de Terraform, et pourquoi cette dernière est-elle plus sûre pour gérer une infrastructure durable ?",
           "solution": "Approche impérative (script shell + CLI) : on écrit la SUITE D'ÉTAPES à exécuter (« crée ce serveur, puis ce réseau, puis cette règle... »). Problèmes : le script décrit le COMMENT à un instant donné, pas l'état voulu ; le relancer peut échouer ou dupliquer des ressources (il faut coder soi-même la logique « existe déjà ? »), il ne sait pas ce qui existe déjà, ni détecter/corriger une dérive, ni supprimer proprement ce qui n'est plus voulu, la gestion du cycle de vie complet (création, mise à jour, suppression, idempotence) est à la charge du développeur, ce qui est fragile et error-prone. Approche déclarative (Terraform) : on décrit l'ÉTAT DÉSIRÉ (« voici les ressources que je veux »), et Terraform calcule lui-même les actions nécessaires pour y arriver depuis l'état actuel, créer ce qui manque, modifier ce qui a changé, supprimer ce qui n'est plus déclaré. C'est idempotent : réappliquer le même code ne recrée rien (Terraform compare réel et désiré et n'agit que sur les différences). Pourquoi c'est plus sûr pour une infrastructure durable : (1) Terraform connaît l'état existant (via son state) et n'agit que sur les écarts, évitant les doublons et les actions destructrices non voulues ; (2) il PRÉVISUALISE les changements avant de les appliquer (plan), ce qui permet de valider l'impact ; (3) il gère le cycle de vie complet, y compris la suppression cohérente ; (4) le code décrit un résultat stable et reproductible, versionnable et révisable, indépendant de l'ordre d'exécution. On délègue la mécanique risquée (quoi faire, dans quel ordre, idempotence) à l'outil, et on ne raisonne que sur le résultat voulu, bien plus robuste qu'un script impératif à maintenir."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, L'Infrastructure as Code",
           "quizRef": "what-is-terraform-iac-check"
         }
@@ -84,28 +108,40 @@
           "body": "On a vu le problème (le clickops) et l'idée qui le résout (l'Infrastructure as Code). Passons à l'outil concret : **Terraform**.\n\nTerraform est un logiciel créé par la société **HashiCorp**. C'est aujourd'hui l'outil d'IaC le **plus répandu** au monde. Tu l'installes sur ta machine, tu lui donnes tes fichiers de description, et il se charge de créer l'infrastructure.\n\nSa grande force, c'est d'être **agnostique du fournisseur** (en anglais *provider-agnostic*). « Agnostique » veut dire ici : **qui ne dépend d'aucun fournisseur en particulier**. Le **même** outil et le **même** langage te permettent de créer des ressources sur **AWS** (Amazon), **Google Cloud**, **Azure** (Microsoft), mais aussi sur Kubernetes, GitHub, Cloudflare, une base de données… Tu apprends **une** façon de faire, et elle marche partout.\n\nCe langage de description s'appelle **HCL** (*HashiCorp Configuration Language*, le « langage de configuration de HashiCorp »). C'est un langage **conçu spécialement** pour décrire de l'infrastructure : lisible, épuré, fait pour dire « je veux telle ressource avec tels réglages ».\n\nComment un seul outil peut-il parler à autant de plateformes différentes ? Grâce aux **providers**. Un **provider** est un **plugin** (un module d'extension qu'on branche sur Terraform) spécialisé pour **une** plateforme. 👉 **Analogie** : Terraform est une **perceuse**, et les providers sont les **embouts** interchangeables. Tu gardes la même perceuse (Terraform, HCL), et tu clipses l'embout AWS, ou l'embout Azure, selon la vis à visser. Le provider AWS sait parler à Amazon, le provider Azure sait parler à Microsoft, etc.\n\n**Exemple concret** : le même mot-clé `resource` en HCL, avec le provider AWS, crée un serveur chez Amazon ; avec le provider Google, il crée un serveur chez Google. Toi, tu écris presque la même chose ; c'est le provider qui traduit vers l'API (l'interface de programmation) du fournisseur.\n\nNote d'écosystème pour finir : suite à un changement de licence de Terraform (on y revient dans la dernière leçon), un **fork** (une copie indépendante d'un logiciel, reprise et poursuivie par d'autres) open source nommé **OpenTofu** existe désormais. Il est **compatible** avec Terraform, et les concepts qu'on apprend ici valent pour les deux."
         },
         {
+          "type": "IMAGE",
+          "title": "Terraform et ses providers, une même perceuse et des embouts interchangeables",
+          "body": "/images/lessons/terraform-iac-vs-cac-installation-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "IaC vs Configuration as Code (CaC)",
           "body": "Voici une distinction que beaucoup de débutants confondent, et qu'un professionnel doit savoir poser clairement : la différence entre **provisionner** une infrastructure et la **configurer**.\n\n**Provisionner**, c'est **créer** les ressources : faire apparaître le serveur, le réseau, la base, le *load balancer* (le « répartiteur de charge », une brique qui distribue le trafic entre plusieurs serveurs pour éviter d'en surcharger un seul). C'est fabriquer le **contenant**. C'est le rôle de l'**Infrastructure as Code (IaC)**, donc de Terraform.\n\n**Configurer**, c'est régler ce qui tourne **à l'intérieur** de ces serveurs une fois qu'ils existent : installer des logiciels (des *paquets*), déployer ton application, éditer des fichiers de réglage. C'est remplir le **contenu**. C'est le rôle de la **Configuration as Code (CaC)**, assurée par des outils comme **Ansible**, **Chef** ou **Puppet**.\n\n👉 **Analogie** : construire une maison. L'**IaC (Terraform)**, c'est **bâtir la maison** : les murs, l'électricité, la plomberie (le contenant). La **CaC (Ansible)**, c'est **l'aménager** : poser les meubles, brancher les appareils, ranger la vaisselle (le contenu). On ne « choisit » pas entre bâtir et aménager : les deux se suivent.\n\n**Exemple concret d'un flux complet** : Terraform **crée** une machine vierge dans le cloud ; puis Ansible (ou un simple script) **installe** dessus le serveur web et l'application. L'un fait exister la machine, l'autre la rend utile.\n\nAutre nuance de vocabulaire : Terraform est **déclaratif** et orienté **état désiré** (revois la leçon précédente), là où les outils de configuration sont souvent plus **procéduraux** (proches d'une suite d'étapes, comme une recette). Enfin, à l'ère des **conteneurs** (des « boîtes » logicielles autonomes embarquant l'application et tout ce dont elle a besoin, dont **Docker** est le représentant le plus connu), on configure souvent l'applicatif via des **images** Docker toutes prêtes plutôt que par de la CaC sur des machines. Mais la distinction de fond reste : **provisionner** (IaC), c'est différent de **configurer** (CaC)."
         },
         {
+          "type": "IMAGE",
+          "title": "Provisionner (bâtir la maison) puis configurer (l'aménager)",
+          "body": "/images/lessons/terraform-iac-vs-cac-installation-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Installer & un premier aperçu",
           "codeLanguage": "bash",
           "body": "# Installer Terraform (via le gestionnaire de paquets, ou binaire HashiCorp)\nbrew install terraform        # macOS ; ou apt/choco selon l'OS\nterraform version\n\n# Un fichier main.tf minimal (HCL) décrit une ressource :\n#   resource \"local_file\" \"exemple\" {\n#     filename = \"bonjour.txt\"\n#     content  = \"Infrastructure as Code !\"\n#   }\n\nterraform init      # télécharge les providers nécessaires\nterraform plan      # montre ce qui va être créé/modifié/supprimé\nterraform apply     # applique (crée réellement les ressources)"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un collègue affirme : « Terraform et Ansible font la même chose, il faut choisir l'un ou l'autre. » Nuancez cette affirmation en expliquant leurs rôles respectifs.",
           "solution": "L'affirmation est imprécise : Terraform et Ansible ont des rôles principalement DIFFÉRENTS et souvent COMPLÉMENTAIRES, pas concurrents. Terraform relève de l'Infrastructure as Code (IaC) : son rôle est de PROVISIONNER l'infrastructure, créer et gérer le cycle de vie des ressources cloud (machines/VM, réseaux, sous-réseaux, load balancers, bases de données managées, DNS, IAM...) de façon déclarative, agnostique du fournisseur, avec un état qui suit ce qui existe. C'est le « contenant ». Ansible relève plutôt de la Configuration as Code (CaC) : son rôle est de CONFIGURER ce qui tourne SUR les machines, installer des paquets, déployer et paramétrer des applications, gérer des fichiers de config, orchestrer des tâches sur des serveurs existants. C'est le « contenu ». Un flux typique combine les deux : Terraform crée les serveurs et le réseau, puis Ansible (ou un script, ou une image conteneur) configure l'applicatif sur ces serveurs. Il y a certes des recouvrements (Ansible peut provisionner du cloud via des modules, Terraform peut lancer un provisioner) et des philosophies différentes (Terraform déclaratif orienté état désiré, Ansible plutôt procédural), mais globalement on ne « choisit pas l'un OU l'autre » : on utilise Terraform pour l'infrastructure et, si besoin, un outil de configuration pour ce qui s'exécute dessus. À l'ère des conteneurs, la partie « configuration de l'applicatif » est d'ailleurs souvent assurée par des images Docker plutôt que par de la CaC sur des VM, mais la distinction provisionner (IaC) vs configurer (CaC) reste la clé pour situer chaque outil."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Qu'est-ce que Terraform",
           "quizRef": "what-is-terraform-check"
         }
@@ -123,21 +159,33 @@
           "body": "Un fait marquant de l'écosystème, qu'un professionnel doit connaître. Pour le comprendre, définissons d'abord deux mots : **licence** et **fork**.\n\nUne **licence** logicielle, c'est le **contrat** qui dit ce que tu as le droit de faire avec un logiciel : le lire, le modifier, le revendre, l'utiliser dans un produit commercial, etc. Une licence **open source** est très permissive (tu peux presque tout faire, gratuitement) ; d'autres licences sont plus **restrictives**.\n\nEn **2023**, HashiCorp a **changé la licence** de Terraform : elle est passée d'une licence open source (la **MPL**, *Mozilla Public License*) à une licence appelée **BSL** (*Business Source License*), nettement plus **restrictive**, notamment pour les entreprises qui bâtissent un produit concurrent par-dessus Terraform.\n\nEn réaction, une partie de la communauté a créé **OpenTofu**. Un **fork**, c'est le fait de **repartir d'une copie** du code d'un logiciel pour le faire vivre séparément, sous une autre gouvernance. 👉 **Analogie** : une **recette de famille** que tout le monde utilisait librement devient soudain payante ; un groupe de cuisiniers en fait alors une **copie ouverte**, la « recette communautaire », qu'ils continuent d'améliorer gratuitement de leur côté. OpenTofu est cette copie ouverte de Terraform, placée sous l'égide de la **Linux Foundation**.\n\nPoint crucial : OpenTofu est **compatible** avec Terraform. Même langage (**HCL**), mêmes concepts, et une commande quasi identique (là où tu tapais `terraform`, tu tapes `tofu`).\n\n**Exemple concret** : un fichier `.tf` écrit pour Terraform fonctionne avec OpenTofu quasiment sans modification ; tu remplaces surtout la commande `terraform plan` par `tofu plan`.\n\nAujourd'hui les deux coexistent : **Terraform** (HashiCorp, désormais dans le groupe **IBM**) et **OpenTofu** (communauté). Pour un apprenant, l'essentiel reste **identique** : tout ce qu'on apprend s'applique aux deux. Mais un expert **connaît** ce clivage pour choisir en connaissance de cause (licence acceptable ou non, gouvernance, et quelques fonctionnalités qui commencent à diverger, par exemple le **chiffrement de l'état** natif qu'OpenTofu a introduit en premier)."
         },
         {
+          "type": "IMAGE",
+          "title": "OpenTofu, un fork communautaire né d'un changement de licence",
+          "body": "/images/lessons/opentofu-et-paysage-iac-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Terraform dans le paysage IaC",
           "body": "Terraform est très populaire, mais ce n'est **pas** le seul outil d'IaC. Un professionnel sait le situer parmi ses alternatives, pour choisir le bon outil selon le contexte. Tour d'horizon, avec les mots-clés définis au passage.\n\n**CloudFormation** (chez AWS), et ses équivalents natifs comme **ARM / Bicep** (chez Azure) : ce sont des outils d'IaC fournis **par le cloud lui-même**. Ils sont puissants et bien intégrés, mais **verrouillés** à un seul fournisseur (on parle de *vendor lock-in*, la « dépendance au fournisseur ») : un modèle CloudFormation ne marche **que** sur AWS. 👉 **Analogie** : un chargeur qui ne fonctionne qu'avec une seule marque de téléphone.\n\n**AWS CDK / CDKTF / Pulumi** : ces outils te laissent décrire ton infrastructure dans un **vrai langage de programmation** (TypeScript, Python, Go…) au lieu de HCL. Avantage : tu récupères les boucles, les conditions, les abstractions d'un langage complet, donc plus d'expressivité. Inconvénient : tu quittes le déclaratif « pur » et tu ajoutes de la complexité (il faut savoir programmer). **Exemple** : générer 50 serveurs quasi identiques avec une boucle `for` est plus naturel dans Pulumi qu'en HCL.\n\n**Crossplane** : il permet de gérer l'infrastructure **depuis Kubernetes**. Sans entrer dans le détail, Kubernetes sait maintenir des objets conformes à une description ; Crossplane étend ce mécanisme aux ressources cloud. C'est surtout pertinent pour les organisations déjà **entièrement** sur Kubernetes.\n\nEt Terraform dans tout ça ? Ses atouts durables : sa **maturité** (il existe depuis longtemps, il est éprouvé), son **écosystème** (des **milliers** de providers disponibles, pour presque toutes les plateformes imaginables), et son **agnosticisme multi-cloud** (le même outil pour AWS, GCP, Azure et bien plus).\n\n👉 **En résumé** : un expert ne demande pas « quel est le meilleur outil dans l'absolu ? » mais « lequel est le plus adapté **à ma situation** ? ». Multi-cloud et large écosystème : Terraform brille. Tout-AWS et intégration maximale : CloudFormation se défend. Besoin de vraie programmation : Pulumi. Tout-Kubernetes : Crossplane."
         },
         {
+          "type": "IMAGE",
+          "title": "Choisir l'outil d'IaC selon le contexte, multi-cloud ou natif",
+          "body": "/images/lessons/opentofu-et-paysage-iac-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Un collègue affirme : « Puisque HashiCorp a changé la licence de Terraform, tout ce qu'on apprend est devenu obsolète ; il faut tout réapprendre avec OpenTofu. » Nuancez cette affirmation.",
           "solution": "L'affirmation est très exagérée. Le changement de licence de Terraform (passage à la BSL en 2023) a effectivement provoqué la création d'OpenTofu, un fork open source maintenu par la communauté (sous la Linux Foundation), mais OpenTofu est CONÇU pour être compatible avec Terraform : il utilise le même langage (HCL), les mêmes concepts (providers, ressources, state, modules, plan/apply, backends...), et une CLI quasi identique (on remplace essentiellement `terraform` par `tofu`). Autrement dit, TOUT ce qu'on apprend, HCL, le modèle déclaratif, la gestion de l'état, les modules, le workflow, les providers, s'applique AUX DEUX, à quasi 100 %. Il n'y a donc rien à « réapprendre » : les compétences sont transférables directement. Ce qui change relève surtout de la GOUVERNANCE et de la LICENCE (qui maintient l'outil, sous quelle licence), et, à la marge, de quelques fonctionnalités qui commencent à diverger (par exemple OpenTofu a introduit le chiffrement d'état natif avant Terraform). Un expert connaît ce clivage pour CHOISIR en connaissance de cause selon son contexte (licence acceptable ? besoin d'une fonctionnalité spécifique à l'un ? politique de l'entreprise ?), mais un apprenant n'a pas à s'en inquiéter : les fondamentaux sont communs et durables. La bonne posture : apprendre les concepts (qui valent pour Terraform ET OpenTofu), et se tenir informé de l'évolution des deux projets, pas « tout réapprendre »."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, OpenTofu & paysage IaC (expert)",
           "quizRef": "opentofu-landscape-expert"
         }

@@ -13,34 +13,52 @@
           "body": "Au début, un projet Terraform tient dans quelques fichiers et gère une poignée de **ressources**. Une *ressource*, c'est un objet d'infrastructure géré par Terraform : un serveur, un réseau, une base de données. Tout est simple. Mais quand l'organisation grandit (des centaines de ressources, plusieurs équipes, de nombreux **environnements**), de nouveaux problèmes surgissent.\n\nUn mot de vocabulaire d'abord. Un **environnement**, c'est une copie complète et séparée de ton infrastructure, dédiée à un usage précis : `dev` (pour développer et casser sans risque), `staging` (pour tester dans des conditions proches du réel), `prod` (la vraie infrastructure que les clients utilisent). 👉 **Analogie** : comme une pièce de théâtre a ses répétitions en salle (dev), sa générale costumée (staging), puis la représentation devant le public (prod).\n\nVoici ce qui coince à grande échelle :\n- **L'état devient dangereux.** Rappel du nœud État : Terraform garde un fichier d'**état** (*state*), une sorte d'inventaire qui note tout ce qu'il gère. Un **état unique** pour toute l'entreprise devient lent à rafraîchir et surtout risqué : une erreur peut toucher *toute* l'infrastructure d'un coup. On appelle **blast radius** (littéralement « rayon de l'explosion ») l'étendue de ce qui peut casser en cas de pépin. Plus l'état est gros, plus le blast radius est grand.\n- **La configuration se duplique.** Chaque environnement recopie les mêmes réglages (backends, variables communes). On viole le principe **DRY** (*Don't Repeat Yourself*, « ne te répète pas ») : la même information écrite à dix endroits, c'est dix endroits à corriger le jour où elle change.\n- **Le coût dérive sans qu'on le voie.** Personne ne sait qu'un changement va faire gonfler la facture cloud avant de recevoir la note.\n- **L'exécution ralentit.** Plus il y a de ressources, plus un `plan` ou un `apply` prend du temps.\n\nPasser à l'échelle avec Terraform, c'est adopter des **patterns** (des solutions éprouvées et réutilisables : découpage de l'état, configuration DRY) et des **outils** dédiés qui industrialisent le workflow au-delà de quelques modules."
         },
         {
+          "type": "IMAGE",
+          "title": "À grande échelle, le code d'infrastructure devient plus dur à maîtriser.",
+          "body": "/images/lessons/passer-a-lechelle-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Parallélisme & découpage",
           "body": "Terraform a deux façons d'aller plus vite à grande échelle : le **parallélisme** (gratuit et automatique) et le **découpage de l'état** (le vrai levier, à décider soi-même).\n\n**Le parallélisme.** Terraform ne crée pas tes ressources bêtement une par une. Il construit d'abord un **graphe de dépendances** : une carte de qui a besoin de qui (le serveur a besoin du réseau, donc le réseau d'abord). Les ressources qui ne dépendent pas les unes des autres sont créées **en parallèle** (en même temps), par défaut environ 10 opérations simultanées. 👉 **Analogie** : dans une cuisine, pendant que le four préchauffe, tu épluches déjà les légumes ; tu ne restes pas planté à attendre. Tu peux régler ce nombre avec l'option `-parallelism=N` (par exemple `terraform apply -parallelism=20`). C'est ce qui accélère un apply sans que tu aies rien à faire.\n\n**Le découpage de l'état.** C'est LA décision structurante. Plutôt qu'un seul état géant (lent à rafraîchir, avec un verrou global et un blast radius maximal), on le **segmente** en plusieurs petits états, par :\n- **couche** (*layer*) : le réseau, les données, les applications. Une couche, c'est un étage de l'infrastructure qui a son propre rythme de changement (le réseau bouge rarement, les apps souvent).\n- **environnement** : dev, staging, prod séparés.\n- **équipe** : chaque équipe gère son propre périmètre.\n\nChaque périmètre a alors son propre état, son propre cycle d'apply et son propre **verrou** (*lock* : un cadenas qui empêche deux personnes d'appliquer en même temps et de corrompre l'état). Résultat : des applies **rapides** (moins de ressources à rafraîchir), **ciblés** (tu ne touches qu'à ta couche) et **isolés** (une erreur sur les apps ne peut pas casser le réseau). 👉 **Analogie** : au lieu d'un seul disjoncteur géant pour toute la maison, tu as un disjoncteur par pièce ; si la cuisine saute, le salon reste allumé.\n\nQuand un périmètre a besoin d'une information d'un autre (par exemple, les apps ont besoin de l'identifiant du réseau créé par la couche réseau), les états se relient via `terraform_remote_state` : un bloc qui lit en **lecture seule** les **outputs** (les valeurs publiées) d'un autre état. Le découpage est la décision numéro un pour un Terraform qui passe l'échelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Parallélisme et découpage: traiter plusieurs choses à la fois pour aller plus vite.",
+          "body": "/images/lessons/passer-a-lechelle-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "État découpé en couches (schéma)",
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    subgraph prod[\"Environnement prod (etat decoupe par couche)\"]\n        R[\"Etat reseau<br/>couche reseau\"]\n        D[\"Etat donnees<br/>couche donnees\"]\n        A[\"Etat apps<br/>couche applications\"]\n    end\n    R -->|\"outputs lus via<br/>terraform_remote_state\"| D\n    R -->|\"outputs lus via<br/>terraform_remote_state\"| A\n    D -->|\"outputs\"| A"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Terragrunt & Infracost (niveau expert)",
           "body": "Deux outils de l'écosystème reviennent souvent dès qu'une organisation a beaucoup d'états découpés.\n\n**Terragrunt** (édité par Gruntwork) est un **wrapper** : un outil qui se pose **par-dessus** Terraform et l'appelle pour toi, en ajoutant ce qui lui manque. 👉 **Analogie** : c'est un assistant qui remplit à ta place les formulaires répétitifs et retient les réglages communs, pendant que Terraform fait le vrai travail en dessous. Son rôle : gérer proprement **plusieurs états/environnements** en restant **DRY** (sans copier-coller). Concrètement, il factorise :\n- la configuration des **backends** (rappel : le *backend*, c'est l'endroit où est stocké l'état, par exemple un bucket S3). Au lieu de réécrire le bloc backend dans chaque dossier, tu le définis une seule fois et Terragrunt le décline par environnement (la clé de l'état est dérivée du chemin du dossier).\n- les **variables communes** partagées entre périmètres.\n- les **dépendances** entre périmètres : Terragrunt récupère automatiquement les outputs d'un état pour les injecter dans un autre, et peut appliquer plusieurs périmètres dans le bon ordre (`run-all`).\n\nExemple concret : 12 configurations (4 environnements x 3 couches). Sans Terragrunt, changer une convention de backend, c'est éditer 12 fichiers à la main. Avec Terragrunt, tu le changes à **un seul endroit**.\n\n**Infracost** répond à une autre douleur : le **coût**. C'est un outil qui **estime le coût mensuel** d'un changement Terraform **avant** de l'appliquer. Il lit ton `plan` et annote la **pull request** (la demande de fusion de ton code, relue par l'équipe) avec un message du genre « ce changement ajoutera 240 $/mois ». 👉 **Analogie** : c'est l'**étiquette de prix** affichée avant le passage en caisse, pas la facture qui tombe à la fin du mois. On parle de visibilité **FinOps** (la discipline qui rapproche la finance et les opérations cloud pour maîtriser la dépense). Résultat : l'équipe décide en connaissance de cause et évite les mauvaises surprises de facture.\n\nCes deux outils industrialisent Terraform pour les organisations : Terragrunt pour rester DRY sur de nombreux états, Infracost pour garder l'œil sur la facture."
         },
         {
+          "type": "IMAGE",
+          "title": "Infracost estime le coût, Terragrunt réduit la répétition entre environnements.",
+          "body": "/images/lessons/passer-a-lechelle-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Une entreprise gère 4 environnements (dev/staging/prod/dr) découpés en 3 couches (réseau/données/apps) chacun, soit 12 configurations Terraform. Elle constate qu'elle duplique la configuration des backends et des variables communes dans chaque dossier, et que chaque changement de convention doit être répercuté 12 fois. Quel outil résout ce problème, et comment ?",
           "solution": "L'outil adapté est Terragrunt (un wrapper au-dessus de Terraform). Le problème décrit, 12 configurations qui dupliquent chacune la configuration du backend (bucket/clé de state, région, verrouillage) et des variables communes, avec toute modification de convention à répercuter 12 fois, est exactement ce que Terragrunt résout en gardant l'ensemble DRY. Comment : (1) Configuration du backend factorisée : au lieu de répéter un bloc backend dans chacun des 12 dossiers, Terragrunt permet de définir la configuration du backend UNE seule fois (dans un fichier racine, avec des interpolations), et de la GÉNÉRER automatiquement pour chaque périmètre, typiquement la clé de state est dérivée du chemin (environnement/couche), si bien que chaque configuration obtient son propre état sans qu'on ait à écrire 12 blocs backend à la main. Un changement de convention de backend se fait à un seul endroit. (2) Variables communes DRY : les valeurs partagées (par exemple par environnement, ou globales à l'organisation) sont définies dans des fichiers de configuration hiérarchiques que Terragrunt fusionne/hérite par dossier, au lieu d'être copiées dans chaque .tfvars. On ne répète plus les valeurs communes. (3) Orchestration des dépendances entre périmètres : Terragrunt gère les dépendances entre les couches (les apps dépendent du réseau et des données) via des blocs dependency, en récupérant automatiquement les outputs d'un périmètre pour les injecter en entrée d'un autre, et peut appliquer plusieurs périmètres dans le bon ordre (run-all). (4) Structure d'environnements : on obtient une arborescence claire (env/couche) où chaque feuille est minimale (juste ce qui varie), le reste étant hérité/généré. Résultat : les 12 configurations ne dupliquent plus ni backend ni variables communes ; une convention se change à un seul endroit et se propage ; les dépendances entre couches sont gérées proprement. On reste sur du Terraform standard en dessous (Terragrunt orchestre, ne remplace pas Terraform). Alternative/complément : on peut aussi structurer avec des modules et du templating côté CI, mais Terragrunt est l'outil de référence pour industrialiser de nombreux environnements/états découpés en restant DRY. Et pour la visibilité des coûts de ces changements, on ajoute Infracost dans les PR."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Passer à l'échelle",
           "quizRef": "scaling-check"
         }
@@ -58,21 +76,33 @@
           "body": "Le découpage de l'état règle le blast radius, mais crée un nouveau casse-tête : **orchestrer** plusieurs états liés. *Orchestrer*, ça veut dire coordonner : déployer dans le **bon ordre** (le réseau d'abord, puis les données, puis les apps qui en dépendent) et faire **passer les valeurs** d'un état à l'autre (l'identifiant du réseau va nourrir les apps). 👉 **Analogie** : comme un chef d'orchestre qui fait entrer les instruments dans l'ordre, au bon moment ; sans lui, chacun joue quand il veut et c'est la cacophonie.\n\nHistoriquement, on orchestre cela à la main avec `terraform_remote_state` plus des **pipelines** (des scripts d'enchaînement en CI, l'automatisation qui lance les commandes à ta place), ou avec **Terragrunt**.\n\n**HCP Terraform Stacks** est la réponse **native** de HashiCorp (HCP = *HashiCorp Cloud Platform*, la plateforme cloud de l'éditeur de Terraform). L'idée : tu déclares des **composants** (*components* : des unités déployables, typiquement un module avec ses entrées) et leurs **dépendances** dans un fichier de configuration. Ensuite tu définis des **deployments** (des déclinaisons par environnement : le même stack en dev, staging, prod). HCP se charge alors de **déployer l'ensemble** comme un tout cohérent : l'ordre des composants et le passage des valeurs entre eux sont gérés **automatiquement**, pour chaque environnement. 👉 **Analogie** : au lieu de câbler toi-même chaque tuyau entre les états, tu remplis un plan et l'usine assemble à ta place. C'est conçu pour l'**infrastructure à grande échelle** (des dizaines de composants et d'environnements orchestrés de façon déclarative), là où l'on assemblait auparavant les états à la main."
         },
         {
+          "type": "IMAGE",
+          "title": "Les Stacks orchestrent plusieurs états liés comme un ensemble cohérent.",
+          "body": "/images/lessons/stacks-provider-functions-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Provider-defined functions (niveau expert)",
           "body": "Rappel : **HCL** (*HashiCorp Configuration Language*, le langage dans lequel tu écris ton Terraform) ne te laisse **pas définir tes propres fonctions**. Une **fonction**, c'est une petite boîte qui prend des valeurs en entrée et en renvoie une transformée (par exemple `upper(\"abc\")` renvoie `\"ABC\"`). Terraform en fournit un catalogue **intégré** (*built-in* : `length`, `join`, `jsonencode`, et bien d'autres), mais tu ne pouvais pas en ajouter.\n\nNouveauté récente : les **provider-defined functions** (« fonctions définies par un provider »). Rappel : un **provider**, c'est le plugin qui apprend à Terraform à parler à une plateforme (AWS, Azure, GitHub, etc.). Désormais, un provider peut **exposer ses propres fonctions**, spécifiques à son domaine, que tu appelles avec la syntaxe `provider::nom::fonction(...)`.\n\nExemples concrets :\n- une fonction du provider AWS pour **découper un ARN** (l'identifiant unique d'une ressource AWS) et en extraire une partie, du style `provider::aws::arn_parse(...)` ;\n- une fonction d'un provider pour **valider ou transformer** un format propre à sa plateforme.\n\n👉 **Analogie** : avant, tu n'avais que les lames du couteau suisse de base ; maintenant, chaque fabricant peut ajouter sa lame spécialisée, taillée pour son usage. Cela **étend** le catalogue de fonctions au-delà des intégrées, de façon **typée** (les entrées et sorties sont vérifiées) et **maintenue par les providers**, sans les bricolages d'avant (encoder/décoder du JSON, écrire des expressions alambiquées pour extraire un bout de texte). Un expert suit ces fonctions : elles simplifient des transformations autrefois pénibles, et signalent que l'écosystème Terraform **mûrit** vers plus d'expressivité, tout en restant déclaratif."
         },
         {
+          "type": "IMAGE",
+          "title": "Les providers peuvent fournir leurs propres fonctions sur mesure.",
+          "body": "/images/lessons/stacks-provider-functions-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Une organisation a découpé son infrastructure en de nombreux états (réseau, données, apps) répartis sur plusieurs environnements, et peine à orchestrer les déploiements dans le bon ordre avec le passage des outputs entre états. Quelles options existent, de la plus établie à la plus récente ?",
           "solution": "Le problème est l'ORCHESTRATION d'états découpés : une fois l'infrastructure segmentée en plusieurs états (pour réduire le blast radius, accélérer les applies, isoler les équipes), il faut gérer l'ordre de déploiement (le réseau avant les apps qui en dépendent), le passage des outputs d'un état à l'autre, et la déclinaison par environnement. Options, de la plus établie à la plus récente : (1) terraform_remote_state + pipelines maison (le plus basique) : chaque état expose des outputs, l'état suivant les lit via data \"terraform_remote_state\", et on ORCHESTRE l'ordre de plan/apply dans un pipeline CI construit à la main (jobs séquentiels avec dépendances). Ça marche mais devient lourd et fragile à mesure que le nombre d'états/environnements grandit (beaucoup de câblage et de logique de pipeline à maintenir). (2) Terragrunt (établi, très répandu) : wrapper au-dessus de Terraform qui gère nativement les dépendances entre états (blocs dependency récupérant automatiquement les outputs d'un autre périmètre), l'ordre de déploiement (run-all applique dans le bon ordre), et la génération DRY des backends/variables par environnement. C'est l'outil de référence depuis des années pour industrialiser de nombreux états découpés et leurs dépendances, en restant sur du Terraform standard en dessous. (3) HCP Terraform Stacks (le plus récent, natif HashiCorp) : la réponse native au problème. On déclare des COMPOSANTS (unités déployables) et leurs DÉPENDANCES dans une configuration de stack, et on définit des DEPLOYMENTS (déclinaisons par environnement) ; HCP orchestre alors le déploiement de l'ensemble comme un tout cohérent, ordre des composants et passage des valeurs entre eux gérés automatiquement, déclinés par environnement. C'est conçu pour l'infrastructure à grande échelle (dizaines de composants/environnements orchestrés déclarativement), sans assembler les états à la main ni maintenir un pipeline d'orchestration custom. En résumé : terraform_remote_state + pipeline (basique, à la main), Terragrunt (établi, DRY et orchestration des dépendances), HCP Terraform Stacks (récent, orchestration native multi-états/multi-environnements). Le choix dépend de l'échelle, de l'existant et de l'adoption ou non d'HCP : pour de gros besoins d'orchestration, Terragrunt reste une valeur sûre, et Stacks est l'option native émergente à surveiller."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, Stacks & provider functions (expert)",
           "quizRef": "stacks-functions-expert"
         }

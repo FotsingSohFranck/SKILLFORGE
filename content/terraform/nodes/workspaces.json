@@ -13,35 +13,47 @@
           "body": "En vrai, on ne déploie jamais son infrastructure en un seul exemplaire. On veut au moins un environnement de **dev** (pour bricoler et tester sans danger) et un environnement de **prod** (la vraie infrastructure que voient les utilisateurs). Un **environnement**, c'est simplement une **copie séparée** de ton infra, dédiée à un usage précis.\n\nPetit rappel indispensable avant tout : l'**état** (en anglais *state*) est le fichier où Terraform note **tout ce qu'il a déjà créé** dans le monde réel (quelle machine, quelle base de données, avec quel identifiant). C'est son **carnet de comptes** : sans lui, Terraform ne sait plus ce qui existe. Chaque environnement doit donc avoir **son propre état**, sinon `dev` et `prod` se marcheraient dessus.\n\nLes **workspaces** (en français « espaces de travail ») répondent exactement à ce besoin : ils permettent d'avoir **plusieurs états** pour un **même** code Terraform. Chaque workspace (`default`, `dev`, `prod`...) possède son propre fichier d'état. Quand tu lances `terraform apply` (la commande qui **crée ou modifie réellement** les ressources) dans le workspace `dev`, tu gères un premier lot de ressources ; dans `prod`, un autre lot, à partir du **même** code.\n\n👉 **Analogie** : ton code Terraform est une **recette de cuisine** unique. Les workspaces sont des **plats différents** cuisinés avec cette même recette : un pour la famille (`dev`), un pour le restaurant (`prod`). La recette ne change pas, mais chaque plat est bien distinct et vit sa vie.\n\nOn bascule d'un workspace à l'autre avec `terraform workspace select`. Et dans le code, on sait dans quel workspace on se trouve grâce à la valeur spéciale `terraform.workspace` : pratique pour adapter le nommage ou la taille des ressources selon l'environnement (par exemple une petite machine `t3.micro` en dev, une grosse `m5.large` en prod). C'est donc un moyen **léger** de décliner un même code sur plusieurs environnements, sans dupliquer les fichiers."
         },
         {
+          "type": "IMAGE",
+          "title": "Un même code pour plusieurs états: dev, staging et prod côte à côte.",
+          "body": "/images/lessons/gerer-plusieurs-environnements-1.jpg",
+          "position": 1
+        },
+        {
           "type": "DIAGRAM",
-          "position": 1,
+          "position": 2,
           "title": "Un code, plusieurs états : le schéma",
           "diagramFormat": "MERMAID",
           "body": "graph TD\n    CODE[\"Même code Terraform<br/>(main.tf)\"]\n    CODE --> WSDEV[\"workspace dev<br/>etat: dev\"]\n    CODE --> WSPROD[\"workspace prod<br/>etat: prod\"]\n    WSDEV --> RDEV[\"Ressources de dev<br/>(t3.micro, petites)\"]\n    WSPROD --> RPROD[\"Ressources de prod<br/>(m5.large, grosses)\"]"
         },
         {
           "type": "CODE",
-          "position": 2,
+          "position": 3,
           "title": "Utiliser les workspaces",
           "codeLanguage": "bash",
           "body": "terraform workspace list           # les workspaces existants (* = courant)\nterraform workspace new dev        # créer un workspace\nterraform workspace select prod    # basculer -> utilise l'état de prod\nterraform apply                    # applique dans le workspace courant\n\n# Dans le code : adapter selon l'environnement\n#   instance_type = terraform.workspace == \"prod\" ? \"m5.large\" : \"t3.micro\""
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 4,
           "title": "Workspaces vs répertoires séparés (niveau expert)",
           "body": "Voici un débat d'architecture important, à connaître pour ne pas se tromper sur les vrais projets.\n\nLes **workspaces** sont parfaits pour des environnements **similaires** (mêmes ressources, seules quelques valeurs changent) et souvent **éphémères** (par exemple un environnement de test créé le temps d'une branche, puis jeté). **Mais** ils montrent leurs **limites** dès qu'il s'agit d'environnements de **production** sérieux :\n\n- le **même code** s'applique à tous les workspaces : difficile de faire **diverger** volontairement la prod (lui donner une configuration vraiment différente) ;\n- un seul jeu de **variables de backend**. Rappel : le **backend** est l'endroit où Terraform range le fichier d'état (un stockage distant, par exemple un bucket S3 chez Amazon). Avec les workspaces, tous partagent la même configuration de backend ; on ne peut pas donner à la prod un stockage et des permissions à part ;\n- surtout, le **risque humain** : croire qu'on est dans `dev`, être en réalité dans `prod`, et appliquer au mauvais endroit. C'est un incident **classique**, car le workspace courant est un état **invisible dans le code** : rien à l'écran ne te rappelle où tu es.\n\n👉 **Analogie** : les workspaces, c'est comme avoir **un seul trousseau** de clés qui se ressemblent toutes. Pratique, mais un jour tu ouvres la mauvaise porte. Des répertoires séparés, c'est **une porte clairement étiquetée par pièce** : impossible de se tromper de contexte.\n\nDu coup, pour des environnements **critiques et divergents**, beaucoup d'équipes préfèrent des **répertoires séparés** : un dossier par environnement (`environments/dev`, `environments/prod`...), chacun avec **son propre backend** et ses propres fichiers de valeurs. Petit rappel : un fichier **`.tfvars`** contient les **valeurs des variables** (par exemple la taille des machines) pour un environnement donné. Cette approche est plus **explicite** (on sait où on est parce qu'on est physiquement dans le dossier) et mieux **isolée** (chaque environnement a son état et ses permissions).\n\nPour éviter de recopier la même configuration dans chaque dossier, on utilise souvent **Terragrunt**, un outil qui s'ajoute par-dessus Terraform pour gérer proprement plusieurs environnements sans se répéter (principe **DRY**, de l'anglais *Don't Repeat Yourself*, « ne te répète pas »).\n\nRègle nuancée à retenir : **workspaces** pour des environnements légers et homogènes ; **isolation par répertoire et par état** (voire Terragrunt) pour des environnements de production distincts."
         },
         {
+          "type": "IMAGE",
+          "title": "Workspaces ou répertoires séparés: deux façons d'isoler les environnements.",
+          "body": "/images/lessons/gerer-plusieurs-environnements-2.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 6,
           "title": "À vous",
           "body": "Une équipe utilise des workspaces Terraform pour dev, staging et prod. Un ingénieur, croyant être dans le workspace `dev`, lance `terraform apply` alors qu'il était en fait dans `prod`, et modifie la production par erreur. Quelle limite des workspaces cela illustre-t-il, et quelle alternative réduit ce risque ?",
           "solution": "Cela illustre une limite majeure des workspaces pour des environnements critiques : le RISQUE D'ERREUR DE CONTEXTE. Avec les workspaces, le même code s'applique à tous les environnements, et c'est le workspace COURANT (un état implicite, invisible dans le code) qui détermine sur quel environnement on agit. Rien dans les fichiers ne signale qu'on est en prod ; il faut se souvenir/vérifier le workspace sélectionné. Un simple oubli (ou un workspace laissé sur prod depuis une opération précédente) fait qu'un `terraform apply` supposé toucher dev modifie en réalité la PRODUCTION, un incident classique et grave. Les workspaces ont d'autres limites pour la prod : un même code pour tous (difficile de faire diverger volontairement prod), un seul jeu de configuration de backend, et cette dépendance à un état implicite (le workspace courant) fragile côté humain. Alternative qui réduit ce risque : ISOLER les environnements par RÉPERTOIRE (et par state/backend distinct). Concrètement, un dossier par environnement (environments/dev, environments/staging, environments/prod), chacun avec sa propre configuration de backend (sa clé de state), ses propres .tfvars, et éventuellement son propre code (ou un module commun appelé avec des paramètres différents). Avantages : (1) le contexte est EXPLICITE, on sait où on est parce qu'on est physiquement dans le dossier prod, pas dans un workspace implicite ; on lance les commandes depuis ce dossier ; (2) isolation forte, prod a son backend, son état, ses permissions propres (on peut restreindre l'accès au dossier/backend prod), donc une opération dans dev ne peut pas toucher prod ; (3) divergence assumée, on peut faire évoluer prod différemment si besoin. Beaucoup d'équipes utilisent Terragrunt par-dessus pour gérer proprement ces multiples environnements/states sans dupliquer le code (DRY sur la config des backends et des variables communes). Règle nuancée : les workspaces conviennent à des environnements légers, éphémères et homogènes (ex. un environnement de test par branche) ; pour des environnements de production distincts et critiques, on préfère l'isolation par répertoire/state (voire Terragrunt), plus explicite et moins sujette aux erreurs de contexte. Ici, passer à une isolation par dossier aurait rendu quasi impossible l'erreur « je croyais être en dev »."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 7,
           "title": "Quiz, Workspaces",
           "quizRef": "workspaces-check"
         }
@@ -59,21 +71,33 @@
           "body": "Voici un piège de vocabulaire qui embrouille énormément de débutants : le mot **« workspace »** désigne **deux choses différentes** selon le contexte.\n\nLes **CLI workspaces** (ceux vus jusqu'ici, avec la commande `terraform workspace`) sont **plusieurs états pour un même code** dans un **même** backend. Rappel : la **CLI** (*Command-Line Interface*, l'« interface en ligne de commande ») est simplement l'outil `terraform` que tu tapes dans ton terminal. C'est le mécanisme léger dont on a parlé, souvent déconseillé pour la prod.\n\nLes **HCP workspaces** sont tout autre chose. D'abord, **HCP** veut dire *HashiCorp Cloud Platform* : c'est la **plateforme en ligne** de HashiCorp (l'éditeur de Terraform) qui exécute et gère ton Terraform pour toi. On y trouve **HCP Terraform** (l'ancien **Terraform Cloud**), un service hébergé qui lance tes `plan` et `apply` à distance, stocke ton état et gère ton équipe.\n\nDans HCP, un **workspace** est un concept **beaucoup plus riche** : c'est une **unité de gestion complète**. Chaque HCP workspace possède :\n- son **propre état** ;\n- ses **variables** et ses **secrets** (un **secret** = une valeur sensible comme un mot de passe ou une clé d'accès, stockée de façon protégée) ;\n- sa **configuration VCS** (**VCS**, de *Version Control System*, ton gestionnaire de code comme GitHub : on relie le workspace à un dépôt pour déclencher des actions quand le code change) ;\n- ses **runs** (un **run** = une exécution d'un `plan` puis `apply` lancée à distance sur les serveurs de HCP, avec son historique) ;\n- son **RBAC** (*Role-Based Access Control*, « contrôle d'accès par rôle » : qui a le droit de faire quoi, par équipe) ;\n- et tout son **historique**.\n\n👉 **Analogie** : un CLI workspace, c'est une **étagère de plus** dans le même placard (juste un rangement supplémentaire pour un état). Un HCP workspace, c'est une **pièce entière** avec sa porte, sa serrure, son mobilier et sa liste d'occupants autorisés.\n\nAutrement dit, un HCP workspace ressemble davantage à ce que tu obtiendrais avec un **répertoire séparé + un backend distinct + une configuration propre**, pas à un simple CLI workspace."
         },
         {
+          "type": "IMAGE",
+          "title": "Deux notions bien différentes portent le même nom de workspace.",
+          "body": "/images/lessons/cli-vs-hcp-workspaces-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Ne pas confondre les deux (niveau expert)",
           "body": "La confusion est fréquente et mène à des erreurs de conception, alors clarifions le **modèle mental** (la façon de se représenter les choses dans sa tête) à adopter dans chaque cas.\n\nEn **CLI**, un workspace n'est qu'une **clé d'état** dans un backend partagé. Concrètement, Terraform range chaque état sous un chemin du type `env:/prod/...` : même code, mêmes variables de backend, seul **l'état** change selon le workspace courant. C'est léger, et c'est tout.\n\nEn **HCP**, un workspace est une **entité de premier plan** (un objet central, pas un simple détail) : on y attache des variables et des secrets propres, on y déclenche des runs, on gère les permissions par équipe. Structurer une organisation dans HCP, c'est **la découper en workspaces** (par service, par environnement), exactement comme on découpe l'état en périmètres quand on sépare des répertoires.\n\n👉 **Analogie** : appeler « voiture » à la fois un vrai véhicule et une petite voiture-jouet, c'est le même mot pour deux réalités. Si tu confonds, tu vas essayer de faire monter de vrais passagers dans le jouet. En Terraform, employer le mauvais modèle mental (« un HCP workspace = juste un état alternatif ») mène à des **architectures bancales** : mauvaise gestion des variables et secrets (qui sont par-workspace en HCP, pas globaux), mauvais découpage des permissions et des runs.\n\nL'expert **distingue clairement** les deux : « workspace » en CLI = état alternatif léger dans un backend partagé ; « workspace » en HCP = unité de gestion complète (état + configuration + runs + RBAC). Le bon réflexe : toujours se demander « de quel workspace on parle ? » avant de raisonner."
         },
         {
+          "type": "IMAGE",
+          "title": "Ne pas confondre les workspaces CLI et les workspaces HCP.",
+          "body": "/images/lessons/cli-vs-hcp-workspaces-2.jpg",
+          "position": 3
+        },
+        {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 4,
           "title": "À vous",
           "body": "Un développeur, habitué aux CLI workspaces (`terraform workspace`), commence à utiliser HCP Terraform et suppose qu'un « workspace » y est la même chose : juste un état alternatif pour un même code. En quoi se trompe-t-il ?",
           "solution": "Il confond deux concepts qui portent le même nom mais sont très différents. Les CLI workspaces (terraform workspace new/select) sont un mécanisme LÉGER : plusieurs états pour un MÊME code, stockés dans un MÊME backend, où le workspace n'est en pratique qu'une clé d'état alternative (par exemple un préfixe/chemin dans le bucket, du type env:/prod/...). Le code, la configuration du backend et les variables sont partagés ; seul l'état diffère selon le workspace courant. C'est ce modèle mental que le développeur applique. Or, dans HCP Terraform (Terraform Cloud), un « workspace » est un concept BEAUCOUP PLUS RICHE : c'est une UNITÉ DE GESTION COMPLÈTE, entité de premier plan, qui possède son propre état, MAIS aussi ses PROPRES variables et secrets (définis par workspace), sa propre configuration VCS (quel dépôt/branche déclenche des runs), ses RUNS (les plan/apply exécutés à distance sur les runners HCP, avec leur historique), son RBAC (permissions par équipe), ses notifications, ses run tasks, etc. Un HCP workspace correspond donc davantage à ce qu'on obtiendrait avec un RÉPERTOIRE séparé + un BACKEND distinct + une configuration propre, pas à un simple état alternatif partageant tout le reste. Conséquences de la confusion : le développeur risque de mal structurer son organisation HCP (par exemple croire qu'un seul « code » avec des workspaces = des états alternatifs légers, alors qu'en HCP on DÉCOUPE en workspaces par service/environnement, chacun avec sa config et ses variables propres, comme on découpe l'état), de mal gérer les variables/secrets (qui sont par-workspace en HCP, pas globales), ou de mal penser les permissions et les runs. La bonne compréhension : « workspace » en CLI = état alternatif léger dans un backend partagé (à réserver à des environnements homogènes/éphémères) ; « workspace » en HCP = unité de gestion complète (état + variables + secrets + VCS + runs + RBAC), l'équivalent HCP du découpage en périmètres. Un expert distingue clairement les deux et adapte son mental model au contexte pour éviter des architectures bancales."
         },
         {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Quiz, Workspaces CLI vs HCP (expert)",
           "quizRef": "workspaces-cli-hcp-expert"
         }

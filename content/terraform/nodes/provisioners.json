@@ -13,47 +13,71 @@
           "body": "Avant de parler des provisioners, posons deux mots que tout le reste de cette leçon utilise.\n\n**Impératif** veut dire : tu donnes une **suite d'ordres**, étape par étape, et la machine les exécute dans l'ordre. Un **script** (un fichier qui contient une liste de commandes, par exemple `install.sh`) est typiquement impératif : « installe ce paquet, puis démarre ce service, puis copie ce fichier ».\n\n**Déclaratif** veut dire : tu décris le **résultat voulu** (l'état final), et c'est l'outil qui se débrouille pour l'atteindre. Terraform est déclaratif : tu écris « je veux une machine avec ces caractéristiques », et Terraform calcule tout seul ce qu'il faut créer, modifier ou supprimer.\n\n👉 **Analogie** : impératif, c'est une **recette de cuisine** (« coupe, mélange, enfourne 20 min »). Déclaratif, c'est **commander un plat au restaurant** : tu dis *ce que tu veux* (« un steak à point »), pas *comment le préparer*. Le cuisinier (Terraform) s'occupe des étapes.\n\nTout l'intérêt de Terraform vient de son côté déclaratif : il peut **prévisualiser** les changements avant de les faire, et **corriger** tout seul si l'infrastructure s'écarte de ce que tu as décrit. Garde bien cette opposition en tête : les provisioners, qu'on découvre maintenant, sont un **retour à l'impératif** au milieu d'un outil déclaratif, et c'est là tout le problème."
         },
         {
+          "type": "IMAGE",
+          "title": "Le déclaratif décrit la destination, pas chaque manœuvre pour y arriver.",
+          "body": "/images/lessons/provisioners-dernier-recours-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Un provisioner : exécuter un script après création",
           "body": "Un **provisioner** est un bloc que tu attaches à une **ressource** (une brique d'infrastructure gérée par Terraform, par exemple une machine virtuelle) pour lui faire **exécuter un script** au moment de sa création (ou de sa destruction). En clair : « une fois cette machine créée, lance ces commandes dessus ».\n\n👉 **Analogie** : tu commandes un meuble en kit (la ressource, livrée par Terraform), et le provisioner, c'est le **petit mot glissé dans le carton** : « une fois monté, visse la poignée et cire le bois ». C'est une action manuelle ajoutée *après* la livraison.\n\nIl existe trois provisioners principaux :\n- **`file`** : **copier un fichier** depuis ta machine vers la ressource créée (par exemple envoyer un fichier de configuration sur le serveur).\n- **`local-exec`** : lancer une commande **sur la machine qui exécute Terraform** (ton poste, ou le serveur d'intégration continue). Exemple concret : `local-exec` qui écrit l'adresse IP de la nouvelle machine dans un fichier local.\n- **`remote-exec`** : lancer une commande **sur la ressource distante** qui vient d'être créée. Pour cela, Terraform doit s'y **connecter à distance** via **SSH** (le protocole standard de connexion à distance sur Linux) ou **WinRM** (son équivalent sur Windows). Exemple : `remote-exec` qui tape `apt install nginx` sur le nouveau serveur.\n\nEnfin, un provisioner a un moment de déclenchement, réglé par l'argument **`when`** : **`when = create`** (la valeur par défaut : le script tourne à la création) ou **`when = destroy`** (le script tourne juste avant la suppression de la ressource, par exemple pour désinscrire proprement la machine d'un service)."
         },
         {
+          "type": "IMAGE",
+          "title": "Un provisioner exécute un script sur la machine après sa création.",
+          "body": "/images/lessons/provisioners-dernier-recours-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "À quoi ça ressemble (les trois provisioners)",
           "codeLanguage": "hcl",
           "body": "resource \"aws_instance\" \"web\" {\n  ami           = \"ami-0abc123\"\n  instance_type = \"t3.micro\"\n\n  # Bloc de connexion : dit à Terraform COMMENT joindre la machine\n  # (nécessaire pour file et remote-exec).\n  connection {\n    type        = \"ssh\"\n    user        = \"ubuntu\"\n    host        = self.public_ip     # self = la ressource courante\n    private_key = file(\"~/.ssh/id_rsa\")\n  }\n\n  # file : copie un fichier local VERS la machine\n  provisioner \"file\" {\n    source      = \"config/app.conf\"\n    destination = \"/etc/app/app.conf\"\n  }\n\n  # remote-exec : lance des commandes SUR la machine créée (via SSH)\n  provisioner \"remote-exec\" {\n    inline = [\n      \"sudo apt-get update\",\n      \"sudo apt-get install -y nginx\",\n    ]\n  }\n\n  # local-exec : lance une commande sur TA machine (celle qui exécute Terraform)\n  provisioner \"local-exec\" {\n    command = \"echo 'Serveur prêt : ${self.public_ip}' >> serveurs.txt\"\n  }\n}"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Pourquoi les éviter (le message clé)",
           "body": "Voici le message d'expert **le plus important** de cette leçon, celui à retenir avant tout : la documentation de **HashiCorp** (l'éditeur de Terraform) qualifie elle-même les provisioners de **« last resort »**, c'est-à-dire **« dernier recours »**. Pourquoi un tel avertissement ?\n\nParce que les provisioners **cassent le modèle déclaratif** vu au début. Ils exécutent des **actions impératives** que Terraform ne maîtrise pas. Concrètement, trois pouvoirs de Terraform disparaissent :\n\n- **Le `plan` devient aveugle.** La commande `terraform plan` sert à **prévisualiser** ce qu'un `apply` va faire, avant de le faire. Mais elle ne peut pas deviner ce qu'un script contient : le plan affiche seulement « un provisioner sera exécuté », jamais son effet réel. Tu perds l'aperçu fiable, l'un des plus grands atouts de Terraform.\n- **L'état ne suit rien.** Terraform tient un fichier d'**état** (en anglais *state*), sa mémoire de tout ce qu'il gère. Ce qu'un provisioner installe ou configure sur la machine n'est **pas enregistré** dans cet état : Terraform ne le connaît pas.\n- **Pas de correction de dérive.** La **dérive** (en anglais *drift*) est l'écart entre ce que Terraform croit et la réalité (par exemple quelqu'un a modifié le serveur à la main). Terraform sait détecter et corriger la dérive de ce qu'il suit, mais comme il ne suit pas le travail du provisioner, il ne peut **rien corriger** de ce côté.\n\nEt si un provisioner **échoue** en cours de route (réseau coupé, commande en erreur) ? La ressource est marquée **« tainted »** (littéralement « souillée », comprends « défectueuse, à recréer ») : au prochain `apply`, Terraform la **détruit et la recrée** entièrement. Rejouer le script n'est d'ailleurs pas garanti **idempotent**.\n\n👉 **Définition rapide d'idempotent** : une action est *idempotente* si la **rejouer plusieurs fois donne le même résultat** qu'une seule fois, sans dégât. Appuyer sur le bouton d'un ascenseur est idempotent (appuyer dix fois = une fois). Un script qui fait `créer un utilisateur` sans vérifier s'il existe déjà **n'est pas** idempotent : la deuxième exécution plante. Les provisioners réintroduisent donc exactement la fragilité impérative que Terraform cherchait à supprimer."
         },
         {
+          "type": "IMAGE",
+          "title": "Les provisioners restent une solution à éviter autant que possible.",
+          "body": "/images/lessons/provisioners-dernier-recours-3.jpg",
+          "position": 6
+        },
+        {
           "type": "DIAGRAM",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "title": "Le provisioner casse la boucle déclarative",
           "body": "flowchart TD\n  subgraph D[\"Modèle declaratif : ce que Terraform maitrise\"]\n    A[\"Ton code : etat desire\"] --> P[\"plan : apercu fiable\"]\n    P --> AP[\"apply : cree ou modifie\"]\n    AP --> S[\"Etat suivi + derive corrigee\"]\n    S -.retour.-> A\n  end\n  AP -->|provisioner| X[\"Script imperatif sur la machine\"]\n  X -.->|invisible au plan| P\n  X -.->|absent de l etat| S\n  X -.->|si echec = ressource tainted| AP"
         },
         {
           "type": "CONCEPT",
-          "position": 5,
+          "position": 8,
           "title": "Les bonnes alternatives (niveau expert)",
           "body": "Rassure-toi : presque à chaque fois, il existe **mieux** qu'un provisioner. Un professionnel connaît ces alternatives et les préfère systématiquement.\n\n**Pour préparer une machine, privilégie l'immuabilité.** Une infrastructure **immuable** (comprends : « qu'on ne modifie plus après l'avoir créée ») consiste à construire une **image toute prête** contenant déjà le logiciel installé, puis à lancer des machines identiques à partir de cette image. Sur AWS, cette image de machine s'appelle une **AMI** (*Amazon Machine Image*). On la fabrique avec **Packer** (un autre outil de HashiCorp, dont le seul rôle est de cuire ces images). 👉 **Analogie** : au lieu de **monter et équiper chaque meuble sur place** (le provisioner), tu commandes des meubles **déjà assemblés en usine**, tous identiques : rien à faire à la livraison, et zéro risque d'erreur de montage.\n\n**Ou bien utilise `user_data` / cloud-init.** Le **`user_data`** est un argument natif des machines cloud : tu y passes un **script de démarrage** que le cloud exécute automatiquement au premier boot. **cloud-init** est l'outil standard qui lit ce script. L'avantage : c'est un simple **argument déclaratif** de ta ressource (Terraform le pose et s'en va), sans connexion SSH ni provisioner à orchestrer. Exemple : un `user_data` qui installe et démarre nginx dès le démarrage de l'instance.\n\n**Pour la configuration applicative**, on utilise plutôt un outil de **CaC** (*Configuration as Code*, « configuration en tant que code ») comme **Ansible**, ou encore mieux des **conteneurs** (Docker) : la configuration vit alors dans une image versionnée et testée, pas dans un script lancé à la volée.\n\n**Pour déclencher une action**, une **ressource dédiée** du provider fait souvent le travail de façon déclarative (par exemple une ressource qui enregistre un nom de domaine, plutôt qu'un `local-exec` qui appelle une API en douce).\n\n**La règle à retenir** : avant d'écrire un provisioner, cherche l'alternative déclarative. L'image immuable (Packer ou conteneur) et le `user_data`/cloud-init couvrent l'écrasante majorité des besoins. Le provisioner ne reste que pour de rares cas vraiment sans autre solution."
         },
         {
+          "type": "IMAGE",
+          "title": "Préférer cloud-init ou des images préconstruites plutôt que des provisioners.",
+          "body": "/images/lessons/provisioners-dernier-recours-4.jpg",
+          "position": 9
+        },
+        {
           "type": "EXERCISE",
-          "position": 6,
+          "position": 10,
           "title": "À vous",
           "body": "Un développeur utilise un provisioner `remote-exec` pour installer et configurer un serveur web sur chaque instance après sa création. Pourquoi est-ce déconseillé, et quelles alternatives plus robustes proposer ?",
           "solution": "C'est déconseillé parce que les provisioners (remote-exec ici) cassent le modèle déclaratif de Terraform et réintroduisent de la fragilité impérative. Problèmes concrets : (1) Non planifiable : le `terraform plan` ne peut PAS montrer ce que le script d'installation va réellement faire, Terraform ne voit qu'« un provisioner sera exécuté », pas son effet. On perd la prévisualisation, un des grands atouts de Terraform. (2) Non suivi dans l'état / pas de gestion de dérive : Terraform ne sait pas ce que le script a configuré sur la machine, ne le suit pas dans le state, et ne peut pas détecter/corriger une dérive de cette configuration. (3) Fragilité et non-idempotence : si le remote-exec échoue (réseau SSH, dépendance indisponible, script non idempotent), la ressource est marquée « tainted » et sera recréée au prochain apply, et rejouer le script n'est pas garanti idempotent, d'où des états incohérents. (4) Couplage réseau : remote-exec exige une connexion SSH/WinRM fonctionnelle au bon moment (clés, sécurité, réseau ouvert), source de complexité et de failles. HashiCorp elle-même documente les provisioners comme un « dernier recours ». Alternatives plus robustes à proposer : (1) Images pré-construites (immuabilité), construire une AMI/image avec le serveur web et sa configuration DÉJÀ installés, par exemple avec Packer, puis lancer les instances à partir de cette image. Rien à configurer après création : les instances sont identiques, reproductibles, et se lancent vite. C'est l'approche « infrastructure immuable » recommandée. (2) user_data / cloud-init, passer un script de démarrage natif du cloud via l'argument user_data de l'instance (souvent généré avec templatefile) : le cloud exécute ce script au boot, sans que Terraform ait à ouvrir une connexion SSH ni à gérer un provisioner ; c'est déclaratif du point de vue Terraform (un simple argument). (3) Conteneurs, packager le serveur web dans une image Docker et faire tourner cette image (sur ECS/Kubernetes/une instance qui lance le conteneur) : la configuration vit dans l'image, versionnée et testée. (4) Outil de configuration (Ansible) en post-provisioning si vraiment nécessaire, découplé de Terraform. En résumé : on préfère l'immuabilité (Packer/conteneurs) ou le cloud-init/user_data au provisioner, pour garder un flux déclaratif, planifiable, reproductible et robuste. Le provisioner ne devrait rester que pour de rares cas sans alternative."
         },
         {
           "type": "QUIZ",
-          "position": 7,
+          "position": 11,
           "title": "Quiz, Provisioners",
           "quizRef": "provisioners-check"
         }
@@ -71,28 +95,40 @@
           "body": "Petit problème pratique : parfois tu veux attacher un provisioner (ou déclencher une action) mais tu **n'as aucune ressource concrète** sous la main à laquelle le rattacher. Que faire ? Terraform propose une ressource « support », vide, qui existe justement pour ça.\n\nL'ancien nom de cette astuce était la **`null_resource`**. C'est une ressource **« vide »** (elle ne crée aucune infrastructure réelle) fournie par le **provider `null`**. 👉 **Rappel** : un **provider** est le module qui apprend à Terraform à parler à une plateforme donnée (AWS, Google Cloud...) ; le provider `null` est un provider spécial qui ne gère rien de réel, juste ce genre de ressource-prétexte. La `null_resource` sert de **point d'accroche** pour des provisioners, avec un argument **`triggers`** : une **map** (un ensemble de paires clé/valeur) qui, **quand une de ses valeurs change**, provoque le **remplacement** de la null_resource, et donc **rejoue** ses provisioners.\n\n👉 **Analogie** : la `null_resource`, c'est le **crochet vide** que tu visses au mur juste pour pouvoir y suspendre quelque chose : le crochet lui-même ne sert à rien, il ne fait qu'offrir un point d'accroche. Le `triggers`, lui, c'est le **détecteur** : quand la valeur surveillée change, il décroche et raccroche tout (ce qui relance le script).\n\nTerraform a depuis introduit **`terraform_data`**, une ressource **intégrée au cœur** de l'outil (donc sans avoir besoin d'installer le provider `null`). Elle **remplace avantageusement** la `null_resource` : même rôle (servir de support à un provisioner), même mécanisme de rejeu, mais **natif**. L'argument de déclenchement s'appelle ici **`triggers_replace`**.\n\nÀ garder en tête : ces deux ressources sont des **échappatoires**. Elles rendent service pour orchestrer une action ponctuelle liée à un changement, mais elles **héritent de toutes les limites des provisioners** (impératif, invisible au `plan`, absent de l'état). On les manie donc avec prudence, comme on va le préciser."
         },
         {
+          "type": "IMAGE",
+          "title": "null_resource et terraform_data: l'échappatoire pour les cas non couverts.",
+          "body": "/images/lessons/terraform-data-et-null-resource-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "terraform_data avec triggers",
           "codeLanguage": "hcl",
           "body": "# terraform_data : support natif (remplace null_resource)\nresource \"terraform_data\" \"deploy\" {\n  triggers_replace = [var.app_version]   # rejoue quand la version change\n\n  provisioner \"local-exec\" {\n    command = \"echo 'déploiement de ${var.app_version}'\"\n  }\n}\n\n# terraform_data peut aussi juste STOCKER une valeur (input) sans provisioner :\nresource \"terraform_data\" \"value\" { input = var.config }"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Toujours un dernier recours (niveau expert)",
           "body": "Même avec la version moderne `terraform_data`, le message de fond ne change pas : c'est un **échappatoire**, pas une façon normale de travailler.\n\nOn s'en sert pour de **rares besoins d'orchestration**, par exemple : déclencher un script quand une valeur change, ou **stocker une valeur intermédiaire** (via l'argument **`input`**) afin de **forcer une dépendance** entre deux ressources. 👉 **« Forcer une dépendance »**, en clair : obliger Terraform à faire A **avant** B, en glissant entre les deux une petite valeur partagée qui les relie. Mais dès que possible, on cherche **d'abord** une solution **déclarative native** : une ressource dédiée du provider qui fait l'action proprement, un `user_data`/cloud-init, une image pré-construite avec Packer.\n\nLe piège classique : un `terraform_data` avec un `local-exec` qui **appelle une API tierce**. Ça marche, mais ça cache une action que Terraform ne peut ni **planifier** (le `plan` ne montre pas ce que l'appel fera) ni **suivre** (rien n'entre dans l'état). Le jour où ça casse, tu es aveugle.\n\n👉 **Le bon réflexe d'expert** : connaître `terraform_data` (et savoir qu'il remplace `null_resource`), mais l'employer **avec parcimonie**. Un échappatoire qui revient souvent dans ton code est un **signal** : il manque probablement une brique déclarative (une ressource dédiée, une image, un cloud-init) que tu devrais utiliser à la place. L'échappatoire dépanne, il ne construit pas."
         },
         {
+          "type": "IMAGE",
+          "title": "À réserver au dernier recours, une fois les alternatives épuisées.",
+          "body": "/images/lessons/terraform-data-et-null-resource-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un code Terraform utilise une `null_resource` avec un provisioner local-exec, déclenchée par un `triggers`. Un collègue demande s'il existe une alternative plus moderne et native. Que lui répondre, et quelle mise en garde conserver ?",
           "solution": "L'alternative moderne et native est terraform_data. terraform_data est une ressource intégrée AU CŒUR de Terraform (pas besoin d'ajouter le provider `null`), conçue précisément pour REMPLACER null_resource. Elle joue le même rôle : servir de support à des provisioners quand il n'y a pas de ressource concrète à laquelle les rattacher, et se re-créer (rejouer ses provisioners) quand une valeur change. Le mécanisme de déclenchement est l'argument triggers_replace (une liste/valeur qui, lorsqu'elle change, provoque le remplacement de la terraform_data et donc le rejeu de ses provisioners), l'équivalent du triggers de null_resource. terraform_data peut aussi simplement STOCKER une valeur via son argument input (utile pour forcer une dépendance ou mémoriser une valeur intermédiaire), sans provisioner. Avantages sur null_resource : natif (pas de dépendance au provider null à déclarer/installer), c'est la voie recommandée par HashiCorp pour les nouveaux usages. Donc, à ce collègue : « Oui, remplace la null_resource par une terraform_data avec triggers_replace ; c'est l'équivalent natif et moderne. » Mise en garde à CONSERVER : terraform_data ne change RIEN au fait que les provisioners restent un DERNIER RECOURS. Comme null_resource + provisioner, un terraform_data qui exécute un local-exec (ou remote-exec) hérite des mêmes limites : c'est de l'impératif que Terraform ne peut ni planifier (le plan ne montre pas ce que le script fera), ni suivre dans l'état, ni corriger en cas de dérive, et qui n'est pas garanti idempotent. Ce n'est donc pas parce que c'est « plus moderne/natif » que c'est une bonne pratique de fond : on continue de chercher D'ABORD une solution déclarative native (une ressource dédiée du provider qui fait l'action, un cloud-init/user_data, une image pré-construite avec Packer, un conteneur) avant de recourir à terraform_data + provisioner. terraform_data reste un échappatoire pour de rares besoins d'orchestration (déclencher un script quand une valeur change, forcer une dépendance), à employer avec parcimonie. En résumé : « Utilise terraform_data (natif) au lieu de null_resource, mais garde en tête que c'est toujours un dernier recours, privilégie le déclaratif quand c'est possible. »"
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, terraform_data & null_resource (expert)",
           "quizRef": "terraform-data-expert"
         }

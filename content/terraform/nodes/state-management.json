@@ -13,28 +13,40 @@
           "body": "Quand tu écris du **Terraform**, tu décris l'infrastructure que tu veux (un serveur, une base de données, un réseau). Mais une fois que Terraform a créé ces objets dans le cloud, comment sait-il, la fois suivante, que le serveur décrit dans ton code correspond à **tel** serveur bien précis déjà créé chez le fournisseur ? Grâce au **state** (l'**état**, en français).\n\nLe **state** est un fichier, nommé `terraform.tfstate`, que Terraform écrit à côté de ton code. Ce fichier fait le **lien** (on dit qu'il **mappe**, de l'anglais *to map* = mettre en correspondance) entre chaque ressource de ton code et l'objet réel qu'elle représente dans le cloud : son **identifiant** unique, ses attributs (adresse IP, nom, taille...).\n\n👉 **Analogie** : le state est le **carnet de suivi** de Terraform, comme le registre d'un vestiaire. Tu déposes un manteau (une ressource), on te remet un ticket avec un numéro (l'identifiant de l'objet réel), et le registre note « ticket 42 = manteau bleu ». Sans ce registre, l'employé ne saurait plus quel manteau rendre à qui.\n\nÀ chaque fois que tu lances `terraform plan`, Terraform compare **trois** versions de la réalité pour décider quoi faire :\n- le **code** : ce que tu **veux** (l'état désiré) ;\n- le **state** : ce que Terraform **croit** avoir déjà créé ;\n- le **réel** : ce qui existe **vraiment** dans le cloud à cet instant. Terraform le rafraîchit en interrogeant les **API** du fournisseur (les points d'entrée qui permettent de questionner le cloud par programme).\n\n**Exemple concret** : ton code demande un serveur de taille `small`. Le state dit « j'ai créé le serveur `i-0abc`, taille `small` ». Le réel confirme que `i-0abc` existe bien en `small`. Résultat : rien à faire. Si tu changes le code en `large`, le plan voit un écart entre le code (`large`) et le state (`small`), et propose de redimensionner ce serveur précis, sans en recréer un autre à côté.\n\nSans state, Terraform serait **amnésique** : il ne saurait pas ce qu'il a déjà créé, et à chaque exécution il recréerait tout en double (ou serait incapable de savoir quoi supprimer). Le state est donc **essentiel** et **précieux** : le perdre, c'est perdre le fil entre ton code et ton infrastructure réelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Le state est le carnet de suivi entre ton code et le cloud reel.",
+          "body": "/images/lessons/quest-ce-que-letat-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Le state contient des données sensibles",
           "body": "Le state ne se contente pas de stocker des identifiants. Pour faire son travail de comparaison, il enregistre **tous les attributs** des ressources qu'il gère, tels qu'ils existent réellement. Or certains de ces attributs sont **sensibles** : mots de passe générés automatiquement pour une base de données, clés d'accès, certificats, chaînes de connexion, et toute valeur que tu as marquée `sensitive` dans ton code.\n\nEt voici le point qui surprend les débutants : par défaut, tout cela est écrit **en clair** (non chiffré, lisible tel quel) dans `terraform.tfstate`. Le fichier d'état est donc, en pratique, **le document le plus confidentiel** de ton infrastructure.\n\n👉 **Analogie** : le state, c'est le **trousseau de clés** de toute ta maison, avec une étiquette sur chaque clé. Tu ne le laisses pas traîner sur la table du salon, et tu n'en fais surtout pas des photocopies que tu distribues à tout le monde.\n\nDeux règles majeures en découlent.\n\n**1. Ne jamais committer le state dans Git.** Le mettre dans un dépôt Git l'exposerait de deux façons. D'abord, tous ces secrets deviendraient lisibles par quiconque a accès au dépôt, et **pour toujours** (Git garde tout l'historique, même si tu retires le fichier plus tard). Ensuite, Git n'est pas fait pour ça : il n'offre aucun **verrouillage** adapté (on verra plus loin pourquoi c'est un problème). Le réflexe : ajouter `terraform.tfstate` (et `*.tfstate.*`) au fichier `.gitignore`.\n\n**Exemple concret** : tu committes ton state « pour que l'équipe l'ait aussi ». Le mot de passe de la base de données qu'il contient est désormais dans l'historique Git, cloné sur tous les postes et peut-être poussé sur un dépôt distant. Ce mot de passe est **compromis** : la seule vraie parade est de le **changer** immédiatement.\n\n**2. Protéger le state là où il vit** : chiffrement, accès restreint aux seules personnes autorisées. Traiter le state comme la donnée la plus sensible de son infrastructure est un réflexe de professionnel."
         },
         {
+          "type": "IMAGE",
+          "title": "Le state est le trousseau de cles, le document le plus confidentiel.",
+          "body": "/images/lessons/quest-ce-que-letat-2.jpg",
+          "position": 3
+        },
+        {
           "type": "DIAGRAM",
-          "position": 2,
+          "position": 4,
           "title": "Ce que compare terraform plan",
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    Code[\"Code .tf<br/>ce que tu VEUX (desire)\"] --> Plan{terraform plan<br/>compare les trois}\n    State[\"State .tfstate<br/>ce que Terraform CROIT avoir cree\"] --> Plan\n    Reel[\"Reel dans le cloud<br/>rafraichi via les API\"] --> Plan\n    Plan --> Actions[\"Actions decidees<br/>creer / modifier / detruire\"]"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un débutant, voyant que `terraform.tfstate` est généré dans son projet, le committe dans Git « pour que l'équipe l'ait aussi ». Cite deux problèmes graves que cela pose.",
           "solution": "Committer terraform.tfstate dans Git pose au moins deux problèmes graves. (1) FUITE DE SECRETS : le fichier d'état contient tous les attributs des ressources gérées, EN CLAIR, y compris des données hautement sensibles, mots de passe de bases générés, clés d'accès, tokens, certificats, chaînes de connexion, valeurs marquées sensitive. Le committer dans Git expose donc tous ces secrets à quiconque a accès au dépôt (et de façon permanente dans l'historique, même si on le retire ensuite). C'est une fuite de sécurité majeure ; il faut considérer ces secrets comme compromis et les faire tourner. (2) ABSENCE DE VERROUILLAGE ET CONFLITS D'ÉTAT : Git n'offre aucun verrouillage adapté à l'état Terraform. Si deux personnes (ou la CI et un développeur) appliquent en même temps, chacune part de sa copie du state, et on obtient des conflits de merge Git sur un fichier binaire/JSON critique, voire des états DIVERGENTS et corrompus, avec un risque de duplication de ressources ou de perte de suivi (Terraform ne sait plus quel objet réel correspond à quoi). Le state n'est pas fait pour être versionné/mergé manuellement ; il doit être partagé via un mécanisme conçu pour cela. (On peut ajouter un 3e problème : un state local sur les postes diverge fatalement entre membres de l'équipe, chacun a « son » réel, ce qui casse le travail collaboratif.) La bonne solution est un BACKEND DISTANT (remote state) : stocker l'état dans un backend partagé et chiffré (S3, Azure Blob, GCS, Terraform Cloud/HCP...), avec chiffrement au repos, accès restreint (IAM), et VERROUILLAGE d'état (state locking) pour empêcher deux applies simultanés. On ajoute terraform.tfstate au .gitignore et on ne le committe jamais. En résumé : jamais le state dans Git, fuite de secrets + pas de verrouillage/conflits, mais un backend distant, chiffré, verrouillé et à accès restreint."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Qu'est-ce que l'état",
           "quizRef": "state-management-etat-check"
         }
@@ -52,28 +64,40 @@
           "body": "Par défaut, le state est **local** : le fichier `terraform.tfstate` vit sur **ton** disque, dans le dossier du projet. C'est pratique pour apprendre seul, mais intenable en équipe. Pourquoi ? Parce que chacun aurait **son propre** fichier d'état sur sa machine, et ces copies **divergeraient** aussitôt (toi tu crées une ressource, ton collègue ne le sait pas). Et c'est **fragile** : si tu perds ton poste (disque en panne, PC volé), tu perds le state, donc le lien avec ton infrastructure.\n\nLa solution est un **backend distant** (en anglais *remote state*). Un **backend**, en Terraform, c'est simplement **l'endroit où le state est stocké**. Un backend **distant** range le state dans un espace **partagé et accessible par le réseau**, au lieu de ton disque local. Les plus courants :\n- **S3** : le service de stockage de fichiers d'**AWS** (le cloud d'Amazon) ;\n- **Azure Blob** : l'équivalent chez Microsoft Azure ;\n- **GCS** (*Google Cloud Storage*) : l'équivalent chez Google ;\n- **Terraform Cloud / HCP** : le service géré par HashiCorp (l'éditeur de Terraform), pensé exprès pour ça.\n\n👉 **Analogie** : passer du state local au backend distant, c'est comme passer d'un **document Word sur ta clé USB** à un **document partagé en ligne**. Au lieu que chacun bricole sa version dans son coin, tout le monde lit et écrit le **même** document, qui fait autorité.\n\nAvec un backend distant, toute l'équipe **et** la **CI** (l'*intégration continue* : le serveur qui exécute automatiquement Terraform à chaque changement de code) lisent et écrivent le **même** état, une **source de vérité unique**. En prime, un bon backend distant apporte :\n- le **chiffrement au repos** (les données sont stockées chiffrées, illisibles pour qui n'a pas la clé) ;\n- l'**accès restreint** via **IAM** (*Identity and Access Management*, le système de permissions du cloud qui décide qui a le droit de lire et d'écrire) ;\n- l'**historique de versions** (pour restaurer un état antérieur en cas de pépin) ;\n- le **verrouillage** (qu'on voit juste après).\n\n**Exemple concret** : tu configures un backend S3. Ton `terraform.tfstate` n'est plus sur ton disque mais dans un **bucket** (un espace de stockage) S3 partagé, chiffré, où seuls les membres du projet ont accès. Ton collègue lance `terraform plan` : il lit exactement le même état que toi.\n\nLe backend distant est un **prérequis absolu** dès qu'on travaille à plusieurs, donc quasiment toujours en situation réelle."
         },
         {
+          "type": "IMAGE",
+          "title": "Un backend distant, c'est le document partage qui fait autorite.",
+          "body": "/images/lessons/remote-state-et-locking-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "State locking : éviter les corruptions",
           "body": "Imagine deux personnes qui lancent `terraform apply` **au même moment** sur la même infrastructure. Chaque apply lit l'état, calcule des changements, les applique, puis **réécrit** l'état. Si deux processus font ça **en même temps** sur le même fichier, leurs écritures se **mélangent** : le second écrase ce que le premier vient d'écrire, et l'état devient **incohérent**. On parle de **corruption** du state. Conséquences possibles : des ressources créées en double, ou des ressources « orphelines » que Terraform ne suit plus.\n\nLe **verrouillage d'état** (en anglais *state locking*) empêche exactement ça. Avant toute opération qui **écrit** dans l'état, Terraform **pose un verrou** (un *lock*) dessus. Tant que ce verrou est tenu, un second apply **attend** son tour, ou **échoue** avec un message indiquant qui détient le verrou. Les écritures sont donc **sérialisées** (mises à la file) : jamais deux en même temps.\n\n👉 **Analogie** : c'est le **verrou des toilettes dans un train**. Quand quelqu'un est à l'intérieur, l'indicateur passe à « occupé » et la porte est bloquée. Les autres attendent dehors, ils n'entrent pas par-dessus la personne déjà présente. Une fois libéré, le suivant peut entrer.\n\nLes backends distants fournissent ce verrouillage (S3 via un fichier de lock ou une table **DynamoDB**, Terraform Cloud/HCP nativement, etc.).\n\n**Piège d'exploitation à connaître** : si un apply **plante** brutalement alors qu'il tenait le verrou (coupure réseau, machine éteinte), le verrou peut **rester coincé** en position « occupé » et bloquer tout le monde. On le libère alors manuellement avec la commande `terraform force-unlock <id-du-lock>`, mais **avec précaution** : il faut d'abord s'assurer qu'**aucun** apply ne tourne réellement, sinon on recrée le risque de corruption qu'on voulait éviter.\n\n**Exemple concret** : toi et la CI lancez `apply` à la même seconde. La CI obtient le verrou et commence. Ton apply affiche `Error acquiring the state lock` et s'arrête proprement au lieu de corrompre l'état. Tu relances quelques secondes plus tard, une fois le verrou libéré.\n\nLe locking est ce qui rend le travail **concurrent** (à plusieurs en même temps) **sûr** sur une infrastructure partagée."
         },
         {
+          "type": "IMAGE",
+          "title": "Le verrou serialise les ecritures, comme un loquet occupe.",
+          "body": "/images/lessons/remote-state-et-locking-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Configurer un backend distant",
           "codeLanguage": "hcl",
           "body": "terraform {\n  backend \"s3\" {\n    bucket       = \"mon-org-tfstate\"\n    key          = \"prod/reseau/terraform.tfstate\"  # chemin logique du state\n    region       = \"eu-west-3\"\n    encrypt      = true                              # chiffrement au repos\n    use_lockfile = true                              # verrouillage d'état\n  }\n}\n# terraform init migre le state local vers ce backend."
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Deux ingénieurs lancent `terraform apply` sur la même infrastructure au même moment. Sans mécanisme approprié, quel risque cela crée-t-il, et quel dispositif l'empêche ?",
           "solution": "Sans mécanisme approprié, deux applies simultanés sur le même état risquent de CORROMPRE le state et l'infrastructure. Chaque apply lit l'état, calcule et applique des changements, puis réécrit l'état. Si deux processus font cela EN MÊME TEMPS sur le même fichier d'état partagé, leurs écritures s'entremêlent : le second écrase les modifications du premier, l'état se retrouve dans un état incohérent (des ressources créées par l'un ne sont pas enregistrées, ou des mappings sont perdus/dupliqués), et le réel peut diverger de l'état (ressources créées en double, ressources orphelines que Terraform ne suit plus, ou suppressions concurrentes contradictoires). On aboutit à un state corrompu, très pénible à réparer, et à une infrastructure dans un état incertain. Dispositif qui l'empêche : le verrouillage d'état (state locking), fourni par les backends distants. Avant toute opération d'écriture (apply, mais aussi certaines commandes state), Terraform POSE UN VERROU sur l'état. Le premier ingénieur obtient le verrou et commence ; le second, en tentant son apply, voit que l'état est verrouillé et soit ATTEND que le verrou soit libéré, soit échoue immédiatement avec un message indiquant qui tient le verrou. Ainsi, les applies sont SÉRIALISÉS : jamais deux écritures concurrentes sur le même état. Les backends distants gèrent cela (S3 avec verrouillage, Terraform Cloud/HCP nativement, etc.). Précaution : si un apply plante en tenant le verrou, celui-ci peut rester bloqué ; on le libère alors avec terraform force-unlock, APRÈS avoir vérifié qu'aucun apply ne tourne réellement (sinon on recrée le risque de corruption). En résumé : le state locking sérialise les opérations d'écriture et rend le travail concurrent sûr, c'est, avec le backend distant partagé et chiffré, indispensable dès qu'on travaille à plusieurs ou avec de la CI."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, L'état & le remote state",
           "quizRef": "state-management-check"
         }
@@ -91,28 +115,40 @@
           "body": "Le parcours typique d'un projet Terraform : on **démarre en state local** (simple, pour apprendre ou prototyper), puis, dès qu'on travaille en équipe, on **migre** vers un backend distant (S3, GCS...). On peut aussi vouloir **changer** de backend plus tard.\n\nBonne nouvelle : Terraform gère cette migration **proprement**, sans que tu aies à déplacer le fichier à la main. La marche à suivre : tu modifies (ou ajoutes) le bloc `backend` dans ton code, puis tu relances **`terraform init`**. Terraform **détecte** que le backend a changé et te **propose de migrer** l'état existant vers le nouveau (un message du genre « copier l'état actuel vers S3 ? »). Tu confirmes, et l'état est **transféré sans perte**.\n\n👉 **Analogie** : c'est un **déménagement** de tes affaires (le state) d'un logement à un autre (l'ancien backend vers le nouveau). Terraform joue le **déménageur** : il emballe, transporte et déballe tout au bon endroit ; toi, tu dis juste « oui, déménage ».\n\nC'est une opération **délicate**, car tu manipules la **source de vérité** de ton infrastructure. Les précautions d'expert :\n- **sauvegarder** l'état avant (une copie du `.tfstate`, au cas où) ;\n- migrer à un **moment calme** (personne d'autre en train d'appliquer) ;\n- **après** la migration, lancer `terraform plan` et vérifier qu'il n'affiche **aucun** changement. Un plan vide est la **preuve** que la migration est **neutre** : tu as seulement déplacé l'état, sans toucher à l'infrastructure réelle.\n\n**Exemple concret** : ton `.tfstate` est local. Tu ajoutes un bloc `backend \"s3\"`, tu lances `terraform init`, tu réponds « yes » à la proposition de migration. Ton état vit maintenant dans S3. Un `terraform plan` affiche « No changes » : parfait, rien n'a bougé côté cloud.\n\nLa commande `terraform init -migrate-state` **force explicitement** cette migration (utile quand tu veux lever toute ambiguïté)."
         },
         {
+          "type": "IMAGE",
+          "title": "Changer de backend, c'est un demenagement propre du state.",
+          "body": "/images/lessons/migration-backend-partial-config-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Partial backend config : pas de secret en dur",
           "body": "Un problème très concret se pose vite : le bloc `backend` **ne peut pas** contenir de **variables** (`var.xxx`). Pourquoi ? Parce que Terraform lit le backend **très tôt**, avant même d'avoir interprété tes variables (il a besoin de savoir *où* est l'état avant de faire quoi que ce soit d'autre).\n\nAlors comment éviter de **coder en dur** (écrire directement dans le code, en clair et figé) des valeurs qui **changent** d'un environnement à l'autre (le nom du bucket, le chemin du state pour dev, staging, prod) ou qui sont **sensibles** ?\n\nLa réponse est la **partial configuration** (configuration **partielle** du backend). L'idée : on laisse le bloc `backend` **incomplet** dans le code (juste son type, par exemple `backend \"s3\" {}`, sans les détails), et on **fournit le reste au moment du `init`**, en dehors du code versionné. Deux façons de fournir ces valeurs :\n- un **fichier de config par environnement** : `terraform init -backend-config=prod.s3.hcl` (le fichier `prod.s3.hcl` contient `bucket = ...`, `key = ...`, `region = ...`) ;\n- des paires en ligne de commande : `-backend-config=\"key=prod/net.tfstate\"`.\n\n👉 **Analogie** : le code fournit le **formulaire vierge** (la structure : « c'est un backend S3, il lui faut un bucket, une clé, une région »), et le fichier `.hcl` de chaque environnement **remplit les cases** avec les bonnes valeurs. Un même formulaire, rempli différemment selon qu'on parle de dev ou de prod.\n\nAinsi, la **structure** du backend reste dans le code (versionnée, partagée), mais les **valeurs propres à chaque environnement** (et rien de sensible) sont **injectées à l'init**. C'est le pattern propre pour gérer **plusieurs environnements** avec **un seul** code et des backends **distincts**, sans dupliquer ni coder en dur.\n\n**Exemple concret** : un même dossier Terraform sert dev, staging et prod. Tu as trois petits fichiers `dev.s3.hcl`, `staging.s3.hcl`, `prod.s3.hcl`, chacun pointant vers un bucket/chemin différent. Pour travailler sur la prod : `terraform init -backend-config=prod.s3.hcl`. Le pipeline CI choisit automatiquement le bon fichier selon la cible. (Des outils comme **Terragrunt** automatisent encore cette génération pour rester le plus **DRY** possible, c'est-à-dire sans répétition inutile.)"
         },
         {
+          "type": "IMAGE",
+          "title": "Un formulaire vierge rempli differemment selon l'environnement.",
+          "body": "/images/lessons/migration-backend-partial-config-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Partial config & migration",
           "codeLanguage": "bash",
           "body": "# Bloc backend incomplet dans le code :\n#   terraform { backend \"s3\" {} }\n\n# Config fournie à l'init, par environnement (fichier .hcl) :\nterraform init -backend-config=environments/prod.s3.hcl\n#   prod.s3.hcl :  bucket=\"org-tfstate\"  key=\"prod/net.tfstate\"  region=\"eu-west-3\"\n\n# Migrer un état vers un nouveau backend (Terraform le propose) :\nterraform init -migrate-state\n# -> confirmer, puis vérifier :  terraform plan  (doit être vide)"
         },
         {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Une équipe a le même code Terraform pour dev/staging/prod, mais chaque environnement doit avoir son propre backend S3 (bucket/clé différents). Elle ne peut pas mettre de variables dans le bloc `backend`. Comment gérer cela proprement sans dupliquer le code ni coder en dur les valeurs ?",
           "solution": "On utilise la partial backend configuration. Le problème est double : (1) le bloc backend ne peut PAS contenir de variables (var.xxx), il est évalué très tôt, avant l'interpolation des variables, donc on ne peut pas y écrire dynamiquement le bucket/clé selon l'environnement ; (2) on veut éviter de coder en dur (et de dupliquer) ces valeurs, et ne rien mettre de sensible dans le code versionné. La solution : laisser le bloc backend INCOMPLET dans le code, juste `terraform { backend \"s3\" {} }` (la structure/le type de backend est déclaré, mais pas ses paramètres), et fournir les valeurs manquantes AU MOMENT DU init, par environnement. Concrètement, on crée un fichier de configuration de backend par environnement (par exemple environments/dev.s3.hcl, staging.s3.hcl, prod.s3.hcl), chacun contenant les paramètres propres à cet environnement : bucket = \"...\", key = \"dev/net.tfstate\", region = \"...\", etc. Puis on initialise avec : `terraform init -backend-config=environments/prod.s3.hcl` (ou -backend-config=\"key=...\" en ligne de commande, ou via des variables d'environnement pour le CI). Terraform combine la structure du bloc backend (dans le code) avec les valeurs fournies (à l'init) pour configurer le backend de cet environnement. Résultat : UN SEUL code Terraform sert les trois environnements (pas de duplication), chacun obtient son propre état S3 (bucket/clé distincts) grâce au fichier de backend-config correspondant, et les valeurs qui varient (ou qui sont sensibles) ne sont pas codées en dur dans le code versionné, elles vivent dans les fichiers de config par environnement (que l'on peut gérer/sécuriser à part) ou sont injectées en CI. C'est le pattern propre pour gérer plusieurs environnements avec des backends distincts sans dupliquer ni coder en dur. On choisit le bon fichier de backend-config selon l'environnement au moment du init (souvent piloté par le pipeline CI ou un wrapper). En complément, des outils comme Terragrunt automatisent la génération de ces configurations de backend par environnement pour rester encore plus DRY. En résumé : bloc backend incomplet dans le code + -backend-config par environnement à l'init = plusieurs backends, un seul code, aucune valeur figée."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Quiz, Migration de backend & partial config (expert)",
           "quizRef": "backend-migration-expert"
         }
