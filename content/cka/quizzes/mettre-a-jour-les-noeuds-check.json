@@ -1,0 +1,43 @@
+{
+  "ref": "mettre-a-jour-les-noeuds-check",
+  "node": "cluster-upgrade",
+  "lesson": "mettre-a-jour-les-noeuds",
+  "title": "Quiz : Mettre à jour les nœuds",
+  "description": "Vérifie que tu maîtrises la mise à jour d'un nœud de travail sans interrompre le service.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait kubectl drain sur un nœud de travail ?",
+      "justification": "drain marque le nœud non planifiable (cordon) et évacue ses pods vers les autres nœuds, pour pouvoir le mettre à jour sans couper le service.",
+      "position": 0,
+      "options": [
+        { "label": "Il met le nœud en cordon et évacue ses pods vers les autres nœuds", "correct": true, "position": 0 },
+        { "label": "Il supprime définitivement le nœud du cluster", "correct": false, "position": 1 },
+        { "label": "Il met à jour le kubelet du nœud", "correct": false, "position": 2 },
+        { "label": "Il redémarre tous les pods sur place", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande kubeadm lance-t-on sur un nœud de travail (et non sur le premier nœud de contrôle) ?",
+      "justification": "Sur un worker, on utilise kubeadm upgrade node, qui met à jour la configuration locale du kubelet ; apply est réservé au premier nœud de contrôle.",
+      "position": 1,
+      "options": [
+        { "label": "kubeadm upgrade node", "correct": true, "position": 0 },
+        { "label": "kubeadm upgrade apply v1.31.1", "correct": false, "position": 1 },
+        { "label": "kubeadm init phase upload-config", "correct": false, "position": 2 },
+        { "label": "kubeadm reset", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après la mise à jour, il faut exécuter kubectl uncordon pour que le nœud accepte de nouveau des pods.",
+      "justification": "Vrai : drain avait mis le nœud en cordon ; uncordon le rend à nouveau planifiable.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

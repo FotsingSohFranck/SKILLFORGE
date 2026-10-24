@@ -1,0 +1,107 @@
+{
+  "node": "cni-dns",
+  "lessons": [
+    {
+      "slug": "cni-et-reseau-des-pods",
+      "title": "CNI et réseau des pods",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le modèle réseau de Kubernetes",
+          "body": "Kubernetes impose un **modèle réseau** simple à énoncer mais exigeant à implémenter : chaque **pod reçoit sa propre IP**, et **tous les pods peuvent se joindre entre eux sans NAT**, quel que soit le nœud qui les héberge. Un conteneur voit la même IP que celle que les autres pods utilisent pour l'atteindre.\n\nKubernetes lui-même **n'implémente pas** ce réseau : il délègue à un **plugin CNI** (Container Network Interface). Le plugin crée les interfaces réseau des pods, leur attribue une IP depuis le **PodCIDR** du nœud et programme les routes entre nœuds. Sans plugin CNI installé, le réseau des pods n'existe pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une IP par pod et pas de NAT : le modele reseau de Kubernetes",
+          "body": "/images/lessons/cni-et-reseau-des-pods-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Plugins CNI et symptômes d'absence",
+          "body": "Les plugins CNI courants : **Calico** (politiques réseau riches, routage BGP ou overlay), **Flannel** (simple, overlay VXLAN), **Cilium** (basé sur eBPF, observabilité et sécurité avancées). On en installe **un seul** par cluster.\n\n**Symptôme d'un CNI manquant ou cassé** : les nœuds restent **NotReady** (le kubelet signale `NetworkReady=false`, souvent avec `cni plugin not initialized`), et les pods applicatifs restent bloqués en **ContainerCreating** car le sandbox réseau ne peut pas être créé. Vérifier `kubectl get nodes` et `kubectl describe node <nom>` est le premier réflexe.\n\nÀ côté du CNI, **kube-proxy** tourne sur chaque nœud et programme l'accès aux **Services** (règles iptables ou IPVS) : il traduit l'IP virtuelle d'un Service vers les IP des pods backend. kube-proxy route vers les Services, le CNI fournit la connectivité pod à pod ; ce sont deux rôles distincts."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le plugin CNI cable les noeuds, sans lui les pods restent bloques",
+          "body": "/images/lessons/cni-et-reseau-des-pods-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Installer un CNI et vérifier les nœuds",
+          "codeLanguage": "bash",
+          "body": "# Etat initial : les noeuds sont NotReady tant qu'aucun CNI n'est installe\nkubectl get nodes\n# NAME     STATUS     ROLES           AGE   VERSION\n# cp       NotReady   control-plane   5m    v1.31.0\n# worker   NotReady   <none>          4m    v1.31.0\n\n# Appliquer un plugin CNI (exemple : Calico via son manifeste officiel)\nkubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml\n\n# Les pods du CNI demarrent dans kube-system\nkubectl get pods -n kube-system -l k8s-app=calico-node\n\n# Apres quelques instants, les noeuds passent Ready\nkubectl get nodes\n# NAME     STATUS   ROLES           AGE   VERSION\n# cp       Ready    control-plane   6m    v1.31.0\n# worker   Ready    <none>          5m    v1.31.0"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Les pods reliés par le réseau CNI",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph N1[\"Noeud 1\"]\n    PA[\"pod A : 10.244.1.2\"]\n    PB[\"pod B : 10.244.1.3\"]\n  end\n  subgraph N2[\"Noeud 2\"]\n    PC[\"pod C : 10.244.2.4\"]\n  end\n  CNI{{\"Reseau CNI : IP par pod, pas de NAT\"}}\n  PA --- CNI\n  PB --- CNI\n  PC --- CNI\n  CNI -.->|\"routes inter-noeuds\"| N2"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "cni-et-reseau-des-pods-check"
+        }
+      ]
+    },
+    {
+      "slug": "coredns-et-resolution",
+      "title": "CoreDNS et résolution",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "CoreDNS, le DNS interne du cluster",
+          "body": "**CoreDNS** fournit le **DNS interne** du cluster. Il tourne comme un déploiement de pods dans le namespace **kube-system**, exposé par le Service **kube-dns**. Le kubelet configure chaque pod pour interroger ce DNS (via `/etc/resolv.conf` dans le pod).\n\nGrâce à CoreDNS, un Service est joignable par un **nom stable** plutôt que par une IP : le format complet est `<service>.<namespace>.svc.cluster.local`. Depuis un pod du même namespace, le nom court `<service>` suffit (le suffixe de recherche complète le reste). Exemple : un pod du namespace `prod` peut joindre `mon-api` par `mon-api`, `mon-api.prod` ou `mon-api.prod.svc.cluster.local`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "CoreDNS fournit le DNS interne du cluster",
+          "body": "/images/lessons/coredns-et-resolution-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Diagnostiquer la résolution",
+          "body": "Quand un nom ne se résout pas, la démarche est méthodique :\n\n1. **Tester depuis un pod** avec un `nslookup` : c'est le point de vue réel de l'application.\n2. **Vérifier que les pods CoreDNS tournent** : `kubectl get pods -n kube-system -l k8s-app=kube-dns`. S'ils sont en CrashLoopBackOff ou absents, rien ne se résout.\n3. **Vérifier le Service kube-dns** et son IP : `kubectl get svc -n kube-system kube-dns`. C'est l'IP que les pods trouvent dans leur `/etc/resolv.conf`.\n4. **Distinguer** un échec DNS (le nom n'est pas résolu) d'un échec de connectivité (le nom résout mais la connexion échoue, ce qui renvoie au CNI, au Service ou à une NetworkPolicy)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Diagnostiquer la resolution, du pod jusqu'au Service kube-dns",
+          "body": "/images/lessons/coredns-et-resolution-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Résolution depuis un pod de test",
+          "codeLanguage": "bash",
+          "body": "# Lancer un pod jetable et resoudre un nom de Service\nkubectl run tmp --rm -it --image=busybox:1.36 --restart=Never -- \\\n  nslookup mon-api.prod.svc.cluster.local\n# Server:    10.96.0.10\n# Address:   10.96.0.10:53\n# Name:      mon-api.prod.svc.cluster.local\n# Address:   10.96.12.34\n\n# Verifier que les pods CoreDNS tournent\nkubectl get pods -n kube-system -l k8s-app=kube-dns\n# NAME                       READY   STATUS    RESTARTS   AGE\n# coredns-5d78c9869d-abcde   1/1     Running   0          2d\n# coredns-5d78c9869d-fghij   1/1     Running   0          2d\n\n# Verifier le Service DNS et son IP (ClusterIP, souvent 10.96.0.10)\nkubectl get svc -n kube-system kube-dns"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "Diagnostiquer un pod qui ne résout pas",
+          "body": "Un développeur signale qu'un de ses pods, dans le namespace `prod`, n'arrive pas à joindre le Service `mon-api` : l'application remonte une erreur de résolution de nom. Le Service existe bien et ses pods backend tournent. Décris, étape par étape, la démarche de diagnostic DNS que tu appliques en tant qu'administrateur, et les commandes associées.",
+          "solution": "1) Reproduire depuis un pod jetable dans le MÊME namespace : `kubectl run tmp -n prod --rm -it --image=busybox:1.36 --restart=Never -- nslookup mon-api.prod.svc.cluster.local`. Si ce nom complet (FQDN) résout mais que `nslookup mon-api` échoue, le problème est le suffixe de recherche, donc le `/etc/resolv.conf` du pod. 2) Inspecter ce fichier : `kubectl exec -n prod <pod> -- cat /etc/resolv.conf` et vérifier la ligne `nameserver` (doit pointer vers l'IP de kube-dns, souvent 10.96.0.10) et les `search prod.svc.cluster.local svc.cluster.local cluster.local`. 3) Vérifier que CoreDNS tourne : `kubectl get pods -n kube-system -l k8s-app=kube-dns` (aucun CrashLoopBackOff ni 0/1) et consulter ses logs `kubectl logs -n kube-system -l k8s-app=kube-dns`. 4) Vérifier le Service DNS : `kubectl get svc -n kube-system kube-dns` et son endpoint. 5) Vérifier que le Service applicatif a bien des endpoints : `kubectl get endpoints -n prod mon-api` (sinon le DNS résout vers une IP sans backend, et le problème n'est pas DNS mais sélecteur ou pods). 6) Si le nom ne résout pas du tout alors que CoreDNS est sain, suspecter une NetworkPolicy bloquant le trafic vers kube-system sur le port 53, ou un CNI défaillant. Points de vigilance : distinguer un échec de résolution (DNS) d'un échec de connexion une fois le nom résolu (CNI, Service, NetworkPolicy), et toujours tester avec le FQDN pour isoler un problème de suffixe de recherche."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "coredns-et-resolution-check"
+        }
+      ]
+    }
+  ]
+}

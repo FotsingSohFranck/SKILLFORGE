@@ -1,0 +1,43 @@
+{
+  "ref": "pv-pvc-rappel-check",
+  "node": "storage-classes",
+  "lesson": "pv-pvc-rappel",
+  "title": "Quiz : PV, PVC et liaison",
+  "description": "Vérifie que tu distingues PV et PVC et que tu comprends leur liaison.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un pod utilise-t-il un stockage persistant ?",
+      "justification": "Le pod référence un PVC via volumes.persistentVolumeClaim ; c'est Kubernetes qui lie ensuite le PVC au PV. Le pod ne monte jamais un PV directement.",
+      "position": 0,
+      "options": [
+        { "label": "Il référence un PVC, qui est lui-même lié à un PV", "correct": true, "position": 0 },
+        { "label": "Il monte le PV directement par son nom", "correct": false, "position": 1 },
+        { "label": "Il crée son propre PV au démarrage", "correct": false, "position": 2 },
+        { "label": "Il écrit dans etcd via un volume spécial", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel mode d'accès autorise un montage en lecture/écriture par plusieurs nœuds à la fois ?",
+      "justification": "ReadWriteMany (RWX) permet le montage lecture/écriture par plusieurs nœuds, contrairement à ReadWriteOnce (un seul nœud) et ReadOnlyMany (plusieurs nœuds mais en lecture seule).",
+      "position": 1,
+      "options": [
+        { "label": "ReadWriteMany", "correct": true, "position": 0 },
+        { "label": "ReadWriteOnce", "correct": false, "position": 1 },
+        { "label": "ReadOnlyMany", "correct": false, "position": 2 },
+        { "label": "WriteOnlyOnce", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un PVC qui reste à l'état Pending indique souvent qu'aucun PV ne correspond à sa capacité ou à son mode d'accès.",
+      "justification": "Vrai : un PVC Pending ne trouve pas de PV compatible (capacité, mode d'accès ou StorageClass) ; kubectl describe pvc donne le motif exact.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

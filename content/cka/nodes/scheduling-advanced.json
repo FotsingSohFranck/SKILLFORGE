@@ -1,0 +1,114 @@
+{
+  "node": "scheduling-advanced",
+  "lessons": [
+    {
+      "slug": "taints-et-tolerations",
+      "title": "Taints et tolerations",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Repousser les pods avec un taint",
+          "body": "Un **taint** est une marque posée sur un **nœud** pour en **repousser** les pods. Par défaut, un pod ne peut pas être ordonnancé sur un nœud qui porte un taint, sauf s'il déclare une **toleration** correspondante. C'est donc l'inverse d'une affinité : le taint dit « ne viens pas ici », la toleration dit « moi, j'ai le droit ».\n\nUn taint s'écrit sous la forme `clé=valeur:effet`. Trois **effets** existent :\n\n- **NoSchedule** : aucun nouveau pod sans toleration n'est placé sur le nœud ; les pods déjà présents restent.\n- **PreferNoSchedule** : l'ordonnanceur évite le nœud si possible, mais ne l'interdit pas.\n- **NoExecute** : aucun pod sans toleration n'est placé, et les pods déjà présents sans toleration sont **expulsés** du nœud.\n\nCas classique : les nœuds **control plane** d'un cluster kubeadm portent le taint `node-role.kubernetes.io/control-plane:NoSchedule`, ce qui réserve ces nœuds aux composants système et empêche les charges applicatives de s'y poser."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un taint repousse les pods d'un noeud, sauf toleration correspondante",
+          "body": "/images/lessons/taints-et-tolerations-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Poser et retirer un taint",
+          "codeLanguage": "bash",
+          "body": "# Poser un taint sur un noeud (cle=valeur:effet)\nkubectl taint nodes node01 gpu=true:NoSchedule\n\n# Lister les taints d'un noeud\nkubectl describe node node01 | grep -i taints\n\n# Expulser les pods non tolerants (effet NoExecute)\nkubectl taint nodes node01 maintenance=true:NoExecute\n\n# Retirer un taint : reprendre la meme cle et effet, suivis d'un tiret\nkubectl taint nodes node01 gpu=true:NoSchedule-\n\n# Cas control plane : rendre un noeud master ordonnancable (lab mono-noeud)\nkubectl taint nodes node-master node-role.kubernetes.io/control-plane:NoSchedule-"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Déclarer une toleration dans un pod",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: pod-gpu\nspec:\n  # Cette toleration autorise le pod sur un noeud taint gpu=true:NoSchedule\n  tolerations:\n    - key: \"gpu\"\n      operator: \"Equal\"   # Equal compare cle ET valeur ; Exists ignore la valeur\n      value: \"true\"\n      effect: \"NoSchedule\"\n  containers:\n    - name: cuda\n      image: nvidia/cuda:12.0-base"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Toleration n'est pas placement forcé",
+          "body": "Point de vigilance pour l'examen : une toleration **autorise** un pod à se poser sur un nœud taint, mais ne l'y **force pas**. Un pod tolérant peut très bien être placé sur un autre nœud sans taint. Pour **attirer** un pod vers un nœud précis, il faut combiner la toleration avec une règle d'**affinité** ou un `nodeSelector` (voir la leçon suivante).\n\nL'opérateur `Exists` sans `value` tolère n'importe quelle valeur de la clé. Une toleration sans `key`, avec `operator: Exists`, tolère **tous** les taints, ce qui est réservé aux composants système très particuliers."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tolerer n'est pas forcer : le placement reste a decider par l'affinite",
+          "body": "/images/lessons/taints-et-tolerations-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Qui peut se poser sur un nœud taint",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  N[\"Noeud taint gpu=true:NoSchedule\"]\n  P1[\"Pod avec toleration gpu\"] -->|\"autorise\"| N\n  P2[\"Pod sans toleration\"] -.->|\"refuse par l ordonnanceur\"| N\n  N --> R[\"Seuls les pods tolerants y vont\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "taints-et-tolerations-check"
+        }
+      ]
+    },
+    {
+      "slug": "affinite-et-placement",
+      "title": "Affinité et placement",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Attirer les pods vers les bons nœuds",
+          "body": "Là où un taint **repousse**, l'affinité **attire** : elle exprime où un pod **préfère** ou **doit** s'exécuter. Plusieurs mécanismes, du plus simple au plus riche :\n\n- **nodeSelector** : le plus simple. Le pod n'est placé que sur les nœuds qui portent **tous** les labels listés. Pas de nuance, pas de préférence.\n- **nodeAffinity** : plus expressif. Deux niveaux :\n  - `requiredDuringSchedulingIgnoredDuringExecution` : règle **dure**, le pod n'est placé que si elle est satisfaite.\n  - `preferredDuringSchedulingIgnoredDuringExecution` : règle **souple** et pondérée (`weight`), l'ordonnanceur tente de la respecter sans la garantir.\n- **podAffinity** et **podAntiAffinity** : placer un pod **près** (affinity) ou **loin** (antiAffinity) d'**autres pods**, repérés par label. On choisit l'échelle de proximité avec `topologyKey` (par exemple `kubernetes.io/hostname` pour « même nœud » ou `topology.kubernetes.io/zone` pour « même zone »).\n\nRésumé des deux leçons : **taint/toleration repoussent**, **affinité/nodeSelector attirent**. On les combine souvent : taint pour réserver un nœud, affinité pour y diriger les bons pods."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'affinite attire les pods vers les noeuds voulus",
+          "body": "/images/lessons/affinite-et-placement-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "nodeAffinity requise plus podAntiAffinity",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      affinity:\n        # 1) Forcer le placement sur les noeuds SSD (regle dure)\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                  - key: disktype\n                    operator: In\n                    values: [\"ssd\"]\n        # 2) Eviter de poser deux pods web sur le meme noeud\n        podAntiAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            - labelSelector:\n                matchLabels:\n                  app: web\n              topologyKey: kubernetes.io/hostname\n      containers:\n        - name: web\n          image: nginx:1.27"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "required contre preferred, et le piège de l'anti-affinité dure",
+          "body": "Avec une règle **dure** (`required`) d'anti-affinité et `topologyKey: kubernetes.io/hostname`, Kubernetes refuse de placer deux pods du même label sur un même nœud. Conséquence directe : si tu demandes **3 répliques** mais que le cluster n'a que **2 nœuds** éligibles, le troisième pod reste en `Pending`, faute de nœud disponible.\n\nPour une contrainte souhaitée mais non bloquante, préférer `preferred...` avec un `weight` : l'ordonnanceur répartit au mieux sans jamais laisser un pod bloqué. Le choix `required` contre `preferred` est exactement ce qu'un sujet CKA cherche à te faire distinguer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Regle dure ou souple : required contre preferred",
+          "body": "/images/lessons/affinite-et-placement-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi : SSD et répartition",
+          "body": "Scénario : ton cluster a trois nœuds. Deux portent le label `disktype=ssd` (`node01`, `node02`), le troisième non (`node03`). Tu dois déployer une application `cache` en 2 répliques avec deux exigences : chaque pod doit tourner **uniquement sur un nœud SSD**, et les deux répliques ne doivent **jamais** se retrouver sur le **même nœud**. Décris les labels à poser, les règles d'affinité à écrire, et pourquoi passer à 3 répliques poserait problème ici.",
+          "solution": "1) Labelliser les noeuds SSD : `kubectl label node node01 disktype=ssd` et `kubectl label node node02 disktype=ssd` (node03 reste sans ce label). 2) Dans le template du Deployment, poser le label `app: cache` sur les pods. 3) Forcer les noeuds SSD avec une nodeAffinity DURE : `requiredDuringSchedulingIgnoredDuringExecution` sur `nodeSelectorTerms` avec `matchExpressions` key `disktype`, operator `In`, values `[ssd]`. 4) Repartir sur des noeuds distincts avec une podAntiAffinity DURE : `requiredDuringSchedulingIgnoredDuringExecution`, `labelSelector` `matchLabels app: cache`, `topologyKey: kubernetes.io/hostname`. 5) Resultat : un pod sur node01, l'autre sur node02 ; node03 est exclu car non SSD. 6) Pourquoi 3 repliques posent probleme : il n'existe que deux noeuds SSD, et l'anti-affinite dure interdit deux pods cache sur le meme noeud ; le troisieme pod resterait donc en `Pending`. Pour l'eviter, soit ajouter un troisieme noeud SSD, soit assouplir l'anti-affinite en `preferredDuringSchedulingIgnoredDuringExecution` avec un `weight`. Verification : `kubectl get pods -o wide` doit montrer les pods sur des noeuds SSD differents."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "affinite-et-placement-check"
+        }
+      ]
+    }
+  ]
+}

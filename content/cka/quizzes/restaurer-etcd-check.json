@@ -1,0 +1,43 @@
+{
+  "ref": "restaurer-etcd-check",
+  "node": "etcd-backup",
+  "lesson": "restaurer-etcd",
+  "title": "Quiz : Restaurer etcd",
+  "description": "Vérifie que tu maîtrises la restauration d'etcd.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Où faut-il restaurer un snapshot etcd ?",
+      "justification": "snapshot restore recrée les données dans un nouveau répertoire ; on ne restaure jamais par-dessus le data-dir vivant.",
+      "position": 0,
+      "options": [
+        { "label": "Dans un nouveau répertoire de données, pas par-dessus l'actuel", "correct": true, "position": 0 },
+        { "label": "Directement par-dessus le répertoire etcd en cours", "correct": false, "position": 1 },
+        { "label": "Dans etcd via kubectl apply", "correct": false, "position": 2 },
+        { "label": "Dans un ConfigMap du namespace kube-system", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment etcd redémarre-t-il après avoir changé son data-dir sur un cluster kubeadm ?",
+      "justification": "etcd est un pod statique : modifier son manifeste dans /etc/kubernetes/manifests fait que le kubelet recrée automatiquement le pod.",
+      "position": 1,
+      "options": [
+        { "label": "Le kubelet recrée le pod statique après modification du manifeste", "correct": true, "position": 0 },
+        { "label": "Il faut appeler kubectl rollout restart etcd", "correct": false, "position": 1 },
+        { "label": "Il faut réinstaller le cluster", "correct": false, "position": 2 },
+        { "label": "etcd ne redémarre jamais", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Toute commande etcdctl vers etcd nécessite les certificats d'etcd (ca, cert, key).",
+      "justification": "Vrai : l'accès à etcd est protégé par TLS mutuel, il faut fournir les certificats pour sauvegarder ou interroger.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

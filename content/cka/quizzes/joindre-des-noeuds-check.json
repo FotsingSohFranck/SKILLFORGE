@@ -1,0 +1,43 @@
+{
+  "ref": "joindre-des-noeuds-check",
+  "node": "kubeadm-install",
+  "lesson": "joindre-des-noeuds",
+  "title": "Quiz : Joindre des nœuds",
+  "description": "Vérifie que tu sais joindre un worker et gérer les tokens.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un token d'amorçage a expiré. Quelle commande régénère une commande de jointure complète ?",
+      "justification": "kubeadm token create --print-join-command crée un token frais et imprime directement la commande kubeadm join à jour, avec le hash du CA.",
+      "position": 0,
+      "options": [
+        { "label": "kubeadm token create --print-join-command", "correct": true, "position": 0 },
+        { "label": "kubectl create token worker", "correct": false, "position": 1 },
+        { "label": "kubeadm join --renew", "correct": false, "position": 2 },
+        { "label": "kubeadm reset --token", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert --discovery-token-ca-cert-hash dans kubeadm join ?",
+      "justification": "Le hash du certificat du CA permet au worker de vérifier qu'il parle bien au bon control plane, et non à un imposteur.",
+      "position": 1,
+      "options": [
+        { "label": "À vérifier que le worker rejoint le bon control plane", "correct": true, "position": 0 },
+        { "label": "À chiffrer le disque du worker", "correct": false, "position": 1 },
+        { "label": "À choisir le plugin CNI", "correct": false, "position": 2 },
+        { "label": "À définir le CIDR des pods", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les tokens d'amorçage de kubeadm ont une durée de vie limitée (24 h par défaut).",
+      "justification": "Vrai : par défaut un token expire au bout de 24 h, ce qui explique l'échec d'un join tenté trop tard ; on en régénère un avec kubeadm token create.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

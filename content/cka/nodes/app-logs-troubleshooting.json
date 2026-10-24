@@ -1,0 +1,102 @@
+{
+  "node": "app-logs-troubleshooting",
+  "lessons": [
+    {
+      "slug": "pods-en-echec",
+      "title": "Pods en échec",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Lire le statut d'un pod",
+          "body": "Dépanner une application commence toujours par **lire le statut des pods** avec `kubectl get pods`. La colonne STATUS raconte l'histoire :\n\n- **Pending** : le pod n'est pas encore planifié ou démarré. Causes fréquentes : pas de nœud disponible, ressources insuffisantes (CPU/mémoire), un volume non lié (PVC en attente), un `nodeSelector` ou une taint qui empêche le placement.\n- **ImagePullBackOff** (ou **ErrImagePull**) : le kubelet n'arrive pas à télécharger l'image. Causes : nom ou tag d'image erroné, registre privé sans `imagePullSecret`, réseau vers le registre.\n- **CrashLoopBackOff** : le conteneur démarre puis s'arrête en boucle. Causes : erreur applicative au démarrage, configuration manquante (variable d'environnement, ConfigMap, Secret), sonde `livenessProbe` qui échoue et tue le conteneur.\n- **Running** mais pas **Ready** : le conteneur tourne, mais la `readinessProbe` échoue, donc le pod ne reçoit pas de trafic.\n\nLe statut oriente le diagnostic, mais ne le remplace pas : on confirme toujours avec `describe` et `logs`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lire le statut d'un pod pour orienter le diagnostic d'une application en échec",
+          "body": "/images/lessons/pods-en-echec-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "La trilogie get, describe, logs",
+          "codeLanguage": "bash",
+          "body": "# 1) Vue d'ensemble : statut, redemarrages, age\nkubectl get pods -n <namespace> -o wide\n\n# 2) Lire les events et l'etat des conteneurs (section Events en bas)\n#    C'est ici qu'apparait \"Failed to pull image\", \"Back-off restarting\",\n#    \"Insufficient cpu\", \"readiness probe failed\", etc.\nkubectl describe pod <pod> -n <namespace>\n\n# 3) Lire les logs du conteneur\nkubectl logs <pod> -n <namespace>\n\n# Si plusieurs conteneurs dans le pod, cibler le bon\nkubectl logs <pod> -c <conteneur> -n <namespace>\n\n# 4) CRUCIAL en CrashLoopBackOff : voir les logs de l'instance PRECEDENTE\n#    (celle qui a plante), car le conteneur actuel vient de redemarrer\nkubectl logs <pod> --previous -n <namespace>\n\n# Compter les redemarrages d'un coup d'oeil\nkubectl get pod <pod> -n <namespace> -o jsonpath='{.status.containerStatuses[0].restartCount}'"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Relier le symptôme à la cause",
+          "body": "Chaque statut a un réflexe de diagnostic :\n\n- **Pending** : lire la section Events de `describe pod`. Un message `0/3 nodes are available: Insufficient memory` pointe vers les ressources ; `node(s) had untolerated taint` vers une taint ; `pod has unbound immediate PersistentVolumeClaims` vers le stockage.\n- **ImagePullBackOff** : vérifier le champ `image` du pod (`kubectl get pod <pod> -o jsonpath='{.spec.containers[*].image}'`), puis l'accès au registre et le `imagePullSecret`.\n- **CrashLoopBackOff** : lire `kubectl logs --previous`. Une erreur du type `connection refused` ou `missing env var` révèle une dépendance ou une config absente. Vérifier aussi les sondes dans `describe` : une `livenessProbe` trop stricte peut tuer un conteneur pourtant sain.\n- **Not Ready** : la `readinessProbe` échoue. On regarde le endpoint testé par la sonde et on vérifie que l'application y répond.\n\nRéflexe d'examen : `describe` d'abord pour les Events, puis `logs --previous` pour la vraie erreur applicative."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Relier chaque symptôme à sa cause réelle avec describe et les logs précédents",
+          "body": "/images/lessons/pods-en-echec-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Du statut vers la piste de diagnostic",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  P[\"kubectl get pods : lire STATUS\"] --> PE{\"Quel statut ?\"}\n  PE -->|\"Pending\"| A[\"describe pod : Events, ressources, taints, PVC\"]\n  PE -->|\"ImagePullBackOff\"| B[\"verifier image, tag, imagePullSecret, registre\"]\n  PE -->|\"CrashLoopBackOff\"| C[\"kubectl logs --previous : erreur applicative ou config\"]\n  PE -->|\"Running non Ready\"| D[\"readinessProbe : endpoint teste, reponse app\"]\n  C --> E[\"corriger config, Secret, ConfigMap ou sonde\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "pods-en-echec-check"
+        }
+      ]
+    },
+    {
+      "slug": "problemes-de-connectivite",
+      "title": "Problèmes de connectivité",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un Service vivant mais muet",
+          "body": "Quand un Service ne répond pas alors que les pods tournent, la cause est presque toujours la **jonction entre le Service et ses pods** : les **Endpoints**.\n\nUn Service sélectionne les pods via son `selector` (des labels). Kubernetes construit alors une liste d'**Endpoints** : les IP des pods **Ready** qui correspondent au selector. Si cette liste est **vide**, le Service n'a personne vers qui router : les requêtes tombent dans le vide.\n\nLes causes classiques d'Endpoints vides :\n\n- Le `selector` du Service ne correspond à **aucun label** de pod (faute de frappe, label manquant).\n- Les pods existent mais ne sont pas **Ready** (readinessProbe en échec) : ils sont alors exclus des Endpoints.\n- Le `targetPort` du Service ne pointe pas sur le **port réel** du conteneur.\n\nSi les Endpoints sont corrects mais le trafic ne passe toujours pas, on suspecte une **NetworkPolicy** qui bloque les flux entrants (Ingress) ou sortants (Egress)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Vérifier les Endpoints et tester le réseau quand un Service reste muet",
+          "body": "/images/lessons/problemes-de-connectivite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Vérifier les Endpoints et tester depuis un pod",
+          "codeLanguage": "bash",
+          "body": "# 1) Le Service a-t-il des Endpoints ? (le test numero un)\nkubectl get endpoints <service> -n <namespace>\n#   ENDPOINTS vide ou <none>  => selector/labels ou pods non Ready\n#   ENDPOINTS avec des IP:port => la jonction est bonne, suspecter le reseau\n\n# 2) Comparer le selector du Service et les labels des pods\nkubectl get service <service> -n <namespace> -o jsonpath='{.spec.selector}'\nkubectl get pods -n <namespace> --show-labels\n\n# 3) Tester la connectivite depuis un pod de debug ephemere\nkubectl run tmp --rm -it --image=busybox:1.36 --restart=Never -n <namespace> -- sh\n#   puis, dans le shell du pod temporaire :\n#   wget -qO- http://<service>.<namespace>.svc.cluster.local:<port>\n#   nc -zv <service>.<namespace>.svc.cluster.local <port>\n\n# 4) Tester directement une IP de pod (court-circuite le Service)\nkubectl run tmp --rm -it --image=busybox:1.36 --restart=Never -n <namespace> -- \\\n  wget -qO- http://<ip-du-pod>:<port-conteneur>\n\n# 5) Lister les NetworkPolicy du namespace si le trafic est bloque\nkubectl get networkpolicy -n <namespace>\nkubectl describe networkpolicy <policy> -n <namespace>"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Chaîne Service vers pod",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  C[\"client\"] --> S[\"Service (selector + ports)\"]\n  S -->|\"selector matche les labels ?\"| EP[\"Endpoints (IP des pods Ready)\"]\n  EP -->|\"liste non vide ?\"| PODS[\"pods cibles\"]\n  S -.->|\"NetworkPolicy peut bloquer\"| PODS\n  EP -->|\"vide => verifier selector/labels et readiness\"| X[\"pas de route\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "Service silencieux, pods en vie",
+          "body": "Scénario d'examen : dans le namespace `boutique`, l'application `web` ne répond plus. Un `kubectl get pods -n boutique` montre 3 pods `web-xxxx` tous **Running** et **Ready**. Pourtant, `curl http://web.boutique.svc.cluster.local` depuis un autre pod ne renvoie rien (timeout). Le Service `web` existe bien. Décris ta démarche de diagnostic, étape par étape, jusqu'à identifier la cause la plus probable et la corriger.",
+          "solution": "1) Vérifier les Endpoints du Service : `kubectl get endpoints web -n boutique`. Ici la liste est **vide** (`<none>`), alors que les pods tournent et sont Ready : le problème n'est donc pas applicatif, c'est la jonction Service vers pods.\n\n2) Comparer le selector du Service et les labels des pods :\n`kubectl get service web -n boutique -o jsonpath='{.spec.selector}'` renvoie par exemple `{\"app\":\"web\"}`.\n`kubectl get pods -n boutique --show-labels` montre que les pods portent `app=frontend` (et non `app=web`). Le selector ne correspond à aucun pod, d'où des Endpoints vides.\n\n3) Corriger la divergence. Deux options :\n- Aligner le selector du Service sur les labels réels : `kubectl patch service web -n boutique -p '{\"spec\":{\"selector\":{\"app\":\"frontend\"}}}'`.\n- Ou, si c'est le pod qui est mal étiqueté, corriger le label du Deployment (template.metadata.labels) pour qu'il corresponde au Service.\n\n4) Revérifier : `kubectl get endpoints web -n boutique` doit maintenant lister les IP:port des pods, puis retester avec un pod de debug : `kubectl run tmp --rm -it --image=busybox:1.36 --restart=Never -n boutique -- wget -qO- http://web.boutique.svc.cluster.local`.\n\nPoints de vigilance : si les Endpoints étaient non vides mais le trafic bloqué malgré tout, il faudrait suspecter une NetworkPolicy (`kubectl get networkpolicy -n boutique`) ou un `targetPort` ne correspondant pas au port réel du conteneur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "problemes-de-connectivite-check"
+        }
+      ]
+    }
+  ]
+}

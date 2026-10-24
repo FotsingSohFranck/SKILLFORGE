@@ -1,0 +1,43 @@
+{
+  "ref": "regles-dingress-check",
+  "node": "ingress-gateway",
+  "lesson": "regles-dingress",
+  "title": "Quiz : Les règles d'Ingress",
+  "description": "Vérifie que tu maîtrises le routage par host et path, le TLS et la vérification d'un Ingress.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel pathType matche aussi bien /api que /api/v1 ?",
+      "justification": "Prefix matche tout chemin commençant par le path déclaré, donc /api et /api/v1. Exact exige une correspondance stricte.",
+      "position": 0,
+      "options": [
+        { "label": "Prefix", "correct": true, "position": 0 },
+        { "label": "Exact", "correct": false, "position": 1 },
+        { "label": "Glob", "correct": false, "position": 2 },
+        { "label": "Regex", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un Ingress termine-t-il le TLS pour un host ?",
+      "justification": "On référence dans spec.tls un Secret de type kubernetes.io/tls (clé plus certificat), associé aux hosts concernés.",
+      "position": 1,
+      "options": [
+        { "label": "Via un Secret de type kubernetes.io/tls référencé dans spec.tls", "correct": true, "position": 0 },
+        { "label": "Via un ConfigMap contenant le certificat en clair", "correct": false, "position": 1 },
+        { "label": "En activant une annotation sur le Service backend", "correct": false, "position": 2 },
+        { "label": "Le TLS est automatique, rien à déclarer", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La commande kubectl describe ingress permet de voir les backends résolus et des events comme un Service introuvable.",
+      "justification": "Vrai : describe ingress affiche les règles, les backends, le bloc TLS et des events qui signalent un Service ou une IngressClass manquante.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

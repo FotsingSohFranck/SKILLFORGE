@@ -10,42 +10,16 @@
     "durationMinutes": 120,
     "passingScore": 66.0,
     "domains": [
-      {
-        "name": "Cluster Architecture, Installation and Configuration",
-        "weight": 25,
-        "position": 0
-      },
-      {
-        "name": "Workloads and Scheduling",
-        "weight": 15,
-        "position": 1
-      },
-      {
-        "name": "Services and Networking",
-        "weight": 20,
-        "position": 2
-      },
-      {
-        "name": "Storage",
-        "weight": 10,
-        "position": 3
-      },
-      {
-        "name": "Troubleshooting",
-        "weight": 30,
-        "position": 4
-      }
+      { "name": "Cluster Architecture, Installation and Configuration", "weight": 25, "position": 0 },
+      { "name": "Workloads and Scheduling", "weight": 15, "position": 1 },
+      { "name": "Services and Networking", "weight": 20, "position": 2 },
+      { "name": "Storage", "weight": 10, "position": 3 },
+      { "name": "Troubleshooting", "weight": 30, "position": 4 }
     ]
   },
   "phases": [
-    {
-      "title": "Installer & configurer",
-      "position": 0
-    },
-    {
-      "title": "Exploiter & dépanner",
-      "position": 1
-    }
+    { "title": "Installer & configurer", "position": 0 },
+    { "title": "Exploiter & dépanner", "position": 1 }
   ],
   "nodes": [
     {
@@ -56,12 +30,47 @@
       "importance": "CORE",
       "estimatedMinutes": 75,
       "position": 0,
-      "examDomains": [
-        {
-          "domain": "Cluster Architecture, Installation and Configuration",
-          "weight": 25
-        }
-      ]
+      "examDomains": [{ "domain": "Cluster Architecture, Installation and Configuration", "weight": 25 }]
+    },
+    {
+      "slug": "kubeadm-install",
+      "title": "Installer avec kubeadm",
+      "summary": "Initialiser un cluster, joindre des nœuds, le réseau de pods.",
+      "phase": "Installer & configurer",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1,
+      "examDomains": [{ "domain": "Cluster Architecture, Installation and Configuration", "weight": 25 }]
+    },
+    {
+      "slug": "cluster-upgrade",
+      "title": "Mettre à jour le cluster",
+      "summary": "Monter de version plan de contrôle puis nœuds avec kubeadm.",
+      "phase": "Installer & configurer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 2,
+      "examDomains": [{ "domain": "Cluster Architecture, Installation and Configuration", "weight": 25 }]
+    },
+    {
+      "slug": "etcd-backup",
+      "title": "Sauvegarder & restaurer etcd",
+      "summary": "snapshot etcdctl, restauration : la tâche CKA emblématique.",
+      "phase": "Installer & configurer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 3,
+      "examDomains": [{ "domain": "Cluster Architecture, Installation and Configuration", "weight": 25 }]
+    },
+    {
+      "slug": "rbac-security",
+      "title": "RBAC, certificats & kubeconfig",
+      "summary": "Rôles, liaisons, certificats clients et contextes kubeconfig.",
+      "phase": "Installer & configurer",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 4,
+      "examDomains": [{ "domain": "Cluster Architecture, Installation and Configuration", "weight": 25 }]
     },
     {
       "slug": "workloads-scheduling",
@@ -70,13 +79,18 @@
       "phase": "Installer & configurer",
       "importance": "CORE",
       "estimatedMinutes": 60,
-      "position": 1,
-      "examDomains": [
-        {
-          "domain": "Workloads and Scheduling",
-          "weight": 15
-        }
-      ]
+      "position": 5,
+      "examDomains": [{ "domain": "Workloads and Scheduling", "weight": 15 }]
+    },
+    {
+      "slug": "scheduling-advanced",
+      "title": "Ordonnancement avancé",
+      "summary": "Taints, tolerations, affinité/anti-affinité et contraintes de placement.",
+      "phase": "Installer & configurer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 6,
+      "examDomains": [{ "domain": "Workloads and Scheduling", "weight": 15 }]
     },
     {
       "slug": "services-networking",
@@ -86,12 +100,27 @@
       "importance": "CORE",
       "estimatedMinutes": 60,
       "position": 0,
-      "examDomains": [
-        {
-          "domain": "Services and Networking",
-          "weight": 20
-        }
-      ]
+      "examDomains": [{ "domain": "Services and Networking", "weight": 20 }]
+    },
+    {
+      "slug": "cni-dns",
+      "title": "CNI, DNS & kube-proxy",
+      "summary": "Le réseau du cluster : plugin CNI, CoreDNS et kube-proxy.",
+      "phase": "Exploiter & dépanner",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 1,
+      "examDomains": [{ "domain": "Services and Networking", "weight": 20 }]
+    },
+    {
+      "slug": "ingress-gateway",
+      "title": "Ingress & exposition",
+      "summary": "Exposer le HTTP vers les Services avec un Ingress controller.",
+      "phase": "Exploiter & dépanner",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 2,
+      "examDomains": [{ "domain": "Services and Networking", "weight": 20 }]
     },
     {
       "slug": "storage",
@@ -100,13 +129,18 @@
       "phase": "Exploiter & dépanner",
       "importance": "RECOMMENDED",
       "estimatedMinutes": 45,
-      "position": 1,
-      "examDomains": [
-        {
-          "domain": "Storage",
-          "weight": 10
-        }
-      ]
+      "position": 3,
+      "examDomains": [{ "domain": "Storage", "weight": 10 }]
+    },
+    {
+      "slug": "storage-classes",
+      "title": "StorageClasses & volumes",
+      "summary": "Provisionnement dynamique, modes d'accès et politiques de récupération.",
+      "phase": "Exploiter & dépanner",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 4,
+      "examDomains": [{ "domain": "Storage", "weight": 10 }]
     },
     {
       "slug": "troubleshooting",
@@ -115,35 +149,44 @@
       "phase": "Exploiter & dépanner",
       "importance": "CORE",
       "estimatedMinutes": 75,
-      "position": 2,
-      "examDomains": [
-        {
-          "domain": "Troubleshooting",
-          "weight": 30
-        }
-      ]
+      "position": 5,
+      "examDomains": [{ "domain": "Troubleshooting", "weight": 30 }]
+    },
+    {
+      "slug": "node-cluster-troubleshooting",
+      "title": "Dépanner nœuds & plan de contrôle",
+      "summary": "kubelet, nœud NotReady, composants du control plane en échec.",
+      "phase": "Exploiter & dépanner",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 6,
+      "examDomains": [{ "domain": "Troubleshooting", "weight": 30 }]
+    },
+    {
+      "slug": "app-logs-troubleshooting",
+      "title": "Dépanner applications & réseau",
+      "summary": "Pods en échec, logs, events et problèmes de connectivité.",
+      "phase": "Exploiter & dépanner",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 7,
+      "examDomains": [{ "domain": "Troubleshooting", "weight": 30 }]
     }
   ],
   "edges": [
-    {
-      "source": "cluster-setup",
-      "target": "workloads-scheduling",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "workloads-scheduling",
-      "target": "services-networking",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "services-networking",
-      "target": "storage",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "services-networking",
-      "target": "troubleshooting",
-      "kind": "PREREQ"
-    }
+    { "source": "cluster-setup", "target": "kubeadm-install", "kind": "PREREQ" },
+    { "source": "kubeadm-install", "target": "cluster-upgrade", "kind": "PREREQ" },
+    { "source": "cluster-setup", "target": "etcd-backup", "kind": "PREREQ" },
+    { "source": "cluster-setup", "target": "rbac-security", "kind": "PREREQ" },
+    { "source": "cluster-setup", "target": "workloads-scheduling", "kind": "PREREQ" },
+    { "source": "workloads-scheduling", "target": "scheduling-advanced", "kind": "PREREQ" },
+    { "source": "workloads-scheduling", "target": "services-networking", "kind": "PREREQ" },
+    { "source": "services-networking", "target": "cni-dns", "kind": "PREREQ" },
+    { "source": "services-networking", "target": "ingress-gateway", "kind": "PREREQ" },
+    { "source": "services-networking", "target": "storage", "kind": "PREREQ" },
+    { "source": "storage", "target": "storage-classes", "kind": "PREREQ" },
+    { "source": "services-networking", "target": "troubleshooting", "kind": "PREREQ" },
+    { "source": "troubleshooting", "target": "node-cluster-troubleshooting", "kind": "PREREQ" },
+    { "source": "troubleshooting", "target": "app-logs-troubleshooting", "kind": "PREREQ" }
   ]
 }

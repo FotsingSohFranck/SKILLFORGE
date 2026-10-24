@@ -1,0 +1,102 @@
+{
+  "node": "kubeadm-install",
+  "lessons": [
+    {
+      "slug": "initialiser-le-cluster",
+      "title": "Initialiser le cluster",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les prérequis avant kubeadm init",
+          "body": "**kubeadm** est l'outil officiel pour amorcer un cluster Kubernetes conforme. Avant d'initialiser le premier nœud de **control plane**, trois briques doivent être présentes et actives sur la machine :\n\n- un **runtime de conteneurs** compatible CRI, typiquement **containerd**, avec `SystemdCgroup = true` dans sa configuration ;\n- le **kubelet**, l'agent qui tourne sur chaque nœud et pilote les conteneurs via le runtime ;\n- les binaires **kubeadm** (amorçage) et **kubectl** (client d'administration).\n\nCôté système, il faut aussi : le **swap désactivé**, le module noyau `br_netfilter` chargé, et les paramètres `net.bridge.bridge-nf-call-iptables=1` et `net.ipv4.ip_forward=1` appliqués via sysctl. Sans cela, `kubeadm init` échoue aux **preflight checks**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Avant kubeadm init : un runtime CRI, le kubelet et les binaires doivent etre en place.",
+          "body": "/images/lessons/initialiser-le-cluster-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Initialiser le control plane et poser le kubeconfig",
+          "codeLanguage": "bash",
+          "body": "# Desactiver le swap (obligatoire pour le kubelet)\nsudo swapoff -a\n\n# Initialiser le premier noeud de control plane.\n# --pod-network-cidr doit correspondre au plage attendue par le plugin CNI choisi.\nsudo kubeadm init --pod-network-cidr=192.168.0.0/16\n\n# Mettre en place le kubeconfig admin pour utiliser kubectl en tant qu'utilisateur courant\nmkdir -p $HOME/.kube\nsudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config\nsudo chown $(id -u):$(id -g) $HOME/.kube/config\n\n# Verifier que l'API repond\nkubectl get nodes\n# Le noeud apparait d'abord en NotReady : il manque le reseau des pods (CNI)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Lire la sortie de kubeadm init",
+          "body": "La sortie de `kubeadm init` est précieuse, il faut la lire attentivement :\n\n- elle rappelle les **commandes pour installer le kubeconfig** admin (copie de `/etc/kubernetes/admin.conf`) ;\n- elle affiche une **commande `kubeadm join` prête à l'emploi**, contenant l'adresse du serveur d'API, le **token** d'amorçage et le **hash du certificat du CA** ;\n- elle rappelle qu'il faut déployer un **plugin réseau (CNI)**.\n\nConserve la commande `kubeadm join` : c'est elle qu'on exécutera sur chaque worker. Si tu la perds ou si le token expire, on la régénère (voir la leçon suivante)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La sortie de kubeadm init livre le kubeconfig admin et la commande de jointure a conserver.",
+          "body": "/images/lessons/initialiser-le-cluster-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Installer un plugin CNI",
+          "codeLanguage": "bash",
+          "body": "# Tant qu'aucun CNI n'est installe, les noeuds restent NotReady\n# et le pod coredns reste en Pending.\n\n# Exemple avec Calico (le CIDR doit correspondre a --pod-network-cidr=192.168.0.0/16)\nkubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml\n\n# Patienter puis verifier : les noeuds doivent passer Ready\nkubectl get nodes\nkubectl get pods -n kube-system"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "De init à des nœuds Ready",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  I[\"kubeadm init\"] -->|\"control plane amorce\"| K[\"kubeconfig admin\"]\n  K -->|\"kubectl apply CNI\"| C[\"plugin reseau installe\"]\n  C -->|\"reseau des pods pret\"| R[\"noeuds Ready\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "initialiser-le-cluster-check"
+        }
+      ]
+    },
+    {
+      "slug": "joindre-des-noeuds",
+      "title": "Joindre des nœuds",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Comment un worker rejoint le cluster",
+          "body": "Pour ajouter un **worker**, on exécute `kubeadm join` sur la nouvelle machine. Cette commande a besoin de trois éléments pour établir une confiance mutuelle avec le control plane :\n\n- l'**adresse du serveur d'API** (hôte et port, par exemple `192.168.1.10:6443`) ;\n- un **token d'amorçage** (`--token`), qui authentifie le nœud auprès du control plane ;\n- le **hash du certificat du CA** (`--discovery-token-ca-cert-hash`), qui permet au worker de vérifier qu'il parle bien au bon control plane.\n\nUne fois joint, le **kubelet** du worker s'enregistre auprès de l'API, reçoit ses certificats définitifs via le **TLS bootstrap**, et commence à faire tourner les pods qu'on lui planifie. Les tokens d'amorçage ont une **durée de vie limitée (24 h par défaut)**, ce qui explique les échecs quand on ajoute un nœud plus tard."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un worker rejoint le cluster avec l'adresse de l'API, un token et le hash du CA.",
+          "body": "/images/lessons/joindre-des-noeuds-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Joindre un nœud et régénérer un token",
+          "codeLanguage": "bash",
+          "body": "# Sur le WORKER : commande fournie par la sortie de kubeadm init\nsudo kubeadm join 192.168.1.10:6443 \\\n  --token abcdef.0123456789abcdef \\\n  --discovery-token-ca-cert-hash sha256:1234...abcd\n\n# Si le token a expire, le regenerer SUR LE CONTROL PLANE.\n# Cette commande imprime une commande kubeadm join complete et a jour :\nkubeadm token create --print-join-command\n\n# Lister les tokens existants et leur expiration\nkubeadm token list\n\n# Verifier l'enregistrement du noeud (depuis le control plane)\nkubectl get nodes -o wide"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi : un worker qui ne rejoint pas",
+          "body": "Un collègue a provisionné un nouveau worker il y a deux jours mais n'a jamais lancé le join. Aujourd'hui il exécute la commande `kubeadm join` copiée de l'ancienne sortie de `kubeadm init`, et elle échoue avec une erreur de token invalide ou expiré. Le nœud n'apparaît pas dans `kubectl get nodes`. Décris comment remettre ce worker en service.",
+          "solution": "1) Diagnostic : le token d'amorçage a une durée de vie par défaut de 24 h ; après deux jours il est expiré, d'où l'échec du join. 2) Sur le CONTROL PLANE, régénérer une commande de jointure valide : `kubeadm token create --print-join-command`. Elle imprime une nouvelle commande contenant un token frais et le hash du CA à jour. 3) (Optionnel) vérifier les tokens avec `kubeadm token list`. 4) Sur le WORKER, si un join partiel a déjà laissé un état, nettoyer avec `sudo kubeadm reset -f` avant de relancer. 5) Sur le WORKER, exécuter la commande fournie à l'étape 2 (`sudo kubeadm join ...`). 6) Depuis le control plane, vérifier avec `kubectl get nodes -o wide` que le nœud apparaît et passe Ready une fois le kubelet enregistré et le CNI opérationnel sur ce nœud."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "joindre-des-noeuds-check"
+        }
+      ]
+    }
+  ]
+}

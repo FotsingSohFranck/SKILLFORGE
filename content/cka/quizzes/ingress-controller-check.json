@@ -1,0 +1,43 @@
+{
+  "ref": "ingress-controller-check",
+  "node": "ingress-gateway",
+  "lesson": "ingress-controller",
+  "title": "Quiz : L'Ingress controller",
+  "description": "Vérifie que tu distingues Service et Ingress et que tu sais ce qu'implique un controller.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quelle couche travaille un Ingress, par rapport à un Service LoadBalancer ?",
+      "justification": "Un Service LoadBalancer route en couche 4 (TCP/UDP), tandis que l'Ingress route en couche 7 selon le host et le path HTTP.",
+      "position": 0,
+      "options": [
+        { "label": "En couche 7 (HTTP), là où le Service LoadBalancer route en couche 4", "correct": true, "position": 0 },
+        { "label": "En couche 4, comme le Service LoadBalancer", "correct": false, "position": 1 },
+        { "label": "En couche 2 (Ethernet)", "correct": false, "position": 2 },
+        { "label": "Il ne route rien, il ouvre juste un NodePort", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un objet Ingress appliqué dans un cluster sans Ingress controller route quand même le trafic HTTP.",
+      "justification": "Faux : l'objet Ingress n'est qu'une règle déclarative. Sans controller qui la lit et configure un reverse proxy, elle reste sans effet.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert la ressource IngressClass ?",
+      "justification": "L'IngressClass identifie quel controller gère un Ingress ; on la référence via spec.ingressClassName, et l'une peut être marquée par défaut.",
+      "position": 2,
+      "options": [
+        { "label": "Associer un Ingress au controller qui doit le gérer", "correct": true, "position": 0 },
+        { "label": "Définir le certificat TLS par défaut du cluster", "correct": false, "position": 1 },
+        { "label": "Limiter le nombre de requêtes HTTP par seconde", "correct": false, "position": 2 },
+        { "label": "Remplacer le Service ClusterIP derrière l'Ingress", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

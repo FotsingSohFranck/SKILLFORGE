@@ -1,0 +1,43 @@
+{
+  "ref": "initialiser-le-cluster-check",
+  "node": "kubeadm-install",
+  "lesson": "initialiser-le-cluster",
+  "title": "Quiz : Initialiser le cluster",
+  "description": "Vérifie que tu sais initialiser un control plane avec kubeadm.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi le nœud de control plane reste-t-il NotReady juste après kubeadm init ?",
+      "justification": "Tant qu'aucun plugin CNI n'est installé, le réseau des pods n'existe pas et le nœud reste NotReady ; appliquer un CNI le fait passer Ready.",
+      "position": 0,
+      "options": [
+        { "label": "Aucun plugin réseau (CNI) n'est encore installé", "correct": true, "position": 0 },
+        { "label": "Le swap est toujours activé", "correct": false, "position": 1 },
+        { "label": "kubectl n'est pas installé", "correct": false, "position": 2 },
+        { "label": "Le token d'amorçage a expiré", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que contient la commande kubeadm join affichée par la sortie de kubeadm init ?",
+      "justification": "La commande join comprend l'adresse du serveur d'API, le token d'amorçage et le hash du certificat du CA, qui permettent au worker de rejoindre en confiance.",
+      "position": 1,
+      "options": [
+        { "label": "L'adresse de l'API, un token et le hash du certificat du CA", "correct": true, "position": 0 },
+        { "label": "Le mot de passe root du control plane", "correct": false, "position": 1 },
+        { "label": "La clé privée du serveur etcd", "correct": false, "position": 2 },
+        { "label": "L'image du runtime containerd à télécharger", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le swap doit être désactivé pour que le kubelet démarre correctement sur le nœud.",
+      "justification": "Vrai : le kubelet exige par défaut un swap désactivé, sinon les preflight checks de kubeadm échouent.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

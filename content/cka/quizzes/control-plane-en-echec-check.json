@@ -1,0 +1,43 @@
+{
+  "ref": "control-plane-en-echec-check",
+  "node": "node-cluster-troubleshooting",
+  "lesson": "control-plane-en-echec",
+  "title": "Quiz : Le plan de contrôle en échec",
+  "description": "Vérifie que tu sais diagnostiquer un plan de contrôle en échec, y compris quand l'API server est down.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur un cluster kubeadm, où vivent les manifestes des composants du plan de contrôle et qui les surveille ?",
+      "justification": "Les composants du control plane sont des pods statiques : leurs manifestes sont dans /etc/kubernetes/manifests et le kubelet les recrée à chaque modification.",
+      "position": 0,
+      "options": [
+        { "label": "Dans /etc/kubernetes/manifests, surveillés par le kubelet", "correct": true, "position": 0 },
+        { "label": "Dans un Deployment du namespace kube-system, géré par le scheduler", "correct": false, "position": 1 },
+        { "label": "Dans etcd uniquement, appliqués par le controller-manager", "correct": false, "position": 2 },
+        { "label": "Dans /var/lib/kubelet/config.yaml, lus par kube-proxy", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "L'API server est down et `kubectl` ne répond plus. Comment inspecter le conteneur de l'API server sur le nœud ?",
+      "justification": "Sans API server, kubectl est inutilisable ; on parle directement au runtime avec crictl ps -a puis crictl logs pour lire les erreurs du conteneur.",
+      "position": 1,
+      "options": [
+        { "label": "Avec crictl ps -a puis crictl logs sur le conteneur apiserver", "correct": true, "position": 0 },
+        { "label": "Avec kubectl logs -n kube-system kube-apiserver", "correct": false, "position": 1 },
+        { "label": "Avec etcdctl snapshot status", "correct": false, "position": 2 },
+        { "label": "En redémarrant le cluster complet avec kubeadm reset", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Après avoir corrigé une erreur dans /etc/kubernetes/manifests/kube-apiserver.yaml, il faut lancer une commande pour redémarrer le pod.",
+      "justification": "Faux : le kubelet détecte la modification du manifeste du pod statique et recrée le pod automatiquement, sans commande supplémentaire.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "problemes-de-connectivite-check",
+  "node": "app-logs-troubleshooting",
+  "lesson": "problemes-de-connectivite",
+  "title": "Quiz : Problèmes de connectivité",
+  "description": "Vérifie que tu sais diagnostiquer un Service qui ne répond pas.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un Service ne répond pas alors que ses pods sont Running et Ready. Quel est le premier contrôle à faire ?",
+      "justification": "kubectl get endpoints révèle si le Service est relié à des pods. Une liste vide pointe immédiatement vers un selector qui ne correspond pas aux labels, ou des pods non Ready.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl get endpoints <service>", "correct": true, "position": 0 },
+        { "label": "kubectl rollout restart deployment <service>", "correct": false, "position": 1 },
+        { "label": "kubectl top nodes", "correct": false, "position": 2 },
+        { "label": "kubectl drain <node>", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Les Endpoints d'un Service sont vides alors que les pods tournent. Quelle cause est la plus probable ?",
+      "justification": "Des Endpoints vides signifient qu'aucun pod ne correspond au selector : le selector du Service ne matche pas les labels des pods (ou les pods ne sont pas Ready).",
+      "position": 1,
+      "options": [
+        { "label": "Le selector du Service ne correspond pas aux labels des pods", "correct": true, "position": 0 },
+        { "label": "Le cluster manque de mémoire", "correct": false, "position": 1 },
+        { "label": "L'image des pods est introuvable", "correct": false, "position": 2 },
+        { "label": "etcd n'est pas sauvegardé", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si les Endpoints sont corrects mais le trafic ne passe toujours pas, une NetworkPolicy peut en être la cause.",
+      "justification": "Vrai : une NetworkPolicy restrictive (Ingress ou Egress) peut bloquer les flux même quand la jonction Service vers pods est correcte.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

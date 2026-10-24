@@ -1,0 +1,43 @@
+{
+  "ref": "noeud-notready-check",
+  "node": "node-cluster-troubleshooting",
+  "lesson": "noeud-notready",
+  "title": "Quiz : Un nœud NotReady",
+  "description": "Vérifie que tu sais diagnostiquer et remettre en marche un nœud NotReady.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un nœud est NotReady. Après `kubectl describe node`, quelle est la première chose à inspecter sur la machine elle-même ?",
+      "justification": "Le kubelet est responsable du signal de santé du nœud ; vérifier son service et ses logs est le point de départ du diagnostic sur la machine.",
+      "position": 0,
+      "options": [
+        { "label": "L'état et les logs du kubelet avec systemctl status kubelet et journalctl -u kubelet", "correct": true, "position": 0 },
+        { "label": "Le fichier /etc/kubernetes/manifests/etcd.yaml", "correct": false, "position": 1 },
+        { "label": "La table de routage avec kubectl get routes", "correct": false, "position": 2 },
+        { "label": "Les règles RBAC du nœud", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "La condition Ready d'un nœud affiche un message du type `cni config uninitialized`. Quelle cause est la plus probable ?",
+      "justification": "Un message réseau de ce type indique que le plugin CNI n'est pas prêt : config absente dans /etc/cni/net.d ou pods réseau non démarrés.",
+      "position": 1,
+      "options": [
+        { "label": "Le plugin CNI n'est pas installé ou ses pods réseau ne tournent pas", "correct": true, "position": 0 },
+        { "label": "Le snapshot etcd est corrompu", "correct": false, "position": 1 },
+        { "label": "Le service kube-proxy est désinstallé volontairement", "correct": false, "position": 2 },
+        { "label": "Le certificat du dashboard a expiré", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une fois le kubelet remis en marche et sain, le nœud repasse Ready sans action supplémentaire côté control plane.",
+      "justification": "Vrai : dès que le kubelet publie à nouveau des conditions saines et son Lease, le control plane marque le nœud Ready automatiquement.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "affinite-et-placement-check",
+  "node": "scheduling-advanced",
+  "lesson": "affinite-et-placement",
+  "title": "Quiz : Affinité et placement",
+  "description": "Vérifie que tu maîtrises nodeSelector, nodeAffinity et pod(anti)affinity.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel mécanisme répartit des répliques sur des nœuds distincts en les empêchant de cohabiter ?",
+      "justification": "podAntiAffinity avec topologyKey kubernetes.io/hostname interdit à deux pods du même label de partager un nœud. nodeSelector et nodeAffinity ciblent des nœuds par label, pas la distance entre pods.",
+      "position": 0,
+      "options": [
+        { "label": "podAntiAffinity", "correct": true, "position": 0 },
+        { "label": "nodeSelector", "correct": false, "position": 1 },
+        { "label": "podAffinity", "correct": false, "position": 2 },
+        { "label": "nodeAffinity preferred", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une règle requiredDuringSchedulingIgnoredDuringExecution peut laisser un pod en Pending si aucun nœud ne la satisfait.",
+      "justification": "Vrai : une règle required est une contrainte dure ; si aucun nœud éligible n'est disponible, l'ordonnanceur laisse le pod en Pending plutôt que de la violer.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence essentielle entre un taint et une affinité ?",
+      "justification": "Le taint repousse les pods d'un nœud (sauf toleration), tandis que l'affinité et le nodeSelector attirent les pods vers des nœuds choisis. On les combine souvent pour réserver puis diriger.",
+      "position": 2,
+      "options": [
+        { "label": "Le taint repousse les pods, l'affinité les attire", "correct": true, "position": 0 },
+        { "label": "Les deux attirent les pods, mais le taint est prioritaire", "correct": false, "position": 1 },
+        { "label": "Le taint agit sur les pods, l'affinité sur les namespaces", "correct": false, "position": 2 },
+        { "label": "Il n'y a aucune différence, ce sont des synonymes", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

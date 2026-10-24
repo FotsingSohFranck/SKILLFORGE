@@ -1,0 +1,95 @@
+{
+  "node": "etcd-backup",
+  "lessons": [
+    {
+      "slug": "sauvegarder-etcd",
+      "title": "Sauvegarder etcd",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi etcd est critique",
+          "body": "**etcd** est la base clé-valeur qui stocke **tout l'état** du cluster : objets, configuration, secrets. Perdre etcd, c'est perdre le cluster. C'est pourquoi la **sauvegarde d'etcd** est une tâche classique de l'examen CKA, et une responsabilité d'administrateur au quotidien.\n\nUne sauvegarde se fait avec l'outil **etcdctl**, en version d'API 3 (`ETCDCTL_API=3`), en produisant un **snapshot** : un fichier qui fige l'état d'etcd à un instant donné."
+        },
+        {
+          "type": "IMAGE",
+          "title": "etcd stocke tout l'etat du cluster : une sauvegarde reguliere protege contre la perte totale.",
+          "body": "/images/lessons/sauvegarder-etcd-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Prendre un snapshot",
+          "codeLanguage": "bash",
+          "body": "# Les certificats sont ceux du serveur etcd (chemins typiques d'un cluster kubeadm)\nETCDCTL_API=3 etcdctl snapshot save /opt/etcd-backup.db \\\n  --endpoints=https://127.0.0.1:2379 \\\n  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\\n  --cert=/etc/kubernetes/pki/etcd/server.crt \\\n  --key=/etc/kubernetes/pki/etcd/server.key\n\n# Verifier le snapshot\nETCDCTL_API=3 etcdctl snapshot status /opt/etcd-backup.db --write-out=table"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Trouver les bons paramètres",
+          "body": "Le jour de l'examen, les chemins de certificats et le endpoint se lisent dans le manifeste du pod statique d'etcd : `/etc/kubernetes/manifests/etcd.yaml`. On y retrouve `--data-dir`, `--listen-client-urls`, et les chemins `--trusted-ca-file`, `--cert-file`, `--key-file` à réutiliser pour etcdctl.\n\nRéflexe : toujours vérifier le snapshot avec `snapshot status` juste après l'avoir pris."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les bons parametres (endpoint, certificats) se lisent dans le manifeste du pod statique etcd.",
+          "body": "/images/lessons/sauvegarder-etcd-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "sauvegarder-etcd-check"
+        }
+      ]
+    },
+    {
+      "slug": "restaurer-etcd",
+      "title": "Restaurer etcd",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Restaurer dans un nouveau répertoire",
+          "body": "La restauration (`snapshot restore`) recrée un répertoire de données etcd **à partir du snapshot**, dans un **nouveau dossier** (on ne restaure pas par-dessus les données vivantes). Ensuite, on fait pointer etcd vers ce nouveau répertoire et on redémarre etcd.\n\nComme etcd tourne en **pod statique** sur un cluster kubeadm, on redirige en modifiant le `--data-dir` (et le volume hostPath) dans `/etc/kubernetes/manifests/etcd.yaml` : le kubelet redémarre alors le pod automatiquement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La restauration recree un data-dir neuf a partir du snapshot, sans ecraser les donnees vivantes.",
+          "body": "/images/lessons/restaurer-etcd-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Restaurer puis repointer",
+          "codeLanguage": "bash",
+          "body": "# 1) Restaurer le snapshot dans un nouveau repertoire\nETCDCTL_API=3 etcdctl snapshot restore /opt/etcd-backup.db \\\n  --data-dir=/var/lib/etcd-restore\n\n# 2) Dans /etc/kubernetes/manifests/etcd.yaml :\n#    - mettre --data-dir=/var/lib/etcd-restore\n#    - faire pointer le volume hostPath etcd-data sur /var/lib/etcd-restore\n# 3) Le kubelet detecte le changement et recree le pod etcd.\n#    Verifier ensuite :\nkubectl get pods -n kube-system"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Le cycle sauvegarde / restauration",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  E[\"etcd en marche\"] -->|\"snapshot save\"| S[(\"snapshot .db\")]\n  S -->|\"snapshot restore\"| R[\"nouveau data-dir\"]\n  R -->|\"editer etcd.yaml + redemarrage kubelet\"| E2[\"etcd restaure\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "On te donne un snapshot `/opt/snap.db` et on te demande de restaurer l'état du cluster. Décris les étapes et les points de vigilance (où lire les bons paramètres, pourquoi un nouveau répertoire, comment etcd redémarre).",
+          "solution": "1) Restaurer dans un NOUVEAU répertoire : `ETCDCTL_API=3 etcdctl snapshot restore /opt/snap.db --data-dir=/var/lib/etcd-restore` (ne jamais écraser le data-dir vivant). 2) Lire le manifeste `/etc/kubernetes/manifests/etcd.yaml` pour connaître les chemins actuels (data-dir, volume hostPath). 3) Y modifier `--data-dir` vers `/var/lib/etcd-restore` et faire pointer le volume hostPath etcd-data sur ce même chemin. 4) Comme etcd est un pod statique, le kubelet recrée automatiquement le pod ; on vérifie avec `kubectl get pods -n kube-system` et en relisant l'état du cluster. Points de vigilance : utiliser les certificats d'etcd pour toute commande etcdctl, et s'assurer que le endpoint et les permissions du nouveau répertoire sont corrects."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "restaurer-etcd-check"
+        }
+      ]
+    }
+  ]
+}

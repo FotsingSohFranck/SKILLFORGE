@@ -1,0 +1,43 @@
+{
+  "ref": "storageclass-et-provisionnement-check",
+  "node": "storage-classes",
+  "lesson": "storageclass-et-provisionnement",
+  "title": "Quiz : StorageClass et provisionnement",
+  "description": "Vérifie que tu maîtrises le provisionnement dynamique via StorageClass.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'intérêt principal d'une StorageClass ?",
+      "justification": "La StorageClass permet le provisionnement dynamique : le PV est créé automatiquement à partir du PVC, sans que l'administrateur crée le PV à la main.",
+      "position": 0,
+      "options": [
+        { "label": "Provisionner dynamiquement un PV à partir d'un PVC, sans le créer à la main", "correct": true, "position": 0 },
+        { "label": "Chiffrer automatiquement tous les secrets du cluster", "correct": false, "position": 1 },
+        { "label": "Limiter le nombre de pods par nœud", "correct": false, "position": 2 },
+        { "label": "Remplacer etcd pour stocker l'état du cluster", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle reclaimPolicy conserve le PV et ses données après suppression du PVC ?",
+      "justification": "Retain conserve le PV et ses données (nettoyage manuel ensuite), tandis que Delete détruit le volume. Retain est prudent pour une base de données.",
+      "position": 1,
+      "options": [
+        { "label": "Retain", "correct": true, "position": 0 },
+        { "label": "Delete", "correct": false, "position": 1 },
+        { "label": "Recycle", "correct": false, "position": 2 },
+        { "label": "Keep", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec volumeBindingMode: WaitForFirstConsumer, le provisionnement attend qu'un pod consomme le PVC avant de créer le volume.",
+      "justification": "Vrai : WaitForFirstConsumer retarde la liaison et le provisionnement jusqu'à la planification d'un pod, ce qui place le volume sur le bon nœud ou la bonne zone.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

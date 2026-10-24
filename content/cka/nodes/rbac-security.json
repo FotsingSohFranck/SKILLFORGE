@@ -1,0 +1,114 @@
+{
+  "node": "rbac-security",
+  "lessons": [
+    {
+      "slug": "rbac",
+      "title": "Le RBAC",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le modèle RBAC de Kubernetes",
+          "body": "Le **RBAC** (Role Based Access Control) décide **qui** peut faire **quoi** sur **quelles ressources**. Il repose sur deux familles d'objets qui se répondent deux à deux.\n\n**Les rôles** décrivent des permissions, jamais des identités.\n\n- **Role** : un ensemble de permissions **limité à un namespace**.\n- **ClusterRole** : un ensemble de permissions **à l'échelle du cluster** (ou sur des ressources non namespacées comme `nodes`, `persistentvolumes`, ou les sous ressources `/metrics`).\n\n**Les liaisons** rattachent un rôle à des **sujets**.\n\n- **RoleBinding** : accorde un Role (ou un ClusterRole) **dans un namespace précis**.\n- **ClusterRoleBinding** : accorde un ClusterRole **sur tout le cluster**.\n\nPoint de rigueur à retenir : un **RoleBinding peut référencer un ClusterRole**. Dans ce cas, les permissions du ClusterRole s'appliquent **uniquement dans le namespace du RoleBinding**. C'est le motif classique pour réutiliser un rôle générique (par exemple `view`) namespace par namespace."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le RBAC decide qui peut faire quoi sur quelles ressources",
+          "body": "/images/lessons/rbac-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les sujets et le moindre privilège",
+          "body": "Un **sujet** (`subject`) est l'entité à qui on accorde des droits. Il en existe trois types.\n\n- **User** : une identité humaine. Kubernetes ne gère pas de base d'utilisateurs ; un User est simplement un nom porté par un certificat client (CN) ou un jeton. Il n'existe aucun objet `User` en base.\n- **Group** : un regroupement d'identités, porté par le champ O du certificat ou par le fournisseur d'authentification. Lier un rôle à un groupe évite de répéter la liaison pour chaque utilisateur.\n- **ServiceAccount** : une identité **pour les processus** qui tournent dans le cluster (pods). Celle là, contrairement au User, est un objet réel, namespacé.\n\nRBAC est **purement additif** : il n'existe aucune règle de refus. Une requête est autorisée s'il existe au moins une règle qui l'accorde, refusée par défaut sinon. D'où le principe directeur : le **moindre privilège**. On n'accorde que les `verbs` (get, list, watch, create, update, patch, delete) et les ressources strictement nécessaires, dans le périmètre le plus étroit possible (un Role namespacé plutôt qu'un ClusterRole dès que c'est suffisant)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sujets et moindre privilege : n'accorder que le strict necessaire",
+          "body": "/images/lessons/rbac-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un Role et son RoleBinding",
+          "codeLanguage": "yaml",
+          "body": "# Role : lecture seule des pods dans le namespace dev\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  namespace: dev\n  name: lecteur-pods\nrules:\n  - apiGroups: [\"\"]          # \"\" = groupe d'API core (pods, services, configmaps...)\n    resources: [\"pods\"]\n    verbs: [\"get\", \"list\", \"watch\"]\n---\n# RoleBinding : accorde ce Role a l'utilisateur jean, dans dev uniquement\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  namespace: dev\n  name: jean-lecteur-pods\nsubjects:\n  - kind: User\n    name: jean            # le nom doit correspondre au CN du certificat\n    apiGroup: rbac.authorization.k8s.io\nroleRef:\n  kind: Role\n  name: lecteur-pods\n  apiGroup: rbac.authorization.k8s.io"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Vérifier un droit avec auth can-i",
+          "codeLanguage": "bash",
+          "body": "# Est-ce que MOI j'ai le droit de lister les pods dans dev ?\nkubectl auth can-i list pods --namespace dev\n# -> yes / no\n\n# Verifier les droits d'un AUTRE sujet (impersonation) : indispensable pour tester un RBAC\nkubectl auth can-i list pods --namespace dev --as jean\nkubectl auth can-i delete pods --namespace dev --as jean        # attendu : no (lecture seule)\n\n# Tester au nom d'un groupe, ou d'un ServiceAccount\nkubectl auth can-i get secrets --as-group=dev-team --namespace dev\nkubectl auth can-i create deployments \\\n  --as=system:serviceaccount:dev:ci-bot --namespace dev\n\n# Lister tout ce qu'un sujet peut faire dans un namespace\nkubectl auth can-i --list --namespace dev --as jean\n\n# Creation rapide sans YAML (utile a l'examen)\nkubectl create role lecteur-pods --verb=get,list,watch --resource=pods -n dev\nkubectl create rolebinding jean-lecteur-pods --role=lecteur-pods --user=jean -n dev"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "La chaîne d'autorisation RBAC",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  SUJ[\"Sujet (User / Group / ServiceAccount)\"] -->|\"subjects\"| BIND[\"RoleBinding ou ClusterRoleBinding\"]\n  BIND -->|\"roleRef\"| ROLE[\"Role (namespace) ou ClusterRole (cluster)\"]\n  ROLE -->|\"rules : apiGroups + resources + verbs\"| PERM[\"Permissions accordees\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "rbac-check"
+        }
+      ]
+    },
+    {
+      "slug": "certificats-et-kubeconfig",
+      "title": "Certificats & kubeconfig",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'authentification par certificat client",
+          "body": "Avant même que le RBAC n'autorise quoi que ce soit, l'API server doit **authentifier** l'appelant : savoir **qui** il est. Le mécanisme le plus courant pour un humain sur un cluster kubeadm est le **certificat client X.509**.\n\nLe serveur lit deux champs du certificat présenté et les transforme en identité.\n\n- **CN** (Common Name) : devient le **nom d'utilisateur** (`User`).\n- **O** (Organization) : chaque valeur O devient un **groupe** (`Group`). Un certificat peut porter plusieurs O, donc plusieurs groupes.\n\nPoint de rigueur : le certificat **n'accorde aucun droit**. Il prouve seulement l'identité. Les permissions viennent ensuite, et uniquement, du RBAC lié à ce CN ou à ces O. Authentification (qui es tu) et autorisation (que peux tu faire) sont deux étapes distinctes.\n\nPour qu'un certificat client soit accepté, il doit être **signé par une autorité de confiance du cluster**, typiquement la CA du cluster (`/etc/kubernetes/pki/ca.crt`). On passe par un objet **CertificateSigningRequest** pour faire signer une demande par le cluster lui même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le certificat client prouve l'identite avant toute autorisation",
+          "body": "/images/lessons/certificats-et-kubeconfig-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Anatomie d'un kubeconfig",
+          "body": "Un **kubeconfig** (par défaut `~/.kube/config`) est le fichier qui dit à `kubectl` à quel cluster parler et avec quelle identité. Il articule trois listes et un pointeur.\n\n- **clusters** : les API servers connus (URL du `server` et CA de confiance pour valider son certificat).\n- **users** : les identités (certificat + clé client, jeton, etc.).\n- **contexts** : des triplets qui **associent** un cluster, un user et un namespace par défaut.\n- **current-context** : le contexte actif, celui qu'utilisent les commandes.\n\nUn contexte ne contient aucun secret : il ne fait que **relier** un cluster et un user déjà déclarés. Changer d'identité ou de cluster revient donc à **basculer de contexte** avec `kubectl config use-context`, sans jamais rejouer d'authentification manuelle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le kubeconfig relie un cluster, une identite et un contexte",
+          "body": "/images/lessons/certificats-et-kubeconfig-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "CSR, approbation et contexte",
+          "codeLanguage": "bash",
+          "body": "# 1) Generer une cle privee et une demande de signature (CSR)\n#    CN = nom d'utilisateur ; O = groupe\nopenssl genrsa -out jean.key 2048\nopenssl req -new -key jean.key -out jean.csr -subj \"/CN=jean/O=dev-team\"\n\n# 2) Soumettre la CSR a l'API Kubernetes\n#    request = le .csr encode en base64 sur une seule ligne\ncat <<EOF | kubectl apply -f -\napiVersion: certificates.k8s.io/v1\nkind: CertificateSigningRequest\nmetadata:\n  name: jean\nspec:\n  request: $(cat jean.csr | base64 | tr -d '\\n')\n  signerName: kubernetes.io/kube-apiserver-client   # signe par la CA du cluster\n  expirationSeconds: 86400                          # 1 jour\n  usages:\n    - client auth\nEOF\n\n# 3) Approuver la demande, puis recuperer le certificat signe\nkubectl get csr\nkubectl certificate approve jean\nkubectl get csr jean -o jsonpath='{.status.certificate}' | base64 -d > jean.crt\n\n# 4) Declarer l'identite et un contexte dans le kubeconfig, puis basculer\nkubectl config set-credentials jean \\\n  --client-certificate=jean.crt --client-key=jean.key --embed-certs=true\nkubectl config set-context jean-dev \\\n  --cluster=kubernetes --user=jean --namespace=dev\nkubectl config use-context jean-dev        # bascule sur l'identite jean\nkubectl config current-context              # verifier le contexte actif"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "Accès lecture seule par certificat",
+          "body": "Scénario : une nouvelle recrue, **maya**, doit pouvoir **consulter** (lecture seule) les pods, services et configmaps du namespace **staging**, et **rien d'autre**, ni ailleurs. Elle n'a pas encore d'accès au cluster. Décris, dans l'ordre, les étapes complètes : création de son identité par certificat, obtention d'un certificat signé par le cluster, attribution des droits RBAC au plus juste, configuration de son kubeconfig, et vérification. Indique les points de vigilance (séparation authentification / autorisation, moindre privilège, périmètre namespacé).",
+          "solution": "1) Identite (authentification) : générer la clé et la CSR avec le bon sujet. `openssl genrsa -out maya.key 2048` puis `openssl req -new -key maya.key -out maya.csr -subj \"/CN=maya/O=staging-ro\"`. Le CN maya sera le User, O le groupe éventuel.\n2) Faire signer par le cluster : créer un objet CertificateSigningRequest avec `signerName: kubernetes.io/kube-apiserver-client`, `usages: [client auth]` et `request` = la CSR en base64 sur une ligne. Puis `kubectl get csr`, `kubectl certificate approve maya`, et récupérer le certificat : `kubectl get csr maya -o jsonpath='{.status.certificate}' | base64 -d > maya.crt`.\n3) Droits RBAC au plus juste (autorisation) : un Role namespacé dans staging, surtout pas un ClusterRole/ClusterRoleBinding. `kubectl create role lecteur-staging --verb=get,list,watch --resource=pods,services,configmaps -n staging` puis `kubectl create rolebinding maya-lecteur --role=lecteur-staging --user=maya -n staging`. Seuls les verbs de lecture, uniquement dans staging.\n4) kubeconfig : `kubectl config set-credentials maya --client-certificate=maya.crt --client-key=maya.key --embed-certs=true`, `kubectl config set-context maya-staging --cluster=kubernetes --user=maya --namespace=staging`, puis `kubectl config use-context maya-staging`.\n5) Vérification : `kubectl auth can-i list pods -n staging --as maya` (attendu yes), `kubectl auth can-i delete pods -n staging --as maya` (attendu no), `kubectl auth can-i list pods -n default --as maya` (attendu no).\nPoints de vigilance : le certificat ne donne aucun droit, il ne fait qu'authentifier ; les permissions viennent exclusivement du RBAC. RBAC étant additif et sans refus, on applique le moindre privilège : périmètre namespacé (Role, pas ClusterRole) et verbs de lecture seule uniquement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "certificats-et-kubeconfig-check"
+        }
+      ]
+    }
+  ]
+}

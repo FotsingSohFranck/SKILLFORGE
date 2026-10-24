@@ -1,0 +1,95 @@
+{
+  "node": "node-cluster-troubleshooting",
+  "lessons": [
+    {
+      "slug": "noeud-notready",
+      "title": "Un nœud NotReady",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ce que signifie NotReady",
+          "body": "Un nœud passe **NotReady** quand le control plane ne reçoit plus de signal de santé cohérent de sa part. Le responsable de ce signal est le **kubelet** : c'est lui qui s'enregistre auprès de l'API server, publie périodiquement les **conditions** du nœud et met à jour son **Lease** dans le namespace `kube-node-lease`. Si le kubelet s'arrête, perd l'accès à l'API server, ou si un composant dont il dépend tombe, le nœud bascule NotReady au bout du délai de grâce.\n\nLe réflexe de diagnostic suit toujours le même fil : partir du cluster (`kubectl get nodes`), descendre sur le nœud concerné (`kubectl describe node`), puis aller **sur la machine** inspecter le kubelet (`systemctl`, `journalctl`). Les conditions du nœud (`Ready`, `MemoryPressure`, `DiskPressure`, `PIDPressure`) et surtout le message de la condition `Ready` orientent la suite : un `KubeletNotReady` mentionnant le réseau pointe vers le **CNI**, un `DiskPressure` vers un **disque plein**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Diagnostiquer un nœud qui ne répond plus en partant du cluster vers la machine",
+          "body": "/images/lessons/noeud-notready-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Diagnostiquer depuis le cluster puis sur la machine",
+          "codeLanguage": "bash",
+          "body": "# 1) Vue d'ensemble : quel noeud est NotReady, depuis combien de temps\nkubectl get nodes -o wide\n\n# 2) Detail du noeud : conditions, messages, derniers evenements\nkubectl describe node worker-1\n# Regarder la section Conditions (Ready, MemoryPressure, DiskPressure, PIDPressure)\n# et le message associe a Ready, qui donne souvent la cause.\n\n# 3) Se connecter SUR le noeud concerne\nssh worker-1\n\n# 4) Etat du kubelet (service systemd)\nsystemctl status kubelet\n\n# 5) Logs du kubelet : les erreurs recentes expliquent le basculement\njournalctl -u kubelet -n 80 --no-pager\n# Suivre en direct pendant qu'on agit :\njournalctl -u kubelet -f"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Causes fréquentes et remise en marche",
+          "body": "Les causes qui reviennent le plus souvent le jour de l'examen :\n\n- **Kubelet arrêté ou non démarré** : `systemctl status kubelet` montre `inactive` ou `failed`. On le réactive et on le démarre, puis on relit les logs si le service retombe.\n- **CNI absent ou cassé** : le kubelet reste NotReady avec un message `network plugin is not ready` ou `cni config uninitialized`. Vérifier que le plugin CNI est bien installé (fichiers dans `/etc/cni/net.d`) et que ses pods tournent (`kubectl get pods -n kube-system`).\n- **Certificats** : kubelet dont le certificat client a expiré ou dont le `kubeconfig` (`/etc/kubernetes/kubelet.conf`) pointe vers un mauvais CA ; les logs affichent des erreurs TLS ou `Unauthorized`.\n- **Disque plein** : condition `DiskPressure=True`, erreurs d'écriture dans les logs. Libérer de l'espace (images inutilisées, logs) rétablit le nœud.\n\nRemise en marche typique du kubelet :\n```\nsudo systemctl daemon-reload\nsudo systemctl enable --now kubelet\n```\nUne fois le kubelet sain, le nœud repasse **Ready** en quelques secondes sans action supplémentaire côté control plane."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Relancer le kubelet et libérer les ressources pour remettre le nœud en marche",
+          "body": "/images/lessons/noeud-notready-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Arbre de décision NotReady",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  N[\"Noeud NotReady\"] --> K{\"kubelet actif ?\"}\n  K -->|\"non\"| KR[\"systemctl enable --now kubelet\"]\n  K -->|\"oui\"| C{\"message de la condition Ready\"}\n  C -->|\"network / cni\"| CNI[\"verifier CNI : /etc/cni/net.d et pods reseau\"]\n  C -->|\"DiskPressure\"| D[\"liberer de l espace disque\"]\n  C -->|\"TLS / Unauthorized\"| T[\"verifier certificats et kubelet.conf\"]\n  KR --> V[\"journalctl -u kubelet puis kubectl get nodes\"]\n  CNI --> V\n  D --> V\n  T --> V"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "noeud-notready-check"
+        }
+      ]
+    },
+    {
+      "slug": "control-plane-en-echec",
+      "title": "Le plan de contrôle en échec",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des pods statiques pilotés par le kubelet",
+          "body": "Sur un cluster **kubeadm**, les composants du plan de contrôle (`kube-apiserver`, `kube-controller-manager`, `kube-scheduler` et `etcd`) ne sont pas déployés par un contrôleur : ce sont des **pods statiques**. Leurs manifestes vivent dans `/etc/kubernetes/manifests/` sur le nœud control plane, et c'est le **kubelet** qui les surveille directement. Dès qu'on modifie un de ces fichiers, le kubelet recrée le pod correspondant, sans passer par l'API server.\n\nCette propriété est à double tranchant. Elle permet de redémarrer un composant en éditant son manifeste, mais elle signifie aussi qu'une **erreur de manifeste** (mauvaise indentation YAML, flag invalide, chemin de certificat erroné, mauvais port) empêche le pod de démarrer. Si c'est l'**API server** qui est touché, `kubectl` ne répond plus du tout : il faut alors diagnostiquer **sans** l'API, directement au niveau du runtime avec **crictl**, et lire les logs du conteneur ou le journal du kubelet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Inspecter les pods statiques du plan de contrôle quand l'API server est indisponible",
+          "body": "/images/lessons/control-plane-en-echec-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Inspecter le control plane, avec ou sans API server",
+          "codeLanguage": "bash",
+          "body": "# --- Quand l'API server repond encore ---\n# Etat des pods systeme du control plane\nkubectl get pods -n kube-system\n# Detail et evenements d'un composant qui crashe\nkubectl describe pod -n kube-system kube-controller-manager-cp-1\n# Logs du composant\nkubectl logs -n kube-system kube-scheduler-cp-1\n\n# --- Quand l'API server est DOWN (kubectl ne repond plus) ---\n# On parle directement au runtime via crictl (sur le noeud control plane)\nexport CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock\n\n# Lister les conteneurs, y compris ceux qui ont quitte\ncrictl ps -a\n\n# Lire les logs du conteneur apiserver (recuperer son ID dans crictl ps -a)\ncrictl logs <container-id>\n\n# Et le journal du kubelet, qui tente de (re)lancer le pod statique\njournalctl -u kubelet -n 80 --no-pager"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi : l'API server ne répond plus après une édition",
+          "body": "Scénario : tu viens de modifier `/etc/kubernetes/manifests/kube-apiserver.yaml` (par exemple pour ajouter un flag). Depuis, toute commande `kubectl` échoue avec `The connection to the server ... was refused`. Le nœud control plane est par ailleurs joignable en SSH. Décris, étape par étape, comment retrouver la cause et rétablir l'API server.",
+          "solution": "1) Constater que l'API est down : `kubectl get nodes` renvoie `connection refused`, donc on ne peut pas diagnostiquer via kubectl. 2) Se connecter au nœud control plane en SSH. 3) Comme l'API server est un pod statique, inspecter le runtime avec crictl : `export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock` puis `crictl ps -a | grep apiserver` pour voir si le conteneur boucle en CrashLoopBackOff ou ne démarre pas. 4) Lire les logs du conteneur fautif : `crictl logs <id-du-conteneur-apiserver>` ; le message indique généralement l'erreur exacte (flag inconnu, YAML invalide, fichier de certificat introuvable). Compléter avec `journalctl -u kubelet -n 80 --no-pager`, où le kubelet signale pourquoi il n'arrive pas à démarrer le pod statique. 5) Corriger la cause dans `/etc/kubernetes/manifests/kube-apiserver.yaml` : rétablir l'indentation, retirer ou corriger le flag invalide, ou remettre le bon chemin de certificat. Astuce de sûreté : garder une copie du manifeste avant édition (`cp kube-apiserver.yaml /tmp/`) pour pouvoir revenir en arrière. 6) Sauvegarder le fichier : le kubelet détecte le changement et recrée automatiquement le pod apiserver. Surveiller la reprise avec `crictl ps -a` puis, dès que l'API répond, confirmer avec `kubectl get pods -n kube-system` et `kubectl get nodes`. Point de vigilance : ne jamais déplacer le manifeste hors du dossier sans raison ; une erreur fréquente est une faute d'indentation YAML ou un chemin de certificat incorrect, visibles directement dans `crictl logs`."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "control-plane-en-echec-check"
+        }
+      ]
+    }
+  ]
+}

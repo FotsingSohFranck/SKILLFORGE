@@ -1,0 +1,43 @@
+{
+  "ref": "pods-en-echec-check",
+  "node": "app-logs-troubleshooting",
+  "lesson": "pods-en-echec",
+  "title": "Quiz : Pods en échec",
+  "description": "Vérifie que tu sais diagnostiquer un pod en échec.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un pod est en CrashLoopBackOff. Quelle commande donne la vraie erreur applicative du conteneur qui vient de planter ?",
+      "justification": "En CrashLoopBackOff, le conteneur actuel vient de redémarrer. L'option --previous affiche les logs de l'instance précédente, celle qui a réellement échoué.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl logs <pod> --previous", "correct": true, "position": 0 },
+        { "label": "kubectl get pod <pod> -o wide", "correct": false, "position": 1 },
+        { "label": "kubectl top pod <pod>", "correct": false, "position": 2 },
+        { "label": "kubectl delete pod <pod>", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un pod reste en Pending. Quelle section de kubectl describe pod oriente le mieux le diagnostic ?",
+      "justification": "La section Events de describe pod expose les messages du scheduler et du kubelet : ressources insuffisantes, taints non tolérées, PVC non lié.",
+      "position": 1,
+      "options": [
+        { "label": "La section Events", "correct": true, "position": 0 },
+        { "label": "La section Labels", "correct": false, "position": 1 },
+        { "label": "La section Volumes uniquement", "correct": false, "position": 2 },
+        { "label": "La section Annotations", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un statut ImagePullBackOff indique que le kubelet n'arrive pas à télécharger l'image du conteneur.",
+      "justification": "Vrai : ImagePullBackOff signale un échec de récupération de l'image (nom ou tag erroné, registre privé sans imagePullSecret, problème réseau vers le registre).",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

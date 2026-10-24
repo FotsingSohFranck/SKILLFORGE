@@ -1,0 +1,43 @@
+{
+  "ref": "cni-et-reseau-des-pods-check",
+  "node": "cni-dns",
+  "lesson": "cni-et-reseau-des-pods",
+  "title": "Quiz : CNI et réseau des pods",
+  "description": "Vérifie que tu comprends le modèle réseau de Kubernetes, le rôle du CNI et de kube-proxy.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans un cluster fraîchement initialisé sans plugin CNI, quels symptômes observes-tu ?",
+      "justification": "Sans CNI, le kubelet ne peut pas créer le réseau des pods : les nœuds restent NotReady et les pods restent bloqués en ContainerCreating.",
+      "position": 0,
+      "options": [
+        { "label": "Les nœuds restent NotReady et les pods restent en ContainerCreating", "correct": true, "position": 0 },
+        { "label": "Les nœuds sont Ready mais les Services renvoient 404", "correct": false, "position": 1 },
+        { "label": "L'API server refuse de démarrer", "correct": false, "position": 2 },
+        { "label": "etcd perd ses données à chaque redémarrage", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant programme l'accès aux Services (IP virtuelle vers IP des pods) sur chaque nœud ?",
+      "justification": "kube-proxy programme les règles iptables ou IPVS qui traduisent l'IP d'un Service vers les pods backend ; le CNI, lui, fournit la connectivité pod à pod.",
+      "position": 1,
+      "options": [
+        { "label": "kube-proxy", "correct": true, "position": 0 },
+        { "label": "CoreDNS", "correct": false, "position": 1 },
+        { "label": "Le plugin CNI", "correct": false, "position": 2 },
+        { "label": "Le kube-scheduler", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le modèle réseau de Kubernetes impose que tous les pods puissent communiquer entre eux sans NAT, chacun ayant sa propre IP.",
+      "justification": "Vrai : c'est le contrat du modèle réseau, et c'est le plugin CNI qui l'implémente concrètement.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

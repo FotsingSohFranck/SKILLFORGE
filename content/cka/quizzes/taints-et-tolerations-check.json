@@ -1,0 +1,43 @@
+{
+  "ref": "taints-et-tolerations-check",
+  "node": "scheduling-advanced",
+  "lesson": "taints-et-tolerations",
+  "title": "Quiz : Taints et tolerations",
+  "description": "Vérifie que tu maîtrises les taints, les tolerations et leurs effets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel effet de taint expulse les pods déjà présents qui n'ont pas de toleration ?",
+      "justification": "NoExecute empêche le placement des nouveaux pods non tolérants ET évince ceux qui tournent déjà sans toleration. NoSchedule et PreferNoSchedule n'agissent que sur les nouveaux pods.",
+      "position": 0,
+      "options": [
+        { "label": "NoExecute", "correct": true, "position": 0 },
+        { "label": "NoSchedule", "correct": false, "position": 1 },
+        { "label": "PreferNoSchedule", "correct": false, "position": 2 },
+        { "label": "Evict", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter une toleration à un pod le force à être placé sur le nœud taint correspondant.",
+      "justification": "Faux : une toleration autorise seulement le placement malgré le taint. Pour attirer réellement un pod vers un nœud précis, il faut y ajouter une affinité ou un nodeSelector.",
+      "position": 1,
+      "options": [
+        { "label": "Faux", "correct": true, "position": 0 },
+        { "label": "Vrai", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande retire le taint gpu=true:NoSchedule du nœud node01 ?",
+      "justification": "On retire un taint en reprenant exactement sa clé, sa valeur et son effet, suivis d'un tiret final. Les autres options ajoutent un taint ou utilisent une syntaxe inexistante.",
+      "position": 2,
+      "options": [
+        { "label": "kubectl taint nodes node01 gpu=true:NoSchedule-", "correct": true, "position": 0 },
+        { "label": "kubectl taint nodes node01 gpu=true:NoSchedule", "correct": false, "position": 1 },
+        { "label": "kubectl untaint nodes node01 gpu", "correct": false, "position": 2 },
+        { "label": "kubectl delete taint node01 gpu", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

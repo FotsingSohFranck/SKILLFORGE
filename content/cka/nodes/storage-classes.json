@@ -1,0 +1,119 @@
+{
+  "node": "storage-classes",
+  "lessons": [
+    {
+      "slug": "pv-pvc-rappel",
+      "title": "PV, PVC et liaison",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux objets, deux rôles",
+          "body": "Dans Kubernetes, le stockage persistant repose sur deux objets complémentaires. Le **PersistentVolume** (PV) est une **ressource de stockage** du cluster : un morceau de capacité (disque NFS, volume cloud, hostPath, etc.) décrit comme un objet à part entière, indépendant du cycle de vie des pods. Le **PersistentVolumeClaim** (PVC) est une **demande de stockage** faite par un utilisateur ou un pod : il exprime un besoin (taille, mode d'accès) sans connaître le détail physique du volume.\n\nCette séparation isole l'administrateur (qui provisionne les PV) de l'utilisateur (qui réclame via un PVC). Le pod ne monte jamais un PV directement : il référence un PVC, et c'est Kubernetes qui relie le PVC au PV adéquat."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le PV est une ressource de stockage du cluster, independante du cycle de vie des pods.",
+          "body": "/images/lessons/pv-pvc-rappel-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Liaison, modes d'accès et capacité",
+          "body": "Quand un PVC est créé, le contrôleur cherche un PV compatible et crée une **liaison** (binding) un à un : un PV lié à un PVC ne peut plus servir à un autre. La compatibilité se joue sur deux critères principaux.\n\n**La capacité** : le PV doit offrir au moins la taille demandée par le PVC (`capacity.storage` côté PV, `resources.requests.storage` côté PVC).\n\n**Les modes d'accès** : ils décrivent comment le volume peut être monté. **ReadWriteOnce** (RWO), montage lecture/écriture par un seul nœud ; **ReadOnlyMany** (ROX), lecture seule par plusieurs nœuds ; **ReadWriteMany** (RWX), lecture/écriture par plusieurs nœuds. Tous les backends ne supportent pas RWX : un disque bloc cloud est en général RWO, alors que NFS permet RWX. Le PVC et le PV doivent partager un mode d'accès compatible pour que la liaison se fasse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La liaison un a un relie une demande a une capacite et un mode d'acces compatibles.",
+          "body": "/images/lessons/pv-pvc-rappel-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un PV, un PVC, et leur usage dans un pod",
+          "codeLanguage": "yaml",
+          "body": "# PersistentVolume : la ressource de stockage (ici hostPath, pour l'exemple)\napiVersion: v1\nkind: PersistentVolume\nmetadata:\n  name: pv-donnees\nspec:\n  capacity:\n    storage: 2Gi            # capacite offerte\n  accessModes:\n    - ReadWriteOnce         # montage par un seul noeud en lecture/ecriture\n  persistentVolumeReclaimPolicy: Retain\n  hostPath:\n    path: /mnt/donnees\n---\n# PersistentVolumeClaim : la demande du pod\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: pvc-donnees\nspec:\n  accessModes:\n    - ReadWriteOnce         # doit etre compatible avec le PV\n  resources:\n    requests:\n      storage: 1Gi         # on demande 1Gi, le PV de 2Gi convient\n---\n# Pod : il reference le PVC, jamais le PV directement\napiVersion: v1\nkind: Pod\nmetadata:\n  name: app\nspec:\n  containers:\n    - name: app\n      image: nginx\n      volumeMounts:\n        - name: donnees\n          mountPath: /usr/share/nginx/html\n  volumes:\n    - name: donnees\n      persistentVolumeClaim:\n        claimName: pvc-donnees   # le lien se fait via le nom du PVC"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "La chaîne pod vers stockage",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  POD[\"Pod\"] -->|\"volumes.persistentVolumeClaim\"| PVC[\"PVC (demande)\"]\n  PVC -->|\"liaison un a un\"| PV[\"PV (ressource)\"]\n  PV -->|\"backend\"| STO[(\"Stockage physique\")]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Vérifier l'état de la liaison",
+          "body": "Côté administrateur, on contrôle la liaison avec `kubectl get pv` et `kubectl get pvc`. Un PVC passe de l'état **Pending** à **Bound** quand il trouve son PV ; le PV affiche alors la colonne CLAIM pointant vers le PVC. Si le PVC reste **Pending**, la cause est presque toujours une incompatibilité : aucun PV avec la bonne capacité, le bon mode d'accès ou le bon StorageClass. `kubectl describe pvc <nom>` donne le motif exact dans ses événements."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On controle l'etat Bound ou Pending de la liaison avec kubectl get pv et get pvc.",
+          "body": "/images/lessons/pv-pvc-rappel-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "pv-pvc-rappel-check"
+        }
+      ]
+    },
+    {
+      "slug": "storageclass-et-provisionnement",
+      "title": "StorageClass et provisionnement",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Du provisionnement statique au dynamique",
+          "body": "Créer chaque PV à la main (provisionnement **statique**) ne tient pas à l'échelle. La **StorageClass** apporte le provisionnement **dynamique** : au lieu d'exiger un PV préexistant, le PVC référence une StorageClass, et Kubernetes **crée automatiquement le PV** adapté à la demande, sans intervention de l'administrateur.\n\nLa StorageClass décrit comment fabriquer ce volume. Son champ clé est le **provisioner** : le composant (par exemple un driver CSI) qui dialogue avec le backend de stockage pour allouer le disque. Des `parameters` optionnels affinent le type de volume (type de disque, système de fichiers, etc.)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le provisionnement dynamique fabrique le volume a la demande, sans PV cree a la main.",
+          "body": "/images/lessons/storageclass-et-provisionnement-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "reclaimPolicy, volumeBindingMode et classe par défaut",
+          "body": "Trois réglages structurent le comportement d'une StorageClass.\n\n**reclaimPolicy** décide du sort du PV quand son PVC est supprimé : **Delete** (défaut pour le dynamique) détruit le volume et ses données ; **Retain** conserve le PV et ses données, qu'il faudra nettoyer à la main. Pour une base de données, on penche souvent vers Retain par prudence.\n\n**volumeBindingMode** fixe le moment de la liaison et du provisionnement : **Immediate** provisionne dès la création du PVC ; **WaitForFirstConsumer** attend qu'un pod consomme le PVC, ce qui permet de placer le volume sur le bon nœud ou la bonne zone (utile avec des topologies).\n\nUne StorageClass peut être marquée **par défaut** via l'annotation `storageclass.kubernetes.io/is-default-class: \"true\"`. Un PVC sans champ `storageClassName` utilise alors cette classe par défaut. On repère la classe par défaut dans `kubectl get storageclass` (mention `(default)`)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "reclaimPolicy et volumeBindingMode decident du sort du disque et du moment de sa creation.",
+          "body": "/images/lessons/storageclass-et-provisionnement-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une StorageClass et un PVC qui la référence",
+          "codeLanguage": "yaml",
+          "body": "# StorageClass : la recette de provisionnement dynamique\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: rapide\nprovisioner: kubernetes.io/no-provisioner   # a remplacer par le provisioner reel (driver CSI)\nreclaimPolicy: Retain                       # on conserve les donnees si le PVC disparait\nvolumeBindingMode: WaitForFirstConsumer     # on attend le pod pour placer le volume\n---\n# PVC : il reference la StorageClass, aucun PV cree a la main\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: pvc-dynamique\nspec:\n  accessModes:\n    - ReadWriteOnce\n  storageClassName: rapide    # declenche le provisionnement dynamique\n  resources:\n    requests:\n      storage: 5Gi"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "Fournir un volume à une base de données sans créer le PV",
+          "body": "On te demande de fournir un **volume persistant de 10Gi à une base de données** (PostgreSQL), de façon **entièrement dynamique** : tu ne dois créer aucun PersistentVolume à la main. Le cluster dispose d'un provisioner CSI nommé `csi.exemple.io`. La base est critique : la suppression accidentelle du PVC ne doit pas détruire les données. Décris les objets à créer et justifie tes choix de StorageClass.",
+          "solution": "1) Créer une StorageClass qui s'appuie sur le provisioner disponible, avec une reclaimPolicy prudente :\n\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: db-storage\nprovisioner: csi.exemple.io\nreclaimPolicy: Retain\nvolumeBindingMode: WaitForFirstConsumer\n\n2) Créer un PVC qui référence cette classe, sans aucun PV préalable :\n\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: pvc-postgres\nspec:\n  accessModes:\n    - ReadWriteOnce\n  storageClassName: db-storage\n  resources:\n    requests:\n      storage: 10Gi\n\n3) Monter ce PVC dans le pod ou le StatefulSet de la base via volumes.persistentVolumeClaim.claimName: pvc-postgres.\n\nJustifications : la StorageClass déclenche la création automatique du PV (provisionnement dynamique), donc aucun PV n'est écrit à la main. reclaimPolicy: Retain garantit que les données survivent à la suppression du PVC, point crucial pour une base. volumeBindingMode: WaitForFirstConsumer laisse Kubernetes provisionner le volume sur le nœud où le pod sera réellement planifié, ce qui évite les problèmes de zone ou de topologie. Vérification : kubectl get pvc montre le PVC passer à Bound, et kubectl get pv montre un PV créé automatiquement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "storageclass-et-provisionnement-check"
+        }
+      ]
+    }
+  ]
+}

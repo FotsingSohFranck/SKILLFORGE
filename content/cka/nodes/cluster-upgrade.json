@@ -1,0 +1,95 @@
+{
+  "node": "cluster-upgrade",
+  "lessons": [
+    {
+      "slug": "mettre-a-jour-le-control-plane",
+      "title": "Mettre à jour le plan de contrôle",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'ordre d'une mise à jour kubeadm",
+          "body": "Mettre à jour un cluster kubeadm suit un ordre **strict** : on met d'abord à jour le **plan de contrôle** (control plane), puis les **nœuds de travail** (workers), un par un. On ne saute jamais plus d'une **version mineure** à la fois : pour aller de la 1.30 à la 1.32, on passe par la 1.31. Les composants sont conçus pour tolérer un léger écart (skew) entre un plan de contrôle plus récent et des kubelet un peu plus anciens, mais jamais l'inverse.\n\nSur le premier nœud de contrôle, la séquence est : mettre à jour le paquet **kubeadm**, lancer `kubeadm upgrade plan` pour vérifier les versions cibles, appliquer avec `kubeadm upgrade apply vX.Y.Z`, puis mettre à jour **kubelet** et **kubectl** du nœud et redémarrer le kubelet. S'il y a d'autres nœuds de contrôle, on y lance `kubeadm upgrade node` au lieu de `apply`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La mise a jour suit un ordre strict : le plan de controle d'abord, une version mineure a la fois.",
+          "body": "/images/lessons/mettre-a-jour-le-control-plane-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Mettre à jour kubeadm puis appliquer",
+          "codeLanguage": "bash",
+          "body": "# 1) Debloquer puis installer la version cible de kubeadm (exemple : 1.31.1)\nsudo apt-mark unhold kubeadm\nsudo apt-get update\nsudo apt-get install -y kubeadm=1.31.1-1.1\nsudo apt-mark hold kubeadm\n\n# 2) Verifier le plan de mise a jour (versions proposees, composants concernes)\nsudo kubeadm upgrade plan\n\n# 3) Appliquer la mise a jour du plan de controle\nsudo kubeadm upgrade apply v1.31.1\n\n# 4) Vider le noeud de controle avant de toucher au kubelet\nkubectl drain <noeud-controle> --ignore-daemonsets\n\n# 5) Mettre a jour kubelet et kubectl du noeud de controle\nsudo apt-mark unhold kubelet kubectl\nsudo apt-get install -y kubelet=1.31.1-1.1 kubectl=1.31.1-1.1\nsudo apt-mark hold kubelet kubectl\n\n# 6) Recharger et redemarrer le kubelet, puis rouvrir le noeud\nsudo systemctl daemon-reload\nsudo systemctl restart kubelet\nkubectl uncordon <noeud-controle>"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Plan de contrôle d'abord, puis les workers",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  CP[\"Plan de controle : kubeadm upgrade apply\"] --> W1[\"Worker 1 : drain, upgrade node, uncordon\"]\n  W1 --> W2[\"Worker 2 : drain, upgrade node, uncordon\"]\n  W2 --> W3[\"Worker 3 : drain, upgrade node, uncordon\"]\n  W3 --> OK[\"Cluster entierement a jour\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Points de vigilance",
+          "body": "Trois réflexes d'examen. D'abord, les paquets **kubeadm**, **kubelet** et **kubectl** sont souvent figés par `apt-mark hold` : il faut faire `unhold` avant d'installer, puis `hold` à nouveau. Ensuite, `kubeadm upgrade apply` ne touche **pas** au kubelet : la mise à jour du kubelet est une étape séparée, suivie de `systemctl daemon-reload` et `systemctl restart kubelet`. Enfin, on respecte le saut d'**une seule version mineure** : pour deux versions d'écart, on répète toute la procédure deux fois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Points de vigilance : gerer les hold apt et traiter le kubelet comme une etape separee.",
+          "body": "/images/lessons/mettre-a-jour-le-control-plane-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "mettre-a-jour-le-control-plane-check"
+        }
+      ]
+    },
+    {
+      "slug": "mettre-a-jour-les-noeuds",
+      "title": "Mettre à jour les nœuds",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Vider le nœud avant de le mettre à jour",
+          "body": "Une fois le plan de contrôle à jour, on met à jour les **nœuds de travail**, toujours **un seul à la fois** pour garder le service disponible. La séquence sur chaque worker : **drainer** le nœud (`kubectl drain`), qui le marque non planifiable (cordon) et évacue ses pods vers les autres nœuds ; mettre à jour le paquet **kubeadm** ; lancer `kubeadm upgrade node` (qui met à jour la configuration locale du kubelet, sans `apply`) ; mettre à jour **kubelet** puis redémarrer le kubelet ; enfin **rouvrir** le nœud avec `kubectl uncordon` pour qu'il accueille de nouveau des pods.\n\nLe drain s'exécute depuis une machine ayant accès à `kubectl` (souvent le nœud de contrôle), alors que les commandes `kubeadm` et `apt` s'exécutent **sur le worker** concerné."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On draine le worker pour evacuer ses pods avant de toucher a son kubelet.",
+          "body": "/images/lessons/mettre-a-jour-les-noeuds-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Drainer, mettre à jour, rouvrir",
+          "codeLanguage": "bash",
+          "body": "# 1) Depuis le plan de controle : vider le worker (cordon + evacuation)\nkubectl drain <worker> --ignore-daemonsets --delete-emptydir-data\n\n# 2) Sur le worker : mettre a jour kubeadm\nsudo apt-mark unhold kubeadm\nsudo apt-get update\nsudo apt-get install -y kubeadm=1.31.1-1.1\nsudo apt-mark hold kubeadm\n\n# 3) Sur le worker : mettre a jour la configuration locale du kubelet\nsudo kubeadm upgrade node\n\n# 4) Sur le worker : mettre a jour kubelet puis redemarrer\nsudo apt-mark unhold kubelet\nsudo apt-get install -y kubelet=1.31.1-1.1\nsudo apt-mark hold kubelet\nsudo systemctl daemon-reload\nsudo systemctl restart kubelet\n\n# 5) Depuis le plan de controle : rouvrir le noeud\nkubectl uncordon <worker>\nkubectl get nodes"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Le plan de contrôle est déjà en 1.31.1. On te demande de mettre à jour un worker nommé `node01` vers la même version **sans interrompre les applications** qui tournent dessus. Décris la séquence exacte, en précisant quelles commandes s'exécutent depuis le plan de contrôle et lesquelles sur le worker, et pourquoi on procède un nœud à la fois.",
+          "solution": "1) Depuis le plan de contrôle, vider le nœud : `kubectl drain node01 --ignore-daemonsets --delete-emptydir-data`. Cela met node01 en cordon (non planifiable) et évacue ses pods vers les autres workers, donc les applications continuent de tourner ailleurs. 2) Se connecter en SSH sur node01 et mettre à jour kubeadm : `apt-mark unhold kubeadm`, `apt-get update`, `apt-get install -y kubeadm=1.31.1-1.1`, puis `apt-mark hold kubeadm`. 3) Toujours sur node01 : `sudo kubeadm upgrade node` (met à jour la config locale du kubelet ; on utilise `node`, pas `apply`, car ce n'est pas un nœud de contrôle). 4) Sur node01, mettre à jour le kubelet : `apt-mark unhold kubelet`, `apt-get install -y kubelet=1.31.1-1.1`, `apt-mark hold kubelet`, puis `systemctl daemon-reload` et `systemctl restart kubelet`. 5) Depuis le plan de contrôle, rouvrir le nœud : `kubectl uncordon node01`, puis vérifier avec `kubectl get nodes` que node01 est `Ready` en version v1.31.1. On procède un nœud à la fois pour qu'il reste toujours assez de capacité en ligne et que le service ne soit jamais interrompu."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "mettre-a-jour-les-noeuds-check"
+        }
+      ]
+    }
+  ]
+}

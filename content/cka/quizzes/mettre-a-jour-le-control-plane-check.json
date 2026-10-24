@@ -1,0 +1,43 @@
+{
+  "ref": "mettre-a-jour-le-control-plane-check",
+  "node": "cluster-upgrade",
+  "lesson": "mettre-a-jour-le-control-plane",
+  "title": "Quiz : Mettre à jour le plan de contrôle",
+  "description": "Vérifie que tu maîtrises l'ordre et les commandes de mise à jour du plan de contrôle.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel ordre met-on à jour un cluster kubeadm ?",
+      "justification": "On met toujours à jour le plan de contrôle en premier, puis les nœuds de travail un par un.",
+      "position": 0,
+      "options": [
+        { "label": "Le plan de contrôle d'abord, puis les workers un par un", "correct": true, "position": 0 },
+        { "label": "Les workers d'abord, puis le plan de contrôle", "correct": false, "position": 1 },
+        { "label": "Tous les nœuds en même temps", "correct": false, "position": 2 },
+        { "label": "Peu importe l'ordre", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande applique la mise à jour sur le premier nœud de contrôle ?",
+      "justification": "Sur le premier nœud de contrôle on utilise kubeadm upgrade apply vX.Y.Z ; les autres nœuds de contrôle utilisent kubeadm upgrade node.",
+      "position": 1,
+      "options": [
+        { "label": "kubeadm upgrade apply v1.31.1", "correct": true, "position": 0 },
+        { "label": "kubeadm upgrade node", "correct": false, "position": 1 },
+        { "label": "kubectl upgrade apply v1.31.1", "correct": false, "position": 2 },
+        { "label": "apt-get upgrade cluster", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut sauter plusieurs versions mineures en une seule mise à jour (par exemple de la 1.30 à la 1.32).",
+      "justification": "Faux : on ne saute qu'une seule version mineure à la fois ; pour aller de la 1.30 à la 1.32, il faut passer par la 1.31.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

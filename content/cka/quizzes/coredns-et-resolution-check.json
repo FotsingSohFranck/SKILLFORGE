@@ -1,0 +1,43 @@
+{
+  "ref": "coredns-et-resolution-check",
+  "node": "cni-dns",
+  "lesson": "coredns-et-resolution",
+  "title": "Quiz : CoreDNS et résolution",
+  "description": "Vérifie que tu sais résoudre les noms de Services et diagnostiquer un problème DNS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le nom DNS complet (FQDN) d'un Service nommé mon-api dans le namespace prod ?",
+      "justification": "Le format standard d'un Service est <service>.<namespace>.svc.cluster.local, soit ici mon-api.prod.svc.cluster.local.",
+      "position": 0,
+      "options": [
+        { "label": "mon-api.prod.svc.cluster.local", "correct": true, "position": 0 },
+        { "label": "prod.mon-api.cluster.local", "correct": false, "position": 1 },
+        { "label": "mon-api.cluster.local.svc.prod", "correct": false, "position": 2 },
+        { "label": "svc.mon-api.prod.local", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Un pod n'arrive pas à résoudre un nom de Service. Quelle vérification fais-tu en premier côté infrastructure DNS ?",
+      "justification": "Si les pods CoreDNS ne tournent pas (CrashLoopBackOff ou absents), aucune résolution interne ne fonctionne : on vérifie leur état dans kube-system.",
+      "position": 1,
+      "options": [
+        { "label": "Vérifier que les pods CoreDNS tournent dans kube-system", "correct": true, "position": 0 },
+        { "label": "Redémarrer l'API server", "correct": false, "position": 1 },
+        { "label": "Supprimer et recréer le namespace", "correct": false, "position": 2 },
+        { "label": "Augmenter le nombre de réplicas du pod applicatif", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si un nom de Service résout correctement vers une IP mais que la connexion échoue ensuite, le problème vient forcément de CoreDNS.",
+      "justification": "Faux : la résolution a réussi, donc CoreDNS fait son travail ; l'échec relève alors de la connectivité (CNI, Service sans endpoints, ou NetworkPolicy).",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

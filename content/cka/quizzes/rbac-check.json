@@ -1,0 +1,43 @@
+{
+  "ref": "rbac-check",
+  "node": "rbac-security",
+  "lesson": "rbac",
+  "title": "Quiz : Le RBAC",
+  "description": "Vérifie que tu maîtrises Role, ClusterRole, les sujets et la vérification des droits.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle paire d'objets accorde des permissions limitées à un seul namespace ?",
+      "justification": "Role et RoleBinding sont namespacés. ClusterRole et ClusterRoleBinding portent à l'échelle du cluster ; un RoleBinding peut certes référencer un ClusterRole, mais la liaison reste alors confinée à son namespace.",
+      "position": 0,
+      "options": [
+        { "label": "Role et RoleBinding", "correct": true, "position": 0 },
+        { "label": "ClusterRole et ClusterRoleBinding", "correct": false, "position": 1 },
+        { "label": "ClusterRole et RoleBinding", "correct": false, "position": 2 },
+        { "label": "Role et ClusterRoleBinding", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande vérifie si l'utilisateur jean peut supprimer des pods dans le namespace dev ?",
+      "justification": "Le drapeau --as applique l'impersonation : la vérification est faite au nom de jean, et non au nom de l'opérateur courant. C'est l'outil de référence pour tester un RBAC.",
+      "position": 1,
+      "options": [
+        { "label": "kubectl auth can-i delete pods --namespace dev --as jean", "correct": true, "position": 0 },
+        { "label": "kubectl auth can-i delete pods --namespace dev", "correct": false, "position": 1 },
+        { "label": "kubectl get rolebinding jean -n dev", "correct": false, "position": 2 },
+        { "label": "kubectl describe user jean", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "RBAC est purement additif : il n'existe aucune règle de refus, et tout est interdit par défaut tant qu'aucune règle ne l'accorde.",
+      "justification": "Vrai : une requête n'est autorisée que s'il existe au moins une règle qui l'accorde ; il n'y a pas de règle de type deny. C'est le fondement du principe de moindre privilège.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "sauvegarder-etcd-check",
+  "node": "etcd-backup",
+  "lesson": "sauvegarder-etcd",
+  "title": "Quiz : Sauvegarder etcd",
+  "description": "Vérifie que tu sais sauvegarder etcd.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande prend un snapshot d'etcd ?",
+      "justification": "etcdctl en API v3 avec snapshot save produit le fichier de sauvegarde, en fournissant les certificats et le endpoint.",
+      "position": 0,
+      "options": [
+        { "label": "ETCDCTL_API=3 etcdctl snapshot save <fichier>", "correct": true, "position": 0 },
+        { "label": "kubectl backup etcd", "correct": false, "position": 1 },
+        { "label": "etcdctl dump --all", "correct": false, "position": 2 },
+        { "label": "kubeadm etcd save", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où trouver les chemins de certificats et le endpoint d'etcd sur un cluster kubeadm ?",
+      "justification": "Le manifeste du pod statique /etc/kubernetes/manifests/etcd.yaml contient le data-dir, les URLs et les chemins de certificats.",
+      "position": 1,
+      "options": [
+        { "label": "Dans /etc/kubernetes/manifests/etcd.yaml", "correct": true, "position": 0 },
+        { "label": "Dans ~/.bashrc", "correct": false, "position": 1 },
+        { "label": "Dans /var/log/etcd.log", "correct": false, "position": 2 },
+        { "label": "Dans le ConfigMap kube-proxy", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "etcd stocke l'intégralité de l'état du cluster, ce qui rend sa sauvegarde critique.",
+      "justification": "Vrai : perdre etcd revient à perdre tout l'état du cluster, d'où l'importance des sauvegardes.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

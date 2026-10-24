@@ -1,0 +1,107 @@
+{
+  "node": "ingress-gateway",
+  "lessons": [
+    {
+      "slug": "ingress-controller",
+      "title": "L'Ingress controller",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Service (couche 4) vs Ingress (couche 7)",
+          "body": "Un **Service** de type `LoadBalancer` ou `NodePort` expose une application au niveau **couche 4** (TCP/UDP) : il route selon une IP et un port, sans comprendre le contenu HTTP. Exposer dix applications ainsi, c'est dix ports ou dix load balancers.\n\nUn **Ingress** travaille en **couche 7** (HTTP/HTTPS). Il permet de router selon le **host** (`api.exemple.fr`) et selon le **path** (`/app`, `/api`), de terminer le **TLS**, le tout derrière un seul point d'entrée. L'objet `Ingress` n'est qu'une **règle déclarative** : il ne fait rien par lui-même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Du routage de couche 4 au routage HTTP de couche 7, un seul point d'entree pour plusieurs applications.",
+          "body": "/images/lessons/ingress-controller-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Il faut un controller et une IngressClass",
+          "body": "Pour qu'un objet `Ingress` produise un effet, le cluster doit faire tourner un **Ingress controller** : un composant (souvent un Deployment plus un Service `LoadBalancer`) qui lit les objets `Ingress` et configure un reverse proxy réel. Les plus connus : **ingress-nginx**, Traefik, HAProxy. Sans controller installé, un `Ingress` reste sans effet.\n\nLa ressource **IngressClass** identifie quel controller gère quel Ingress. On la référence via `spec.ingressClassName` dans l'Ingress. Une IngressClass peut être marquée par défaut (annotation `ingressclass.kubernetes.io/is-default-class: \"true\"`), auquel cas les Ingress sans `ingressClassName` lui sont attribués."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le controller lit les objets Ingress et configure le reverse proxy reel, selon l'IngressClass.",
+          "body": "/images/lessons/ingress-controller-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Installer et vérifier un controller",
+          "codeLanguage": "bash",
+          "body": "# Installer ingress-nginx (manifeste officiel pour un cluster bare metal)\nkubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/baremetal/deploy.yaml\n\n# Verifier que le controller tourne\nkubectl get pods -n ingress-nginx\n\n# Lister les IngressClass disponibles (indispensable avant de creer un Ingress)\nkubectl get ingressclass\n\n# Voir le detail d'une IngressClass (quel controller, est-elle par defaut)\nkubectl describe ingressclass nginx"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le chemin d'une requête HTTP",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  C[\"Client HTTP\"] -->|\"host + path\"| IC[\"Ingress controller\"]\n  IC -->|\"host=app.exemple.fr\"| S1[\"Service app\"]\n  IC -->|\"path=/api\"| S2[\"Service api\"]\n  S1 --> P1[\"Pods app\"]\n  S2 --> P2[\"Pods api\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "ingress-controller-check"
+        }
+      ]
+    },
+    {
+      "slug": "regles-dingress",
+      "title": "Les règles d'Ingress",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Routage par host et par path",
+          "body": "Un objet `Ingress` déclare des **règles** sous `spec.rules`. Chaque règle peut porter un **host** et une liste de **paths**. Chaque path renvoie vers un **Service** (nom plus port) via son `backend.service`.\n\nLe champ **pathType** est obligatoire et décide du matching :\n\n- **Prefix** : le chemin de la requête commence par le path déclaré (`/api` matche `/api`, `/api/v1`).\n- **Exact** : correspondance stricte, sensible à la casse (`/api` ne matche pas `/api/`).\n\nUn même Ingress peut router plusieurs hosts et plusieurs paths vers des Services différents, ce qui permet de multiplexer de nombreuses applications derrière une seule entrée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des regles qui aiguillent le trafic par host et par path vers le bon Service.",
+          "body": "/images/lessons/regles-dingress-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "TLS via un Secret",
+          "body": "Pour servir en **HTTPS**, l'Ingress termine le TLS avec un **Secret** de type `kubernetes.io/tls` qui contient la clé et le certificat. On le crée avec `kubectl create secret tls`, puis on le référence dans `spec.tls` en associant le certificat aux **hosts** concernés.\n\nLe controller présente alors ce certificat pour les hosts listés et chiffre le trafic jusqu'à lui. Vérification clé après avoir appliqué un Ingress : `kubectl describe ingress <nom>` affiche les règles, les backends résolus, le bloc TLS et des **events** qui signalent un Service introuvable ou une IngressClass manquante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La terminaison TLS chiffre le trafic grace a un Secret contenant cle et certificat.",
+          "body": "/images/lessons/regles-dingress-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un Ingress avec un host, deux paths et du TLS",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: boutique\nspec:\n  ingressClassName: nginx\n  tls:\n    # Le Secret TLS doit couvrir ce host (meme namespace que l'Ingress)\n    - hosts:\n        - boutique.exemple.fr\n      secretName: boutique-tls\n  rules:\n    - host: boutique.exemple.fr\n      http:\n        paths:\n          # Le site web sous la racine\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: web\n                port:\n                  number: 80\n          # L'API sous /api\n          - path: /api\n            pathType: Prefix\n            backend:\n              service:\n                name: api\n                port:\n                  number: 8080"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Un client web (`web`, port 80) et son API (`api`, port 8080) tournent déjà, chacun exposé par un Service ClusterIP dans le namespace `shop`. On te demande de les rendre accessibles en **HTTPS** sous le domaine `shop.exemple.fr` : le site sous `/` et l'API sous `/api`. Décris les prérequis et les étapes, puis donne la commande de vérification.",
+          "solution": "1) Prérequis controller : un Ingress controller (ex. ingress-nginx) doit tourner et une IngressClass doit exister ; on la liste avec `kubectl get ingressclass`. 2) Prérequis TLS : créer le Secret TLS dans le namespace `shop`, par exemple `kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key -n shop`. 3) Créer un Ingress dans `shop` avec `ingressClassName: nginx`, un bloc `spec.tls` listant le host `shop.exemple.fr` et `secretName: shop-tls`, et une règle `host: shop.exemple.fr` avec deux paths en `pathType: Prefix` : `/` vers le Service `web` port 80 et `/api` vers le Service `api` port 8080. 4) Appliquer avec `kubectl apply -f ingress.yaml -n shop`. 5) Vérifier avec `kubectl describe ingress boutique -n shop` : contrôler que les backends sont résolus, que le bloc TLS pointe le bon Secret, et qu'aucun event ne signale un Service ou une IngressClass introuvable. Points de vigilance : le Secret TLS doit être dans le même namespace que l'Ingress et couvrir exactement le host servi."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "regles-dingress-check"
+        }
+      ]
+    }
+  ]
+}
