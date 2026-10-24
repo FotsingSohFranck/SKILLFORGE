@@ -1524,11 +1524,21 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
         aucune régression), tables `practical_tasks` (une par nœud) et `practical_attempts`.
       - Vérifs : `mvn -pl lab test` **5/5 verts** ; `mvn -pl app -am compile` OK ; V12 jouée en
         transaction ROLLBACK sur Postgres (syntaxe valide, état Flyway intact).
-    - ⬜ **SF-91b — Port d'exécution + orchestrateur Docker durci** : `LabRuntimePort`
-      (start/exec/stop) ; adapter Docker (socket) avec **sandbox** : `--network none`,
-      limites CPU/mémoire/pids, `--no-new-privileges`, seccomp, cap-drop ALL, non-root,
-      racine read-only, **TTL + reaper**. Image pilote **backend** (JDK/maven).
-      CA : un conteneur jetable démarre/exécute/meurt sous quotas ; tests d'isolation.
+    - ✅ **SF-91b — Port d'exécution + orchestrateur Docker durci** — **TERMINÉ**
+      - Port `LabRuntimePort` (start/exec/stop/reapExpired) + types `LabRuntimeSpec`
+        (quotas/TTL, défaut pilote backend), `RunningLab`, `ExecResult`.
+      - **`SandboxPolicy`** (classe pure, cœur sécurité) construit les arguments `docker` en
+        imposant TOUS les garde-fous : `--network none`, `--cpus`/`--memory`(+swap off)/
+        `--pids-limit`, `--security-opt no-new-privileges`, `--cap-drop ALL`, `--user 1000:1000`,
+        `--read-only` + tmpfs workspace, label de reaping, `sleep TTL` (auto-extinction).
+      - Adapter `DockerCliLabRuntime` (ProcessBuilder, réactif boundedElastic) + reaper des
+        conteneurs `exited` du label.
+      - **Tests d'isolation 5/5** : tous les drapeaux de durcissement présents, et AUCUN drapeau
+        dangereux émis (`--privileged`, `network host`, montage `docker.sock`/`/var/run`,
+        `--cap-add`, `--pid host`). Total module `lab` : **10/10 verts**.
+      - Choix de sécurité : **le socket Docker n'est PAS monté dans le compose** (capacité
+        quasi-root non activée tant que la fonctionnalité n'est pas complète et relue) ;
+        l'adapter n'est pas encore câblé en bean. Activation = étape explicite (SF-91c+).
     - ⬜ **SF-91c — Soumission & correction** : endpoint « valider la pratique » → exécute
       le **script de validation** dans le conteneur → `passed` + sortie ; persiste la
       tentative ; émet `PracticalPassedEvent`. Pas encore de terminal (soumission de
