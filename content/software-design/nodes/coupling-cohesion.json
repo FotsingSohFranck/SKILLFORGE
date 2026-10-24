@@ -13,41 +13,59 @@
           "body": "Avant tout, un mot de vocabulaire : un **module**. En conception logicielle, un module est simplement un **morceau de code qui forme un tout** : une classe, un fichier, un paquet, un service. Retiens : dès qu'on regroupe du code sous un même toit, c'est un module.\n\nDeux forces gouvernent tout découpage en modules, de la petite classe au système entier.\n\nLe **couplage** (*coupling* en anglais) mesure à quel point deux modules **dépendent** l'un de l'autre, c'est-à-dire à quel point l'un a besoin de connaître l'autre pour fonctionner. 👉 **Analogie** : deux wagons de train **attelés** (couplés) bougent ensemble ; si tu veux en déplacer un, l'autre suit. Deux wagons détachés se manoeuvrent séparément. **Exemple concret** : si la classe `Panier` appelle directement `new BasePostgres()` à l'intérieur d'elle-même, elle est **attelée** à Postgres : changer de base de données t'oblige à rouvrir `Panier`.\n\nLa **cohésion** (*cohesion* en anglais) mesure à quel point les éléments **d'un même module** vont ensemble et servent **un but commun**. 👉 **Analogie** : une **boîte à outils** bien rangée, où chaque tiroir contient un seul type d'outil (les tournevis ensemble, les clés ensemble), est cohésive ; un tiroir fourre-tout qui mélange tournevis, factures et clés de voiture ne l'est pas. **Exemple concret** : une classe `Facture` qui ne fait que calculer des montants est cohésive ; la même classe qui calcule **et** envoie des emails **et** génère des PDF ne l'est pas : elle mélange des choses sans rapport.\n\nL'objectif intemporel de la conception : **couplage faible** (on change un module sans casser les autres) et **cohésion forte** (chaque module a une raison d'être claire et unique). Ces deux critères sont le socle de presque tous les grands principes que tu rencontreras (SRP, DIP : des principes qu'on définit dans cette leçon et les suivantes). Bien concevoir, c'est **augmenter la cohésion et réduire le couplage**."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Pourquoi ça compte",
-          "body": "Reprenons pourquoi ces deux forces méritent autant d'attention.\n\nUn **couplage fort** propage les changements comme des dominos : toucher une classe en casse dix, et rien ne se teste isolément parce que tout est attaché à tout. 👉 **Analogie** : des **guirlandes de Noël montées en série**, où une seule ampoule grillée éteint toute la guirlande ; tout est tellement lié qu'un incident local devient un incident global. **Exemple** : tu renommes un champ dans une classe et, sans prévenir, trois écrans et deux traitements plantent parce qu'ils lisaient ce champ directement.\n\nUne **cohésion faible** disperse une même fonctionnalité un peu partout : pour la modifier, il faut la traquer à travers tout le code. 👉 **Analogie** : tes affaires de cuisine rangées dans cinq pièces différentes de la maison ; cuisiner devient une course d'obstacles. **Exemple** : la logique de calcul d'une remise est éparpillée dans le panier, la facture et l'écran de paiement ; changer la règle oblige à corriger trois endroits (et à en oublier un).\n\nÀ l'inverse, un module cohésif et peu couplé se **comprend seul**, se **teste seul**, se **remplace seul**. C'est ce qui rend un système **évolutif** (facile à faire grandir sans tout casser).\n\nLa règle d'or, à graver : **regrouper ce qui change ensemble** (cohésion) et **séparer ce qui change pour des raisons différentes** (découplage). C'est exactement le **SRP** (*Single Responsibility Principle*, en français « principe de responsabilité unique ») : un module ne devrait avoir **qu'une seule raison de changer**. Ici, on l'applique à l'échelle du module entier, pas seulement de la classe."
+          "type": "IMAGE",
+          "title": "Couplage : deux wagons atteles bougent ensemble",
+          "body": "/images/lessons/les-deux-forces-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Pourquoi ça compte",
+          "body": "Reprenons pourquoi ces deux forces méritent autant d'attention.\n\nUn **couplage fort** propage les changements comme des dominos : toucher une classe en casse dix, et rien ne se teste isolément parce que tout est attaché à tout. 👉 **Analogie** : des **guirlandes de Noël montées en série**, où une seule ampoule grillée éteint toute la guirlande ; tout est tellement lié qu'un incident local devient un incident global. **Exemple** : tu renommes un champ dans une classe et, sans prévenir, trois écrans et deux traitements plantent parce qu'ils lisaient ce champ directement.\n\nUne **cohésion faible** disperse une même fonctionnalité un peu partout : pour la modifier, il faut la traquer à travers tout le code. 👉 **Analogie** : tes affaires de cuisine rangées dans cinq pièces différentes de la maison ; cuisiner devient une course d'obstacles. **Exemple** : la logique de calcul d'une remise est éparpillée dans le panier, la facture et l'écran de paiement ; changer la règle oblige à corriger trois endroits (et à en oublier un).\n\nÀ l'inverse, un module cohésif et peu couplé se **comprend seul**, se **teste seul**, se **remplace seul**. C'est ce qui rend un système **évolutif** (facile à faire grandir sans tout casser).\n\nLa règle d'or, à graver : **regrouper ce qui change ensemble** (cohésion) et **séparer ce qui change pour des raisons différentes** (découplage). C'est exactement le **SRP** (*Single Responsibility Principle*, en français « principe de responsabilité unique ») : un module ne devrait avoir **qu'une seule raison de changer**. Ici, on l'applique à l'échelle du module entier, pas seulement de la classe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Couplage fort : une ampoule grillee eteint toute la guirlande",
+          "body": "/images/lessons/les-deux-forces-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Il y a des degrés, pas du tout-ou-rien",
           "body": "Point crucial : le couplage et la cohésion ne sont pas « présents ou absents ». Ils ont des **degrés**, du pire au meilleur. Savoir les nommer aide à dire précisément *à quel point* c'est sain.\n\nLe **couplage**, du pire au meilleur :\n- couplage de **contenu** : un module va **trifouiller l'intérieur** d'un autre (il lit ou modifie ses variables privées). 👉 C'est comme entrer chez ton voisin par la fenêtre pour réarranger ses placards.\n- couplage **commun** : plusieurs modules partagent un **état global** (une variable accessible de partout). 👉 Un **tableau blanc commun** que tout le monde peut effacer : on ne sait jamais qui a écrit quoi.\n- couplage de **contrôle** : un module passe à un autre un **drapeau** (*flag*, souvent un booléen) qui **pilote son comportement** (`faire(true)` fait autre chose que `faire(false)`). 👉 Une télécommande dont un bouton mystérieux change tout.\n- couplage de **données** (le plus sain) : les modules ne s'échangent **que les données nécessaires**, via une interface claire. 👉 Un **guichet** : tu passes juste le formulaire demandé, rien de plus.\n\nLa **cohésion**, du pire au meilleur :\n- **accidentelle** : des choses ensemble **par hasard** (la classe `Utils` fourre-tout).\n- **logique** puis **temporelle** : regroupées par catégorie, ou parce qu'elles s'exécutent au même moment.\n- **fonctionnelle** (la meilleure) : tout le module concourt à **une seule tâche bien définie**.\n\nObjectif réaliste : on ne vise **jamais** « zéro couplage » (impossible : les modules doivent bien collaborer pour former un programme). On vise le **type de couplage le plus faible et le plus explicite** possible (idéalement le couplage de données) et la cohésion **la plus fonctionnelle** possible. Une **interface**, ici, c'est un **contrat** : la liste des services qu'un module offre, sans dire comment ils sont réalisés à l'intérieur."
         },
         {
+          "type": "IMAGE",
+          "title": "Couplage de donnees : un guichet ou l'on passe le strict necessaire",
+          "body": "/images/lessons/les-deux-forces-3.jpg",
+          "position": 5
+        },
+        {
           "type": "DIAGRAM",
-          "position": 3,
+          "position": 6,
           "title": "Le schéma des deux forces",
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    subgraph M1[\"Module 1 (cohesion forte)\"]\n        direction TB\n        a[\"tache liee A\"]\n        b[\"tache liee B\"]\n    end\n    subgraph M2[\"Module 2 (cohesion forte)\"]\n        c[\"stockage\"]\n    end\n    M1 -->|\"couplage faible : via interface, donnees necessaires\"| M2"
         },
         {
           "type": "CODE",
-          "position": 4,
+          "position": 7,
           "title": "Réduire le couplage par une abstraction",
           "codeLanguage": "java",
           "body": "// DIP = principe d'inversion des dependances : dependre d'une abstraction, pas d'un detail concret.\n\n// Couple a une implementation concrete (couplage fort)\nclass OrderService {\n    private final PostgresRepo repo = new PostgresRepo(); // atele a Postgres\n}\n\n// Decouple : depend d'un PORT (une interface = un contrat), pas d'un detail\nclass OrderService {\n    private final OrderRepository repo; // interface : le \"quoi\", pas le \"comment\"\n    OrderService(OrderRepository repo) { // on injecte l'implementation par le constructeur\n        this.repo = repo;\n    }\n}"
         },
         {
           "type": "EXERCISE",
-          "position": 5,
+          "position": 8,
           "title": "À vous",
           "body": "Une classe `Facture` contient aussi le code d'envoi d'email et de génération de PDF, et lit directement une variable globale de configuration. Analysez sa cohésion et son couplage, puis proposez un découpage plus sain.",
           "solution": "La classe souffre à la fois d'une cohésion faible et d'un couplage inutilement fort. Cohésion faible : Facture cumule trois responsabilités qui changent pour des raisons différentes : (a) les données et règles métier de la facture (calcul, statut) ; (b) l'envoi d'email (infrastructure de notification) ; (c) la génération de PDF (présentation/rendu). Ces trois axes n'ont pas la même vitesse ni les mêmes raisons de changement : c'est une cohésion accidentelle/logique, pas fonctionnelle. Conséquence : un changement de gabarit PDF ou de serveur mail force à rouvrir la classe métier, et la fonctionnalité « facture » est diluée. Couplage fort : (1) en embarquant email et PDF, Facture est couplée à des détails d'infrastructure concrets ; (2) en lisant une variable GLOBALE de configuration, elle a un couplage « commun » (état global partagé), l'un des pires : le comportement dépend d'un état modifiable ailleurs, invisible dans la signature, intestable de façon isolée, et source de bugs d'ordre/de concurrence. Découpage plus sain : garder dans Facture UNIQUEMENT ses données et ses règles métier (une classe cohésive, à responsabilité unique). Extraire un InvoiceRenderer (PDF) et un InvoiceNotifier/EmailSender (email) comme collaborateurs distincts, chacun cohésif. Le use case (par ex. IssueInvoice) orchestre : il calcule via Facture, demande le PDF au renderer, l'envoi au notifier. Pour la config : ne plus lire une variable globale mais RECEVOIR la configuration par injection (paramètre/constructeur) ; on remplace un couplage commun (global) par un couplage de données explicite (on passe ce dont on a besoin via l'interface). Idéalement, renderer et notifier sont derrière des ports (interfaces) que le use case connaît, les implémentations concrètes (PDF, SMTP) étant branchées aux bords : couplage faible, dépendances vers des abstractions. Résultat : chaque module a une raison d'être unique (cohésion forte), on ne se parle que par des interfaces claires en passant les données nécessaires (couplage faible et explicite), et chaque partie se teste et évolue seule. On a appliqué la règle d'or : regrouper ce qui change ensemble, séparer ce qui change pour des raisons différentes."
         },
         {
           "type": "QUIZ",
-          "position": 6,
+          "position": 9,
           "title": "Quiz, Couplage & cohésion",
           "quizRef": "coupling-cohesion-check"
         }
@@ -65,34 +83,52 @@
           "body": "« Couplage fort » ou « couplage faible », c'est pratique mais **vague**. Pour en parler avec précision, on utilise un mot savant : la **connascence** (concept de Meilir Page-Jones, popularisé par Jim Weirich).\n\nDéfinition simple : deux éléments de code sont **connascents** si **modifier l'un oblige à modifier l'autre** pour que le programme reste correct. 👉 **Analogie** : deux **danseurs de tango** : si l'un change de pas, l'autre **doit** changer aussi, sinon ils se marchent dessus. Le mot vient du latin *nascor* (« naître avec ») : les deux éléments sont « nés liés ». **Exemple** : si une fonction attend ses arguments dans l'ordre (nom, email), tout appelant **doit** respecter ce même ordre ; changer l'ordre d'un côté oblige à changer l'autre.\n\nLa connascence se décline en deux grandes familles :\n- **statique** : visible directement **dans le code source** (on peut la repérer en lisant, et parfois le compilateur détecte le problème).\n- **dynamique** : n'apparaît qu'à **l'exécution** (quand le code tourne), donc **plus sournoise** car invisible à la simple lecture.\n\nL'énorme avantage : chaque forme a **un nom**. En revue de code, au lieu de dire « c'est couplé », tu peux dire « ce n'est pas juste couplé, c'est de la **connascence de position** », et tout le monde sait exactement de quoi tu parles. Le but n'est pas d'**éliminer** toute connascence (impossible : du code qui collabore est forcément un peu lié) mais de la rendre **plus faible** et plus **locale** dès qu'on peut."
         },
         {
+          "type": "IMAGE",
+          "title": "La connascence : deux danseurs de tango lies dans chaque pas",
+          "body": "/images/lessons/connascence-et-couplage-mesure-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
-          "position": 1,
+          "position": 2,
           "title": "Les degrés de connascence (statique → dynamique)",
           "body": "Voici l'échelle, de la plus **faible** (acceptable) à la plus **forte** (à réduire). Ne mémorise pas tout par coeur : retiens surtout que **plus on descend, plus c'est risqué**.\n\n**Formes statiques** (visibles à la lecture) :\n- connascence de **Nom** : deux éléments doivent s'accorder sur **un nom** (si tu renommes une méthode, ses appelants suivent). La plus faible, et **inévitable**. 👉 On s'accorde sur le nom d'une rue pour se retrouver.\n- connascence de **Type** : s'accorder sur un **type** (les deux côtés savent que c'est un entier, pas du texte).\n- connascence de **Sens/Convention** : s'accorder sur une **convention** cachée, par exemple « **-1 signifie erreur** ». 👉 Un code secret entre amis : `-1` ne veut rien dire pour un tiers.\n- connascence de **Position** : **l'ordre compte**. `move(3, 5)` : lequel est x, lequel est y ? Rien ne le dit. **Exemple** : des arguments positionnels qu'on peut intervertir sans que le compilateur bronche.\n- connascence d'**Algorithme** : deux endroits doivent utiliser **le même algorithme** (par exemple la même méthode de hachage des deux côtés, sinon ça ne correspond plus).\n\n**Formes dynamiques** (n'apparaissent qu'à l'exécution, donc pires) :\n- connascence d'**Exécution** : **l'ordre des appels** compte (il faut appeler `init()` avant `use()`). 👉 Il faut mettre la clé de contact **avant** d'appuyer sur l'accélérateur.\n- connascence de **Timing** : **le moment** compte (deux traitements qui se courent après, les fameuses « courses critiques »).\n- connascence de **Valeur** : des valeurs doivent **rester cohérentes ensemble** (si `dateDebut` change, `dateFin` doit rester après).\n- connascence d'**Identité** : deux références doivent pointer vers le **même** objet (pas juste deux objets identiques, mais bien **le** même).\n\nTrois axes mesurent la gravité : le **degré** (combien d'éléments sont liés), la **localité** (proches = tolérable, éloignés = dangereux), et la **force** (statique < dynamique). 👉 En clair : un lien fort **entre deux lignes voisines** se gère ; le même lien **entre deux services distants** est un piège."
         },
         {
+          "type": "IMAGE",
+          "title": "Connascence d'execution : la cle de contact avant l'accelerateur",
+          "body": "/images/lessons/connascence-et-couplage-mesure-2.jpg",
+          "position": 3
+        },
+        {
           "type": "CODE",
-          "position": 2,
+          "position": 4,
           "title": "Réduire une connascence de position",
           "codeLanguage": "java",
           "body": "// Connascence de position : l'appelant doit connaître l'ORDRE exact\nnew Reservation(\"2026-07-21\", \"2026-07-25\", 2, true, false);\n// 2 quoi ? true/false = quoi ? l'ordre est un couplage fragile\n\n// Reduit en connascence de nom (plus faible) : un builder / des parametres nommes\nReservation.builder()\n    .checkIn(LocalDate.parse(\"2026-07-21\"))\n    .checkOut(LocalDate.parse(\"2026-07-25\"))\n    .guests(2)\n    .breakfast(true)\n    .nonRefundable(false)\n    .build();\n// L'ordre n'a plus d'importance ; on s'accorde sur des NOMS, pas des positions"
         },
         {
           "type": "CONCEPT",
-          "position": 3,
+          "position": 5,
           "title": "Mesurer : couplage afférent/efférent & temporel",
           "body": "Passons de « je sens que c'est couplé » à « je le **mesure** ». Deux chiffres complémentaires, autour d'un module donné.\n\nLe **couplage afférent** (noté **Ca**, du latin *ad*, « vers ») : **combien de modules dépendent de moi** (les flèches qui **entrent**). 👉 Une **gare centrale** : si beaucoup de lignes y arrivent, la fermer paralyse tout le réseau. Un module à Ca élevé est **critique** : le changer fait mal à beaucoup de monde, donc il a intérêt à être **stable** et **abstrait** (une interface qui bouge peu).\n\nLe **couplage efférent** (noté **Ce**, du latin *ex*, « hors de ») : **de combien de modules je dépends** (les flèches qui **sortent**). Un module à Ce élevé est **fragile** : il casse dès que l'une de ses nombreuses dépendances change. 👉 Une recette qui exige vingt ingrédients de vingt magasins : il suffit qu'un seul manque pour tout bloquer.\n\nAttention à un piège très fréquent : le **couplage temporel** (*temporal coupling*). C'est quand deux opérations doivent s'exécuter dans un **ordre précis**, mais que **rien dans le code ne l'exprime**. **Exemple** : `obj.configure(); obj.start();` où oublier `configure()` fait planter `start()`. C'est exactement une **connascence d'exécution** (vue juste avant). On le réduit en rendant l'ordre **impossible à violer** : un objet **valide dès sa construction**, un type qui **n'existe que configuré**, ou un *builder* (un objet-constructeur qui assemble tout dans le bon ordre pour toi).\n\nEnfin, dans les **systèmes distribués** (plusieurs programmes séparés qui se parlent par le réseau, par exemple des microservices), le couplage prend des formes propres : de **schéma** (deux services partagent le **même format** de message), **temporel** (l'un doit être **allumé** au moment où l'autre l'appelle), **opérationnel** (on est obligé de les **déployer ensemble**)."
         },
         {
+          "type": "IMAGE",
+          "title": "Couplage afferent : une gare centrale dont tout depend",
+          "body": "/images/lessons/connascence-et-couplage-mesure-3.jpg",
+          "position": 6
+        },
+        {
           "type": "EXERCISE",
-          "position": 4,
+          "position": 7,
           "title": "À vous",
           "body": "Deux cas. (A) Une méthode `createUser(String, String, String, boolean, boolean)` où l'ordre des arguments prête à confusion. (B) Un objet qu'il faut absolument `configure()` puis `connect()` avant d'appeler `send()`, sinon exception à l'exécution. Nommez la forme de connascence de chacun, dites laquelle est la plus dangereuse et pourquoi, et proposez une réduction.",
           "solution": "Analysons chaque cas avec la taxonomie de la connascence. (A) createUser(String, String, String, boolean, boolean) où l'ordre prête à confusion : c'est de la connascence de POSITION (statique). L'appelant et la méthode doivent s'accorder sur l'ORDRE exact des arguments : quel String est le nom, l'email, le mot de passe ? que signifient les deux booléens ? Intervertir deux arguments du même type compile mais produit un bug silencieux. C'est une connascence statique (visible dans le code, détectable à la lecture/compilation dans une certaine mesure). Réduction : la faire descendre vers une connascence de NOM (plus faible), où l'on s'accorde sur des noms et non des positions. Moyens : un objet paramètre / builder (Reservation.builder().name(...).email(...)...), des value objects typés (créer des types Name, Email, Password rend deux arguments non interchangeables : la connascence de type empêche l'inversion), ou, dans les langages qui l'offrent, des paramètres nommés. L'ordre cesse alors d'être un couplage fragile. (B) Objet qu'il faut configure() puis connect() avant send(), sinon exception à l'exécution : c'est de la connascence d'EXÉCUTION (dynamique), aussi appelée couplage temporel. La correction dépend d'un ORDRE d'appels qui n'est écrit nulle part ; oublier une étape ne se voit pas à la compilation, seulement à l'exécution (exception, ou pire, comportement corrompu). Laquelle est la plus dangereuse : le cas (B). Règle de la connascence : les formes DYNAMIQUES (exécution, timing, valeur, identité) sont plus fortes et plus dangereuses que les statiques (nom, type, position), parce qu'elles sont INVISIBLES à la lecture du code et ne se manifestent qu'au runtime. La connascence de position (A) est certes fragile mais statique : un type ou un builder la neutralise, et beaucoup d'erreurs se voient. La connascence d'exécution (B) est un piège à retardement : rien dans les signatures n'empêche d'appeler send() en premier. Réduction de (B) : rendre l'ordre IMPOSSIBLE à violer plutôt que de le documenter. Techniques : (1) rendre l'objet valide dès sa construction : le constructeur exige tout ce qu'il faut (configuration, connexion établie), si bien qu'un objet existant est forcément prêt à send(). (2) Types-états : un ConfiguredClient obtenu depuis un builder, dont la méthode connect() renvoie un ConnectedClient qui seul expose send() ; l'ordre est encodé dans les TYPES, l'appeler dans le désordre ne compile pas (on a transformé une connascence dynamique en connascence statique de type, bien plus sûre). (3) À défaut, un état interne qui échoue vite avec un message clair (fail fast), moins bon car ça reste runtime. Idée directrice : on cherche à AFFAIBLIR la connascence (dynamique vers statique vers nom) et à la LOCALISER. Le pire est une connascence dynamique et éloignée ; on la remonte vers du statique vérifiable par le compilateur, et on rend les états invalides irreprésentables."
         },
         {
           "type": "QUIZ",
-          "position": 5,
+          "position": 8,
           "title": "Quiz, Connascence & couplage mesuré (expert)",
           "quizRef": "coupling-cohesion-expert-check"
         }
@@ -110,27 +146,45 @@
           "body": "On a vu la cohésion en gros ; voici l'échelle **complète**, celle de Constantine et Yourdon, sur **7 niveaux**, du pire au meilleur. Utilité : pouvoir dire précisément **où en est** une classe et **vers quoi** la faire monter.\n\n1. **Coïncidentelle** (pire) : éléments regroupés **sans aucun lien**, par pur hasard. 👉 Un **fourre-tout** de tiroir d'entrée. **Exemple** : la classe `Utils` qui contient tout et n'importe quoi.\n2. **Logique** : regroupés parce qu'ils sont de la **même catégorie**, mais on choisit lequel exécuter via un **drapeau**. **Exemple** : un seul module « gestion des entrées » qui traite clavier, souris et fichier selon un paramètre.\n3. **Temporelle** : regroupés parce qu'ils s'exécutent **au même moment**. **Exemple** : une méthode `init()` qui, au démarrage, fait dix choses sans rapport entre elles.\n4. **Procédurale** : les éléments suivent un **ordre d'exécution** imposé, mais travaillent sur **des données différentes**.\n5. **Communicationnelle** : les éléments opèrent sur **les mêmes données**. **Exemple** : lire un enregistrement puis le formater, tous deux sur le même enregistrement.\n6. **Séquentielle** : la **sortie de l'un est l'entrée du suivant**, comme une chaîne de montage interne (un petit *pipeline*).\n7. **Fonctionnelle** (meilleure) : **tout** le module concourt à **une seule tâche bien définie**. 👉 Un outil qui fait **une** chose et la fait bien.\n\n👉 **À retenir** : plus tu montes vers la cohésion fonctionnelle, plus le module a **une seule raison de changer**, donc plus il est facile à comprendre, à tester et à faire évoluer."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Le couplage de tampon (stamp coupling)",
-          "body": "L'échelle du couplage, du plus sain au pire : **données** < **tampon** < **contrôle** < **commun** < **contenu**. On zoome ici sur un cran souvent oublié, juste après le meilleur : le **couplage de tampon** (*stamp coupling*).\n\nDéfinition simple : il survient quand un module reçoit une **structure de données entière** (un gros objet complet) alors qu'il n'en utilise **que quelques champs**. 👉 **Analogie** : pour prouver ton âge à l'entrée, on te demande de tendre **tout ton dossier médical** au lieu de ta seule carte d'identité. Tu donnes bien trop d'informations.\n\n**Exemple concret** : passer tout un objet `User` (avec ses 50 champs, dont le mot de passe et l'adresse) à une fonction qui a seulement besoin de `user.email()`.\n\nTrois problèmes :\n- le module est **couplé à la forme complète** de la structure : un changement quelconque de `User` peut l'impacter **sans raison** ;\n- il **voit** des données qu'il ne devrait pas (risque de **fuite**, problème de sécurité) ;\n- il est plus **dur à tester** : pour l'appeler, il faut fabriquer un `User` entier de toutes pièces.\n\nRemède : ne passer **que ce qui est nécessaire** (le champ tout seul, `email`), ou une **projection réduite** / une petite interface ciblée (une *role interface* : un mini-contrat qui n'expose que le strict utile). C'est directement lié à l'**ISP** (*Interface Segregation Principle*, « principe de ségrégation des interfaces ») : **ne dépendre que de ce qu'on utilise vraiment**, jamais plus."
+          "type": "IMAGE",
+          "title": "Les sept niveaux de cohesion, du fourre-tout au mono-tache",
+          "body": "/images/lessons/taxonomies-completes-cohesion-couplage-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Le couplage de tampon (stamp coupling)",
+          "body": "L'échelle du couplage, du plus sain au pire : **données** < **tampon** < **contrôle** < **commun** < **contenu**. On zoome ici sur un cran souvent oublié, juste après le meilleur : le **couplage de tampon** (*stamp coupling*).\n\nDéfinition simple : il survient quand un module reçoit une **structure de données entière** (un gros objet complet) alors qu'il n'en utilise **que quelques champs**. 👉 **Analogie** : pour prouver ton âge à l'entrée, on te demande de tendre **tout ton dossier médical** au lieu de ta seule carte d'identité. Tu donnes bien trop d'informations.\n\n**Exemple concret** : passer tout un objet `User` (avec ses 50 champs, dont le mot de passe et l'adresse) à une fonction qui a seulement besoin de `user.email()`.\n\nTrois problèmes :\n- le module est **couplé à la forme complète** de la structure : un changement quelconque de `User` peut l'impacter **sans raison** ;\n- il **voit** des données qu'il ne devrait pas (risque de **fuite**, problème de sécurité) ;\n- il est plus **dur à tester** : pour l'appeler, il faut fabriquer un `User` entier de toutes pièces.\n\nRemède : ne passer **que ce qui est nécessaire** (le champ tout seul, `email`), ou une **projection réduite** / une petite interface ciblée (une *role interface* : un mini-contrat qui n'expose que le strict utile). C'est directement lié à l'**ISP** (*Interface Segregation Principle*, « principe de ségrégation des interfaces ») : **ne dépendre que de ce qu'on utilise vraiment**, jamais plus."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Couplage de tampon : tendre tout son dossier pour une seule info",
+          "body": "/images/lessons/taxonomies-completes-cohesion-couplage-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Gouverner la connascence : les deux règles de Weirich",
           "body": "La connascence (vue au niveau précédent) te donne une **échelle** de couplage. Reste à savoir **quoi en faire** au quotidien. Jim Weirich propose **deux règles** simples de gouvernance.\n\n**Règle 1, minimiser la connascence : affaiblir la force des liens.** On **convertit** les formes fortes en formes faibles. 👉 **Exemples concrets** :\n- une connascence de **position** (l'ordre des arguments, fragile) devient une connascence de **nom** (bien plus solide) grâce à un **objet-paramètre** (*parameter object*) ou des arguments **nommés** ;\n- une connascence d'**algorithme** dupliqué (le même calcul recopié à deux endroits) devient une connascence de **nom** en le mettant dans **une seule fonction partagée** qu'on appelle des deux côtés.\n\n**Règle 2, localiser la connascence : garder les liens proches.** Une connascence forte est **tolérable si elle est locale** (à l'intérieur d'une même classe ou méthode, où tout change ensemble de toute façon) et **toxique si elle traverse des frontières** (entre modules ou services qui évoluent chacun de leur côté). 👉 **Analogie** : un secret partagé **entre deux colocataires** de la même chambre se gère ; le **même** secret réparti entre deux inconnus à l'autre bout de la ville explose au premier changement.\n\n**Corollaire très utile** : la **frontière de module** (l'interface propre entre deux parties) est justement l'outil qui **dégrade** un couplage fort et lointain en couplage faible et local. En résumé : on **accepte** du couplage fort **dedans** (à l'intérieur d'un module), et on **exige** du couplage faible **entre** les modules."
         },
         {
+          "type": "IMAGE",
+          "title": "Localiser la connascence : un secret se gere entre proches",
+          "body": "/images/lessons/taxonomies-completes-cohesion-couplage-3.jpg",
+          "position": 5
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 6,
           "title": "À vous",
           "body": "En revue, vous voyez : (1) une classe `ReportUtils` qui contient `formatDate()`, `sendEmail()`, `parseCsv()` et `hashPassword()` ; (2) une méthode `applyDiscount(Order order)` qui ne lit que `order.total()` mais reçoit tout l'`Order` ; (3) deux services distincts qui, pour communiquer, s'appuient sur le fait que les champs d'un tableau `data` sont dans un ordre précis (`data[0]` = id, `data[1]` = montant...). Qualifiez chaque situation avec le vocabulaire exact (cohésion / type de couplage / connascence) et proposez une correction.",
           "solution": "(1) ReportUtils (formatDate, sendEmail, parseCsv, hashPassword) : c'est de la cohésion COÏNCIDENTELLE, le pire niveau. Ces fonctions n'ont aucun lien entre elles ; elles sont regroupées uniquement parce que ce sont des « utilitaires ». Symptôme : la classe change pour des raisons totalement indépendantes (le format de date, la sécurité des mots de passe, le parsing CSV, l'email), donc aucune raison de changer unique, faible cohésion. Correction : éclater par responsabilité/domaine : un DateFormatter (ou une méthode sur un value object Date), un Mailer/Notifier, un CsvParser, un PasswordHasher (côté sécurité). Chaque unité vise la cohésion FONCTIONNELLE (une tâche bien définie, une raison de changer). Les fourre-tout « Utils/Helpers/Manager » sont un signal classique de cohésion coïncidentelle. (2) applyDiscount(Order order) qui ne lit que order.total() : c'est du couplage de TAMPON (stamp coupling). La méthode reçoit toute la structure Order alors qu'elle n'a besoin que du total. Conséquences : couplée à la forme complète d'Order (un changement d'Order peut l'impacter sans raison), elle voit des données inutiles (moins sûr), et elle est plus dure à tester (il faut fabriquer un Order complet). Correction : réduire à ce qui est nécessaire : applyDiscount(Money total) (passer le champ), ou une role interface/projection (ex. une interface Discountable { Money total(); } qu'Order implémente) si l'on veut garder un type. On dégrade le couplage de tampon en couplage de DONNÉES (le plus sain), ce qui rejoint l'ISP. (3) Deux services qui dépendent de l'ORDRE des champs de data (data[0]=id, data[1]=montant) : c'est une connascence de POSITION, et elle est DISTANTE (elle traverse la frontière entre deux services). C'est doublement mauvais selon Weirich : forme forte (position) ET non locale (entre modules qui évoluent séparément) ; si un service ajoute/réordonne un champ, l'autre casse silencieusement. Correction (règle 1 : réduire la force ; règle 2 : elle est déjà à distance donc il faut la rendre faible) : convertir la connascence de position en connascence de NOM : échanger un contrat explicite et nommé (un DTO/objet avec des champs nommés id, montant, ou un schéma versionné type JSON avec clés nommées, idéalement avec un schema registry entre services). Chaque service dépend alors du NOM des champs, pas de leur position ; ajouter un champ ne casse plus l'ordre. Principe transverse appliqué : viser la cohésion fonctionnelle (1), passer le minimum nécessaire pour rester en couplage de données (2), et gouverner la connascence en réduisant sa force et en ne tolérant le couplage fort que localement, jamais à travers une frontière (3)."
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 7,
           "title": "Quiz, Taxonomies cohésion/couplage (expert)",
           "quizRef": "cc-taxonomies-expert-check"
         }
