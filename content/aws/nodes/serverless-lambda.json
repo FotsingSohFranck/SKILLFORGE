@@ -1,0 +1,95 @@
+{
+  "node": "serverless-lambda",
+  "lessons": [
+    {
+      "slug": "executer-du-code-sans-serveur",
+      "title": "Exécuter du code sans serveur",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce que le serverless",
+          "body": "Avec **Lambda**, tu ne loues plus une machine : tu fournis une **fonction**, et AWS l'exécute à la demande, en réponse à un **événement** (un fichier déposé sur S3, un appel HTTP, un message dans une file).\n\nTrois idées clés :\n- **Zéro serveur à gérer** : pas d'OS, pas de mises à jour, pas de capacité à dimensionner.\n- **Mise à l'échelle automatique** : s'il arrive mille événements en même temps, AWS lance mille exécutions en parallèle, puis redescend à zéro quand c'est fini.\n- **Facturation à l'usage** : tu paies au nombre d'exécutions et au temps de calcul (à la milliseconde), rien quand le code ne tourne pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le serverless : tu fournis une fonction, le cloud l'exécute à la demande sans machine à gérer",
+          "body": "/images/lessons/executer-du-code-sans-serveur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une fonction Lambda minimale (Node.js)",
+          "codeLanguage": "javascript",
+          "body": "// AWS appelle cette fonction `handler` a chaque evenement.\n// `event` contient les donnees de l'evenement declencheur.\nexport const handler = async (event) => {\n  const nom = event.nom ?? 'monde'\n  return {\n    statusCode: 200,\n    body: JSON.stringify({ message: `Bonjour ${nom}` }),\n  }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Déclencheurs et démarrage à froid",
+          "body": "Une fonction est reliée à une **source d'événement** (on parle de *trigger*) : S3, API Gateway, DynamoDB Streams, EventBridge, etc. C'est l'événement qui provoque l'exécution.\n\nUn point d'attention : le **démarrage à froid** (*cold start*). Si aucune exécution n'a eu lieu depuis un moment, AWS doit préparer un environnement avant le premier appel, ce qui ajoute une courte latence. Les appels suivants réutilisent l'environnement chaud et sont plus rapides. Lambda convient donc bien aux traitements événementiels et par pics, moins aux processus très longs ou qui doivent garder un état en mémoire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un événement déclenche la fonction, qui monte en charge toute seule puis redescend à zéro",
+          "body": "/images/lessons/executer-du-code-sans-serveur-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "executer-du-code-sans-serveur-check"
+        }
+      ]
+    },
+    {
+      "slug": "exposer-une-api-avec-api-gateway",
+      "title": "Exposer une API avec API Gateway",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "API Gateway, la porte d'entrée HTTP",
+          "body": "Une fonction Lambda n'a pas d'URL publique par défaut. **API Gateway** sert de porte d'entrée : il reçoit les requêtes HTTP, les route vers la bonne fonction, et renvoie la réponse.\n\nIl gère aussi, sans code de ta part, des besoins transverses : limitation de débit (*throttling*), authentification, validation des entrées, mise en cache. Pour une API simple et économique, on choisit souvent une **HTTP API** ; pour des besoins plus riches, une **REST API**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "API Gateway sert de porte d'entrée HTTP et route chaque requête vers la bonne fonction",
+          "body": "/images/lessons/exposer-une-api-avec-api-gateway-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Créer une HTTP API reliée à une Lambda (AWS CLI)",
+          "codeLanguage": "bash",
+          "body": "# Cree une HTTP API qui transmet toutes les requetes a la fonction `bonjour`.\naws apigatewayv2 create-api \\\n  --name bonjour-api \\\n  --protocol-type HTTP \\\n  --target arn:aws:lambda:eu-west-3:123456789012:function:bonjour\n\n# Reponse : une URL d'invocation du type\n# https://abc123.execute-api.eu-west-3.amazonaws.com"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Le trajet d'une requête",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  C[\"Client (navigateur)\"] -->|\"HTTPS\"| G[\"API Gateway\"]\n  G -->|\"invoque\"| L[\"Lambda\"]\n  L -->|\"lit / ecrit\"| D[\"DynamoDB\"]\n  L -->|\"reponse JSON\"| G\n  G -->|\"HTTP 200\"| C"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Tu veux une petite API REST qui, sur `GET /heure`, renvoie l'heure du serveur en JSON, sans gérer de serveur ni payer quand personne n'appelle. Quels services AWS assembles-tu, et qui fait quoi ?",
+          "solution": "API Gateway expose la route `GET /heure` publiquement et la route vers une fonction Lambda. La Lambda calcule l'heure et renvoie un JSON. On ne paie qu'au nombre d'appels et au temps d'exécution, et l'ensemble scale automatiquement : aucun serveur à gérer. Côté code, le handler renvoie par exemple `{ statusCode: 200, body: JSON.stringify({ heure: new Date().toISOString() }) }`."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "exposer-une-api-avec-api-gateway-check"
+        }
+      ]
+    }
+  ]
+}

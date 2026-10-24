@@ -1,0 +1,43 @@
+{
+  "ref": "moindre-privilege-check",
+  "node": "security-practices",
+  "lesson": "moindre-privilege",
+  "title": "Quiz : Le moindre privilège",
+  "description": "Vérifie le principe du moindre privilège, les rôles IAM, l'usage du root et la MFA.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que dit le principe du moindre privilège ?",
+      "justification": "Le moindre privilège consiste à n'accorder que les permissions strictement nécessaires à une tâche, et rien de plus, afin de limiter les dégâts en cas de fuite ou de bug.",
+      "position": 0,
+      "options": [
+        { "label": "Accorder seulement les permissions strictement nécessaires à la tâche", "correct": true, "position": 0 },
+        { "label": "Donner toutes les permissions pour éviter les blocages", "correct": false, "position": 1 },
+        { "label": "Réserver les permissions au seul compte root", "correct": false, "position": 2 },
+        { "label": "Supprimer toutes les permissions une fois par mois", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment une fonction Lambda devrait-elle obtenir le droit de lire un fichier dans S3 ?",
+      "justification": "On attache un rôle IAM à la fonction. AWS lui fournit alors des identifiants temporaires. Coller une clé d'accès permanente dans le code est à proscrire.",
+      "position": 1,
+      "options": [
+        { "label": "En assumant un rôle IAM qui lui donne des identifiants temporaires", "correct": true, "position": 0 },
+        { "label": "En écrivant une clé d'accès permanente dans son code", "correct": false, "position": 1 },
+        { "label": "En utilisant le mot de passe du compte root", "correct": false, "position": 2 },
+        { "label": "En stockant une clé secrète dans un fichier de configuration public", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il est recommandé d'utiliser le compte root pour le travail de tous les jours.",
+      "justification": "Faux : le root peut tout faire, y compris fermer le compte. On l'utilise seulement pour de rares opérations, on active la MFA dessus, et on travaille au quotidien avec des identités IAM aux permissions limitées.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

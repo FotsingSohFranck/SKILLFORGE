@@ -1,0 +1,43 @@
+{
+  "ref": "images-avec-ecr-check",
+  "node": "containers-ecs",
+  "lesson": "images-avec-ecr",
+  "title": "Quiz : Images avec ECR",
+  "description": "Vérifie le rôle d'ECR et la publication d'une image.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'Amazon ECR ?",
+      "justification": "ECR (Elastic Container Registry) est le registre d'images Docker privé d'AWS. Il stocke les images, et ECS les tire depuis ECR au lancement des tasks.",
+      "position": 0,
+      "options": [
+        { "label": "Le registre d'images Docker privé d'AWS, depuis lequel ECS tire les images", "correct": true, "position": 0 },
+        { "label": "L'orchestrateur qui lance et surveille les conteneurs", "correct": false, "position": 1 },
+        { "label": "Un service de base de données géré", "correct": false, "position": 2 },
+        { "label": "Un outil de construction d'images à la place de Docker", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le bon ordre pour publier une image locale vers ECR ?",
+      "justification": "On construit l'image (build), on se connecte à ECR (login), on étiquette l'image avec l'adresse du dépôt (tag), puis on l'envoie (push).",
+      "position": 1,
+      "options": [
+        { "label": "build, puis login à ECR, puis tag avec l'adresse du dépôt, puis push", "correct": true, "position": 0 },
+        { "label": "push, puis build, puis login, puis tag", "correct": false, "position": 1 },
+        { "label": "login, puis push, puis build, puis tag", "correct": false, "position": 2 },
+        { "label": "tag, puis push, puis build, puis login", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La commande `aws ecr get-login-password` sert à obtenir un mot de passe temporaire pour connecter Docker à ECR.",
+      "justification": "Vrai : on passe ce mot de passe temporaire à `docker login` pour s'authentifier auprès du dépôt ECR avant le push.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

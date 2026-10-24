@@ -1,0 +1,43 @@
+{
+  "ref": "regions-et-zones-check",
+  "node": "regions-az",
+  "lesson": "regions-et-zones",
+  "title": "Quiz : Régions et zones de disponibilité",
+  "description": "Vérifie que tu distingues région, zone de disponibilité et portée des services.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qu'une zone de disponibilité (AZ) au sein d'une région AWS ?",
+      "justification": "Une AZ est un ou plusieurs centres de données isolés physiquement des autres zones, mais reliés à la même région par un réseau privé à faible latence. C'est ce qui permet de répartir une application sur plusieurs AZ pour la haute disponibilité.",
+      "position": 0,
+      "options": [
+        { "label": "Un ou plusieurs centres de données isolés physiquement, reliés aux autres AZ de la région à faible latence", "correct": true, "position": 0 },
+        { "label": "Un autre nom pour une région géographique entière", "correct": false, "position": 1 },
+        { "label": "Un point de présence utilisé uniquement par CloudFront", "correct": false, "position": 2 },
+        { "label": "Un type de machine virtuelle EC2", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Parmi ces services, lequel est global (non rattaché à une seule région) ?",
+      "justification": "IAM est un service global : comptes et droits sont valables sur tout le compte AWS. EC2, S3 et RDS sont des services régionaux, liés à la région où tu crées la ressource.",
+      "position": 1,
+      "options": [
+        { "label": "IAM", "correct": true, "position": 0 },
+        { "label": "EC2", "correct": false, "position": 1 },
+        { "label": "S3", "correct": false, "position": 2 },
+        { "label": "RDS", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Déployer toute son application dans une seule zone de disponibilité suffit à garantir la haute disponibilité.",
+      "justification": "Faux : si cette unique zone tombe en panne, l'application devient indisponible. La haute disponibilité suppose de répartir l'application sur au moins deux zones (multi-AZ).",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

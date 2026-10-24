@@ -1,0 +1,119 @@
+{
+  "node": "security-practices",
+  "lessons": [
+    {
+      "slug": "moindre-privilege",
+      "title": "Le moindre privilège",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ne donner que le strict nécessaire",
+          "body": "Le **principe du moindre privilège** (*least privilege*) dit une chose simple : chaque personne, application ou service ne reçoit que les permissions dont il a besoin pour sa tâche, et rien de plus. Si une fonction a seulement besoin de lire un fichier dans un stockage S3, elle obtient la permission de lire ce fichier, pas celle de tout supprimer.\n\nL'outil AWS qui gère ces permissions s'appelle **IAM** (*Identity and Access Management*). Dans IAM, on écrit des **politiques** (*policies*) : des documents JSON qui listent les actions autorisées (par exemple `s3:GetObject`) sur des ressources précises. Plus la politique est étroite, moins une erreur ou un attaquant peut causer de dégâts.\n\nPourquoi c'est important : si des identifiants fuitent, ou si un bout de code a un bug, les dommages restent limités au petit périmètre accordé. C'est la différence entre perdre une clé qui ouvre une seule porte et perdre le passe de tout l'immeuble."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le moindre privilège limite chaque accès au strict nécessaire, comme une clé qui n'ouvre qu'une seule porte",
+          "body": "/images/lessons/moindre-privilege-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Rôles IAM plutôt que clés en dur",
+          "body": "Il existe deux façons de donner des permissions à du code qui tourne sur AWS.\n\n**La mauvaise :** coller une **clé d'accès** (un identifiant et un secret, du type `AKIA...`) directement dans le code ou dans un fichier de configuration. Ces clés sont permanentes, faciles à oublier dans un dépôt Git, et difficiles à révoquer proprement.\n\n**La bonne :** utiliser un **rôle IAM**. Un rôle est une identité sans mot de passe à laquelle on attache des permissions. Un service AWS **assume** (endosse) ce rôle et reçoit alors des identifiants **temporaires**, renouvelés automatiquement, qui expirent au bout de quelques heures. Par exemple, une fonction Lambda se voit attribuer un rôle d'exécution : au moment où elle tourne, AWS lui fournit des identifiants temporaires correspondant à ce rôle. Aucun secret n'est écrit dans le code.\n\nÀ retenir : sur AWS, on attache des rôles aux services, on ne distribue pas de clés permanentes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un rôle IAM fournit des identifiants temporaires au service, sans clé permanente écrite dans le code",
+          "body": "/images/lessons/moindre-privilege-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une politique IAM restreinte (lecture seule sur un bucket)",
+          "codeLanguage": "json",
+          "body": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"LectureSeuleRapports\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\"\n      ],\n      \"Resource\": \"arn:aws:s3:::mon-bucket-rapports/*\"\n    }\n  ]\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Compte root et MFA",
+          "body": "Chaque compte AWS possède un **utilisateur root** : l'identité créée avec le compte, qui peut absolument tout faire, y compris fermer le compte. C'est le compte le plus puissant et donc le plus dangereux.\n\nRègle d'or : **ne pas se servir du root au quotidien**. On l'utilise seulement pour quelques opérations rares (changer les informations de facturation, par exemple), puis on crée des identités IAM aux permissions limitées pour le travail de tous les jours.\n\nQue ce soit pour le root ou pour un utilisateur IAM, on active la **MFA** (*Multi-Factor Authentication*, authentification à plusieurs facteurs). En plus du mot de passe, la connexion exige un code temporaire généré par une application sur le téléphone. Ainsi, un mot de passe volé ne suffit pas à entrer : il manque le second facteur. Activer la MFA sur le root est l'une des toutes premières choses à faire sur un nouveau compte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La MFA ajoute un second facteur au mot de passe, surtout sur le compte root",
+          "body": "/images/lessons/moindre-privilege-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Un service assume un rôle aux permissions minimales",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  L[\"Fonction Lambda\"] -->|\"assume le role\"| R[\"Role IAM d'execution\"]\n  R -->|\"identifiants temporaires\"| L\n  R -.->|\"politique: s3:GetObject uniquement\"| P[\"Permissions minimales\"]\n  L -->|\"lit un fichier\"| S[\"Bucket S3\"]\n  L -->|\"supprimer : refuse\"| X[\"Action non autorisee\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "moindre-privilege-check"
+        }
+      ]
+    },
+    {
+      "slug": "chiffrement-et-secrets",
+      "title": "Chiffrement et secrets",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Chiffrer au repos et en transit",
+          "body": "**Chiffrer** des données, c'est les transformer avec une clé pour qu'elles soient illisibles sans cette clé. On distingue deux moments.\n\n**Au repos** (*at rest*) : les données stockées sur disque, par exemple dans un stockage S3 ou une base de données. Sur AWS, le service **KMS** (*Key Management Service*) gère les clés de chiffrement. On active le chiffrement d'un stockage, et KMS chiffre les fichiers automatiquement avant de les écrire et les déchiffre à la lecture pour qui a le droit. Si quelqu'un vole le disque physique, il ne lit que du charabia.\n\n**En transit** (*in transit*) : les données qui circulent sur le réseau entre un client et un service. On les protège avec **TLS** (*Transport Layer Security*), la technologie derrière le `https://`. TLS chiffre la communication pour qu'un tiers qui écoute le réseau ne puisse ni lire ni modifier ce qui passe.\n\nLa bonne pratique est simple : chiffrer dans les deux cas, toujours."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chiffrer au repos et en transit rend les données illisibles sans la clé",
+          "body": "/images/lessons/chiffrement-et-secrets-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ne jamais coder un secret en dur",
+          "body": "Un **secret**, c'est une valeur sensible : mot de passe de base de données, clé d'API d'un service externe, jeton d'accès. Le coder **en dur** (*hardcoder*), c'est l'écrire directement dans le code source.\n\nC'est à proscrire, pour plusieurs raisons : le secret se retrouve dans l'historique Git (où il reste même après suppression), il est visible par toute personne qui lit le code, et le changer oblige à modifier et redéployer le code.\n\nLa bonne approche : stocker le secret dans un service prévu pour cela et le lire **à l'exécution** (au moment où le programme tourne), jamais à l'écriture du code. AWS propose deux services pour cela :\n- **Secrets Manager** : spécialisé dans les secrets, avec rotation automatique (il peut changer un mot de passe de base régulièrement tout seul).\n- **SSM Parameter Store** (*Systems Manager Parameter Store*) : stocke des paramètres de configuration, dont des valeurs secrètes chiffrées (type `SecureString`), souvent gratuitement pour les usages simples.\n\nDans les deux cas, le code ne contient que le **nom** du secret, pas sa valeur. L'accès à ce nom est contrôlé par une politique IAM, selon le moindre privilège vu précédemment."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un secret vit dans un coffre dédié et se lit à l'exécution, jamais codé en dur",
+          "body": "/images/lessons/chiffrement-et-secrets-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Lire un secret à l'exécution (AWS CLI)",
+          "codeLanguage": "bash",
+          "body": "# Recupere la valeur d'un secret stocke dans Secrets Manager.\n# Le code ne contient que le nom du secret, jamais sa valeur.\naws secretsmanager get-secret-value \\\n  --secret-id prod/cle-api-paiement \\\n  --query SecretString \\\n  --output text\n\n# Variante avec SSM Parameter Store, pour un parametre chiffre.\n# --with-decryption demande a KMS de dechiffrer la valeur.\naws ssm get-parameter \\\n  --name /prod/cle-api-paiement \\\n  --with-decryption \\\n  --query Parameter.Value \\\n  --output text"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi : retirer une clé codée en dur",
+          "body": "Voici un extrait de code qui contient une clé d'API codée en dur :\n\n```python\n# fichier paiement.py\nCLE_API = \"sk_live_9f3aK2mNqR7vX1bZ\"\n\ndef appeler_service_paiement(montant):\n    return envoyer(CLE_API, montant)\n```\n\nCette clé est dans le code source, donc dans Git et visible par tous. Décris les étapes pour corriger cela avec AWS, puis réécris le code pour que la clé soit lue depuis Secrets Manager à l'exécution au lieu d'être codée en dur. Suppose que le code tourne sur AWS avec un rôle IAM autorisé à lire ce secret.",
+          "solution": "Étapes :\n1. Créer le secret dans Secrets Manager, par exemple sous le nom `prod/cle-api-paiement`, avec la vraie valeur de la clé.\n2. Comme la clé a été exposée dans Git, la **révoquer** auprès du service de paiement et en générer une nouvelle, puis stocker cette nouvelle valeur dans le secret. Une clé qui a fuité doit être considérée comme compromise.\n3. Donner au rôle IAM du code une politique autorisant seulement `secretsmanager:GetSecretValue` sur ce secret précis (moindre privilège).\n4. Retirer la clé du code et la lire à l'exécution. Idéalement, nettoyer aussi l'historique Git, mais la révocation de l'étape 2 reste la protection essentielle.\n\nCode corrigé :\n\n```python\n# fichier paiement.py\nimport json\nimport boto3\n\n_client = boto3.client(\"secretsmanager\")\n\ndef lire_cle_api():\n    reponse = _client.get_secret_value(SecretId=\"prod/cle-api-paiement\")\n    return reponse[\"SecretString\"]\n\ndef appeler_service_paiement(montant):\n    cle_api = lire_cle_api()\n    return envoyer(cle_api, montant)\n```\n\nLa clé n'apparaît plus dans le code : seul son nom y figure. Les identifiants temporaires du rôle IAM autorisent l'appel, et aucun secret n'est écrit dans le dépôt."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "chiffrement-et-secrets-check"
+        }
+      ]
+    }
+  ]
+}

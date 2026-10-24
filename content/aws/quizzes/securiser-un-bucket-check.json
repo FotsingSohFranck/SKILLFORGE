@@ -1,0 +1,43 @@
+{
+  "ref": "securiser-un-bucket-check",
+  "node": "s3-deep",
+  "lesson": "securiser-un-bucket",
+  "title": "Quiz : Sécuriser un bucket",
+  "description": "Vérifie les bases de la sécurité d'un bucket S3 : accès privé, blocage public, chiffrement.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Par défaut, un bucket S3 et ses objets sont privés et accessibles uniquement au compte propriétaire.",
+      "justification": "Vrai : S3 est privé par défaut. Une exposition publique résulte presque toujours d'une configuration ouverte par erreur.",
+      "position": 0,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment laisser le navigateur d'un utilisateur télécharger un fichier confidentiel sans rendre le bucket public ni diffuser tes clés AWS ?",
+      "justification": "Une URL pré-signée est un lien temporaire et signé qui autorise une seule opération sur un objet précis, pendant une durée limitée, sans exposer le bucket.",
+      "position": 1,
+      "options": [
+        { "label": "Générer une URL pré-signée temporaire côté serveur", "correct": true, "position": 0 },
+        { "label": "Désactiver le Block Public Access et ouvrir le bucket", "correct": false, "position": 1 },
+        { "label": "Envoyer la clé d'accès AWS au navigateur", "correct": false, "position": 2 },
+        { "label": "Désactiver le chiffrement du bucket", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle option de chiffrement au repos ajoute un contrôle d'accès fin aux clés et une trace d'audit de leur usage ?",
+      "justification": "SSE-KMS gère les clés via KMS, ce qui permet des permissions fines et journalise chaque utilisation de la clé.",
+      "position": 2,
+      "options": [
+        { "label": "SSE-KMS", "correct": true, "position": 0 },
+        { "label": "SSE-S3", "correct": false, "position": 1 },
+        { "label": "Aucun chiffrement", "correct": false, "position": 2 },
+        { "label": "Le blocage de l'accès public", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

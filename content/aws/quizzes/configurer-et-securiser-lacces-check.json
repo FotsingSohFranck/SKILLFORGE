@@ -1,0 +1,43 @@
+{
+  "ref": "configurer-et-securiser-lacces-check",
+  "node": "cli-sdk",
+  "lesson": "configurer-et-securiser-lacces",
+  "title": "Quiz : Configurer et sécuriser l'accès",
+  "description": "Vérifie aws configure, les profils nommés et le choix rôles vs clés d'accès.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que demande la commande `aws configure` lors de sa première exécution ?",
+      "justification": "aws configure enregistre la paire de clés d'accès (Access Key ID et Secret Access Key), la région par défaut et le format de sortie par défaut.",
+      "position": 0,
+      "options": [
+        { "label": "Les clés d'accès, la région par défaut et le format de sortie", "correct": true, "position": 0 },
+        { "label": "Uniquement le nom du bucket S3 à utiliser", "correct": false, "position": 1 },
+        { "label": "Le mot de passe de connexion à la Console web", "correct": false, "position": 2 },
+        { "label": "La version de l'AWS CLI à installer", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une instance EC2 qui doit accéder à S3, quelle est la pratique recommandée par AWS ?",
+      "justification": "On attache un rôle IAM à l'instance : elle obtient des identifiants temporaires qui expirent seuls, sans aucune clé d'accès stockée sur le serveur.",
+      "position": 1,
+      "options": [
+        { "label": "Attacher un rôle IAM à l'instance, sans clés en dur", "correct": true, "position": 0 },
+        { "label": "Copier ses clés d'accès personnelles dans le code", "correct": false, "position": 1 },
+        { "label": "Écrire le mot de passe du compte dans un fichier texte", "correct": false, "position": 2 },
+        { "label": "Désactiver IAM pour simplifier l'accès", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les rôles IAM fournissent des identifiants temporaires qui expirent, alors que les clés d'accès en dur sont de longue durée.",
+      "justification": "Vrai : c'est justement pourquoi on préfère les rôles temporaires, plus sûrs en cas de fuite, aux clés de longue durée.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

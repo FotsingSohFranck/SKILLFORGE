@@ -1,0 +1,100 @@
+{
+  "node": "caching-cdn",
+  "lessons": [
+    {
+      "slug": "pourquoi-un-cdn",
+      "title": "Pourquoi un CDN",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un CDN rapproche le contenu des utilisateurs",
+          "body": "Un **CDN** (*Content Delivery Network*, réseau de diffusion de contenu) est un ensemble de serveurs répartis partout dans le monde, appelés **points de présence** (ou *edge locations* chez AWS). Leur rôle : garder une copie de ton contenu au plus près des utilisateurs.\n\nSans CDN, chaque visiteur télécharge le contenu depuis l'**origine**, c'est à dire le serveur ou le stockage où le fichier existe vraiment (par exemple un bucket **S3** ou un serveur web). Si l'origine est à Paris et le visiteur à Tokyo, chaque octet traverse la planète : c'est lent.\n\nAvec un CDN, le visiteur de Tokyo est servi par le point de présence le plus proche de lui. Résultat : moins de **latence** (le délai avant que la réponse arrive), une expérience plus fluide, et une **origine soulagée** car elle ne répond plus à chaque visiteur. Chez AWS, ce CDN s'appelle **CloudFront**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un CDN repartit des copies du contenu au plus pres des utilisateurs partout dans le monde",
+          "body": "/images/lessons/pourquoi-un-cdn-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Cache hit, cache miss et TTL",
+          "body": "Le CDN met le contenu en **cache**, c'est à dire qu'il en garde une copie temporaire sur le point de présence.\n\nDeux cas se présentent à chaque demande :\n- **Cache hit** (succès de cache) : la copie est déjà présente sur le point de présence. Le CDN la renvoie immédiatement, sans déranger l'origine.\n- **Cache miss** (échec de cache) : la copie n'est pas là. Le point de présence va alors chercher le contenu à l'origine une seule fois, le renvoie à l'utilisateur, puis le garde pour les demandes suivantes.\n\nCombien de temps le CDN garde t il une copie ? C'est le **TTL** (*Time To Live*, durée de vie). Pendant toute la durée du TTL, le contenu est servi depuis le cache. Une fois le TTL expiré, le point de présence vérifiera à nouveau auprès de l'origine. Un TTL long accélère la diffusion et soulage davantage l'origine, mais retarde la prise en compte d'un contenu modifié."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cache sert les demandes depuis le point de presence le temps du TTL",
+          "body": "/images/lessons/pourquoi-un-cdn-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Le trajet d'une demande au travers du CDN",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  U[\"Utilisateur\"] -->|\"demande\"| E[\"Point de presence CloudFront\"]\n  E -->|\"cache hit : copie presente\"| U\n  E -->|\"cache miss : va chercher a l'origine\"| O[\"Origine S3\"]\n  O -->|\"renvoie le fichier\"| E\n  E -->|\"sert puis met en cache (TTL)\"| U"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "pourquoi-un-cdn-check"
+        }
+      ]
+    },
+    {
+      "slug": "configurer-cloudfront",
+      "title": "Configurer CloudFront",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La distribution, l'origine et le comportement de cache",
+          "body": "Pour utiliser CloudFront, tu crées une **distribution**. C'est l'objet de configuration qui te donne un nom de domaine public (du type `d1234abcd.cloudfront.net`) et qui décrit comment diffuser ton contenu.\n\nUne distribution repose sur trois éléments :\n- L'**origine** (*origin*) : où se trouve le contenu réel. Le plus souvent un bucket **S3** (pour des fichiers statiques) ou un serveur HTTP.\n- Le **comportement de cache** (*cache behavior*) : les règles de mise en cache. On y définit la **clé de cache** (*cache key*), c'est à dire ce qui identifie une réponse (par défaut le chemin de l'URL), et le **TTL** (combien de temps garder la copie).\n- La sécurité : **HTTPS** pour chiffrer le trafic entre l'utilisateur et CloudFront, et la restriction d'accès à l'origine.\n\nQuand le contenu change avant la fin du TTL, tu demandes une **invalidation du cache** : CloudFront marque les copies concernées comme périmées et ira rechercher la version à jour à l'origine au prochain appel."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La distribution relie l'origine, le comportement de cache et la diffusion mondiale",
+          "body": "/images/lessons/configurer-cloudfront-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Protéger l'origine avec OAC",
+          "body": "Si ton bucket S3 est public, les visiteurs pourraient le contacter directement et contourner CloudFront, ce qui annule les bénéfices du cache et complique la sécurité.\n\nLa bonne pratique est l'**OAC** (*Origin Access Control*, contrôle d'accès à l'origine). Le principe : le bucket S3 reste **privé** (aucun accès public direct) et seule la distribution CloudFront est autorisée à lire ses fichiers. Les utilisateurs passent donc forcément par CloudFront, en HTTPS, et l'origine n'est jamais exposée directement.\n\nL'OAC remplace l'ancien mécanisme OAI (*Origin Access Identity*) et est aujourd'hui recommandé par AWS pour les origines S3."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'OAC garde l'origine privee et n'autorise que CloudFront a la lire",
+          "body": "/images/lessons/configurer-cloudfront-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Invalider le cache après une mise à jour (AWS CLI)",
+          "codeLanguage": "bash",
+          "body": "# Tu viens de redeployer index.html et le dossier /css sur ton origine S3.\n# Tu demandes a CloudFront d'oublier les copies en cache pour ces chemins.\naws cloudfront create-invalidation \\\n  --distribution-id E123ABCDEF4567 \\\n  --paths \"/index.html\" \"/css/*\"\n\n# '/*' invaliderait tout le contenu de la distribution.\n# Astuce : garde les invalidations ciblees, les 1000 premiers chemins\n# par mois sont gratuits, au dela ils sont factures."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Tu dois publier un site statique (HTML, CSS, images) stocké dans un bucket S3, et le rendre rapide partout dans le monde, en HTTPS, sans exposer directement le bucket. Quels éléments AWS assembles tu, et comment géreras tu la mise à jour du site ?",
+          "solution": "1) Dépose les fichiers du site dans un bucket **S3 privé** (pas d'accès public). 2) Crée une **distribution CloudFront** dont l'origine est ce bucket. 3) Active l'**OAC** (*Origin Access Control*) et ajoute une politique de bucket autorisant uniquement cette distribution à lire S3 : les visiteurs ne peuvent plus joindre S3 directement. 4) CloudFront fournit du **HTTPS** par défaut et met le contenu en cache sur ses points de présence, donc le site est servi vite partout dans le monde. 5) À chaque mise à jour, tu redéploies les fichiers sur S3 puis tu lances une **invalidation** sur les chemins modifiés (`aws cloudfront create-invalidation --distribution-id <ID> --paths \"/index.html\"`) pour que CloudFront serve la nouvelle version avant la fin du TTL."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "configurer-cloudfront-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "configurer-cloudfront-check",
+  "node": "caching-cdn",
+  "lesson": "configurer-cloudfront",
+  "title": "Quiz : Configurer CloudFront",
+  "description": "Vérifie que tu sais configurer une distribution, protéger l'origine et invalider le cache.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Tu modifies index.html sur ton origine S3 avant la fin du TTL et veux que CloudFront serve la nouvelle version. Que fais tu ?",
+      "justification": "Une invalidation de cache marque les copies concernées comme périmées : CloudFront ira chercher la version à jour à l'origine au prochain appel, sans attendre la fin du TTL.",
+      "position": 0,
+      "options": [
+        { "label": "Tu crées une invalidation de cache sur le chemin /index.html", "correct": true, "position": 0 },
+        { "label": "Tu supprimes puis recrées entièrement la distribution", "correct": false, "position": 1 },
+        { "label": "Tu rends le bucket S3 public pour contourner le cache", "correct": false, "position": 2 },
+        { "label": "Tu attends obligatoirement plusieurs jours sans rien faire", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'OAC (Origin Access Control) avec une origine S3 ?",
+      "justification": "L'OAC garde le bucket S3 privé et n'autorise que la distribution CloudFront à le lire, ce qui empêche les utilisateurs d'accéder directement à S3 en contournant CloudFront.",
+      "position": 1,
+      "options": [
+        { "label": "Garder le bucket S3 privé et n'autoriser que CloudFront à le lire", "correct": true, "position": 0 },
+        { "label": "Accélérer le chiffrement HTTPS entre deux régions", "correct": false, "position": 1 },
+        { "label": "Augmenter automatiquement le TTL de tous les fichiers", "correct": false, "position": 2 },
+        { "label": "Convertir les images en un format plus léger", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans une distribution CloudFront, l'origine désigne l'endroit où se trouve réellement le contenu, par exemple un bucket S3.",
+      "justification": "Vrai : l'origine est la source du contenu réel (un bucket S3 ou un serveur HTTP) que CloudFront met en cache et diffuse.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

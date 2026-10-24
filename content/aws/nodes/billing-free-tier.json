@@ -1,0 +1,124 @@
+{
+  "node": "billing-free-tier",
+  "lessons": [
+    {
+      "slug": "comprendre-la-facture",
+      "title": "Comprendre la facture",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Payer à la consommation",
+          "body": "Sur AWS, tu ne paies pas un abonnement fixe pour un serveur allumé en permanence. Tu paies à l'**usage** : c'est le modèle du paiement à la consommation (*pay as you go*). Concrètement, AWS mesure ce que tu utilises réellement, puis t'envoie une facture mensuelle correspondant à cette consommation.\n\nUn exemple simple : si une machine virtuelle tourne 3 heures dans le mois, tu paies 3 heures, pas le mois entier. Si tu l'éteins, le coût de calcul s'arrête. Ce principe change une habitude importante : une ressource oubliée et laissée allumée continue de coûter, même si personne ne l'utilise.\n\nPour parler des montants, AWS distingue deux natures de coût. Un **coût fixe** ne dépend pas de ton usage : par exemple une adresse IP réservée que tu paies tant que tu la gardes, même inutilisée. Un **coût variable** dépend directement de ton usage : plus tu calcules ou stockes, plus il augmente. Comprendre cette différence aide à prévoir la facture."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le paiement à la consommation : on règle l'usage réel, pas un abonnement fixe",
+          "body": "/images/lessons/comprendre-la-facture-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les grands postes de dépense",
+          "body": "La plupart des factures AWS se répartissent sur trois grands postes.\n\n- **Le calcul** (*compute*) : le temps pendant lequel tes machines ou tes fonctions s'exécutent. C'est souvent le poste principal (par exemple les instances EC2 ou les exécutions Lambda).\n- **Le stockage** (*storage*) : la quantité de données que tu conserves, facturée au gigaoctet par mois (par exemple les objets dans S3 ou les disques EBS).\n- **Le transfert de données sortant** (*data transfer out*) : les données qui quittent AWS vers Internet. Point important pour débuter : faire **entrer** des données dans AWS est en général gratuit, mais les faire **sortir** vers Internet est facturé au gigaoctet. Beaucoup de factures surprennent sur ce poste.\n\nChaque service a sa propre grille tarifaire, mais ces trois familles couvrent l'essentiel de ce que paie un débutant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les trois grands postes de la facture : calcul, stockage et transfert sortant",
+          "body": "/images/lessons/comprendre-la-facture-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "D'où vient le montant de la facture",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  F[\"Facture mensuelle AWS\"] --> C[\"Calcul : temps d'execution (EC2, Lambda)\"]\n  F --> S[\"Stockage : Go par mois (S3, EBS)\"]\n  F --> T[\"Transfert sortant : Go vers Internet\"]\n  C --> U[\"Usage mesure par AWS\"]\n  S --> U\n  T --> U\n  U --> P[\"Montant a payer (pay as you go)\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Analyser avec Cost Explorer et les tags",
+          "body": "**Cost Explorer** est l'outil visuel d'AWS pour comprendre tes dépenses. Il affiche des graphiques de coût dans le temps, permet de filtrer par service, par région ou par période, et d'estimer la tendance des prochains mois. C'est le premier réflexe quand tu veux savoir *où* part l'argent.\n\nPour aller plus loin, on utilise les **tags de répartition des coûts** (*cost allocation tags*). Un tag est une simple étiquette `clé = valeur` que tu attaches à une ressource, par exemple `projet = demo` ou `environnement = prod`. Une fois ces tags activés dans la console de facturation, Cost Explorer peut regrouper les coûts par tag. Tu réponds alors à des questions concrètes : combien coûte le projet demo, combien coûte l'environnement de production. Sans tags, tout est mélangé et il devient difficile d'attribuer une dépense à un projet précis."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cost Explorer et les tags pour voir où part l'argent",
+          "body": "/images/lessons/comprendre-la-facture-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "comprendre-la-facture-check"
+        }
+      ]
+    },
+    {
+      "slug": "budgets-et-offre-gratuite",
+      "title": "Budgets et offre gratuite",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'offre gratuite (AWS Free Tier)",
+          "body": "L'**offre gratuite** d'AWS (*AWS Free Tier*) te laisse tester de nombreux services sans payer, dans certaines limites. Elle comporte trois formes qu'il faut bien distinguer.\n\n- **Toujours gratuit** (*always free*) : des quotas offerts en permanence, qui ne expirent jamais. Par exemple le premier million d'exécutions Lambda par mois.\n- **Gratuit 12 mois** (*12 months free*) : des quotas offerts pendant les douze premiers mois après la création du compte. Par exemple un certain nombre d'heures d'instance EC2 de petite taille par mois. Passé un an, ces usages redeviennent payants.\n- **Essais** (*trials*) : un accès gratuit limité dans le temps à partir du moment où tu actives un service donné (par exemple 30 jours ou 90 jours).\n\nAttention au piège classique : dépasser un quota gratuit ne bloque pas le service, cela le rend simplement payant pour la part qui dépasse. L'offre gratuite n'est donc pas une garantie de facture à zéro ; c'est une mise en garde utile, pas un filet de sécurité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'offre gratuite d'AWS : des quotas offerts, mais pas une garantie de facture à zéro",
+          "body": "/images/lessons/budgets-et-offre-gratuite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "AWS Budgets et alertes de dépassement",
+          "body": "**AWS Budgets** te permet de fixer un plafond de dépense et d'être prévenu quand tu t'en approches ou le dépasses. Tu définis un montant cible (par exemple 10 dollars par mois) et une ou plusieurs **alertes de dépassement** : AWS t'envoie un e-mail dès qu'un seuil est atteint, par exemple à 80 pour cent puis à 100 pour cent du budget.\n\nUne alerte proche du modèle, plus simple, existe aussi : l'**alerte de facturation** (*billing alarm*), qui prévient quand la facture estimée du mois dépasse un montant donné. Dans les deux cas, le but n'est pas de couper automatiquement les ressources, mais de t'avertir à temps pour que tu réagisses. Pour un débutant, mettre en place un petit budget dès le premier jour est la meilleure protection contre une mauvaise surprise en fin de mois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "AWS Budgets fixe un plafond et alerte avant le dépassement",
+          "body": "/images/lessons/budgets-et-offre-gratuite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Consulter ses coûts avec l'AWS CLI",
+          "codeLanguage": "bash",
+          "body": "# Affiche le cout total engage sur le mois en cours, jour par jour.\n# `ce` = Cost Explorer ; les montants sont en dollars (UnblendedCost).\naws ce get-cost-and-usage \\\n  --time-period Start=2026-10-01,End=2026-10-31 \\\n  --granularity DAILY \\\n  --metrics \"UnblendedCost\"\n\n# Liste les budgets deja definis sur le compte.\n# Remplace l'identifiant 123456789012 par ton numero de compte AWS.\naws budgets describe-budgets \\\n  --account-id 123456789012"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Tu viens de créer ton compte AWS et tu veux dormir tranquille : être prévenu par e-mail si tes dépenses du mois risquent de dépasser 10 dollars. Décris les étapes pour mettre en place cette alerte avec AWS Budgets, et précise ce qui se passe quand le seuil est atteint.",
+          "solution": "Dans la console de facturation, ouvre AWS Budgets et crée un budget de type coût. Fixe le montant à 10 dollars par mois. Ajoute au moins une alerte de dépassement, par exemple à 80 pour cent du budget (soit 8 dollars) et une autre à 100 pour cent (10 dollars), et indique ton adresse e-mail comme destinataire. Valide le budget. Désormais, dès que la dépense réelle ou prévue franchit un seuil, AWS t'envoie un e-mail. L'alerte ne coupe aucune ressource : elle te prévient pour que tu arrêtes toi-même ce qui tourne inutilement. Bonne pratique complémentaire : arrêter ou supprimer les ressources que tu n'utilises plus, car une machine oubliée continue de facturer."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Bonnes pratiques anti mauvaise surprise",
+          "body": "Quelques réflexes simples évitent la plupart des factures inattendues quand on débute.\n\n- **Créer un budget dès le départ**, même petit, avec une alerte par e-mail.\n- **Arrêter ou supprimer les ressources inutilisées** : une instance EC2, un disque EBS ou une adresse IP réservée oubliés continuent de coûter, même sans trafic.\n- **Activer une alerte de facturation** pour surveiller le montant estimé du mois.\n- **Vérifier Cost Explorer régulièrement** pour repérer tôt une dépense anormale.\n- **Connaître les limites de l'offre gratuite** des services que tu testes, car un dépassement devient payant sans bloquer le service.\n\nLa règle d'or : sur AWS, ce qui tourne coûte. En gardant la main sur ce qui est allumé et en étant prévenu tôt, tu restes maître de ta facture."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Garder la main sur ce qui tourne reste la meilleure protection anti surprise",
+          "body": "/images/lessons/budgets-et-offre-gratuite-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "budgets-et-offre-gratuite-check"
+        }
+      ]
+    }
+  ]
+}

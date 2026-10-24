@@ -1,0 +1,119 @@
+{
+  "node": "regions-az",
+  "lessons": [
+    {
+      "slug": "regions-et-zones",
+      "title": "Régions et zones de disponibilité",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Régions et zones de disponibilité",
+          "body": "AWS répartit ses centres de données dans le monde entier. Deux notions structurent cette présence.\n\nUne **région** est une zone géographique précise où AWS installe son infrastructure. Chaque région porte un identifiant stable, par exemple **eu-west-3** (Paris), **eu-west-1** (Irlande) ou **us-east-1** (Virginie du Nord). Quand tu crées une ressource, tu choisis d'abord sa région.\n\nUne région n'est pas un seul bâtiment : elle regroupe plusieurs **zones de disponibilité** (en anglais *Availability Zones*, souvent abrégées **AZ**). Une AZ est un ou plusieurs centres de données :\n- **isolés physiquement** les uns des autres (alimentation, réseau et refroidissement indépendants), donc une panne dans une AZ n'affecte pas les autres,\n- **reliés entre eux à très faible latence** par un réseau privé rapide, ce qui permet de les faire travailler ensemble.\n\nDans une région, les AZ portent un suffixe de lettre : à Paris on trouve **eu-west-3a**, **eu-west-3b** et **eu-west-3c**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une région regroupe plusieurs zones de disponibilité, chacune faite de centres de données",
+          "body": "/images/lessons/regions-et-zones-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Répartir sur plusieurs AZ pour la haute disponibilité",
+          "body": "La **haute disponibilité** signifie qu'un service continue de fonctionner même en cas de panne d'une partie de l'infrastructure.\n\nLa règle de base sur AWS : ne pas tout poser dans une seule AZ. Si tu déploies tes serveurs dans **eu-west-3a** uniquement et que cette zone tombe, ton application est indisponible. En répartissant la même application sur **eu-west-3a** et **eu-west-3b**, la panne d'une AZ laisse l'autre prendre le relais.\n\nDeux termes utiles :\n- **tolérance aux pannes** : la capacité à continuer malgré une défaillance,\n- **multi-AZ** : le fait de déployer une ressource dans au moins deux zones de disponibilité.\n\nBeaucoup de services gèrent cette répartition pour toi : par exemple une base **RDS** en mode multi-AZ garde une copie de secours dans une autre zone."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Répartir la même application sur plusieurs AZ assure la haute disponibilité",
+          "body": "/images/lessons/regions-et-zones-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Services régionaux et services globaux",
+          "body": "Chaque service AWS est soit **régional**, soit **global**.\n\nUn service **régional** vit dans une région donnée, et ce que tu y crées n'existe pas automatiquement ailleurs. C'est le cas le plus fréquent : **EC2** (machines virtuelles), **S3** (les compartiments sont rattachés à une région), **RDS**, **Lambda**. Une fonction Lambda créée à Paris n'existe pas à Dublin tant que tu ne la recrées pas là-bas.\n\nUn service **global** n'est pas lié à une seule région. Les principaux exemples :\n- **IAM** (gestion des comptes et des droits),\n- **Route 53** (DNS),\n- **CloudFront** (réseau de diffusion de contenu).\n\nRetenir à quelle catégorie appartient un service évite une erreur classique : chercher une ressource dans la mauvaise région de la console et croire qu'elle a disparu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Certains services sont régionaux, d'autres globaux comme IAM, Route 53 ou CloudFront",
+          "body": "/images/lessons/regions-et-zones-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Une région et ses zones de disponibilité",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph R[\"Region eu-west-3 (Paris)\"]\n    AZa[\"AZ eu-west-3a\"]\n    AZb[\"AZ eu-west-3b\"]\n    AZc[\"AZ eu-west-3c\"]\n  end\n  AZa <-->|\"reseau prive a faible latence\"| AZb\n  AZb <-->|\"reseau prive a faible latence\"| AZc\n  AZa <-->|\"reseau prive a faible latence\"| AZc"
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Lister régions et zones avec l'AWS CLI",
+          "codeLanguage": "bash",
+          "body": "# Liste les regions disponibles pour ton compte.\naws ec2 describe-regions \\\n  --query \"Regions[].RegionName\" \\\n  --output table\n\n# Liste les zones de disponibilite de la region Paris.\naws ec2 describe-availability-zones \\\n  --region eu-west-3 \\\n  --query \"AvailabilityZones[].ZoneName\" \\\n  --output table\n\n# Resultat attendu : eu-west-3a, eu-west-3b, eu-west-3c"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "regions-et-zones-check"
+        }
+      ]
+    },
+    {
+      "slug": "edge-et-latence",
+      "title": "Points de présence et latence",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les points de présence rapprochent le contenu",
+          "body": "En plus des régions, AWS dispose d'un réseau beaucoup plus dense de **points de présence** (en anglais *edge locations*). Ce sont de petits sites répartis dans de nombreuses villes, bien plus proches des utilisateurs que les régions complètes.\n\nLeur rôle principal : **mettre en cache** du contenu au plus près des internautes. C'est le service **CloudFront**, le réseau de diffusion de contenu d'AWS (en anglais *CDN*, *Content Delivery Network*), qui s'appuie sur ces points de présence.\n\nExemple concret : tes images et fichiers sont stockés dans un compartiment **S3** à Paris. Un visiteur situé au Japon les télécharge via CloudFront. La première fois, le point de présence proche de lui va chercher le fichier à Paris, puis le garde en cache. Les visiteurs japonais suivants reçoivent le fichier depuis le point de présence local, sans retraverser la planète."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les points de présence mettent le contenu en cache au plus près des utilisateurs",
+          "body": "/images/lessons/edge-et-latence-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La latence et le choix de la région",
+          "body": "La **latence** est le temps que met une donnée pour faire l'aller-retour entre l'utilisateur et le serveur. Elle dépend beaucoup de la distance physique : plus le serveur est loin, plus la latence est élevée, et plus l'application semble lente.\n\nQuand tu choisis la région où déployer ton application, trois critères entrent en jeu :\n- **la proximité des utilisateurs** : choisis une région proche d'eux pour réduire la latence. Pour un public français, **eu-west-3** (Paris) est souvent le meilleur choix,\n- **la conformité** : certaines réglementations imposent que les données restent dans une zone géographique précise, par exemple au sein de l'Union européenne,\n- **le coût** : les prix varient d'une région à l'autre pour un même service.\n\nLes points de présence et CloudFront réduisent la latence pour le contenu mis en cache, mais le cœur de l'application (base de données, calculs) reste dans la région que tu as choisie. Le choix de la région garde donc toute son importance."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La latence dépend de la distance : choisir une région proche rend l'application plus rapide",
+          "body": "/images/lessons/edge-et-latence-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Du visiteur au point de présence",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  U[\"Visiteur au Japon\"] -->|\"faible latence\"| E[\"Point de presence (Tokyo)\"]\n  E -->|\"contenu en cache ?\"| E\n  E -->|\"si absent, va chercher\"| O[\"Origine S3 (eu-west-3)\"]\n  O -->|\"copie mise en cache\"| E\n  E -->|\"reponse rapide\"| U"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi de choisir",
+          "body": "Une jeune entreprise lance une application web destinée surtout à des utilisateurs en France et en Allemagne. Les données personnelles doivent rester dans l'Union européenne. L'application doit continuer à fonctionner même si un centre de données tombe en panne.\n\nQuelle région choisis-tu, et dans combien de zones de disponibilité déploies-tu l'application ? Justifie en une ou deux phrases chaque décision.",
+          "solution": "Région : **eu-west-3** (Paris) ou **eu-central-1** (Francfort). Les deux sont dans l'Union européenne, ce qui respecte la contrainte de conformité, et proches des utilisateurs français et allemands, ce qui réduit la latence. Francfort est très central pour un public germanophone, Paris pour un public francophone ; les deux conviennent.\n\nNombre de zones de disponibilité : **au moins deux** (par exemple eu-west-3a et eu-west-3b). Déployer en multi-AZ assure la tolérance aux pannes demandée : si une zone tombe, l'autre prend le relais et l'application reste disponible. Une seule AZ ne suffirait pas, car sa panne rendrait le service indisponible.\n\nBonus : on peut ajouter CloudFront devant l'application pour servir le contenu statique depuis les points de présence proches des visiteurs et réduire encore la latence perçue."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "edge-et-latence-check"
+        }
+      ]
+    }
+  ]
+}

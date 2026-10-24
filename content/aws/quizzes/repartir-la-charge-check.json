@@ -1,0 +1,43 @@
+{
+  "ref": "repartir-la-charge-check",
+  "node": "load-balancing-scaling",
+  "lesson": "repartir-la-charge",
+  "title": "Quiz : Répartir la charge",
+  "description": "Vérifie que tu as compris le rôle du load balancer et des health checks.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un health check sur un Application Load Balancer ?",
+      "justification": "Le health check teste régulièrement chaque cible. Une cible qui ne répond plus est marquée malsaine, et le load balancer cesse de lui envoyer du trafic jusqu'à son rétablissement.",
+      "position": 0,
+      "options": [
+        { "label": "À n'envoyer du trafic qu'aux cibles qui répondent correctement", "correct": true, "position": 0 },
+        { "label": "À facturer chaque cible au nombre de requêtes reçues", "correct": false, "position": 1 },
+        { "label": "À chiffrer le trafic entre le client et le load balancer", "correct": false, "position": 2 },
+        { "label": "À sauvegarder le contenu des cibles toutes les nuits", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi répartir les cibles d'un ALB sur plusieurs Availability Zones ?",
+      "justification": "Une Availability Zone est un centre de données isolé. Répartir les cibles sur plusieurs AZ permet, si une zone a un incident, que les cibles des autres zones continuent de répondre.",
+      "position": 1,
+      "options": [
+        { "label": "Pour que l'application reste disponible si une zone a un incident", "correct": true, "position": 0 },
+        { "label": "Pour obtenir une seule adresse IP publique", "correct": false, "position": 1 },
+        { "label": "Pour supprimer tout besoin de health check", "correct": false, "position": 2 },
+        { "label": "Pour réduire de moitié le prix des instances", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les clients doivent connaître l'adresse de chaque instance située derrière le load balancer.",
+      "justification": "Faux : les clients ne connaissent que l'adresse unique du load balancer. C'est lui qui distribue les requêtes vers les cibles, dont le nombre et l'identité restent invisibles pour le client.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

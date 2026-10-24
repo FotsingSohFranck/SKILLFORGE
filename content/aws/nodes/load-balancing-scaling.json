@@ -1,0 +1,112 @@
+{
+  "node": "load-balancing-scaling",
+  "lessons": [
+    {
+      "slug": "repartir-la-charge",
+      "title": "Répartir la charge",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi répartir la charge",
+          "body": "Si une seule machine sert ton application, elle devient un point de fragilité : si elle tombe en panne, tout s'arrête ; si le trafic grimpe, elle sature. La solution consiste à faire tourner **plusieurs copies** de l'application et à placer devant elles un **répartiteur de charge** (*load balancer*).\n\nUn load balancer est un point d'entrée unique qui reçoit toutes les requêtes et les **distribue** sur plusieurs **cibles** (*targets*, par exemple des serveurs). Les clients ne connaissent qu'une seule adresse : celle du load balancer. Ils ignorent combien de machines travaillent derrière, et lesquelles."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Plusieurs copies de l'application derrière un point d'entrée unique",
+          "body": "/images/lessons/repartir-la-charge-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Elastic Load Balancing et l'Application Load Balancer",
+          "body": "Sur AWS, le service de répartition s'appelle **Elastic Load Balancing** (ELB). Il en existe plusieurs variantes ; la plus courante pour une application web est l'**Application Load Balancer** (ALB).\n\nL'ALB travaille au niveau HTTP et HTTPS. Il sait lire l'URL demandée et router selon le chemin (par exemple envoyer `/images` vers un groupe de cibles et `/api` vers un autre). On parle de **cibles** regroupées dans un **target group**.\n\nDeux notions de vocabulaire utiles :\n- Une **Availability Zone** (AZ) est un centre de données isolé à l'intérieur d'une région AWS. Une région en compte plusieurs.\n- Répartir ses cibles sur **plusieurs AZ** protège l'application : si une zone a un incident, les cibles des autres zones continuent de répondre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'Application Load Balancer distribue le trafic HTTP sur plusieurs cibles et zones",
+          "body": "/images/lessons/repartir-la-charge-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Les health checks, pour n'envoyer du trafic qu'aux cibles saines",
+          "body": "Comment le load balancer sait-il qu'une cible fonctionne encore ? Grâce aux **health checks** (contrôles de santé). À intervalle régulier, l'ALB envoie une requête de test à chaque cible, par exemple un `GET /health`.\n\nSi la cible répond correctement (un code HTTP 200 par exemple), elle est marquée **saine** (*healthy*) et reçoit du trafic. Si elle ne répond plus ou renvoie une erreur, elle est marquée **malsaine** (*unhealthy*) et le load balancer **cesse de lui envoyer des requêtes**, le temps qu'elle se rétablisse. Résultat : les visiteurs tombent toujours sur une machine qui répond."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les health checks n'envoient le trafic qu'aux cibles saines",
+          "body": "/images/lessons/repartir-la-charge-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Un ALB devant des instances sur deux AZ",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  C[\"Clients (navigateurs)\"] -->|\"HTTPS\"| ALB[\"Application Load Balancer\"]\n  subgraph AZa [\"Availability Zone A\"]\n    I1[\"Instance 1 (saine)\"]\n    I2[\"Instance 2 (saine)\"]\n  end\n  subgraph AZb [\"Availability Zone B\"]\n    I3[\"Instance 3 (saine)\"]\n    I4[\"Instance 4 (malsaine)\"]\n  end\n  ALB -->|\"health check OK\"| I1\n  ALB -->|\"health check OK\"| I2\n  ALB -->|\"health check OK\"| I3\n  ALB -.->|\"health check KO, aucun trafic\"| I4"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "repartir-la-charge-check"
+        }
+      ]
+    },
+    {
+      "slug": "passer-a-lechelle",
+      "title": "Passer à l'échelle automatiquement",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Scalabilité horizontale et verticale",
+          "body": "Quand une application reçoit plus de trafic, deux stratégies existent pour tenir la charge.\n\n- **Verticale** (*scale up*) : on remplace la machine par une plus puissante (plus de CPU, plus de mémoire). Simple, mais limité : une machine a une taille maximale, et il faut souvent l'arrêter pour la changer.\n- **Horizontale** (*scale out*) : on **ajoute d'autres machines** identiques à côté, et un load balancer répartit la charge entre elles. C'est l'approche privilégiée dans le cloud, car elle n'a presque pas de plafond et tolère la panne d'une machine.\n\nSur AWS, la scalabilité horizontale automatique repose sur l'**Auto Scaling Group**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Scalabilité horizontale : ajouter des machines identiques plutôt qu'une plus grosse",
+          "body": "/images/lessons/passer-a-lechelle-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'Auto Scaling Group et les politiques de scaling",
+          "body": "Un **Auto Scaling Group** (ASG) est un groupe d'instances EC2 identiques qu'AWS gère pour toi. Tu définis trois nombres : la taille **minimale**, la taille **désirée** et la taille **maximale** du groupe. L'ASG maintient le nombre d'instances voulu et remplace automatiquement toute instance défaillante.\n\nPour qu'il s'adapte au trafic, on ajoute une **politique de scaling** (*scaling policy*) basée sur une **métrique**. La plus simple est le *target tracking* : on fixe une cible, par exemple **50 % d'utilisation CPU moyenne**. Si la charge dépasse la cible, l'ASG fait du **scale out** (il ajoute des instances) ; si elle repasse en dessous, il fait du **scale in** (il en retire). \n\nLa combinaison gagnante est **ALB + ASG** : l'ASG ajuste le nombre d'instances selon la demande, et l'ALB répartit le trafic sur les instances saines du moment. Ensemble, ils donnent à la fois la **disponibilité** (panne d'une instance absorbée) et l'**élasticité** (le parc suit les pics et se réduit la nuit)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'Auto Scaling Group suit la charge et ajuste le nombre d'instances",
+          "body": "/images/lessons/passer-a-lechelle-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une politique de scaling sur le CPU (AWS CLI)",
+          "codeLanguage": "bash",
+          "body": "# On vise 50 % d'utilisation CPU moyenne sur le groupe `web-asg`.\n# L'ASG ajoute ou retire des instances tout seul pour s'en approcher.\naws autoscaling put-scaling-policy \\\n  --auto-scaling-group-name web-asg \\\n  --policy-name cpu-a-50 \\\n  --policy-type TargetTrackingScaling \\\n  --target-tracking-configuration '{\n    \"TargetValue\": 50.0,\n    \"PredefinedMetricSpecification\": {\n      \"PredefinedMetricType\": \"ASGAverageCPUUtilization\"\n    }\n  }'"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi de dimensionner",
+          "body": "Tu héberges une application web sur des instances EC2. Le trafic suit un rythme quotidien : très calme la nuit, forte montée chaque jour entre 12 h et 14 h où il faut environ 6 instances pour rester fluide, et environ 2 instances suffisent le reste de la journée. Tu veux rester disponible même si une instance tombe, sans payer 6 instances 24 h sur 24. Comment assembles-tu ALB et Auto Scaling Group, et quels réglages choisis-tu ?",
+          "solution": "On place un **Application Load Balancer** devant un **Auto Scaling Group**, avec les instances réparties sur au moins **deux Availability Zones** pour tolérer la panne d'une zone ou d'une instance. Réglages de l'ASG : taille **minimale = 2** (on garde toujours 2 instances pour rester disponible et absorber la perte de l'une d'elles), taille **maximale = 6** (le plafond des heures de pointe), taille **désirée = 2** au repos. On ajoute une **politique de target tracking** sur l'utilisation CPU moyenne, par exemple cible à 50 %. Aux heures creuses l'ASG reste à 2 instances ; vers midi, quand le CPU dépasse la cible, il fait du **scale out** jusqu'à 6 ; en début d'après-midi, quand la charge retombe, il fait du **scale in** vers 2. L'ALB n'envoie le trafic qu'aux instances saines du moment. On ne paie les 6 instances que pendant le pic, pas toute la journée."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "passer-a-lechelle-check"
+        }
+      ]
+    }
+  ]
+}

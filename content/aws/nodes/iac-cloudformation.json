@@ -1,0 +1,107 @@
+{
+  "node": "iac-cloudformation",
+  "lessons": [
+    {
+      "slug": "infrastructure-as-code",
+      "title": "L'infrastructure en code",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Décrire plutôt que cliquer",
+          "body": "Jusqu'ici, pour créer un bucket S3 ou une base de données, tu ouvrais la console AWS et tu cliquais. Cela marche une fois, mais pose vite des problèmes : personne ne sait exactement ce qui a été cliqué, c'est long à refaire, et deux environnements finissent toujours légèrement différents.\n\nL'**Infrastructure as Code** (IaC, l'infrastructure en code) renverse l'approche : tu **décris** ce que tu veux dans un fichier texte, et un outil se charge de le créer pour toi. Sur AWS, l'outil natif s'appelle **CloudFormation**.\n\nCe fichier descriptif est appelé un **modèle** (*template* en anglais). Tu y listes les ressources voulues (un bucket, un rôle, une fonction) sans dire *comment* les créer : tu dis seulement *ce que tu veux*. CloudFormation calcule les étapes et les exécute à ta place."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Décrire l'infrastructure dans un modèle plutôt que cliquer dans la console",
+          "body": "/images/lessons/infrastructure-as-code-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi c'est un progrès",
+          "body": "Mettre son infrastructure en code apporte trois bénéfices concrets :\n\n- **Reproductible** : le même modèle recrée exactement la même infrastructure, autant de fois que tu veux. Un environnement de test identique à la production devient trivial.\n- **Revu en revue de code** : le modèle est un fichier texte. Tu le versionnes avec Git, tu l'ouvres en *pull request*, un collègue le relit avant que quoi que ce soit ne parte en production. L'historique Git raconte qui a changé quoi, et pourquoi.\n- **Pas de dérive** : la *dérive* (*drift*), c'est quand la réalité s'écarte du modèle parce que quelqu'un a cliqué dans la console en douce. CloudFormation sait détecter cette dérive et te la signaler, pour que le fichier reste la vérité.\n\nUn ensemble de ressources décrites dans un même modèle et gérées ensemble s'appelle un **stack** (une pile). Tu crées, mets à jour ou supprimes le stack d'un bloc : toutes ses ressources suivent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un modèle versionné rend l'infrastructure reproductible, relisible et sans dérive",
+          "body": "/images/lessons/infrastructure-as-code-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un modèle minimal qui crée un bucket S3",
+          "codeLanguage": "yaml",
+          "body": "# Un modele CloudFormation est souvent ecrit en YAML.\n# Ce modele decrit une seule ressource : un bucket S3.\nAWSTemplateFormatVersion: \"2010-09-09\"\nDescription: Mon premier stack CloudFormation\n\nResources:\n  # \"MonBucket\" est un nom logique, choisi par toi, interne au modele.\n  MonBucket:\n    Type: AWS::S3::Bucket   # le type de ressource AWS a creer\n    Properties:\n      # On laisse AWS choisir un nom unique si on ne le precise pas.\n      VersioningConfiguration:\n        Status: Enabled     # on active le versioning des objets du bucket\n\nOutputs:\n  # Les sorties exposent des valeurs utiles une fois le stack cree.\n  NomDuBucket:\n    Description: Nom reel du bucket cree par AWS\n    Value: !Ref MonBucket   # !Ref renvoie ici le nom du bucket"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Du modèle aux ressources",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  T[\"Modele (template YAML)\"] -->|\"donne a CloudFormation\"| S[\"Stack\"]\n  S -->|\"cree / met a jour / supprime ensemble\"| R1[\"Bucket S3\"]\n  S --> R2[\"Role IAM\"]\n  S --> R3[\"Fonction Lambda\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "infrastructure-as-code-check"
+        }
+      ]
+    },
+    {
+      "slug": "deployer-un-stack",
+      "title": "Déployer un stack",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Créer, mettre à jour, supprimer",
+          "body": "Une fois ton modèle écrit, tu le confies à CloudFormation pour qu'il agisse. Trois opérations rythment la vie d'un stack :\n\n- **Créer** : CloudFormation lit le modèle et crée toutes les ressources dans le bon ordre.\n- **Mettre à jour** : tu modifies le modèle (ajouter une ressource, changer une propriété) et tu le redéployes. CloudFormation compare l'ancien et le nouveau, puis n'applique que les différences.\n- **Supprimer** : tu supprimes le stack, et CloudFormation **supprime aussi toutes ses ressources**. C'est pratique pour faire le ménage, mais attention : un bucket ou une base supprimés avec leurs données le sont pour de bon. Pour les ressources sensibles, on ajoute une politique de rétention qui demande à AWS de les conserver même si le stack disparaît."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un stack crée, met à jour ou supprime toutes ses ressources d'un bloc",
+          "body": "/images/lessons/deployer-un-stack-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Prévisualiser avec un change set, et le filet du rollback",
+          "body": "Mettre à jour une infrastructure de production à l'aveugle fait peur, à juste titre. CloudFormation offre deux sécurités :\n\n- Le **change set** (jeu de changements) : avant d'appliquer, CloudFormation te montre la liste exacte de ce qui va être ajouté, modifié ou supprimé. Tu relis, tu valides, *puis* seulement ça s'exécute. Certaines modifications exigent de **remplacer** une ressource (la détruire puis la recréer) : le change set te le signale, ce qui évite les mauvaises surprises.\n- Le **rollback automatique** : si une étape échoue pendant la création ou la mise à jour, CloudFormation **revient automatiquement à l'état stable précédent**. Tu ne te retrouves jamais avec un stack à moitié construit.\n\nEnfin, sache qu'il existe une couche au-dessus : l'**AWS CDK** (*Cloud Development Kit*). Il te laisse décrire ton infrastructure dans un vrai langage de programmation (TypeScript, Python, Java), puis génère un modèle CloudFormation. Au final, c'est toujours CloudFormation qui déploie : le CDK est une façon plus confortable d'écrire le même résultat."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le change set montre l'impact avant d'agir et le rollback ramène à l'état stable",
+          "body": "/images/lessons/deployer-un-stack-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déployer et prévisualiser avec l'AWS CLI",
+          "codeLanguage": "bash",
+          "body": "# Deployer (creer si le stack n'existe pas, sinon mettre a jour).\n# `deploy` applique directement les changements.\naws cloudformation deploy \\\n  --template-file mon-modele.yaml \\\n  --stack-name mon-premier-stack\n\n# Pour PREVISUALISER avant d'appliquer, on cree un change set.\naws cloudformation create-change-set \\\n  --stack-name mon-premier-stack \\\n  --change-set-name ajout-bucket \\\n  --template-body file://mon-modele.yaml\n\n# On regarde ce que le change set compte faire...\naws cloudformation describe-change-set \\\n  --stack-name mon-premier-stack \\\n  --change-set-name ajout-bucket\n\n# ...et seulement si ca nous convient, on l'applique.\naws cloudformation execute-change-set \\\n  --stack-name mon-premier-stack \\\n  --change-set-name ajout-bucket"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi : ajouter une ressource sans rien casser",
+          "body": "Ton stack `mon-premier-stack` contient déjà le bucket S3 de la leçon précédente. L'équipe te demande d'ajouter une **file de messages SQS** (type `AWS::SQS::Queue`) au même stack, en production, et tu veux le faire de la façon la plus sûre possible. Décris les étapes que tu suivrais, et explique ce qui te protège si quelque chose se passe mal.",
+          "solution": "Étapes : 1) Je modifie le modèle en ajoutant une ressource sous `Resources`, par exemple `MaFile:` de `Type: AWS::SQS::Queue`, sans toucher au bucket existant. 2) Je versionne ce changement dans Git et je l'ouvre en pull request pour qu'un collègue le relise. 3) Plutôt que de déployer directement, je crée un change set avec `aws cloudformation create-change-set`, puis je le lis avec `describe-change-set` pour vérifier qu'il **ajoute** bien la file et ne **remplace ni ne supprime** le bucket. 4) Si le change set est conforme, je l'applique avec `execute-change-set`. Ce qui me protège : le change set me montre l'impact exact avant d'agir, et le rollback automatique ramène le stack à son état stable précédent si la création de la file échoue en cours de route. Exemple d'ajout au modèle :\n```yaml\n  MaFile:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: ma-file-de-messages\n```"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "deployer-un-stack-check"
+        }
+      ]
+    }
+  ]
+}

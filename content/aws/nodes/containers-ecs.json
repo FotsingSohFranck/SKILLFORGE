@@ -1,0 +1,102 @@
+{
+  "node": "containers-ecs",
+  "lessons": [
+    {
+      "slug": "ecs-et-fargate",
+      "title": "ECS et Fargate",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "ECS, l'orchestrateur de conteneurs d'AWS",
+          "body": "Un **conteneur** empaquette ton application avec tout ce dont elle a besoin pour tourner (code, librairies, configuration). Mais en production tu n'as jamais un seul conteneur : tu veux en lancer plusieurs, les redémarrer s'ils plantent, les répartir sur des machines. C'est le rôle d'un **orchestrateur**.\n\n**Amazon ECS** (*Elastic Container Service*) est l'orchestrateur de conteneurs d'AWS. Tu lui décris ce que tu veux faire tourner, et il s'occupe de lancer, surveiller et remplacer tes conteneurs.\n\nTrois notions à retenir :\n- **Task definition** (*définition de tâche*) : le plan de ce que tu veux exécuter. C'est un modèle qui liste les conteneurs, l'image de chacun, la mémoire et le CPU demandés, les ports ouverts, les variables d'environnement.\n- **Task** (*tâche*) : une instance en cours d'exécution issue d'une task definition. Si la task definition est la recette, la task est le plat réellement cuisiné.\n- **Service** : un gardien qui maintient en permanence un nombre voulu de tasks identiques. Si tu demandes 3 tasks et que l'une plante, le service en relance une pour revenir à 3."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ECS orchestre tes conteneurs : il les lance, les surveille et les remplace",
+          "body": "/images/lessons/ecs-et-fargate-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Mode EC2 ou mode Fargate",
+          "body": "ECS doit poser tes conteneurs sur des machines quelque part. Il existe deux **modes de lancement** (*launch types*) pour fournir ces machines.\n\n**Mode EC2** : tu possèdes et tu gères toi-même une flotte de serveurs EC2 (des machines virtuelles). C'est toi qui choisis leur taille, qui les mets à jour, qui surveilles qu'il reste de la place pour accueillir tes conteneurs. Tu as un contrôle fin, mais tu portes la charge d'administration.\n\n**Mode Fargate** : c'est le mode **serverless** d'ECS. Tu ne vois plus aucun serveur. Tu déclares simplement, dans la task definition, combien de CPU et de mémoire chaque task demande, et AWS fournit et gère la machine en coulisses. Tu paies uniquement les ressources consommées par tes tasks, tant qu'elles tournent.\n\n**Quand préférer Fargate :** quand tu veux te concentrer sur ton application sans gérer de serveurs, pour des charges variables ou par pics, et pour démarrer vite et simplement. On choisit plutôt le mode EC2 quand on a besoin d'un contrôle précis sur les machines, d'un type d'instance particulier (par exemple avec GPU), ou d'optimiser les coûts d'une charge stable et très prévisible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mode Fargate : AWS gère les serveurs, tu ne déclares que CPU et mémoire",
+          "body": "/images/lessons/ecs-et-fargate-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un extrait de task definition (JSON)",
+          "codeLanguage": "json",
+          "body": "{\n  \"family\": \"api-bonjour\",\n  \"requiresCompatibilities\": [\"FARGATE\"],\n  \"networkMode\": \"awsvpc\",\n  \"cpu\": \"256\",\n  \"memory\": \"512\",\n  \"containerDefinitions\": [\n    {\n      \"name\": \"api\",\n      \"image\": \"123456789012.dkr.ecr.eu-west-3.amazonaws.com/api-bonjour:1.0\",\n      \"essential\": true,\n      \"portMappings\": [\n        { \"containerPort\": 8080, \"protocol\": \"tcp\" }\n      ]\n    }\n  ]\n}\n"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Du service aux conteneurs sur Fargate",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  S[\"Service ECS (vise 3 tasks)\"] --> T1[\"Task 1\"]\n  S --> T2[\"Task 2\"]\n  S --> T3[\"Task 3\"]\n  T1 --> C1[\"Conteneur api\"]\n  T2 --> C2[\"Conteneur api\"]\n  T3 --> C3[\"Conteneur api\"]\n  C1 --> F[\"Fargate (serveurs geres par AWS)\"]\n  C2 --> F\n  C3 --> F"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "ecs-et-fargate-check"
+        }
+      ]
+    },
+    {
+      "slug": "images-avec-ecr",
+      "title": "Images avec ECR",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "ECR, le registre d'images privé d'AWS",
+          "body": "Pour qu'ECS lance un conteneur, il lui faut une **image** : le paquet figé qui contient ton application. Cette image doit être stockée dans un **registre** depuis lequel ECS pourra la télécharger.\n\n**Amazon ECR** (*Elastic Container Registry*) est le registre d'images Docker **privé** d'AWS. C'est l'équivalent de Docker Hub, mais hébergé dans ton compte AWS, privé par défaut et intégré à la sécurité AWS (les permissions IAM contrôlent qui peut pousser et tirer les images).\n\nLe cycle est simple :\n1. Tu **construis** (*build*) ton image localement à partir d'un `Dockerfile`.\n2. Tu la **pousses** (*push*) vers un dépôt ECR.\n3. ECS, au moment de lancer une task, **tire** (*pull*) cette image depuis ECR grâce à l'adresse inscrite dans la task definition.\n\n> Rappel du parcours Docker : une image se construit avec `docker build` à partir d'un `Dockerfile`, puis se publie dans un registre avec `docker push`. ECR est juste le registre, côté AWS, qui reçoit ce `push`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ECR, le registre privé où tu ranges tes images avant qu'ECS les tire",
+          "body": "/images/lessons/images-avec-ecr-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Construire et pousser une image vers ECR",
+          "codeLanguage": "bash",
+          "body": "# 1. Construire l'image a partir du Dockerfile du dossier courant.\ndocker build -t api-bonjour:1.0 .\n\n# 2. Se connecter a ECR : on recupere un mot de passe temporaire\n#    puis on le passe a `docker login` (region eu-west-3, compte 123456789012).\naws ecr get-login-password --region eu-west-3 \\\n  | docker login --username AWS \\\n      --password-stdin 123456789012.dkr.ecr.eu-west-3.amazonaws.com\n\n# 3. Etiqueter (tag) l'image locale avec l'adresse complete du depot ECR.\ndocker tag api-bonjour:1.0 \\\n  123456789012.dkr.ecr.eu-west-3.amazonaws.com/api-bonjour:1.0\n\n# 4. Pousser l'image vers ECR.\ndocker push 123456789012.dkr.ecr.eu-west-3.amazonaws.com/api-bonjour:1.0"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Créer le dépôt ECR au préalable",
+          "codeLanguage": "bash",
+          "body": "# Un depot ECR doit exister avant le premier push.\n# On le cree une seule fois avec l'AWS CLI.\naws ecr create-repository \\\n  --repository-name api-bonjour \\\n  --region eu-west-3\n\n# La reponse contient le `repositoryUri`, c'est-a-dire l'adresse\n# du type 123456789012.dkr.ecr.eu-west-3.amazonaws.com/api-bonjour\n# que l'on reutilise pour le tag et le push."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Tu as une petite application web dans un `Dockerfile`. Objectif : la publier sur AWS et la faire tourner en conteneur sur ECS Fargate, sans gérer de serveur. Liste les grandes étapes, de l'image locale jusqu'à la task qui tourne.",
+          "solution": "1. Créer le dépôt ECR : `aws ecr create-repository --repository-name mon-app`.\n2. Construire l'image localement : `docker build -t mon-app:1.0 .`.\n3. Se connecter à ECR : `aws ecr get-login-password | docker login --username AWS --password-stdin <compte>.dkr.ecr.<region>.amazonaws.com`.\n4. Étiqueter l'image avec l'adresse du dépôt : `docker tag mon-app:1.0 <compte>.dkr.ecr.<region>.amazonaws.com/mon-app:1.0`.\n5. Pousser l'image : `docker push <compte>.dkr.ecr.<region>.amazonaws.com/mon-app:1.0`.\n6. Écrire une task definition qui utilise cette image ECR, avec `requiresCompatibilities: [\"FARGATE\"]`, et une valeur de CPU et de mémoire.\n7. Enregistrer la task definition (`aws ecs register-task-definition`), puis créer un cluster et un service ECS en mode Fargate qui maintient le nombre de tasks voulu. ECS tire alors l'image depuis ECR et lance le conteneur sur des serveurs gérés par AWS."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "images-avec-ecr-check"
+        }
+      ]
+    }
+  ]
+}

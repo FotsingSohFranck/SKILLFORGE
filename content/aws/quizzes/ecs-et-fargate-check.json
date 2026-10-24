@@ -1,0 +1,43 @@
+{
+  "ref": "ecs-et-fargate-check",
+  "node": "containers-ecs",
+  "lesson": "ecs-et-fargate",
+  "title": "Quiz : ECS et Fargate",
+  "description": "Vérifie la compréhension d'ECS, des task definitions et du mode Fargate.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte le mode de lancement Fargate par rapport au mode EC2 dans ECS ?",
+      "justification": "En mode Fargate, AWS fournit et gère les serveurs sous-jacents : tu déclares seulement le CPU et la mémoire de tes tasks, sans administrer de machines. C'est le mode serverless d'ECS.",
+      "position": 0,
+      "options": [
+        { "label": "AWS gère les serveurs à ta place, tu ne déclares que le CPU et la mémoire des tasks", "correct": true, "position": 0 },
+        { "label": "Il supprime le besoin d'images de conteneurs", "correct": false, "position": 1 },
+        { "label": "Il rend les conteneurs accessibles sans aucune configuration réseau", "correct": false, "position": 2 },
+        { "label": "Il remplace ECS par un autre orchestrateur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans ECS, à quoi sert une task definition ?",
+      "justification": "La task definition est le plan de ce que tu veux exécuter : les conteneurs, leur image, le CPU et la mémoire, les ports. Les tasks sont ensuite des instances lancées à partir de ce plan.",
+      "position": 1,
+      "options": [
+        { "label": "Décrire les conteneurs à lancer, leurs images, le CPU, la mémoire et les ports", "correct": true, "position": 0 },
+        { "label": "Stocker les images Docker de l'application", "correct": false, "position": 1 },
+        { "label": "Facturer automatiquement les ressources consommées", "correct": false, "position": 2 },
+        { "label": "Ouvrir une URL publique vers le conteneur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un service ECS maintient automatiquement le nombre de tasks voulu et en relance une si elle plante.",
+      "justification": "Vrai : le service surveille ses tasks et en recrée pour revenir au nombre demandé, par exemple 3 tasks en continu.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

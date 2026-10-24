@@ -30,6 +30,33 @@
       "position": 1
     },
     {
+      "slug": "regions-az",
+      "title": "Régions, zones & edge",
+      "summary": "Géographie d'AWS : régions, zones de disponibilité et points de présence.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 45,
+      "position": 2
+    },
+    {
+      "slug": "cli-sdk",
+      "title": "Console, CLI & SDK",
+      "summary": "Les trois façons de piloter AWS, et quand choisir chacune.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 50,
+      "position": 3
+    },
+    {
+      "slug": "billing-free-tier",
+      "title": "Facturation, budgets & offre gratuite",
+      "summary": "Comprendre la facture, poser des budgets, rester dans l'offre gratuite.",
+      "phase": "Fondamentaux",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 4
+    },
+    {
       "slug": "compute",
       "title": "Calcul : EC2, Lambda, conteneurs",
       "summary": "Choisir le bon service d'exécution.",
@@ -46,6 +73,33 @@
       "importance": "RECOMMENDED",
       "estimatedMinutes": 60,
       "position": 1
+    },
+    {
+      "slug": "serverless-lambda",
+      "title": "Serverless : Lambda & API Gateway",
+      "summary": "Exécuter du code sans serveur et l'exposer en API.",
+      "phase": "Calcul & réseau",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 2
+    },
+    {
+      "slug": "containers-ecs",
+      "title": "Conteneurs : ECS, Fargate & ECR",
+      "summary": "Déployer des conteneurs managés sans gérer de serveurs.",
+      "phase": "Calcul & réseau",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 65,
+      "position": 3
+    },
+    {
+      "slug": "load-balancing-scaling",
+      "title": "Répartition de charge & autoscaling",
+      "summary": "ELB et Auto Scaling pour tenir la charge et rester disponible.",
+      "phase": "Calcul & réseau",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 4
     },
     {
       "slug": "storage",
@@ -66,6 +120,24 @@
       "position": 1
     },
     {
+      "slug": "s3-deep",
+      "title": "S3 en profondeur",
+      "summary": "Classes de stockage, versioning, cycle de vie et sécurité des buckets.",
+      "phase": "Stockage & bases",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 60,
+      "position": 2
+    },
+    {
+      "slug": "caching-cdn",
+      "title": "CDN & cache : CloudFront",
+      "summary": "Rapprocher le contenu des utilisateurs et soulager l'origine.",
+      "phase": "Stockage & bases",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 50,
+      "position": 3
+    },
+    {
       "slug": "observability-cost",
       "title": "Observabilité & coûts",
       "summary": "Surveiller, et maîtriser la facture.",
@@ -75,22 +147,51 @@
       "position": 0
     },
     {
+      "slug": "security-practices",
+      "title": "Sécurité : chiffrement & secrets",
+      "summary": "Moindre privilège, chiffrement et gestion des secrets au quotidien.",
+      "phase": "Exploitation & bonnes pratiques",
+      "importance": "CORE",
+      "estimatedMinutes": 65,
+      "position": 1
+    },
+    {
+      "slug": "iac-cloudformation",
+      "title": "Infrastructure as Code : CloudFormation",
+      "summary": "Décrire son infrastructure en modèle versionné et reproductible.",
+      "phase": "Exploitation & bonnes pratiques",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 65,
+      "position": 2
+    },
+    {
       "slug": "well-architected",
       "title": "Well-Architected",
       "summary": "Cinq piliers pour concevoir sur le cloud.",
       "phase": "Exploitation & bonnes pratiques",
       "importance": "OPTIONAL",
       "estimatedMinutes": 45,
-      "position": 1
+      "position": 3
     }
   ],
   "edges": [
     { "source": "cloud-basics", "target": "iam", "kind": "PREREQ" },
+    { "source": "cloud-basics", "target": "regions-az", "kind": "PREREQ" },
+    { "source": "iam", "target": "cli-sdk", "kind": "PREREQ" },
+    { "source": "cloud-basics", "target": "billing-free-tier", "kind": "PREREQ" },
     { "source": "iam", "target": "compute", "kind": "PREREQ" },
     { "source": "cloud-basics", "target": "networking", "kind": "PREREQ" },
+    { "source": "compute", "target": "serverless-lambda", "kind": "PREREQ" },
+    { "source": "compute", "target": "containers-ecs", "kind": "PREREQ" },
+    { "source": "networking", "target": "load-balancing-scaling", "kind": "PREREQ" },
     { "source": "compute", "target": "storage", "kind": "PREREQ" },
     { "source": "storage", "target": "databases", "kind": "PREREQ" },
+    { "source": "storage", "target": "s3-deep", "kind": "PREREQ" },
+    { "source": "networking", "target": "caching-cdn", "kind": "PREREQ" },
     { "source": "compute", "target": "observability-cost", "kind": "PREREQ" },
+    { "source": "iam", "target": "security-practices", "kind": "PREREQ" },
+    { "source": "compute", "target": "iac-cloudformation", "kind": "PREREQ" },
+    { "source": "security-practices", "target": "well-architected", "kind": "PREREQ" },
     { "source": "observability-cost", "target": "well-architected", "kind": "PREREQ" }
   ]
 }

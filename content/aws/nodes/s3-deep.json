@@ -1,0 +1,107 @@
+{
+  "node": "s3-deep",
+  "lessons": [
+    {
+      "slug": "classes-et-cycle-de-vie",
+      "title": "Classes de stockage et cycle de vie",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Choisir une classe de stockage",
+          "body": "Dans **S3** (le service de stockage d'objets d'AWS, un *objet* étant un fichier plus ses métadonnées, rangé dans un *bucket* qui est un conteneur nommé), tous les objets ne se valent pas : certains sont lus tous les jours, d'autres presque jamais. Les **classes de stockage** te laissent payer selon la fréquence d'accès réelle.\n\nLes principales :\n- **S3 Standard** : accès fréquent, latence très faible, coût de stockage le plus élevé. Le choix par défaut pour des données chaudes.\n- **S3 Standard-IA** (*Infrequent Access*, accès peu fréquent) : stockage moins cher, mais tu paies des frais à chaque lecture (*retrieval*). Bon pour des données rarement lues mais qu'il faut récupérer vite.\n- **S3 Glacier** (Glacier Instant, Flexible, Deep Archive) : archivage à très bas coût pour des données que tu consultes rarement. Selon la variante, la récupération va de quasi instantanée à plusieurs heures.\n- **S3 Intelligent-Tiering** : AWS déplace automatiquement chaque objet entre niveaux d'accès selon son usage, sans frais de récupération. Pratique quand tu ne connais pas le profil d'accès à l'avance."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chaque classe de stockage range les objets selon la frequence a laquelle on les lit",
+          "body": "/images/lessons/classes-et-cycle-de-vie-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Cycle de vie et versioning",
+          "body": "Déplacer les objets à la main serait ingérable. Une **règle de cycle de vie** (*lifecycle rule*) automatise deux actions :\n- la **transition** : faire passer un objet d'une classe à une autre après un certain nombre de jours (par exemple Standard vers Standard-IA à 30 jours, puis vers Glacier à 90 jours) ;\n- l'**expiration** : supprimer automatiquement un objet après un délai, pour ne pas payer éternellement des données devenues inutiles.\n\nLe **versioning** est une option du bucket qui conserve chaque *version* d'un objet : si tu écrases ou supprimes un fichier, les versions précédentes restent récupérables. Une suppression crée alors un simple marqueur (*delete marker*) au lieu d'effacer réellement. Les règles de cycle de vie savent aussi expirer les anciennes versions pour maîtriser le coût."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les regles de cycle de vie archivent puis expirent les donnees au fil du temps",
+          "body": "/images/lessons/classes-et-cycle-de-vie-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une règle de cycle de vie (JSON)",
+          "codeLanguage": "json",
+          "body": "{\n  \"Rules\": [\n    {\n      \"ID\": \"archivage-logs\",\n      \"Status\": \"Enabled\",\n      \"Filter\": { \"Prefix\": \"logs/\" },\n      \"Transitions\": [\n        { \"Days\": 30, \"StorageClass\": \"STANDARD_IA\" },\n        { \"Days\": 90, \"StorageClass\": \"GLACIER\" }\n      ],\n      \"Expiration\": { \"Days\": 365 }\n    }\n  ]\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le trajet d'un objet dans le temps",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  S[\"S3 Standard (jour 0)\"] -->|\"30 jours\"| IA[\"Standard-IA\"]\n  IA -->|\"90 jours\"| G[\"Glacier\"]\n  G -->|\"365 jours\"| X[\"Expiration (supprime)\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "classes-et-cycle-de-vie-check"
+        }
+      ]
+    },
+    {
+      "slug": "securiser-un-bucket",
+      "title": "Sécuriser un bucket",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Privé par défaut",
+          "body": "Un bucket S3 et ses objets sont **privés par défaut** : seul le compte propriétaire y accède. Une fuite de données S3 vient presque toujours d'une configuration ouverte par erreur, pas d'une faille d'AWS.\n\nPlusieurs couches protègent un bucket :\n- le **Block Public Access** (*blocage de l'accès public*) : un interrupteur, au niveau du bucket et du compte, qui empêche toute exposition publique même si une politique mal écrite l'autorisait. On le laisse activé sauf besoin explicite d'hébergement public ;\n- les **politiques IAM** (*Identity and Access Management*) : elles décrivent ce qu'un utilisateur ou un rôle a le droit de faire ;\n- les **politiques de bucket** (*bucket policy*) : attachées au bucket, elles disent qui peut faire quoi sur ce bucket précis.\n\nLe principe à retenir : le **moindre privilège**, c'est-à-dire n'accorder que les droits strictement nécessaires."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un bucket reste prive par defaut et verrouille contre tout acces public",
+          "body": "/images/lessons/securiser-un-bucket-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Chiffrement au repos",
+          "body": "Le **chiffrement au repos** (*at rest*) protège les données stockées sur les disques d'AWS : même quelqu'un qui accéderait au support physique ne lirait rien d'exploitable. S3 chiffre tout objet par défaut, et tu choisis la clé :\n- **SSE-S3** : AWS gère entièrement les clés, aucun effort de ta part. Le choix simple ;\n- **SSE-KMS** : les clés sont gérées via **KMS** (*Key Management Service*), ce qui ajoute un contrôle fin des accès et une trace d'audit de chaque usage de la clé. Utile pour des données sensibles ou des exigences de conformité.\n\nLe chiffrement au repos ne remplace pas le chiffrement en transit : S3 est joint en **HTTPS**, qui protège les données pendant leur transport sur le réseau."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le chiffrement au repos protege les donnees stockees sur les disques d'AWS",
+          "body": "/images/lessons/securiser-un-bucket-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Verrouiller un bucket (AWS CLI)",
+          "codeLanguage": "bash",
+          "body": "# Active le blocage total de l'acces public sur le bucket.\naws s3api put-public-access-block \\\n  --bucket mon-bucket-prive \\\n  --public-access-block-configuration \\\n  BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true\n\n# Impose le chiffrement au repos avec une cle geree par S3 (SSE-S3).\naws s3api put-bucket-encryption \\\n  --bucket mon-bucket-prive \\\n  --server-side-encryption-configuration \\\n  '{\"Rules\":[{\"ApplyServerSideEncryptionByDefault\":{\"SSEAlgorithm\":\"AES256\"}}]}'"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Ton application doit laisser un utilisateur connecté télécharger une facture PDF stockée dans S3. Les factures sont confidentielles : le bucket doit rester totalement privé, mais le navigateur de l'utilisateur doit quand même pouvoir récupérer le fichier. Comment t'y prends-tu sans rendre le bucket public ni diffuser tes clés AWS ?",
+          "solution": "On garde le Block Public Access activé et le bucket privé. Côté serveur, l'application utilise ses droits AWS pour générer une **URL pré-signée** (*presigned URL*) : une URL temporaire, signée avec les permissions du serveur, qui autorise une seule opération (ici `GetObject`) sur un objet précis pendant une courte durée (par exemple 5 minutes). Le serveur renvoie cette URL au navigateur, qui télécharge directement le PDF depuis S3 jusqu'à expiration du lien. Ainsi le bucket ne devient jamais public, aucune clé AWS n'atteint le client, et l'accès est limité à un fichier et à une fenêtre de temps. Exemple de génération côté serveur : `aws s3 presign s3://mon-bucket-prive/factures/f-2026-001.pdf --expires-in 300`."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "securiser-un-bucket-check"
+        }
+      ]
+    }
+  ]
+}

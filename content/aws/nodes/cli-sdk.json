@@ -1,0 +1,126 @@
+{
+  "node": "cli-sdk",
+  "lessons": [
+    {
+      "slug": "trois-facons-de-piloter",
+      "title": "Trois façons de piloter AWS",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Console, CLI, SDK : trois portes, une seule maison",
+          "body": "Tu peux piloter AWS de trois manières différentes, mais elles mènent toutes au même endroit.\n\n- **La Console web** : l'interface graphique dans ton navigateur (console.aws.amazon.com). Tu cliques, tu explores, tu vois les ressources. Idéale pour **découvrir** un service, regarder ce qui existe, faire une action ponctuelle.\n- **L'AWS CLI** (*Command Line Interface*, interface en ligne de commande) : un programme en terminal qui s'appelle sous la forme `aws <service> <commande>`. Idéale pour **automatiser** : scripts, tâches répétables, intégration continue.\n- **Les SDK** (*Software Development Kit*, boîte à outils pour développeurs) : des bibliothèques que tu importes dans ton code applicatif (par exemple le SDK JavaScript ou le SDK Python nommé **boto3**). Idéales quand c'est **ton application** qui doit parler à AWS pendant qu'elle tourne.\n\nPoint essentiel : la Console, la CLI et les SDK ne font que des appels aux **mêmes API AWS** (les points d'entrée programmables du service). Aucune n'est plus puissante que l'autre sur le fond. Tu choisis l'outil selon le besoin, pas selon ce qui est possible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Console, CLI et SDK sont trois portes qui mènent toutes aux mêmes API AWS",
+          "body": "/images/lessons/trois-facons-de-piloter-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Quand choisir laquelle",
+          "body": "Une règle simple pour t'orienter :\n\n- **Un humain, une fois** : la Console. Tu veux comprendre, inspecter, cliquer une action unique.\n- **Un humain, souvent** : la CLI. Tu veux rejouer la même opération, l'écrire dans un script, la lancer depuis un pipeline.\n- **Une application, en continu** : le SDK. Ton code lit un fichier sur S3 ou écrit dans une base pendant son exécution normale.\n\nEn pratique on combine les trois : on explore un service dans la Console, on automatise son déploiement avec la CLI, puis l'application utilise le SDK au quotidien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On choisit l'outil selon le besoin : explorer, automatiser ou intégrer dans son application",
+          "body": "/images/lessons/trois-facons-de-piloter-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "La CLI : lister ses buckets S3",
+          "codeLanguage": "bash",
+          "body": "# `aws` est le programme, `s3` le service, `ls` la commande.\n# Ici on liste les buckets S3 (espaces de stockage) du compte.\naws s3 ls\n\n# Exemple de sortie :\n# 2026-01-12 10:03:21 mon-site-web\n# 2026-02-28 14:45:09 sauvegardes-prod\n\n# Lister le contenu d'un bucket precis :\naws s3 ls s3://mon-site-web"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Le SDK : la même action depuis du code (Python, boto3)",
+          "codeLanguage": "python",
+          "body": "# boto3 est le SDK AWS pour Python.\nimport boto3\n\n# On cree un client pour le service S3.\ns3 = boto3.client(\"s3\")\n\n# On demande la liste des buckets : c'est le meme appel d'API\n# que `aws s3 ls`, mais declenche depuis l'application.\nreponse = s3.list_buckets()\n\nfor bucket in reponse[\"Buckets\"]:\n    print(bucket[\"Name\"])"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Trois chemins, une seule API",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  H[\"Humain\"] -->|\"clics\"| CO[\"Console web\"]\n  H -->|\"commandes\"| CL[\"AWS CLI\"]\n  AP[\"Application\"] -->|\"appels de code\"| SD[\"SDK (boto3, JS...)\"]\n  CO -->|\"HTTPS\"| API[\"API AWS\"]\n  CL -->|\"HTTPS\"| API\n  SD -->|\"HTTPS\"| API\n  API -->|\"agit sur\"| R[\"Services (S3, Lambda...)\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "trois-facons-de-piloter-check"
+        }
+      ]
+    },
+    {
+      "slug": "configurer-et-securiser-lacces",
+      "title": "Configurer et sécuriser l'accès",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "aws configure : donner ses identifiants à la CLI",
+          "body": "Avant que la CLI puisse agir, elle doit savoir **qui tu es** et **où** tu travailles. La commande `aws configure` pose quatre questions et enregistre les réponses dans ton dossier personnel (fichiers `~/.aws/credentials` et `~/.aws/config`) :\n\n- **Access Key ID** et **Secret Access Key** : une paire de clés d'accès, c'est-à-dire un identifiant et un mot de passe pour les API AWS.\n- **Default region** : la région par défaut, par exemple `eu-west-3` (Paris). C'est la zone géographique où tes ressources seront créées si tu ne précises rien.\n- **Default output format** : le format de sortie par défaut (`json`, `table` ou `text`) pour l'affichage des réponses."
+        },
+        {
+          "type": "IMAGE",
+          "title": "aws configure enregistre tes clés, ta région et ton format de sortie par défaut",
+          "body": "/images/lessons/configurer-et-securiser-lacces-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Profils nommés : plusieurs identités côte à côte",
+          "body": "Tu travailles souvent sur plusieurs comptes ou environnements (perso, dev, prod). Plutôt que de reconfigurer sans cesse, tu crées des **profils nommés**. Chaque profil a ses propres clés, sa région et son format.\n\nTu choisis le profil au moment d'appeler la CLI avec l'option `--profile`, ou via la variable d'environnement `AWS_PROFILE`. Le profil `default` est celui utilisé quand tu ne précises rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les profils nommés gardent plusieurs identités côte à côte, perso, dev et prod",
+          "body": "/images/lessons/configurer-et-securiser-lacces-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Clés d'accès ou rôles : préférer le temporaire",
+          "body": "Il existe deux grandes façons de prouver son identité à AWS :\n\n- **Les clés d'accès** (*access keys*) : une paire identifiant + secret, de longue durée. Pratiques, mais dangereuses : si elles fuitent (poussées par erreur dans un dépôt Git, laissées dans un fichier), n'importe qui peut agir sur ton compte jusqu'à ce que tu les révoques.\n- **Les rôles IAM** (*Identity and Access Management*, la gestion des identités d'AWS) : une identité qu'on **endosse** temporairement et qui fournit des identifiants qui **expirent** tout seuls au bout de quelques heures.\n\nLa bonne pratique recommandée par AWS : **préférer les rôles IAM temporaires aux clés en dur**. Sur un poste de développeur, on passe par **AWS IAM Identity Center** (anciennement AWS SSO) avec `aws configure sso`, qui ne stocke aucune clé permanente sur la machine. Sur une ressource AWS (serveur EC2, fonction Lambda), on attache directement un rôle : aucune clé à gérer. On ne garde des clés d'accès en dur que lorsqu'aucune autre option n'existe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Préférer les rôles IAM temporaires aux clés en dur, qui expirent seuls et limitent les fuites",
+          "body": "/images/lessons/configurer-et-securiser-lacces-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Configurer un profil et vérifier qui on est",
+          "codeLanguage": "bash",
+          "body": "# Configurer un profil nomme `dev` (la commande pose les 4 questions).\naws configure --profile dev\n# AWS Access Key ID [None]: AKIA...\n# AWS Secret Access Key [None]: ...\n# Default region name [None]: eu-west-3\n# Default output format [None]: json\n\n# Utiliser ce profil pour une commande ponctuelle :\naws s3 ls --profile dev\n\n# Ou le choisir pour toute la session de terminal :\nexport AWS_PROFILE=dev\n\n# Verifier l'identite effectivement utilisee (tres utile pour deboguer) :\naws sts get-caller-identity"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi : un accès CLI propre pour une développeuse",
+          "body": "Une nouvelle développeuse, Lina, rejoint l'équipe. Elle travaille sur deux environnements, `dev` et `prod`, tous deux dans la région de Paris, et son application sera plus tard déployée sur une instance EC2. Tu dois lui mettre en place un accès CLI qui soit à la fois pratique et sûr. Quelles décisions prends-tu, et comment configures-tu sa machine ? Évite les clés d'accès en dur autant que possible.",
+          "solution": "1. Pas de clés d'accès de longue durée sur son poste : on utilise AWS IAM Identity Center. Lina lance `aws configure sso` et crée deux profils nommés, `dev` et `prod`, chacun avec `region = eu-west-3` et `output = json`. Les identifiants obtenus sont temporaires et expirent seuls.\n2. Au quotidien elle choisit l'environnement avec `--profile dev` ou `--profile prod`, ou en posant `export AWS_PROFILE=dev` pour toute la session. Cela évite d'agir sur prod par erreur.\n3. Elle vérifie à tout moment sous quelle identité elle agit avec `aws sts get-caller-identity`.\n4. Pour l'application déployée sur EC2 : aucune clé dans le code ni sur le serveur. On attache un rôle IAM à l'instance ; le SDK récupère automatiquement des identifiants temporaires. On ne retomberait sur des clés d'accès en dur que s'il n'existait vraiment aucune alternative, et dans ce cas on les stockerait hors du dépôt Git et on les ferait tourner régulièrement."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "configurer-et-securiser-lacces-check"
+        }
+      ]
+    }
+  ]
+}
