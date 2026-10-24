@@ -13,28 +13,46 @@
           "body": "Pour écrire et lancer du Java, trois sigles reviennent sans arrêt. Prenons les dans l'ordre.\n\nLa **JVM** (*Java Virtual Machine*, machine virtuelle Java) est le programme qui **exécute** ton code Java une fois compilé. C'est elle qui fait tourner l'application, quel que soit le système (Windows, macOS, Linux).\n\nLe **JRE** (*Java Runtime Environment*, environnement d'exécution Java) regroupe la JVM plus les bibliothèques de base nécessaires pour **faire tourner** un programme Java déjà prêt. Avec un JRE seul, tu peux lancer du Java, mais pas en fabriquer.\n\nLe **JDK** (*Java Development Kit*, kit de développement Java) contient tout le JRE, **plus les outils pour développer** : notamment `javac` (le compilateur) et `java` (le lanceur).\n\n👉 Imagine une cuisine. La JVM est le four qui cuit le plat. Le JRE, c'est le four plus la vaisselle pour servir : de quoi réchauffer un plat tout prêt. Le JDK, c'est la cuisine complète avec les couteaux et les casseroles : de quoi cuisiner toi même. Pour apprendre à coder, il te faut la cuisine complète, donc le **JDK**."
         },
         {
+          "type": "IMAGE",
+          "title": "Une cuisine complète avec couteaux et casseroles : le JDK pour cuisiner soi-même",
+          "body": "/images/lessons/choisir-et-installer-un-jdk-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Choisir une distribution et une version",
-          "position": 1,
+          "position": 2,
           "body": "Java est une norme ouverte : plusieurs organisations en publient leur propre paquet, appelé une **distribution** (une version prête à installer du JDK, compilée et testée par un fournisseur). Toutes font tourner le même langage ; elles diffèrent surtout par la licence et le support.\n\nLes plus courantes pour débuter :\n\n- **Eclipse Temurin** (projet **Adoptium**) : gratuite, libre, sans piège de licence. C'est le choix recommandé ici.\n- **Oracle JDK** : la distribution officielle d'Oracle, dont la licence impose des conditions pour certains usages en entreprise. Parfaite pour apprendre, mais Temurin évite toute question.\n\nCôté version, on vise les versions **LTS** (*Long Term Support*, support à long terme), celles qui reçoivent des correctifs pendant des années. **Java 17** et **Java 21** sont deux LTS. Pour ce parcours, installe **Java 21** : c'est la plus récente des deux et tout le contenu suppose au minimum Java 17.\n\n👉 Une version LTS, c'est comme un modèle de voiture dont le constructeur promet des pièces détachées longtemps : tu peux t'appuyer dessus sans craindre qu'il disparaisse dans six mois."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un modèle fiable soutenu longtemps : une version LTS comme Java 21",
+          "body": "/images/lessons/choisir-et-installer-un-jdk-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Installer le JDK 21 selon ton système",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# --- Windows ---\n# Option simple : télécharger l'installeur .msi Temurin 21 sur adoptium.net\n# puis double-cliquer et suivre l'assistant (coche \"Set JAVA_HOME\").\n# Ou, si tu as le gestionnaire de paquets winget :\nwinget install EclipseAdoptium.Temurin.21.JDK\n\n# --- macOS (avec Homebrew) ---\nbrew install --cask temurin@21\n\n# --- Linux (Debian / Ubuntu, dépôt Adoptium) ---\n# (après avoir ajouté le dépôt Adoptium, voir la doc officielle)\nsudo apt-get install temurin-21-jdk\n\n# --- Linux / macOS / Windows : alternative universelle avec SDKMAN ---\n# SDKMAN gère plusieurs versions de JDK côte à côte.\nsdk install java 21-tem"
         },
         {
           "type": "CONCEPT",
           "title": "Et si j'ai déjà un vieux Java ?",
-          "position": 3,
+          "position": 5,
           "body": "Beaucoup d'ordinateurs portent déjà une vieille version de Java, parfois un simple JRE installé par une autre application. Ce n'est pas grave : tu peux avoir **plusieurs** JDK sur la même machine. Ce qui compte, c'est lequel ton terminal utilise par défaut, et ça se vérifie dès la leçon suivante.\n\nSi une commande `java` existe déjà mais affiche une version 8 ou 11, tu n'as pas besoin de la désinstaller. Il suffira de pointer vers le JDK 21, soit en l'installant via un gestionnaire comme **SDKMAN** (qui bascule proprement d'une version à l'autre), soit en réglant deux variables que l'on voit juste après : `JAVA_HOME` et `PATH`.\n\n👉 C'est comme avoir plusieurs paires de chaussures dans l'entrée : en avoir plusieurs ne pose pas de problème, il faut juste savoir laquelle tu enfiles en sortant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Plusieurs paires de chaussures dans l'entrée : il faut juste savoir laquelle on enfile",
+          "body": "/images/lessons/choisir-et-installer-un-jdk-3.jpg",
+          "position": 6
         },
         {
           "type": "QUIZ",
           "title": "Quiz : choisir et installer un JDK",
-          "position": 4,
+          "position": 7,
           "quizRef": "installer-jdk-choisir-et-installer-un-jdk"
         }
       ]
@@ -51,43 +69,55 @@
           "body": "Toutes les vérifications passent par le **terminal** (aussi appelé *console* ou *ligne de commande*), la fenêtre où tu tapes des commandes texte au lieu de cliquer. Sur Windows, ouvre **PowerShell** ou **Windows Terminal** ; sur macOS, l'application **Terminal** ; sur Linux, ton émulateur de terminal habituel.\n\nUne **commande** est un mot que tu tapes, suivi parfois d'options, puis de la touche Entrée. Le terminal lance le programme correspondant et affiche sa réponse juste en dessous.\n\n👉 Le terminal, c'est comme passer commande au comptoir plutôt qu'au menu tactile : tu dis exactement ce que tu veux avec des mots, et la réponse arrive directement."
         },
         {
+          "type": "IMAGE",
+          "title": "Passer commande au comptoir avec des mots : le terminal exécute ce que tu tapes",
+          "body": "/images/lessons/verifier-l-installation-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Vérifier java et javac",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "bash",
           "body": "# Version de la JVM (le lanceur). Doit afficher 21.\njava -version\n\n# Exemple de sortie attendue :\n# openjdk version \"21.0.4\" 2024-07-16 LTS\n# OpenJDK Runtime Environment Temurin-21.0.4+7 (build 21.0.4+7-LTS)\n# OpenJDK 64-Bit Server VM Temurin-21.0.4+7 (build 21.0.4+7-LTS, mixed mode)\n\n# Version du compilateur. Doit aussi afficher 21.\njavac -version\n\n# Exemple de sortie attendue :\n# javac 21.0.4"
         },
         {
           "type": "CONCEPT",
           "title": "JAVA_HOME et PATH : comment la machine trouve Java",
-          "position": 2,
+          "position": 3,
           "body": "Deux réglages du système décident quel Java répond quand tu tapes `java`.\n\nLe **PATH** est une liste de dossiers que le terminal parcourt pour retrouver un programme à partir de son nom. Quand tu tapes `java`, le système cherche un fichier `java` dans chacun des dossiers du PATH, dans l'ordre, et lance le premier trouvé. Si le dossier `bin` de ton JDK 21 est dans le PATH, `java` marche de partout.\n\n**JAVA_HOME** est une **variable d'environnement** (une valeur nommée, mémorisée par le système, que les programmes peuvent lire) qui contient le **chemin du dossier d'installation du JDK**. Beaucoup d'outils (Maven, Gradle, les serveurs) lisent `JAVA_HOME` pour savoir quel JDK utiliser.\n\n👉 Vois `JAVA_HOME` comme l'adresse postale de la maison Java, et le `PATH` comme le carnet d'adresses où le facteur cherche à qui livrer quand tu dis juste \"Java\"."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'adresse de Java et le carnet du facteur : JAVA_HOME et PATH guident le système",
+          "body": "/images/lessons/verifier-l-installation-2.jpg",
+          "position": 4
         },
         {
           "type": "DIAGRAM",
           "title": "Ce qui se passe quand tu tapes java",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Tu tapes: java -version\"] --> B{\"Le terminal cherche 'java'\\ndans les dossiers du PATH\"}\n    B -->|\"Trouvé dans .../jdk-21/bin\"| C[\"Lance ce java\"]\n    B -->|\"Rien trouvé\"| D[\"Erreur: command not found\\nou n'est pas reconnu\"]\n    C --> E[\"Affiche la version du JDK\"]\n    D --> F[\"Ajoute le dossier bin du JDK\\nau PATH, puis reessaie\"]"
         },
         {
           "type": "CODE",
           "title": "Lire et régler JAVA_HOME et PATH",
-          "position": 4,
+          "position": 6,
           "codeLanguage": "bash",
           "body": "# --- Afficher JAVA_HOME ---\n# Windows (PowerShell) :\n$env:JAVA_HOME\n# macOS / Linux :\necho \"$JAVA_HOME\"\n\n# --- Régler JAVA_HOME pour la session courante ---\n# Windows (PowerShell), adapte le chemin a ton installation :\n$env:JAVA_HOME = \"C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.4.7-hotspot\"\n$env:PATH = \"$env:JAVA_HOME\\bin;$env:PATH\"\n\n# macOS / Linux (bash ou zsh) :\nexport JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\"\nexport PATH=\"$JAVA_HOME/bin:$PATH\"\n\n# Note : ces lignes valent pour la fenetre ouverte. Pour que ce soit permanent,\n# on les met dans les variables systeme (Windows) ou dans ~/.zshrc, ~/.bashrc (Unix)."
         },
         {
           "type": "EXERCISE",
           "title": "Diagnostique une mauvaise version",
-          "position": 5,
+          "position": 7,
           "body": "Tu tapes `java -version` et le terminal répond `openjdk version \"11.0.20\"`, alors que tu viens d'installer le JDK 21. `javac -version` répond `command not found`. Que s'est il passé, et quelles deux vérifications fais tu ?",
           "solution": "Deux symptômes, une même cause : le terminal ne pointe pas vers ton JDK 21. 1) java affiche la 11 car un ancien Java (souvent un JRE) apparait AVANT le JDK 21 dans le PATH ; le système lance donc le premier trouvé. 2) javac introuvable confirme qu'un JRE (sans compilateur) est en tête, ou que le dossier bin du JDK 21 n'est pas du tout dans le PATH. Vérifications : d'abord afficher JAVA_HOME (doit pointer vers jdk-21) ; ensuite placer le dossier bin du JDK 21 en tête du PATH, rouvrir le terminal, et relancer java -version et javac -version."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : vérifier l'installation",
-          "position": 6,
+          "position": 8,
           "quizRef": "installer-jdk-verifier-l-installation"
         }
       ]
@@ -104,36 +134,48 @@
           "body": "Un programme Java naît sous forme de **code source** : du texte que tu écris dans un fichier `.java`. Mais la JVM ne lit pas ce texte directement. Il faut d'abord le **compiler**.\n\n**Compiler**, c'est traduire ton code source en **bytecode** (*bytecode*, un format intermédiaire fait d'instructions compactes) rangé dans un fichier `.class`. C'est le rôle de la commande `javac` (le *c* final veut dire *compiler*).\n\nEnsuite, la commande `java` démarre la JVM, charge le fichier `.class` et **exécute** le bytecode.\n\n👉 C'est comme traduire une recette d'une langue que seul toi comprends vers une langue que le cuisinier comprend (compiler avec `javac`), puis demander au cuisinier de l'exécuter (lancer avec `java`)."
         },
         {
+          "type": "IMAGE",
+          "title": "Traduire une recette pour le cuisinier : compiler transforme le source en bytecode",
+          "body": "/images/lessons/premier-programme-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Le fichier Main.java",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// Fichier : Main.java\n// Regle importante : le nom du fichier doit correspondre au nom de la classe publique.\npublic class Main {\n    // 'main' est le point d'entree : la methode que la JVM appelle en premier.\n    public static void main(String[] args) {\n        // Affiche une ligne de texte dans le terminal.\n        System.out.println(\"Bonjour depuis Java 21 !\");\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Décortiquer la ligne magique",
-          "position": 2,
+          "position": 3,
           "body": "La ligne `public static void main(String[] args)` est le **point d'entrée** (en anglais *entry point*) : la première méthode que la JVM cherche et exécute quand elle lance ton programme. Si elle manque, le programme ne démarre pas.\n\nMot par mot, sans tout retenir pour l'instant : `public` la rend visible de l'extérieur ; `static` permet de l'appeler sans créer d'objet ; `void` signifie qu'elle ne renvoie aucune valeur ; `main` est le nom exact attendu ; `String[] args` reçoit les éventuels arguments passés en ligne de commande (un tableau de chaines de caractères).\n\n`System.out.println(...)` écrit son texte dans la **sortie standard** (*standard output*), c'est à dire le flux de texte que le terminal affiche.\n\n👉 Le `main`, c'est la porte d'entrée de la maison : peu importe le nombre de pièces, le visiteur (la JVM) entre toujours par là."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La porte d'entrée de la maison : la méthode main est par où la JVM entre",
+          "body": "/images/lessons/premier-programme-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Compiler puis lancer",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# 1) Se placer dans le dossier qui contient Main.java, puis compiler :\njavac Main.java\n# Cette commande cree un fichier Main.class a cote du .java (le bytecode).\n\n# 2) Lancer le programme. ATTENTION : pas de .class ni de .java ici,\n# on donne le NOM DE LA CLASSE, donc juste 'Main' :\njava Main\n\n# Sortie attendue :\n# Bonjour depuis Java 21 !\n\n# Pour voir le fichier genere :\n# Windows (PowerShell) : dir\n# macOS / Linux        : ls\n# Tu dois voir Main.java ET Main.class"
         },
         {
           "type": "EXERCISE",
           "title": "Corrige l'erreur du débutant",
-          "position": 4,
+          "position": 6,
           "body": "Après avoir compilé, un camarade tape `java Main.class` et obtient une erreur du type `Error: Could not find or load main class Main.class`. Pourquoi, et quelle est la bonne commande ?",
           "solution": "La commande java attend le NOM DE LA CLASSE, pas un nom de fichier. En écrivant java Main.class, la JVM croit que la classe s'appelle littéralement \"Main.class\" (avec un point au milieu), ne la trouve pas, et échoue. La bonne commande est simplement : java Main (sans extension). Le .class est déjà sous-entendu : la JVM va chercher le fichier Main.class toute seule."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : premier programme",
-          "position": 5,
+          "position": 7,
           "quizRef": "installer-jdk-premier-programme"
         }
       ]
@@ -150,29 +192,41 @@
           "body": "Depuis Java 11, la commande `java` sait faire quelque chose de pratique : lancer **directement** un fichier `.java` sans que tu aies à appeler `javac` d'abord. On appelle ça le mode **source-file** (lancement d'un fichier source unique).\n\nEn coulisses, la JVM compile ton fichier **en mémoire** puis l'exécute aussitôt. Aucun fichier `.class` n'est écrit sur le disque : c'est éphémère.\n\n👉 C'est comme un plat minute : au lieu de cuisiner, mettre au frigo, puis réchauffer, le cuisinier prépare et sert dans la foulée. Rapide, mais rien n'est conservé pour plus tard."
         },
         {
+          "type": "IMAGE",
+          "title": "Un plat minute préparé et servi dans la foulée : lancer un .java sans compiler d'abord",
+          "body": "/images/lessons/lancer-sans-compiler-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "La commande en une ligne",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "bash",
           "body": "# Au lieu des DEUX etapes (javac Main.java puis java Main),\n# une seule commande, avec le nom de FICHIER complet (extension .java incluse) :\njava Main.java\n\n# Sortie attendue :\n# Bonjour depuis Java 21 !\n\n# Remarque la difference :\n#   java Main        -> lance un .class deja compile (nom de CLASSE)\n#   java Main.java   -> compile en memoire et lance (nom de FICHIER .java)\n# Apres 'java Main.java', aucun Main.class n'apparait : rien n'est ecrit sur disque."
         },
         {
           "type": "CONCEPT",
           "title": "Quand c'est pratique, et quand ça ne l'est pas",
-          "position": 2,
+          "position": 3,
           "body": "Le mode source-file est idéal pour **apprendre, tester une idée, dépanner un petit bout de code** : un seul fichier, pas de ceremonie, un résultat immédiat.\n\nMais il a des limites. Il convient surtout à un **programme tenant dans un seul fichier**. Dès que ton projet grandit (plusieurs fichiers, des bibliothèques externes, un vrai outil de build), tu reviens au cycle normal `javac` puis `java`, ou mieux, à un outil comme Maven qui orchestre tout ça. De plus, comme rien n'est enregistré, la machine recompile à chaque exécution : parfait pour un essai, inutilement lent pour un programme qu'on lance souvent.\n\n👉 Le plat minute dépanne pour une personne pressée. Pour servir un restaurant entier tous les soirs, il faut une vraie organisation en cuisine : c'est le rôle des outils de build que tu verras plus tard."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Servir tout un restaurant chaque soir demande une vraie organisation en cuisine",
+          "body": "/images/lessons/lancer-sans-compiler-2.jpg",
+          "position": 4
         },
         {
           "type": "EXERCISE",
           "title": "Choisis la bonne approche",
-          "position": 3,
+          "position": 5,
           "body": "Pour chaque situation, dirais tu plutôt `java Fichier.java` (mode source-file) ou le cycle `javac` puis `java` ? 1) Tu veux vérifier en dix secondes ce qu'affiche une boucle. 2) Tu construis une application de plusieurs dizaines de fichiers répartis en paquets. 3) Un petit script d'un seul fichier que tu relances cent fois par jour en production.",
           "solution": "1) java Fichier.java : essai rapide, un seul fichier, résultat immédiat, on ne veut pas de .class qui traine. 2) javac puis java (ou un outil de build comme Maven) : plusieurs fichiers et paquets, le mode source-file ne suffit plus. 3) Plutôt compiler une fois avec javac puis lancer le .class : relancé très souvent, on évite de recompiler en mémoire à chaque exécution, ce qui serait plus lent."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : lancer sans compiler",
-          "position": 4,
+          "position": 6,
           "quizRef": "installer-jdk-lancer-sans-compiler"
         }
       ]
@@ -189,35 +243,53 @@
           "body": "Tu peux écrire du Java dans n'importe quel éditeur de texte, mais un bon outil change tout le confort.\n\nUn **éditeur de code** (comme **VS Code**, *Visual Studio Code*) est léger : coloration du code, autocomplétion, extensions à la carte. Avec l'extension Java, il devient très capable tout en restant rapide à démarrer.\n\nUn **IDE** (*Integrated Development Environment*, environnement de développement intégré) comme **IntelliJ IDEA** va plus loin : il réunit dans une seule application l'éditeur, le compilateur, le lanceur, le débogueur et la gestion de projet. Il comprend ton code en profondeur et propose corrections et refactorisations.\n\n👉 L'éditeur de code, c'est un bon couteau bien aiguisé. L'IDE, c'est tout l'atelier équipé autour de l'établi. Pour débuter sereinement en Java, **IntelliJ IDEA Community** (gratuit) est un excellent choix ; VS Code convient aussi très bien si tu le préfères."
         },
         {
+          "type": "IMAGE",
+          "title": "Un atelier équipé autour de l'établi : l'IDE réunit tous les outils du développeur",
+          "body": "/images/lessons/choisir-un-editeur-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "La structure minimale d'un petit projet",
-          "position": 1,
+          "position": 2,
           "body": "Au début, un seul fichier `.java` dans un dossier suffit. Mais dès que tu ajoutes des fichiers, deux notions apparaissent.\n\nUn **paquet** (en anglais *package*) est un regroupement nommé de classes, qui se traduit par un dossier sur le disque. La ligne `package com.exemple.app;` en tête d'un fichier indique son paquet, et ce fichier doit alors vivre dans les dossiers `com/exemple/app/`.\n\nUne convention répandue, héritée des outils de build, sépare le code des sources compilées : le code source va dans `src/`, et les `.class` produits vont dans un dossier à part comme `out/` ou `target/`. Ça garde le dossier propre.\n\n👉 Pense aux paquets comme aux rayons d'une bibliothèque : chaque livre (classe) a son rayon (dossier), et on retrouve tout sans fouiller en vrac."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chaque livre à son rayon : les paquets rangent les classes en dossiers",
+          "body": "/images/lessons/choisir-un-editeur-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un exemple d'arborescence simple",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "mon-projet/\n  src/\n    com/\n      exemple/\n        app/\n          Main.java        # contient : package com.exemple.app;\n  out/                     # les .class generes iront ici\n\n# Compiler en rangeant les .class dans out/ (option -d pour 'destination') :\n# Windows (PowerShell) :\njavac -d out src\\com\\exemple\\app\\Main.java\n# macOS / Linux :\njavac -d out src/com/exemple/app/Main.java\n\n# Lancer en indiquant ou chercher les .class (-cp = classpath, chemin des classes)\n# et en donnant le nom COMPLET de la classe (paquet inclus) :\njava -cp out com.exemple.app.Main\n\n# Bonne nouvelle : un IDE comme IntelliJ fait tout ca pour toi\n# quand tu cliques sur le bouton Run."
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi un IDE t'aide dès le premier jour",
-          "position": 3,
+          "position": 5,
           "body": "Un IDE n'est pas réservé aux experts, au contraire : il rend l'apprentissage plus doux.\n\nIl **souligne les erreurs pendant que tu tapes**, avant même de compiler. Il **complète** les noms de méthodes, ce qui t'évite de tout mémoriser. Il lance ton programme d'un clic sur **Run**, sans que tu tapes `javac` ni `java`. Il propose un **débogueur** pour exécuter ton code pas à pas et observer les valeurs.\n\nTu garderas quand même en tête ce que fait l'IDE sous le capot (`javac`, `java`, le classpath), parce que ça reste vrai : le bouton Run ne fait que lancer ces mêmes commandes pour toi. Comprendre la cuisine manuelle des leçons précédentes te rend plus à l'aise avec l'outil, pas l'inverse.\n\n👉 L'IDE est comme un copilote qui lit la carte et prévient des virages. Tu restes le conducteur, mais le trajet est bien plus serein."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un copilote qui lit la carte et prévient des virages : l'IDE accompagne le conducteur",
+          "body": "/images/lessons/choisir-un-editeur-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Range un fichier dans son paquet",
-          "position": 4,
+          "position": 7,
           "body": "Tu veux une classe `Calculatrice` dans le paquet `com.exemple.outils`. Quelle première ligne mets tu dans le fichier, comment doit il s'appeler, et dans quel dossier doit il se trouver sous `src/` ?",
           "solution": "Première ligne du fichier : package com.exemple.outils; Le fichier doit s'appeler Calculatrice.java (nom identique à la classe publique). Il doit se trouver dans src/com/exemple/outils/Calculatrice.java : chaque segment du paquet (com, exemple, outils) devient un dossier. Pour compiler : javac -d out src/com/exemple/outils/Calculatrice.java, et pour lancer : java -cp out com.exemple.outils.Calculatrice."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : choisir un éditeur",
-          "position": 5,
+          "position": 8,
           "quizRef": "installer-jdk-choisir-un-editeur"
         }
       ]

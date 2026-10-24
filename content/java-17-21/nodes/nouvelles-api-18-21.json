@@ -13,48 +13,72 @@
           "body": "Un ordinateur ne stocke que des **octets** (en anglais *bytes*). Un **octet** est un petit paquet de 8 bits, capable de représenter un nombre de 0 à 255. Les lettres, elles, n'existent pas directement : il faut une table qui dit quel nombre représente quelle lettre.\n\nCette table de correspondance s'appelle un **charset** (jeu de caractères) et la règle qui transforme une lettre en octets s'appelle un **encodage**.\n\n👉 Pense à un code secret entre amis : \"1 = A, 2 = B, 3 = C\". Le charset, c'est le dictionnaire (quelle lettre vaut quel nombre) ; l'encodage, c'est la façon d'écrire ces nombres sur le papier. Si l'un écrit avec un code et l'autre lit avec un code différent, le message devient illisible.\n\nL'**UTF-8** est l'encodage le plus répandu aujourd'hui : il sait représenter toutes les langues, les accents (é, à, ç) et les emojis, et il est compatible avec l'ancien code ASCII pour les lettres de base."
         },
         {
+          "type": "IMAGE",
+          "title": "Des octets qui encodent le texte",
+          "body": "/images/lessons/utf-8-par-defaut-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le problème d'avant Java 18",
-          "position": 1,
+          "position": 2,
           "body": "Avant Java 18, quand tu lisais ou écrivais un fichier texte sans préciser l'encodage, Java utilisait le charset **par défaut de la machine**. Or ce défaut changeait d'un ordinateur à l'autre : UTF-8 sur beaucoup de Linux et de Mac, mais souvent **Windows-1252** ou **MS932** sur Windows.\n\nRésultat : un programme qui marchait chez toi pouvait afficher des caractères cassés chez un collègue. Un \"é\" devenait \"Ã©\", un \"€\" devenait \"â‚¬\". Ce genre de bug est pénible car il n'apparait que sur certaines machines.\n\n👉 C'est comme si deux personnes utilisaient le même dictionnaire mais que, selon la ville où elles se trouvent, le mot \"pomme\" changeait de sens. Imprévisible et frustrant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un texte illisible selon la machine",
+          "body": "/images/lessons/utf-8-par-defaut-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Ce que change Java 18 (JEP 400)",
-          "position": 2,
+          "position": 4,
           "body": "Depuis **Java 18**, grace à la proposition **JEP 400** (JEP veut dire *JDK Enhancement Proposal*, c'est le document officiel qui décrit une évolution de Java), le charset par défaut est **UTF-8 partout**, quelle que soit la machine ou le système.\n\nConcrètement : si tu lis ou écris un fichier texte sans rien préciser, c'est désormais de l'UTF-8, sur Windows comme sur Linux ou Mac. Ton programme se comporte **de la même façon partout**.\n\nAttention, une précision importante : ce changement concerne les **API de fichiers**. L'affichage dans la console garde, lui, un réglage parfois différent selon le terminal. Mais pour lire et écrire des fichiers, le comportement est maintenant stable et prévisible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "UTF-8 identique partout",
+          "body": "/images/lessons/utf-8-par-defaut-3.jpg",
+          "position": 5
         },
         {
           "type": "CODE",
           "title": "Lire un fichier : avant et maintenant",
-          "position": 3,
+          "position": 6,
           "codeLanguage": "java",
           "body": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\n\npublic class Demo {\n    public static void main(String[] args) throws Exception {\n        // AVANT Java 18 : le charset dependait de la machine.\n        // Pour etre sur, on devait TOUJOURS le preciser a la main :\n        String texte1 = Files.readString(Path.of(\"notes.txt\"), StandardCharsets.UTF_8);\n\n        // DEPUIS Java 18 : sans rien preciser, c'est deja de l'UTF-8 partout.\n        String texte2 = Files.readString(Path.of(\"notes.txt\"));\n\n        // Les deux lignes donnent maintenant le meme resultat, sur toute machine.\n        System.out.println(texte1.equals(texte2)); // true\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Le bon réflexe : préciser quand même quand c'est important",
-          "position": 4,
+          "position": 7,
           "body": "Même si UTF-8 est désormais le défaut, c'est une bonne habitude de **préciser explicitement l'encodage** quand les données comptent vraiment, par exemple avec `StandardCharsets.UTF_8`. Pourquoi ? Parce que ton code devient clair pour la personne qui le lit, et il reste correct même si un jour il tourne sur une version plus ancienne de Java.\n\n👉 C'est comme écrire la langue en haut d'un document (\"Français\") : ce n'est pas obligatoire si tout le monde parle français, mais ça lève toute ambiguité. Dire explicitement \"UTF-8\" ne coute presque rien et évite les mauvaises surprises."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Préciser l'encodage pour la clarté",
+          "body": "/images/lessons/utf-8-par-defaut-4.jpg",
+          "position": 8
         },
         {
           "type": "DIAGRAM",
           "title": "Avant et après la JEP 400",
-          "position": 5,
+          "position": 9,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Lire un fichier\\nsans preciser l'encodage\"] --> B{Version de Java ?}\n    B -->|\"Avant Java 18\"| C[\"Charset par defaut\\nde la machine\"]\n    C --> D[\"Linux ou Mac\\nsouvent UTF-8\"]\n    C --> E[\"Windows\\nsouvent Windows-1252\"]\n    D --> F[\"Resultat different\\nselon la machine\"]\n    E --> F\n    B -->|\"Java 18 et plus\"| G[\"UTF-8 partout\\nJEP 400\"]\n    G --> H[\"Meme resultat\\nsur toute machine\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Explique le bug",
-          "position": 6,
+          "position": 10,
           "body": "Une collègue te dit : \"Mon programme lit un fichier contenant des accents. Sur mon Mac tout va bien, mais sur le PC Windows d'un client, les accents sont remplacés par des symboles bizarres. Le fichier est pourtant en UTF-8.\" Le programme tourne sous Java 17. Que s'est il passé, et quelles sont les deux façons de régler le problème ?",
           "solution": "Sous Java 17, la lecture sans encodage précisé utilise le charset par défaut de la machine. Sur le Mac ce défaut est UTF-8 (donc ça marche), mais sur le PC Windows c'est souvent Windows-1252, qui interprète mal les octets UTF-8 des accents : d'où les symboles cassés. Deux solutions : 1) Préciser l'encodage à la lecture, par exemple Files.readString(chemin, StandardCharsets.UTF_8), ce qui marche sur toutes les versions. 2) Passer en Java 18 ou plus, où UTF-8 devient le défaut partout grace à la JEP 400. La solution 1 reste recommandée car elle est explicite."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : UTF-8 par défaut",
-          "position": 7,
+          "position": 11,
           "quizRef": "nouvelles-api-18-21-utf-8-par-defaut"
         }
       ]
@@ -71,42 +95,60 @@
           "body": "Un **serveur web** est un programme qui attend des demandes venues d'un navigateur et qui répond en envoyant des fichiers (une page HTML, une image, un fichier de données). **Servir** un fichier veut dire : le rendre accessible à une adresse, par exemple `http://localhost:8000/photo.png`, pour qu'un navigateur puisse le récupérer.\n\n👉 Imagine une bibliothèque : tu demandes un livre par son numéro au comptoir, et l'employé va te le chercher dans les rayons. Le serveur web, c'est cet employé ; les fichiers d'un dossier, ce sont les livres.\n\nSouvent, pendant qu'on développe un petit site ou qu'on teste des fichiers, on a juste besoin de les servir rapidement en local, sans installer un gros logiciel. C'est exactement ce que Java 18 propose."
         },
         {
+          "type": "IMAGE",
+          "title": "Servir des fichiers comme une bibliothèque",
+          "body": "/images/lessons/le-serveur-web-simple-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "La commande jwebserver (Java 18)",
-          "position": 1,
+          "position": 2,
           "body": "Depuis **Java 18**, le JDK (le kit de développement Java) fournit un petit outil en ligne de commande nommé **jwebserver**. Lancé dans un dossier, il sert les fichiers de ce dossier à des fins de **test et de développement local**.\n\nTu ouvres un terminal, tu te places dans ton dossier, tu tapes `jwebserver`, et il affiche une adresse comme `http://127.0.0.1:8000/`. Tu colles cette adresse dans ton navigateur, et tu vois tes fichiers.\n\nPoint essentiel à retenir : **jwebserver est fait pour tester en local, pas pour la production**. Il ne gère pas la sécurité ni la montée en charge d'un vrai site public. C'est un outil de confort pour le développeur, rien de plus."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lancer le serveur en ligne de commande",
+          "body": "/images/lessons/le-serveur-web-simple-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Lancer jwebserver en ligne de commande",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# On se place dans le dossier qui contient les fichiers a servir\ncd mon-site\n\n# On lance le serveur simple fourni par le JDK (Java 18+)\njwebserver\n# Affiche quelque chose comme :\n# Serving /chemin/mon-site and subdirectories on 127.0.0.1 port 8000\n# URL http://127.0.0.1:8000/\n\n# Options utiles :\n# -p pour choisir le port, -b pour l'adresse d'ecoute\njwebserver -p 9000 -b 127.0.0.1\n\n# Rappel : 127.0.0.1 (aussi appele \"localhost\") designe TA propre machine.\n# Ce serveur est prevu pour le test local, pas pour un site en production."
         },
         {
           "type": "CONCEPT",
           "title": "La classe SimpleFileServer (depuis le code Java)",
-          "position": 3,
+          "position": 5,
           "body": "La commande `jwebserver` s'appuie sur une classe du JDK nommée **SimpleFileServer**, elle aussi arrivée en **Java 18**. Si tu veux démarrer ce même serveur depuis ton propre programme Java (au lieu du terminal), tu passes par cette classe.\n\nUne **classe** en Java est un modèle de code regroupant des méthodes ; ici `SimpleFileServer` offre une méthode pour créer un serveur de fichiers tout prêt. Cela sert par exemple à démarrer un petit serveur au début d'un test automatisé, puis à l'arrêter à la fin.\n\n👉 `jwebserver` est le bouton tout simple ; `SimpleFileServer` est la même mécanique, mais que tu peux brancher toi même dans ton code quand tu as besoin de plus de controle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Démarrer le serveur depuis le code",
+          "body": "/images/lessons/le-serveur-web-simple-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "Démarrer SimpleFileServer dans un programme",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "java",
           "body": "import com.sun.net.httpserver.SimpleFileServer;\nimport java.net.InetSocketAddress;\nimport java.nio.file.Path;\n\npublic class Demo {\n    public static void main(String[] args) {\n        // On choisit l'adresse (localhost) et le port (8000).\n        var adresse = new InetSocketAddress(\"127.0.0.1\", 8000);\n        // Le dossier dont on veut servir les fichiers.\n        var dossier = Path.of(\"mon-site\").toAbsolutePath();\n\n        // createFileServer construit un serveur tout pret (Java 18+).\n        var serveur = SimpleFileServer.createFileServer(\n            adresse, dossier, SimpleFileServer.OutputLevel.VERBOSE);\n\n        serveur.start(); // Le serveur ecoute maintenant les demandes.\n        System.out.println(\"Fichiers servis sur http://127.0.0.1:8000/\");\n        // Pour un vrai usage de test : on l'arreterait plus tard avec serveur.stop(0).\n    }\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Le bon outil au bon endroit",
-          "position": 5,
+          "position": 8,
           "body": "Un camarade veut héberger le site public de son entreprise, avec des milliers de visiteurs par jour, et il pense utiliser jwebserver parce que c'est simple. Que lui réponds tu ? Et dans quel cas jwebserver est il au contraire un excellent choix ?",
           "solution": "jwebserver n'est pas fait pour la production : il ne gère pas la sécurité (HTTPS, authentification), ni la forte charge, ni la fiabilité attendue d'un site public. Pour un vrai site il faut un serveur dédié (par exemple Nginx, Apache, ou un serveur applicatif). En revanche, jwebserver est excellent pour un usage local et temporaire : prévisualiser rapidement des pages HTML pendant qu'on les écrit, partager des fichiers sur sa propre machine le temps d'un test, ou servir des fichiers dans un test automatisé. C'est un outil de développement, pas d'hébergement."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le serveur web simple",
-          "position": 6,
+          "position": 9,
           "quizRef": "nouvelles-api-18-21-le-serveur-web-simple"
         }
       ]
@@ -123,36 +165,48 @@
           "body": "Nous comptons d'habitude en base 10 (dix chiffres, de 0 à 9). L'**hexadécimal** est une façon de compter en **base 16** : on utilise seize symboles, les chiffres 0 à 9 puis les lettres a, b, c, d, e, f (qui valent 10, 11, 12, 13, 14, 15).\n\nPourquoi s'embêter avec ça ? Parce qu'un **octet** (0 à 255) s'écrit toujours avec exactement **deux symboles hexadécimaux**, ce qui est bien pratique pour afficher des données brutes. Par exemple l'octet qui vaut 255 s'écrit `ff`, et celui qui vaut 10 s'écrit `0a`.\n\n👉 L'hexadécimal, c'est comme un emballage compact : au lieu d'écrire \"deux cent cinquante cinq\", on écrit juste \"ff\". Deux caractères par octet, lisible et régulier. On le voit partout : couleurs (#ff8800), empreintes de fichiers, données réseau."
         },
         {
+          "type": "IMAGE",
+          "title": "Compter en base seize",
+          "body": "/images/lessons/hexformat-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Pourquoi HexFormat (Java 17)",
-          "position": 1,
+          "position": 2,
           "body": "Convertir des octets en texte hexadécimal \"à la main\" était pénible et source d'erreurs : il fallait gérer le zéro de tête (écrire `0a` et non `a`), choisir majuscules ou minuscules, coller les morceaux, etc.\n\nDepuis **Java 17**, la classe **HexFormat** fait ce travail proprement et dans les deux sens : des octets vers une chaine hexadécimale, et d'une chaine hexadécimale vers des octets. Plus besoin de recoder cette plomberie.\n\n👉 Avant, c'était comme traduire mot à mot avec un dictionnaire papier ; `HexFormat` est le traducteur automatique dédié, qui ne se trompe pas sur les détails."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Convertir octets et hexadécimal proprement",
+          "body": "/images/lessons/hexformat-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Octets vers hexadécimal, et retour",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "import java.util.HexFormat;\n\npublic class Demo {\n    public static void main(String[] args) {\n        // On recupere une instance reutilisable (Java 17+).\n        HexFormat hex = HexFormat.of();\n\n        byte[] donnees = { 1, 10, (byte) 255 };\n\n        // Octets -> texte hexadecimal. Chaque octet devient 2 caracteres.\n        String texte = hex.formatHex(donnees);\n        System.out.println(texte); // 010aff\n\n        // Texte hexadecimal -> octets (le chemin inverse).\n        byte[] relus = hex.parseHex(\"010aff\");\n        System.out.println(relus.length);        // 3\n        System.out.println(relus[2] & 0xff);     // 255\n    }\n}"
         },
         {
           "type": "CODE",
           "title": "Choisir le style : séparateur, préfixe, majuscules",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "import java.util.HexFormat;\n\npublic class Demo {\n    public static void main(String[] args) {\n        byte[] donnees = { (byte) 171, (byte) 205, (byte) 239 }; // ab cd ef\n\n        // Style compact et en minuscules (le defaut).\n        System.out.println(HexFormat.of().formatHex(donnees)); // abcdef\n\n        // Avec un separateur \":\" entre les octets et en MAJUSCULES.\n        HexFormat lisible = HexFormat.ofDelimiter(\":\").withUpperCase();\n        System.out.println(lisible.formatHex(donnees)); // AB:CD:EF\n\n        // Un seul octet a la fois, bien formate (toujours 2 caracteres).\n        System.out.println(HexFormat.of().toHexDigits((byte) 5)); // 05\n    }\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Prédis la sortie",
-          "position": 4,
+          "position": 6,
           "body": "On écrit : HexFormat.of().formatHex(new byte[] { 0, 15, 16 }). Que vaut la chaine renvoyée, et pourquoi chaque octet donne t il exactement deux caractères ?",
           "solution": "La chaine vaut \"000f10\". Détail octet par octet : 0 s'écrit \"00\", 15 s'écrit \"0f\" (f vaut 15 en hexadécimal, avec un zéro de tête pour faire deux caractères), et 16 s'écrit \"10\" (un \"1\" pour 16 et un \"0\" pour l'unité, car 16 = 1 fois 16 plus 0). Chaque octet donne toujours deux caractères car un octet va de 0 à 255, et 255 est justement le plus grand nombre que l'on peut écrire avec deux symboles hexadécimaux (ff). HexFormat ajoute le zéro de tête automatiquement, ce qui garantit un alignement régulier."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : HexFormat",
-          "position": 5,
+          "position": 7,
           "quizRef": "nouvelles-api-18-21-hexformat"
         }
       ]
@@ -169,43 +223,55 @@
           "body": "Il arrive souvent qu'une valeur doive rester **entre un minimum et un maximum** : un volume entre 0 et 100, une position qui ne doit pas sortir de l'écran, un pourcentage borné. On appelle ça **borner** (en anglais *to clamp*) une valeur.\n\nDepuis **Java 21**, la méthode **Math.clamp** fait exactement ça : tu lui donnes une valeur, un minimum et un maximum, et elle renvoie la valeur ramenée dans l'intervalle. Si la valeur est trop petite, tu obtiens le minimum ; trop grande, le maximum ; sinon, la valeur telle quelle.\n\n👉 C'est comme un thermostat avec des butées : tu peux tourner le bouton tant que tu veux, il ne descendra jamais sous le minimum ni ne montera au dessus du maximum."
         },
         {
+          "type": "IMAGE",
+          "title": "Garder une valeur entre deux bornes",
+          "body": "/images/lessons/autres-ajouts-utiles-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Math.clamp en action",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "public class Demo {\n    public static void main(String[] args) {\n        // Math.clamp(valeur, min, max) : ramene valeur entre min et max (Java 21+).\n        System.out.println(Math.clamp(150, 0, 100)); // 100 (trop grand -> max)\n        System.out.println(Math.clamp(-20, 0, 100)); // 0   (trop petit -> min)\n        System.out.println(Math.clamp(42, 0, 100));  // 42  (deja dans l'intervalle)\n\n        // Sans Math.clamp, il fallait ecrire a la main :\n        int volume = -20;\n        int borne = Math.max(0, Math.min(100, volume));\n        System.out.println(borne); // 0, mais moins lisible qu'un simple clamp\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "D'autres petites méthodes pratiques",
-          "position": 2,
+          "position": 3,
           "body": "Chaque version de Java ajoute de petites méthodes bien utiles. En voici deux, plus anciennes mais très courantes, que tu croiseras vite :\n\n- `String.isBlank()` (Java 11) dit si une chaine est vide ou ne contient que des espaces. Pratique pour valider une saisie.\n- `String.repeat(n)` (Java 11) répète une chaine n fois, par exemple pour dessiner une ligne de séparation.\n- `List.of(...)` (Java 9) crée une liste **non modifiable** d'un coup, idéale pour des valeurs fixes.\n\nLe but ici n'est pas de tout retenir, mais de comprendre le réflexe : avant d'écrire une boucle compliquée, regarde si une méthode toute prête existe déjà. C'est souvent le cas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des méthodes toutes prêtes",
+          "body": "/images/lessons/autres-ajouts-utiles-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Quelques méthodes toutes prêtes",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "import java.util.List;\n\npublic class Demo {\n    public static void main(String[] args) {\n        // isBlank : vide ou seulement des espaces ?\n        System.out.println(\"   \".isBlank()); // true\n        System.out.println(\"abc\".isBlank());  // false\n\n        // repeat : repeter une chaine, utile pour un separateur visuel.\n        System.out.println(\"=\".repeat(10)); // ==========\n\n        // List.of : une liste non modifiable, creee en une ligne.\n        List<String> couleurs = List.of(\"violet\", \"bleu\", \"blanc\");\n        System.out.println(couleurs); // [violet, bleu, blanc]\n    }\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "Ce que fait Math.clamp selon la valeur",
-          "position": 4,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Math.clamp(valeur, min, max)\"] --> B{\"valeur < min ?\"}\n    B -->|oui| C[\"renvoie min\"]\n    B -->|non| D{\"valeur > max ?\"}\n    D -->|oui| E[\"renvoie max\"]\n    D -->|non| F[\"renvoie valeur\\ninchangee\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Borne un volume",
-          "position": 5,
+          "position": 7,
           "body": "Un réglage de volume doit toujours rester entre 0 et 100. L'utilisateur demande d'augmenter le volume de 30, mais il est déjà à 85. Écris la ligne avec Math.clamp qui calcule le nouveau volume, et donne le résultat.",
           "solution": "int volume = 85;\nvolume = Math.clamp(volume + 30, 0, 100);\n// volume + 30 vaut 115, ce qui dépasse 100.\n// Math.clamp ramène donc la valeur à 100.\n// Résultat : volume vaut 100. Sans clamp, on aurait pu dépasser la limite autorisée."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : autres ajouts utiles",
-          "position": 6,
+          "position": 8,
           "quizRef": "nouvelles-api-18-21-autres-ajouts-utiles"
         }
       ]
@@ -222,35 +288,53 @@
           "body": "Faisons le point sur ces petites API, en notant bien la version où chacune est apparue :\n\n- **UTF-8 par défaut** (Java 18, JEP 400) : lire et écrire des fichiers donne le même résultat sur toutes les machines. Préciser l'encodage reste une bonne habitude.\n- **jwebserver** et **SimpleFileServer** (Java 18) : servir des fichiers en local, pour le test et le développement, jamais pour la production.\n- **HexFormat** (Java 17) : convertir proprement des octets en hexadécimal et inversement.\n- **Math.clamp** (Java 21) : garder une valeur entre un minimum et un maximum.\n\n👉 Retiens surtout le genre de besoin que chacune couvre. Le détail exact de la syntaxe, lui, se retrouve toujours dans la documentation."
         },
         {
+          "type": "IMAGE",
+          "title": "Récapitulatif des API vues",
+          "body": "/images/lessons/recapitulatif-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Quand ces API te servent",
-          "position": 1,
+          "position": 2,
           "body": "Le réflexe à construire est de **reconnaitre le besoin** pour aller chercher la bonne API :\n\n- Tu manipules des fichiers texte avec des accents et tu veux un comportement stable partout ? Pense charset et UTF-8.\n- Tu veux prévisualiser vite des fichiers dans un navigateur, en local ? Pense jwebserver.\n- Tu affiches ou lis des données brutes, des empreintes, des octets ? Pense HexFormat.\n- Tu dois empêcher une valeur de sortir d'un intervalle ? Pense Math.clamp.\n\nCes outils ne sont pas spectaculaires, mais ils t'évitent de réécrire du code fragile. Connaitre leur existence, c'est déjà gagner du temps et éviter des bugs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Reconnaitre le besoin pour choisir l'API",
+          "body": "/images/lessons/recapitulatif-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Où chercher les nouveautés d'une version",
-          "position": 2,
+          "position": 4,
           "body": "Java évolue à chaque version, et personne ne retient tout. L'important est de **savoir où chercher** :\n\n- Les **JEP** (*JDK Enhancement Proposals*) décrivent chaque évolution notable, avec son numéro (par exemple JEP 400 pour UTF-8).\n- Les **release notes** (notes de version) de chaque JDK listent les ajouts, dont les nouvelles méthodes.\n- La **Javadoc** (la documentation officielle des classes) indique, pour chaque méthode, la version où elle est apparue via la mention `@since`.\n\n👉 Vois ça comme le mode d'emploi d'un outil : tu n'apprends pas tout par coeur, tu sais juste à quelle page regarder quand tu en as besoin. La mention `@since 21` dans la Javadoc, par exemple, te dit tout de suite qu'une méthode n'existe qu'à partir de Java 21."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Savoir où chercher la documentation",
+          "body": "/images/lessons/recapitulatif-3.jpg",
+          "position": 5
         },
         {
           "type": "DIAGRAM",
           "title": "Le bon besoin, la bonne API",
-          "position": 3,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Quel est mon besoin ?\"] --> B[\"Fichiers texte stables\\npartout\"]\n    A --> C[\"Previsualiser des fichiers\\nen local\"]\n    A --> D[\"Octets vers hexadecimal\"]\n    A --> E[\"Garder une valeur\\ndans un intervalle\"]\n    B --> B2[\"UTF-8 par defaut\\nJava 18\"]\n    C --> C2[\"jwebserver /\\nSimpleFileServer\\nJava 18\"]\n    D --> D2[\"HexFormat\\nJava 17\"]\n    E --> E2[\"Math.clamp\\nJava 21\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Associe le besoin à l'API",
-          "position": 4,
+          "position": 7,
           "body": "Pour chaque situation, nomme l'API à utiliser et la version d'apparition : 1) Tu veux afficher l'empreinte d'un fichier sous forme de suite de caractères hexadécimaux. 2) Tu veux t'assurer qu'un pourcentage reste entre 0 et 100. 3) Tu veux partager rapidement un dossier de fichiers HTML dans ton navigateur pour les tester. 4) Tu veux que ton programme lise un fichier accentué de la même façon sur Windows et sur Linux.",
           "solution": "1) HexFormat (Java 17), par exemple HexFormat.of().formatHex(...). 2) Math.clamp (Java 21), par exemple Math.clamp(valeur, 0, 100). 3) jwebserver ou SimpleFileServer (Java 18), pour servir des fichiers en local à des fins de test. 4) L'UTF-8 par défaut depuis Java 18 (JEP 400) règle le cas, et le réflexe sur depuis toujours est de préciser StandardCharsets.UTF_8 à la lecture."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : récapitulatif",
-          "position": 5,
+          "position": 8,
           "quizRef": "nouvelles-api-18-21-recapitulatif"
         }
       ]

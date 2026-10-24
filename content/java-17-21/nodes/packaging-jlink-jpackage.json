@@ -13,29 +13,41 @@
           "body": "Quand tu écris un programme Java, tu produis d'abord des fichiers `.class`. Un **fichier `.class`** est la version de ton code traduite en **bytecode**, c'est à dire un langage intermédiaire que seule la machine Java comprend, pas directement ton système d'exploitation.\n\nPour exécuter ce bytecode, il faut un **runtime Java**. Le **runtime** (en français \"environnement d'exécution\") est le moteur qui lit le bytecode et le fait tourner : il contient la **JVM** (*Java Virtual Machine*, la machine virtuelle qui exécute le bytecode) et les bibliothèques de base de Java.\n\n👉 Imagine que tu écris une partition de musique (ton code). La partition seule ne fait aucun son : il faut un musicien avec son instrument (le runtime) pour la jouer. Livrer ton programme, c'est donc s'assurer que la personne en face a de quoi \"jouer\" ta partition."
         },
         {
+          "type": "IMAGE",
+          "title": "Le code seul ne joue pas, il faut un moteur d'exécution pour le faire tourner",
+          "body": "/images/lessons/du-code-a-l-executable-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Les trois façons de livrer, du plus simple au plus complet",
-          "position": 1,
+          "position": 2,
           "body": "Il existe trois grandes manières de donner ton programme à quelqu'un :\n\n1. Un **JAR** (*Java ARchive*, une archive Java) : un seul fichier qui regroupe tes `.class`. Léger, mais la personne doit déjà avoir un Java installé pour le lancer.\n2. Une **image d'exécution** produite par **jlink** : ton application plus un petit runtime Java sur mesure, assemblés ensemble. La personne n'a plus besoin d'installer Java.\n3. Un **installeur natif** produit par **jpackage** : un vrai installeur (`.exe`, `.msi`, `.dmg`, `.deb`) qui pose ton application comme n'importe quel logiciel du système.\n\n👉 C'est comme offrir un plat : soit tu donnes juste la recette (le JAR, l'autre doit avoir la cuisine), soit tu donnes le plat avec un réchaud portable (jlink), soit tu livres un plateau repas prêt à poser sur la table (jpackage)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois façons de livrer un programme, de la plus simple à la plus complète",
+          "body": "/images/lessons/du-code-a-l-executable-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "Le chemin du code jusqu'au livrable",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"Ton code\\nfichiers .class\"] --> B[\"JAR\\narchive exécutable\"]\n    B --> C[\"jlink\\nimage runtime minimale\"]\n    C --> D[\"jpackage\\ninstalleur natif\"]\n    B -.-> E[\"Suffit si Java\\nest déjà installé\"]\n    C -.-> F[\"Plus besoin\\nd'installer Java\"]\n    D -.-> G[\"Installe l'app\\ncomme un logiciel\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Qui a besoin de quoi ?",
-          "position": 3,
+          "position": 5,
           "body": "Tu veux donner ton programme à un collègue développeur qui a déjà le JDK installé, puis au grand public qui n'a jamais entendu parler de Java. Pour chacun, quelle forme de livraison est la plus adaptée, et pourquoi ?",
           "solution": "Pour le collègue développeur : un simple JAR suffit, car il a déjà un runtime Java pour le lancer avec java -jar. Pour le grand public : un installeur natif produit par jpackage est le mieux, car la personne n'a rien à installer ni à configurer, elle double clique sur l'installeur et l'application se pose toute seule, avec le runtime embarqué."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : du code à l'exécutable",
-          "position": 4,
+          "position": 6,
           "quizRef": "packaging-jlink-jpackage-du-code-a-l-executable"
         }
       ]
@@ -52,36 +64,48 @@
           "body": "Un **JAR** (*Java ARchive*, archive Java) est un seul fichier qui regroupe tous tes fichiers `.class` et leurs ressources (images, textes de configuration). Techniquement, c'est une archive compressée, comme un `.zip`, mais avec l'extension `.jar` et un contenu organisé pour Java.\n\n👉 Pense au JAR comme à une valise : au lieu de transporter cent petits objets à la main (tes `.class` un par un), tu les ranges dans une seule valise facile à transporter et à donner.\n\nUn JAR évite d'avoir à distribuer des dizaines de fichiers séparés : tu n'as qu'un seul fichier à partager."
         },
         {
+          "type": "IMAGE",
+          "title": "Un JAR regroupe tous les fichiers dans une seule archive, comme une valise",
+          "body": "/images/lessons/jar-executable-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le manifest et la Main-Class",
-          "position": 1,
+          "position": 2,
           "body": "Pour qu'un JAR soit **exécutable** (lançable directement), il doit indiquer par où commencer. Cette information est écrite dans le **manifest**.\n\nLe **manifest** est un petit fichier texte de description, rangé automatiquement dans le JAR sous le nom `META-INF/MANIFEST.MF`. Il contient des lignes clé: valeur. La ligne la plus importante ici est la **Main-Class** : le nom de la classe qui contient la méthode `main`, c'est à dire le point d'entrée par où ton programme démarre.\n\n👉 Le manifest, c'est l'étiquette collée sur la valise qui dit \"commence par ouvrir ce compartiment\". Sans cette étiquette, Java ne sait pas quelle porte pousser pour lancer ton application."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le manifest indique par quelle classe principale démarrer le programme",
+          "body": "/images/lessons/jar-executable-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Créer un JAR exécutable",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# 1. On compile le code source en fichiers .class, rangés dans le dossier out/\njavac -d out src/com/exemple/App.java\n\n# 2. On fabrique le JAR.\n#    c = create (créer), f = file (donner le nom du fichier),\n#    e = entry point (déclarer la Main-Class dans le manifest).\n#    com.exemple.App est la classe qui contient la méthode main.\njar --create --file app.jar --main-class com.exemple.App -C out .\n\n# L'option -C out . veut dire : entre dans le dossier out et prends tout son contenu."
         },
         {
           "type": "CODE",
           "title": "Lancer le JAR avec java -jar",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# On exécute le JAR. L'option -jar dit à Java : lance l'application\n# dont le point d'entrée est écrit dans le manifest du fichier donné.\njava -jar app.jar\n\n# Java lit le manifest, trouve Main-Class: com.exemple.App,\n# puis appelle sa méthode main. Ton programme démarre."
         },
         {
           "type": "EXERCISE",
           "title": "Pourquoi \"ne peut pas trouver ou charger la classe principale\" ?",
-          "position": 4,
+          "position": 6,
           "body": "Un camarade crée un JAR sans déclarer d'entrée principale, puis tente java -jar app.jar et reçoit l'erreur \"no main manifest attribute\". D'après ce que tu viens d'apprendre, que manque t il, et comment corriger la commande de création ?",
           "solution": "Il manque la Main-Class dans le manifest : le JAR ne sait pas par quelle classe démarrer. Il faut recréer le JAR en déclarant le point d'entrée, par exemple avec l'option --main-class : jar --create --file app.jar --main-class com.exemple.App -C out . Ainsi le manifest contient la ligne Main-Class et java -jar sait quelle méthode main appeler."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le JAR exécutable",
-          "position": 5,
+          "position": 7,
           "quizRef": "packaging-jlink-jpackage-jar-executable"
         }
       ]
@@ -98,35 +122,53 @@
           "body": "Un JAR seul ne tourne que si un Java est déjà installé. Mais installer un **JDK** entier (*Java Development Kit*, la trousse complète du développeur Java) ou même un **JRE** complet (*Java Runtime Environment*, l'environnement d'exécution complet) représente plusieurs centaines de mégaoctets, dont ton application n'utilise en réalité qu'une petite partie.\n\nDepuis Java 9, la bibliothèque standard est découpée en **modules**. Un **module** est un bloc nommé qui regroupe des fonctionnalités liées (par exemple `java.base` pour les bases du langage, `java.sql` pour les bases de données). La plupart des applications n'ont besoin que de quelques modules.\n\n👉 C'est comme déménager : tu n'emportes pas tout le magasin de meubles, seulement les meubles dont tu as vraiment besoin."
         },
         {
+          "type": "IMAGE",
+          "title": "Un JDK complet est lourd alors que l'application n'en utilise qu'une petite partie",
+          "body": "/images/lessons/jlink-image-minimale-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Ce que fait jlink",
-          "position": 1,
+          "position": 2,
           "body": "**jlink** est un outil livré avec le JDK qui assemble un **runtime Java minimal** : il ne garde que les modules nécessaires à ton application et jette tout le reste.\n\nLe résultat s'appelle une **image d'exécution** (*runtime image*) : un dossier autonome contenant une JVM allégée et seulement les modules choisis. Cette image peut être copiée sur une machine qui n'a aucun Java installé, et ton application y tournera.\n\n👉 jlink, c'est le tailleur qui te coud un costume sur mesure au lieu de te donner une tenue taille unique énorme : juste ce qu'il faut, rien de superflu. Résultat : une application beaucoup plus légère, et pas besoin d'un JDK installé sur la machine cible.\n\nRetiens bien : jlink produit un runtime minimal fait de modules. Il ne produit pas d'installeur, c'est le rôle de jpackage qu'on verra ensuite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "jlink assemble un runtime minimal sur mesure, fait des seuls modules utiles",
+          "body": "/images/lessons/jlink-image-minimale-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Construire une image avec jlink",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# jlink assemble une image runtime dans un dossier de sortie.\n# --module-path : où chercher les modules (ici ceux du JDK).\n# --add-modules : la liste des modules à inclure.\n#                 java.base est le socle minimal, toujours présent.\n# --output      : le dossier où écrire l'image produite.\njlink \\\n  --module-path \"$JAVA_HOME/jmods\" \\\n  --add-modules java.base \\\n  --output mon-runtime\n\n# Le dossier mon-runtime contient maintenant un petit Java autonome.\n# Son sous-dossier bin contient un lanceur java utilisable directement.\n./mon-runtime/bin/java --version"
         },
         {
           "type": "CONCEPT",
           "title": "Trouver les modules nécessaires avec jdeps",
-          "position": 3,
+          "position": 5,
           "body": "Comment savoir quels modules mettre dans `--add-modules` ? Un autre outil du JDK, **jdeps** (*Java dependency analyzer*, analyseur de dépendances), lit ton application et liste les modules dont elle a besoin.\n\n👉 C'est l'assistant qui fait l'inventaire avant le déménagement : il regarde ton appartement et te dit exactement quels cartons prévoir, pour que tu n'oublies rien et n'emportes rien d'inutile.\n\nTu passes ensuite cette liste à jlink. Ainsi ton image contient précisément les modules utilisés, ni plus, ni moins."
+        },
+        {
+          "type": "IMAGE",
+          "title": "jdeps fait l'inventaire des modules dont ton application a besoin",
+          "body": "/images/lessons/jlink-image-minimale-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Pourquoi l'image est plus légère",
-          "position": 4,
+          "position": 7,
           "body": "Un collègue dit : \"Mon JDK pèse environ 300 Mo, mais l'image produite par jlink pour ma petite application ne fait que 40 Mo.\" Explique avec tes mots d'où vient cette différence, en utilisant les mots module et runtime minimal.",
           "solution": "Le JDK complet contient tous les modules de Java plus les outils de développement, soit beaucoup de choses que l'application n'utilise pas. jlink ne garde que les modules réellement nécessaires (par exemple java.base et quelques autres) et construit un runtime minimal autour d'eux. Tout le reste est écarté, d'où une image bien plus petite, autonome, et exécutable sans JDK installé."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : jlink, une image minimale",
-          "position": 5,
+          "position": 8,
           "quizRef": "packaging-jlink-jpackage-jlink-image-minimale"
         }
       ]
@@ -143,43 +185,55 @@
           "body": "**jpackage** est un outil du JDK qui produit un **installeur natif** ou une **application native** pour le système cible. \"Natif\" veut dire \"propre au système d'exploitation\", c'est à dire au format habituel de ce système.\n\nSelon la plateforme sur laquelle tu lances jpackage, tu obtiens le format local : `.exe` ou `.msi` sur Windows, `.dmg` ou `.pkg` sur Mac, `.deb` ou `.rpm` sur Linux.\n\n👉 Un installeur natif, c'est le produit fini dans son emballage du pays : la même application, mais présentée comme n'importe quel logiciel que l'utilisateur a l'habitude d'installer chez lui. Il double clique, ça s'installe, une icône apparait."
         },
         {
+          "type": "IMAGE",
+          "title": "jpackage produit un installeur natif au format du système cible",
+          "body": "/images/lessons/jpackage-installeur-natif-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "jpackage embarque un runtime, et peut s'appuyer sur jlink",
-          "position": 1,
+          "position": 2,
           "body": "Grande force de jpackage : l'installeur qu'il produit **embarque un runtime Java**. L'utilisateur final n'a donc rien à installer, pas même Java.\n\nPar défaut, jpackage fabrique lui même un runtime réduit avec jlink en coulisses. Tu peux aussi lui donner directement une **image jlink** que tu as déjà construite, avec l'option `--runtime-image`. Dans ce cas, jpackage emballe ton image sur mesure dans l'installeur natif.\n\n👉 Vois jlink comme l'atelier qui prépare le moteur minimal, et jpackage comme l'usine qui met ce moteur dans une voiture prête à livrer. Les deux outils se complètent : jlink affine le runtime, jpackage le met dans un installeur du système."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'installeur embarque un runtime, souvent une image jlink, rien d'autre à installer",
+          "body": "/images/lessons/jpackage-installeur-natif-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "jlink et jpackage travaillent ensemble",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"app.jar\"] --> C[\"jpackage\"]\n    B[\"image jlink\\n(runtime minimal)\"] --> C\n    C --> D[\"Installeur natif\\n.exe / .msi\"]\n    C --> E[\"Installeur natif\\n.dmg\"]\n    C --> F[\"Installeur natif\\n.deb / .rpm\"]"
         },
         {
           "type": "CODE",
           "title": "Produire un installeur avec jpackage",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# jpackage emballe l'application en installeur natif.\n# --name       : le nom affiché de l'application.\n# --input      : le dossier contenant le JAR (et ses éventuelles dépendances).\n# --main-jar   : le JAR à lancer, situé dans le dossier --input.\n# --main-class : la classe contenant la méthode main.\njpackage \\\n  --name MonApp \\\n  --input dossier-du-jar \\\n  --main-jar app.jar \\\n  --main-class com.exemple.App\n\n# Sur Windows, cette commande produit par exemple MonApp-1.0.exe,\n# un installeur que l'utilisateur double clique pour installer l'application."
         },
         {
           "type": "CODE",
           "title": "Réutiliser une image jlink existante",
-          "position": 4,
+          "position": 6,
           "codeLanguage": "bash",
           "body": "# Ici on donne à jpackage le runtime minimal déjà construit par jlink.\n# --runtime-image : le dossier de l'image jlink à embarquer.\n# Résultat : un installeur natif qui contient précisément ce runtime sur mesure.\njpackage \\\n  --name MonApp \\\n  --input dossier-du-jar \\\n  --main-jar app.jar \\\n  --main-class com.exemple.App \\\n  --runtime-image mon-runtime"
         },
         {
           "type": "EXERCISE",
           "title": "Un installeur par système",
-          "position": 5,
+          "position": 7,
           "body": "Ton équipe doit livrer l'application à des utilisateurs Windows, Mac et Linux, avec un installeur natif pour chacun. Peux tu produire les trois installeurs depuis une seule machine Windows avec jpackage ? Que faut il faire concrètement ?",
           "solution": "Non, jpackage produit un installeur au format de la plateforme sur laquelle il tourne : depuis Windows tu obtiens un .exe ou .msi, mais pas un .dmg ni un .deb. Pour avoir les trois formats, il faut lancer jpackage une fois sur chaque système (une machine Windows, une Mac, une Linux), souvent via une intégration continue avec une machine par système. Chaque exécution produit l'installeur natif propre à ce système."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : jpackage, un installeur natif",
-          "position": 6,
+          "position": 8,
           "quizRef": "packaging-jlink-jpackage-jpackage-installeur-natif"
         }
       ]
@@ -196,35 +250,53 @@
           "body": "Tu disposes maintenant de trois façons de livrer. Le bon choix dépend de la personne qui va recevoir ton application et de ce qu'elle a déjà sur sa machine.\n\n- Le **JAR** : un seul fichier léger, mais il faut un Java déjà installé pour le lancer.\n- L'**image jlink** : ton application plus un runtime minimal, autonome, sans Java à installer, mais ce n'est pas un installeur, l'utilisateur reçoit un dossier à copier.\n- L'**installeur jpackage** : un vrai installeur natif du système, idéal pour un utilisateur final non technique.\n\n👉 C'est comme choisir un moyen de transport selon le trajet : à pied pour traverser la rue (JAR), le vélo pour le quartier (jlink), la voiture équipée pour le long voyage (jpackage)."
         },
         {
+          "type": "IMAGE",
+          "title": "Le bon choix dépend de qui reçoit l'application et de ce qu'il a déjà",
+          "body": "/images/lessons/choisir-la-bonne-sortie-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Quand un simple JAR suffit",
-          "position": 1,
+          "position": 2,
           "body": "Choisis le **JAR** quand la personne qui reçoit ton programme a déjà un Java installé et sait s'en servir. C'est typiquement le cas entre développeurs, sur un serveur que ton équipe gère, ou pour un petit outil en ligne de commande partagé en interne.\n\nAvantages : le fichier est tout petit, rapide à construire et à envoyer. Inconvénient : il ne tourne pas tout seul, il dépend du Java présent sur la machine, et sa version.\n\n👉 Le JAR, c'est la recette que tu envoies à un ami cuisinier : il a déjà la cuisine, inutile de lui livrer le four avec."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le JAR suffit quand la personne dispose déjà d'un Java installé",
+          "body": "/images/lessons/choisir-la-bonne-sortie-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Quand jlink, quand jpackage",
-          "position": 2,
+          "position": 4,
           "body": "Choisis **jlink** quand tu veux une application autonome et légère, sans exiger de Java installé, mais que tu es à l'aise pour distribuer un dossier (par exemple à déposer sur un serveur, dans un conteneur, ou à décompresser soi même). jlink te donne un runtime minimal fait des seuls modules utiles.\n\nChoisis **jpackage** quand ton utilisateur final veut une installation simple et familière : il double clique sur un `.exe`, `.dmg` ou `.deb`, et l'application se pose avec son icône comme n'importe quel logiciel. jpackage embarque le runtime (souvent une image jlink) pour que rien d'autre ne soit requis.\n\n👉 jlink prépare le moteur minimal, jpackage le met dans un véhicule prêt à conduire. Pour un public large et non technique, jpackage ; pour un déploiement maitrisé et léger, jlink suffit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "jlink pour un déploiement léger maitrisé, jpackage pour un public non technique",
+          "body": "/images/lessons/choisir-la-bonne-sortie-3.jpg",
+          "position": 5
         },
         {
           "type": "DIAGRAM",
           "title": "Arbre de décision",
-          "position": 3,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Qui reçoit mon application ?\"] --> B{\"Java déjà\\ninstallé ?\"}\n    B -->|Oui, public technique| C[\"JAR\\njava -jar app.jar\"]\n    B -->|Non| D{\"Installeur natif\\nsouhaité ?\"}\n    D -->|Non, un dossier suffit| E[\"Image jlink\\nruntime minimal\"]\n    D -->|Oui, double clic| F[\"jpackage\\n.exe / .dmg / .deb\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Trois situations, trois choix",
-          "position": 4,
+          "position": 7,
           "body": "Pour chaque cas, choisis JAR, jlink ou jpackage et justifie en une phrase. 1) Un microservice déposé dans une image de conteneur Linux où l'on controle tout. 2) Un petit utilitaire partagé entre collègues développeurs. 3) Un logiciel de bureau pour des clients non techniques sous Windows.",
           "solution": "1) Image jlink : on veut un runtime minimal et autonome dans le conteneur, sans installer de JDK, et un dossier convient parfaitement dans une image Linux maitrisée. 2) JAR : les collègues ont déjà Java, un simple java -jar app.jar suffit et reste léger. 3) jpackage : les clients non techniques veulent un installeur .exe à double cliquer, avec le runtime embarqué pour n'avoir rien d'autre à installer."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : choisir la bonne sortie",
-          "position": 5,
+          "position": 8,
           "quizRef": "packaging-jlink-jpackage-choisir-la-bonne-sortie"
         }
       ]

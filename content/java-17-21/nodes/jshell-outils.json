@@ -13,35 +13,53 @@
           "body": "D'habitude, pour essayer trois lignes de Java, tu dois créer un fichier, écrire une classe, écrire une méthode `main`, compiler, puis lancer le programme. C'est beaucoup de rituel pour simplement vérifier \"est-ce que `2 + 2` fait bien 4 ?\" ou \"comment marche `\"bonjour\".toUpperCase()` ?\".\n\nUn **REPL** supprime ce rituel. REPL est un sigle anglais pour **Read Eval Print Loop**, ce qu'on traduit par \"lire, évaluer, afficher, en boucle\". C'est un outil interactif : tu tapes une ligne de code, il l'exécute tout de suite et t'affiche le résultat, puis il attend la ligne suivante.\n\n👉 Pense à une calculatrice : tu tapes une opération, tu vois le résultat immédiatement, tu enchaines la suivante. Un REPL, c'est une calculatrice, mais pour du vrai code Java."
         },
         {
+          "type": "IMAGE",
+          "title": "Tester trois lignes de code tout de suite, sans fichier ni rituel",
+          "body": "/images/lessons/qu-est-ce-qu-un-repl-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Les quatre étapes de la boucle",
-          "position": 1,
+          "position": 2,
           "body": "Le nom REPL décrit exactement ce qui se passe à chaque ligne que tu tapes :\n\n1. **Read** (lire) : l'outil lit le texte que tu viens de taper.\n2. **Eval** (évaluer) : il exécute ce code, c'est à dire qu'il le fait tourner pour en calculer la valeur. Une **expression** est un morceau de code qui produit une valeur, comme `2 + 2` ou `\"abc\".length()`.\n3. **Print** (afficher) : il t'écrit le résultat à l'écran.\n4. **Loop** (boucler) : il revient au début et attend ta prochaine ligne.\n\nUne **instruction** (en anglais *statement*) est un ordre donné à la machine, par exemple `int x = 5;` qui crée une variable. Une expression produit une valeur, une instruction fait une action. Le REPL accepte les deux."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lire, évaluer, afficher, boucler, le cycle d'un REPL",
+          "body": "/images/lessons/qu-est-ce-qu-un-repl-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "La boucle Read Eval Print Loop",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Read\\nlire ce que tu tapes\"] --> B[\"Eval\\nexecuter le code\"]\n    B --> C[\"Print\\nafficher le resultat\"]\n    C --> D[\"Loop\\nrevenir et attendre la suite\"]\n    D --> A"
         },
         {
           "type": "CONCEPT",
           "title": "JShell, le REPL officiel de Java",
-          "position": 3,
+          "position": 5,
           "body": "Pendant longtemps, Java n'avait pas de REPL : c'était l'un des rares langages où tu ne pouvais pas essayer une ligne rapidement. Depuis Java 9, Java fournit son propre REPL, un outil qui s'appelle **JShell**.\n\nJShell est livré avec le **JDK** (*Java Development Kit*, la trousse à outils du développeur Java que tu as installée pour compiler et lancer tes programmes). Tu n'as donc rien à installer en plus : si tu peux compiler du Java, tu peux lancer JShell.\n\n👉 C'est un peu comme découvrir que ta trousse contient déjà un carnet de brouillon : il était là depuis le début, il suffit de l'ouvrir pour gribouiller des essais."
+        },
+        {
+          "type": "IMAGE",
+          "title": "JShell, le REPL livré d'origine avec le JDK Java",
+          "body": "/images/lessons/qu-est-ce-qu-un-repl-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Reconnais chaque étape",
-          "position": 4,
+          "position": 7,
           "body": "Tu tapes `3 * 7` dans JShell et tu vois s'afficher `21`. Associe chaque étape du REPL (Read, Eval, Print, Loop) à ce qui se passe concrètement ici.",
           "solution": "Read : JShell lit le texte \"3 * 7\" que tu as tapé. Eval : il calcule la multiplication, ce qui donne la valeur 21. Print : il affiche ce résultat à l'écran (quelque chose comme $1 ==> 21). Loop : il revient au début et attend la ligne suivante que tu vas taper. C'est cette boucle immédiate qui rend l'outil si rapide pour tester une idée."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : qu'est-ce qu'un REPL",
-          "position": 5,
+          "position": 8,
           "quizRef": "jshell-outils-qu-est-ce-qu-un-repl"
         }
       ]
@@ -58,42 +76,60 @@
           "body": "Pour lancer JShell, tu ouvres ton **terminal** (la fenêtre où tu tapes des commandes texte, aussi appelée invite de commandes ou console) et tu tapes une seule commande : `jshell`.\n\nJShell démarre, affiche un petit message de bienvenue, puis te présente son **invite** (en anglais *prompt*), le symbole qui signale qu'il attend que tu tapes quelque chose. Dans JShell, cette invite ressemble à `jshell>`.\n\n👉 L'invite, c'est comme le curseur qui clignote sur une feuille blanche : tant qu'il est là, c'est à toi de jouer."
         },
         {
+          "type": "IMAGE",
+          "title": "Ouvrir JShell en tapant une commande dans le terminal",
+          "body": "/images/lessons/demarrer-jshell-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Lancer JShell et taper une première expression",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "bash",
           "body": "# Dans ton terminal, tu lances l'outil :\n$ jshell\n|  Welcome to JShell -- Version 21\n|  For an introduction type: /help intro\n\n# Maintenant l'invite jshell> attend. Tu tapes une expression :\njshell> 2 + 2\n$1 ==> 4\n\n# JShell a lu (Read), calcule (Eval), puis affiche (Print) le resultat : 4.\n# Le $1 est un nom que JShell donne automatiquement au resultat."
         },
         {
           "type": "CONCEPT",
           "title": "Le résultat prend un nom automatique",
-          "position": 2,
+          "position": 3,
           "body": "Quand tu tapes une expression sans la ranger dans une variable, JShell ne jette pas le résultat : il lui donne un nom temporaire, comme `$1`, `$2`, `$3`. Ce nom est une vraie variable que tu peux réutiliser tout de suite après.\n\nPar exemple, après `2 + 2` qui donne `$1 ==> 4`, tu peux taper `$1 * 10` et obtenir `40`. Pratique pour enchainer des calculs sans tout retaper.\n\n👉 C'est comme la touche \"Ans\" (answer, réponse) d'une calculatrice, qui garde sous la main le dernier résultat pour la prochaine opération."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chaque résultat reçoit un nom automatique, réutilisable aussitôt",
+          "body": "/images/lessons/demarrer-jshell-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Réutiliser un résultat et quitter",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "jshell> 2 + 2\n$1 ==> 4\n\n# On reutilise le resultat precedent grace a son nom automatique $1 :\njshell> $1 * 10\n$2 ==> 40\n\n# Pas besoin de point-virgule pour une simple expression dans JShell.\njshell> \"bonjour\".toUpperCase()\n$3 ==> \"BONJOUR\"\n\n# Pour sortir de JShell et revenir au terminal, on tape /exit :\njshell> /exit\n|  Goodbye"
         },
         {
           "type": "CONCEPT",
           "title": "Les commandes JShell commencent par une barre oblique",
-          "position": 4,
+          "position": 6,
           "body": "Dans JShell, il y a deux genres de choses que tu peux taper. Du **code Java** (une expression, une instruction), que JShell évalue. Et des **commandes JShell**, qui pilotent l'outil lui même et commencent toujours par une barre oblique `/`.\n\nTu en as déjà vu une : `/exit` pour quitter. Une autre très utile est `/help` qui affiche l'aide. Le `/` sert justement à ne pas confondre : `exit` serait interprété comme du code Java, alors que `/exit` est un ordre donné à JShell.\n\n👉 C'est comme la différence entre écrire une phrase dans un document et appuyer sur un bouton du logiciel : le `/` signale que tu appuies sur un bouton de JShell, pas que tu écris du Java."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les commandes de l'outil commencent par une barre oblique",
+          "body": "/images/lessons/demarrer-jshell-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Première session",
-          "position": 5,
+          "position": 8,
           "body": "Décris, ligne par ligne, ce que tu taperais dans JShell pour : le démarrer, calculer la longueur du mot \"DevRoad\" avec `\"DevRoad\".length()`, puis quitter proprement.",
           "solution": "1) Dans le terminal, taper jshell puis Entrée pour lancer l'outil. 2) À l'invite jshell>, taper \"DevRoad\".length() et Entrée : JShell affiche quelque chose comme $1 ==> 7 (le mot a 7 lettres). 3) Taper /exit puis Entrée : JShell affiche Goodbye et tu reviens au terminal. Noter que length() est une expression qui produit une valeur, donc JShell lui donne le nom automatique $1."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : démarrer JShell",
-          "position": 6,
+          "position": 9,
           "quizRef": "jshell-outils-demarrer-jshell"
         }
       ]
@@ -110,42 +146,60 @@
           "body": "JShell garde en mémoire tout ce que tu déclares pendant la session. Si tu crées une variable, elle reste disponible pour les lignes suivantes, jusqu'à ce que tu quittes.\n\nUne **variable** est un nom auquel on attache une valeur, par exemple `int age = 30;` crée une variable `age` qui vaut 30. Dans JShell tu peux la déclarer, puis l'utiliser, puis la redéclarer avec une autre valeur sans que l'outil râle, ce qui est parfait pour expérimenter.\n\n👉 C'est comme un tableau blanc : ce que tu écris reste visible et réutilisable tant que tu n'effaces pas, et tu peux corriger une ligne quand tu veux."
         },
         {
+          "type": "IMAGE",
+          "title": "Les variables déclarées restent en mémoire toute la session",
+          "body": "/images/lessons/explorer-et-tester-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Variables et méthodes dans la session",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "bash",
           "body": "jshell> int age = 30\nage ==> 30\n\n# La variable reste en memoire : on la reutilise plus loin.\njshell> age + 5\n$2 ==> 35\n\n# On peut meme declarer une methode (un bloc de code reutilisable avec un nom).\njshell> int doubler(int n) { return n * 2; }\n|  created method doubler(int)\n\njshell> doubler(age)\n$4 ==> 60"
         },
         {
           "type": "CONCEPT",
           "title": "Faire l'inventaire : /vars, /methods, /imports",
-          "position": 2,
+          "position": 3,
           "body": "Au fil d'une session, tu finis par déclarer plusieurs variables et méthodes et tu peux t'y perdre. JShell offre des commandes pour faire l'inventaire de ce que tu as créé :\n\n- `/vars` liste toutes les **variables** déclarées, avec leur type et leur valeur actuelle.\n- `/methods` liste toutes les **méthodes** que tu as définies.\n- `/imports` liste les **imports** actifs. Un **import** est une ligne qui rend une classe d'une autre bibliothèque utilisable sans écrire son chemin complet, par exemple `import java.util.List;`.\n\n👉 Ces trois commandes sont comme l'inventaire d'un atelier : elles te disent quels outils (variables, méthodes, imports) sont actuellement posés sur ton établi."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Faire l'inventaire des variables, méthodes et imports déclarés",
+          "body": "/images/lessons/explorer-et-tester-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Lister ce qu'on a déclaré et importer une classe",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "jshell> int age = 30\nage ==> 30\n\njshell> String nom = \"Ana\"\nnom ==> \"Ana\"\n\n# /vars fait l'inventaire des variables de la session :\njshell> /vars\n|    int age = 30\n|    String nom = \"Ana\"\n\n# JShell importe deja beaucoup de classes courantes. Pour les autres, on importe soi-meme :\njshell> import java.time.LocalDate\n\njshell> LocalDate.now()\n$5 ==> 2026-10-13\n\n# /imports montre tous les imports actifs (ceux de JShell et le tien) :\njshell> /imports\n|    import java.util.*\n|    import java.time.LocalDate"
         },
         {
           "type": "CONCEPT",
           "title": "Beaucoup d'imports sont déjà là",
-          "position": 4,
+          "position": 6,
           "body": "Bonne nouvelle : JShell importe automatiquement, au démarrage, une série de paquets très courants comme `java.util`, `java.io` ou `java.util.stream`. Tu peux donc utiliser `List`, `Map`, `ArrayList` ou `Stream` sans rien importer toi même.\n\nTu n'ajoutes un `import` que pour une classe qui n'est pas dans cette liste par défaut, comme `java.time.LocalDate` de l'exemple précédent. Si JShell se plaint qu'un symbole est introuvable, c'est souvent qu'il manque un import.\n\n👉 C'est comme un atelier déjà équipé des outils de base : tu ne vas chercher un outil spécial au magasin (un `import`) que lorsque la tâche l'exige vraiment."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Beaucoup d'imports courants sont déjà chargés au démarrage",
+          "body": "/images/lessons/explorer-et-tester-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Explore une session",
-          "position": 5,
+          "position": 8,
           "body": "Tu as tapé dans JShell : `int x = 10`, puis `String ville = \"Lyon\"`, puis `int carre(int n) { return n * n; }`. Quelle commande utilises-tu pour voir tes deux variables ? Laquelle pour voir ta méthode ? Qu'afficherait la première ?",
           "solution": "Pour voir les variables : /vars, qui afficherait les deux lignes int x = 10 et String ville = \"Lyon\" avec leur type et leur valeur. Pour voir la méthode : /methods, qui listerait carre(int). La commande /vars ne montre que les variables, pas les méthodes : chaque commande d'inventaire a son domaine."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : explorer et tester",
-          "position": 6,
+          "position": 9,
           "quizRef": "jshell-outils-explorer-et-tester"
         }
       ]
@@ -162,42 +216,60 @@
           "body": "Normalement, exécuter un programme Java demande deux étapes. D'abord **compiler** : traduire ton code source (le texte que tu écris) en un format que la machine sait exécuter, avec la commande `javac Fichier.java` qui produit un fichier `.class`. Ensuite **lancer** ce résultat avec `java Fichier`.\n\n**Compiler** veut dire transformer le code lisible par un humain en instructions prêtes à tourner. Le `javac` est le compilateur Java (le `c` final est pour *compiler*).\n\nPour un petit script d'essai, ces deux étapes sont un peu lourdes. Java propose un raccourci."
         },
         {
+          "type": "IMAGE",
+          "title": "Le cycle classique, compiler le code puis lancer le résultat",
+          "body": "/images/lessons/fichier-source-unique-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Lancer un fichier source directement",
-          "position": 1,
+          "position": 2,
           "body": "Depuis Java 11, tu peux exécuter un **fichier source unique** (un seul fichier `.java`) en une seule commande, sans compiler d'abord : `java Fichier.java`. Remarque le `.java` à la fin : c'est lui qui déclenche ce mode.\n\nJava compile alors ton fichier en mémoire, à la volée, et le lance aussitôt. Aucun fichier `.class` n'est écrit sur ton disque. C'est fait pour les **scripts**, ces petits programmes d'un seul fichier qu'on écrit vite pour une tache ponctuelle.\n\n👉 C'est la différence entre cuisiner un plat en deux services (préparer, puis servir) et un plat minute servi directement de la poele : pour un petit essai, le plat minute suffit largement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lancer un seul fichier source en une commande, sans compiler d'abord",
+          "body": "/images/lessons/fichier-source-unique-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un script d'un seul fichier",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Fichier : Bonjour.java\npublic class Bonjour {\n    public static void main(String[] args) {\n        System.out.println(\"Bonjour depuis un fichier source unique !\");\n        System.out.println(\"2 + 2 = \" + (2 + 2));\n    }\n}"
         },
         {
           "type": "CODE",
           "title": "Les deux façons de l'exécuter",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# Methode classique en deux etapes :\n$ javac Bonjour.java      # compile et cree Bonjour.class\n$ java Bonjour            # lance (sans le .java, ni le .class)\nBonjour depuis un fichier source unique !\n2 + 2 = 4\n\n# Raccourci depuis Java 11 : une seule commande, avec le .java a la fin.\n$ java Bonjour.java       # compile en memoire ET lance, aucun .class cree\nBonjour depuis un fichier source unique !\n2 + 2 = 4"
         },
         {
           "type": "CONCEPT",
           "title": "Quand choisir ce raccourci",
-          "position": 4,
+          "position": 6,
           "body": "Le fichier source unique est idéal quand ton programme tient dans **un seul fichier** : un essai, une démonstration, un petit utilitaire. Dès que ton projet grandit (plusieurs fichiers, des bibliothèques externes, un build), tu reviens aux outils classiques comme Maven ou Gradle et à la compilation en bonne et due forme.\n\nEntre JShell et le fichier source unique, le partage est simple : JShell pour tester des bouts de code ligne par ligne, sans même écrire une classe ; le fichier source unique quand tu as déjà un programme complet dans un fichier et que tu veux juste le lancer vite.\n\n👉 JShell, c'est le carnet de brouillon ; le fichier source unique, c'est la feuille propre que tu lis d'un trait sans la recopier."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Choisir ce raccourci quand le programme tient dans un seul fichier",
+          "body": "/images/lessons/fichier-source-unique-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Une commande, pas deux",
-          "position": 5,
+          "position": 8,
           "body": "Tu as un fichier `Calcul.java` contenant une classe avec un `main`. Donne la commande unique qui le lance sans créer de fichier `.class`. Qu'est-ce qui, dans la commande, déclenche ce mode ?",
           "solution": "La commande est : java Calcul.java (avec l'extension .java bien présente). C'est justement la présence de .java à la fin de l'argument qui déclenche le mode fichier source unique : Java compile le fichier en mémoire et le lance aussitôt, sans écrire de Calcul.class sur le disque. Sans le .java (java Calcul), Java chercherait un fichier .class déjà compilé."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : fichier source unique",
-          "position": 6,
+          "position": 9,
           "quizRef": "jshell-outils-fichier-source-unique"
         }
       ]
@@ -214,42 +286,60 @@
           "body": "Une session JShell disparait quand tu quittes. Mais tu peux la **sauvegarder** dans un fichier avec `/save monfichier.jsh`, qui écrit tout ce que tu as tapé (variables, méthodes, imports) dans un fichier texte.\n\nPlus tard, tu rejoues ce contenu avec `/open monfichier.jsh`, qui lit le fichier et réexécute chaque ligne dans ta session courante. C'est pratique pour retrouver un montage de variables et de méthodes sans tout retaper.\n\n👉 `/save` c'est photographier ton tableau blanc avant d'effacer ; `/open` c'est recopier la photo sur un tableau vide pour repartir d'où tu étais."
         },
         {
+          "type": "IMAGE",
+          "title": "Sauvegarder la session dans un fichier pour la recharger plus tard",
+          "body": "/images/lessons/astuces-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "/save puis /open",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "bash",
           "body": "jshell> int base = 100\nbase ==> 100\n\njshell> int taxe(int montant) { return montant / 5; }\n|  created method taxe(int)\n\n# On sauvegarde tout le contenu de la session dans un fichier :\njshell> /save session.jsh\n\njshell> /exit\n|  Goodbye\n\n# Plus tard, dans une nouvelle session, on recharge tout :\n$ jshell\njshell> /open session.jsh\n\njshell> taxe(base)\n$1 ==> 20"
         },
         {
           "type": "CONCEPT",
           "title": "Modifier confortablement avec /edit",
-          "position": 2,
+          "position": 3,
           "body": "Corriger une méthode de dix lignes en la retapant à l'invite est pénible. La commande `/edit` ouvre un petit **éditeur** (une fenêtre où modifier du texte sur plusieurs lignes) contenant ce que tu as déjà déclaré. Tu modifies tranquillement, tu valides, et JShell reprend la version corrigée.\n\nTu peux taper `/edit` seul pour tout éditer, ou `/edit maMethode` pour ne retravailler qu'une déclaration précise.\n\n👉 C'est la différence entre corriger une phrase en la dictant mot à mot et la corriger directement au stylo sur le papier : bien plus simple pour les gros morceaux."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Modifier confortablement une méthode dans un petit éditeur",
+          "body": "/images/lessons/astuces-2.jpg",
+          "position": 4
         },
         {
           "type": "CONCEPT",
           "title": "L'autocomplétion avec la touche Tab",
-          "position": 3,
+          "position": 5,
           "body": "L'astuce qui fait gagner le plus de temps est l'**autocomplétion** : tu commences à taper et tu appuies sur la touche **Tab**, et JShell complète pour toi ou propose la liste de ce qui est possible.\n\nPar exemple, tape `\"abc\".` puis Tab : JShell affiche toutes les méthodes disponibles sur une chaine (`length`, `toUpperCase`, `charAt`, et les autres). Tu explores une bibliothèque sans aller lire la documentation.\n\n👉 C'est comme la saisie prédictive de ton téléphone : tu tapes le début, l'outil propose la suite, tu choisis. Idéal pour découvrir ce qu'un objet sait faire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'autocomplétion propose la suite quand on appuie sur Tab",
+          "body": "/images/lessons/astuces-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "Quelques commandes utiles d'un coup d'oeil",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "bash",
           "body": "jshell> /save travail.jsh      # sauvegarde la session dans un fichier\njshell> /open travail.jsh      # recharge (reexecute) le fichier\njshell> /edit taxe             # ouvre un editeur pour modifier la methode taxe\njshell> /list                  # reaffiche tout le code tape depuis le debut\njshell> /help                  # affiche l'aide complete de JShell\n\n# Autocompletion : taper le debut puis la touche Tab.\njshell> \"abc\".<Tab>            # JShell propose length(), toUpperCase(), charAt(...), ...\njshell> Math.<Tab>            # propose abs(...), max(...), sqrt(...), PI, ..."
         },
         {
           "type": "EXERCISE",
           "title": "Choisis la bonne astuce",
-          "position": 5,
+          "position": 8,
           "body": "Pour chaque besoin, quelle commande ou touche de JShell utiliser ? 1) Garder tes déclarations avant de fermer l'ordinateur. 2) Retravailler confortablement une méthode de quinze lignes. 3) Découvrir quelles méthodes offre un objet sans lire la documentation.",
           "solution": "1) /save fichier.jsh pour écrire la session dans un fichier, puis /open fichier.jsh plus tard pour la recharger. 2) /edit maMethode pour ouvrir un éditeur multiligne au lieu de retaper à l'invite. 3) La touche Tab (autocomplétion) après avoir tapé le début, par exemple monObjet. puis Tab, pour voir la liste des méthodes proposées."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : astuces",
-          "position": 6,
+          "position": 9,
           "quizRef": "jshell-outils-astuces"
         }
       ]

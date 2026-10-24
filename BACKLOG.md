@@ -886,9 +886,13 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     extrait les IDs photos, download via le CDN `images.pexels.com` — fiable, sans clé API. Lots de 2-3 nœuds,
     commit par lot, 0 régression. Validé + ingéré + frontend rebuildé + assets vérifiés HTTP 200.
     **797 images** au total dans `frontend/public/images/lessons/`.
-  - **Reste (autres parcours)** : rust, java-17-21, terraform, aws, software-architect,
-    software-design, api-security, backend-performance, prompt-engineering, certifs — même pipeline (curl).
-  - NB volume/poids : ~797 images (~140-160 Mo dans le repo).
+  - **TOUS LES PARCOURS ILLUSTRÉS** ✅ (via agents parallèles + pipeline curl, consolidation par vagues) :
+    backend (480), kubernetes (164), docker (154), dapr (130 + couverture), puis vague 1 (demo, cka, ckad,
+    kcna, rust, prompt-engineering, api-security, backend-performance, aws), terraform (113),
+    software-architect (175), software-design (259), java-17-21 (369). Règle anti-collision : un slug de
+    leçon partagé entre parcours (ex. `les-trois-piliers`, `reseau-du-cluster`, `en-pratique`) réutilise
+    l'image existante au lieu de l'écraser. Chaque parcours validé + ingéré + frontend rebuildé + poussé.
+  - NB volume/poids : repo devenu lourd (~1900 images, images+historique ~600 Mo) mais sous la limite GitHub.
   - Fichiers moteur : `content-pipeline/schemas/node-content.schema.json`, `SectionType.java`,
     `IngestNodeContentService.java`, `app/.../V11__section_image_type.sql`, `LessonPage.tsx` (+ `.module.css`).
 

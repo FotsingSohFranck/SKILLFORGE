@@ -13,42 +13,60 @@
           "body": "Un **stream** (en anglais *stream*, qu'on traduit par \"flux\") est une suite d'éléments qu'on fait passer dans une chaine de traitements. Ce n'est pas une collection qui stocke des données : c'est un **flux de traitement** qui lit une source (une liste, un tableau), applique des étapes les unes après les autres, puis produit un résultat.\n\nAttention à ne pas confondre : une `List` range des objets, un `Stream` les fait défiler une fois pour les transformer. Après usage, un stream est \"consommé\", on ne le rejoue pas.\n\n👉 Imagine une chaine de tri du courrier : les lettres (les éléments) arrivent de la source, passent devant un trieur qui écarte les colis (filtrage), devant un tampon qui marque chaque lettre (transformation), et finissent rangées dans des casiers (résultat). Le stream, c'est cette chaine, pas le sac de lettres au départ."
         },
         {
+          "type": "IMAGE",
+          "title": "Un stream fait défiler les éléments dans une chaîne de traitement, comme un tapis de tri du courrier.",
+          "body": "/images/lessons/rappel-des-streams-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Les trois temps d'un stream : source, opérations, terminal",
-          "position": 1,
+          "position": 2,
           "body": "Un traitement par stream se lit toujours en trois temps :\n\n1. **La source** : d'où viennent les éléments. Par exemple `liste.stream()` crée un stream à partir d'une liste.\n2. **Les opérations intermédiaires** : des étapes qui transforment le flux et renvoient un nouveau stream. Les deux plus courantes sont `filter` (garder seulement les éléments qui respectent une condition) et `map` (transformer chaque élément en un autre).\n3. **L'opération terminale** : l'étape finale qui déclenche tout et produit un résultat concret (une liste, un nombre, un affichage). Exemples : `collect`, `count`, `forEach`.\n\n👉 Pense à une recette : les ingrédients (source), les gestes de préparation qui s'enchainent (opérations intermédiaires), et le plat servi à table (opération terminale). Tant que le plat n'est pas demandé, rien n'est vraiment cuisiné."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un stream se lit en trois temps : la source, les opérations, puis le résultat servi, comme une recette.",
+          "body": "/images/lessons/rappel-des-streams-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un pipeline map / filter / collect",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "import java.util.List;\nimport java.util.stream.Collectors;\n\npublic class Demo {\n    public static void main(String[] args) {\n        List<String> mots = List.of(\"chat\", \"chien\", \"rat\", \"cheval\");\n\n        // Source : mots.stream()\n        // Opérations intermédiaires : filter puis map\n        // Opération terminale : collect\n        List<String> resultat = mots.stream()\n                .filter(m -> m.length() > 3)      // garde les mots de plus de 3 lettres\n                .map(m -> m.toUpperCase())        // transforme chacun en majuscules\n                .collect(Collectors.toList());    // rassemble le tout dans une liste\n\n        System.out.println(resultat); // [CHIEN, CHEVAL]\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Paresseux (lazy) contre terminal : rien ne coule sans robinet",
-          "position": 3,
+          "position": 5,
           "body": "Les opérations intermédiaires sont **paresseuses** (en anglais *lazy*) : elles ne font rien au moment où tu les écris, elles se contentent de décrire le travail à faire. Tant qu'aucune **opération terminale** n'est appelée, le flux ne s'exécute pas : aucun élément ne passe dans `filter` ni `map`.\n\nC'est l'opération terminale qui \"ouvre le robinet\" : elle tire les éléments un par un à travers toute la chaine. Cette paresse permet à Java d'optimiser, par exemple s'arrêter dès qu'il a assez d'éléments.\n\n👉 Monter un toboggan (les étapes) ne fait descendre personne. C'est quand tu lâches la bille en haut (l'opération terminale) que tout le parcours sert d'un coup."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Rien ne coule tant qu'on n'ouvre pas le robinet : l'opération terminale déclenche tout le pipeline.",
+          "body": "/images/lessons/rappel-des-streams-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Le trajet d'un élément dans le pipeline",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    S[\"Source\\nliste.stream()\"] --> F[\"Intermédiaire\\nfilter(condition)\"]\n    F --> M[\"Intermédiaire\\nmap(transformation)\"]\n    M --> T[\"Terminal\\ncollect / count\"]\n    T --> R[\"Résultat\\nliste, nombre...\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Repère les trois temps",
-          "position": 5,
+          "position": 8,
           "body": "Soit ce code : nombres.stream().filter(n -> n % 2 == 0).map(n -> n * 10).count(). Identifie la source, la ou les opérations intermédiaires, et l'opération terminale. Que se passerait il si on retirait le .count() final ?",
           "solution": "Source : nombres.stream(). Opérations intermédiaires : filter(n -> n % 2 == 0) qui garde les nombres pairs, et map(n -> n * 10) qui multiplie chacun par 10. Opération terminale : count() qui compte les éléments restants. Si on retire count(), il ne reste aucune opération terminale : le stream est paresseux, donc rien ne s'exécute. Ni filter ni map ne tournent, et on obtient juste un objet Stream inutilisé, pas un résultat."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : rappel des streams",
-          "position": 6,
+          "position": 9,
           "quizRef": "streams-modernes-rappel-des-streams"
         }
       ]
@@ -65,42 +83,60 @@
           "body": "Pour transformer un stream en liste, la façon historique était d'appeler l'opération terminale `collect` avec un **collecteur** (en anglais *collector*), c'est à dire un objet qui décrit comment rassembler les éléments. Le collecteur le plus courant est `Collectors.toList()`.\n\nCela donne la formule `.collect(Collectors.toList())` : trois mots, un import de `java.util.stream.Collectors`, pour une opération qu'on fait pourtant tout le temps.\n\n👉 C'est comme devoir dire \"range ces objets en utilisant la méthode de rangement par liste\" alors qu'on voudrait juste dire \"fais en une liste\"."
         },
         {
+          "type": "IMAGE",
+          "title": "L'ancienne façon exigeait un collecteur explicite pour une opération pourtant quotidienne.",
+          "body": "/images/lessons/stream-tolist-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Depuis Java 16 : la méthode Stream.toList()",
-          "position": 1,
+          "position": 2,
           "body": "Java 16 a ajouté directement sur le stream la méthode **`toList()`**. C'est une opération terminale qui fait le travail courant d'un coup : `.toList()`, sans collecteur et sans import.\n\nElle est plus **concise** (plus courte à lire et à écrire) et exprime mieux l'intention : \"je veux une liste\". C'est devenu la façon recommandée pour le cas simple.\n\nPoint capital à retenir : `Stream.toList()` renvoie une liste **NON modifiable**. On y revient juste après, car c'est la différence majeure avec l'ancienne méthode."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La méthode toList() fait le travail courant d'un coup, plus concise et sans import.",
+          "body": "/images/lessons/stream-tolist-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "La même chose, en plus court",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "import java.util.List;\nimport java.util.stream.Collectors;\n\npublic class Demo {\n    public static void main(String[] args) {\n        List<String> mots = List.of(\"chat\", \"chien\", \"cheval\");\n\n        // Ancienne façon : collecteur explicite + import de Collectors.\n        List<String> ancienne = mots.stream()\n                .map(String::toUpperCase)\n                .collect(Collectors.toList());\n\n        // Depuis Java 16 : plus concis, sans collecteur ni import de Collectors.\n        List<String> moderne = mots.stream()\n                .map(String::toUpperCase)\n                .toList();\n\n        System.out.println(ancienne); // [CHAT, CHIEN, CHEVAL]\n        System.out.println(moderne);  // [CHAT, CHIEN, CHEVAL]\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Le piège : la liste est NON modifiable",
-          "position": 3,
+          "position": 5,
           "body": "C'est le point à ne jamais oublier : la liste renvoyée par `Stream.toList()` est **non modifiable** (en anglais *unmodifiable*). Cela veut dire qu'on ne peut ni y ajouter, ni en retirer, ni y remplacer un élément. Toute tentative lève une exception `UnsupportedOperationException` au moment de l'exécution.\n\nÀ l'inverse, l'ancienne `collect(Collectors.toList())` renvoyait, en pratique, une liste souvent modifiable. Donc si ton code faisait `.add(...)` sur le résultat, le passage à `.toList()` le cassera.\n\n👉 Vois le résultat de `toList()` comme une photo encadrée sous verre : tu peux la regarder autant que tu veux, mais tu ne peux rien coller dessus. Si tu as besoin d'une liste où ajouter des éléments, crée en une nouvelle avec `new ArrayList<>(monStream.toList())`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La liste renvoyée est figée comme une photo sous verre : on la regarde mais on n'y touche pas.",
+          "body": "/images/lessons/stream-tolist-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "Ce qui marche et ce qui échoue",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "java",
           "body": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class Demo {\n    public static void main(String[] args) {\n        List<Integer> figee = List.of(1, 2, 3).stream()\n                .map(n -> n * 2)\n                .toList();\n\n        System.out.println(figee); // [2, 4, 6] : lecture, aucun probleme\n\n        // figee.add(8); // leverait UnsupportedOperationException : liste NON modifiable\n\n        // Si on a besoin d'ajouter, on recopie dans une liste modifiable.\n        List<Integer> modifiable = new ArrayList<>(figee);\n        modifiable.add(8);\n        System.out.println(modifiable); // [2, 4, 6, 8]\n    }\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Repère le bug",
-          "position": 5,
+          "position": 8,
           "body": "Un collègue a remplacé .collect(Collectors.toList()) par .toList() partout. Une méthode faisait ensuite resultat.add(\"extra\") sur la liste obtenue, et maintenant le programme plante avec UnsupportedOperationException. Explique pourquoi et propose deux corrections possibles.",
           "solution": "La cause : Stream.toList() renvoie une liste NON modifiable, alors que l'ancienne collect(Collectors.toList()) renvoyait une liste modifiable. L'appel .add(\"extra\") sur une liste non modifiable lève UnsupportedOperationException. Corrections possibles : 1) Recopier le résultat dans une liste modifiable : new ArrayList<>(resultat), puis faire add dessus. 2) Ajouter l'élément dans le pipeline lui même (par exemple via un Stream.concat) pour que la liste finale contienne déjà \"extra\", et garder la liste figée. On choisit selon qu'on a vraiment besoin de muter la liste ensuite ou non."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : Stream.toList",
-          "position": 6,
+          "position": 9,
           "quizRef": "streams-modernes-stream-tolist"
         }
       ]
@@ -117,42 +153,60 @@
           "body": "Parfois, une entrée doit produire **plusieurs** sorties. Par exemple, pour chaque commande je veux lister chacun de ses articles. `map` ne suffit pas : il transforme un élément en **exactement un** autre.\n\nLa réponse classique est `flatMap` (littéralement \"aplatir et transformer\") : tu renvoies un petit stream par entrée, et Java les met bout à bout en un seul flux. Ça marche très bien, mais ça oblige à **créer un stream intermédiaire** pour chaque élément, ce qui a un cout.\n\n👉 `map`, c'est \"à chaque personne je donne une pomme\". `flatMap`, c'est \"à chaque personne je donne un sac de pommes, et on vide tous les sacs dans le même panier\". Fabriquer un sac par personne, c'est justement le cout dont on parle."
         },
         {
+          "type": "IMAGE",
+          "title": "Parfois une entrée doit produire plusieurs sorties, comme un sac vidé dans un panier commun.",
+          "body": "/images/lessons/mapmulti-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "mapMulti : pousser les éléments au lieu de renvoyer un stream",
-          "position": 1,
+          "position": 2,
           "body": "Java 16 a ajouté **`mapMulti`** (on peut lire \"transformation multiple\"). Comme `flatMap`, il permet de produire **zéro, un ou plusieurs** éléments par entrée. La différence est la mécanique : au lieu de renvoyer un stream, tu reçois un **consommateur** (en anglais *consumer*), un petit objet sur lequel tu appelles `accept(...)` pour **pousser** chaque élément de sortie dans le flux.\n\nComme aucun stream intermédiaire n'est créé par entrée, `mapMulti` est **parfois plus efficace** que `flatMap`, surtout quand chaque entrée produit peu d'éléments ou quand ces éléments sont déjà sous la main.\n\n👉 Avec `flatMap` tu emballes un sac et tu le tends. Avec `mapMulti` tu as directement le panier commun devant toi (`accept`) et tu y déposes les pommes une à une, sans emballage."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Avec mapMulti, on dépose chaque élément directement dans le flux, sans emballage intermédiaire.",
+          "body": "/images/lessons/mapmulti-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "flatMap puis le même résultat avec mapMulti",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "import java.util.List;\n\npublic class Demo {\n    record Commande(String client, List<String> articles) { }\n\n    public static void main(String[] args) {\n        List<Commande> commandes = List.of(\n            new Commande(\"Ana\", List.of(\"stylo\", \"cahier\")),\n            new Commande(\"Bob\", List.of(\"gomme\"))\n        );\n\n        // Version flatMap : chaque commande renvoie un stream de ses articles.\n        List<String> avecFlatMap = commandes.stream()\n                .flatMap(c -> c.articles().stream())\n                .toList();\n\n        // Version mapMulti : on pousse chaque article dans le consommateur \"push\".\n        List<String> avecMapMulti = commandes.stream()\n                .<String>mapMulti((c, push) -> {\n                    for (String article : c.articles()) {\n                        push.accept(article); // depose un element dans le flux\n                    }\n                })\n                .toList();\n\n        System.out.println(avecFlatMap);  // [stylo, cahier, gomme]\n        System.out.println(avecMapMulti); // [stylo, cahier, gomme]\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Zéro, un ou plusieurs : tout est possible",
-          "position": 3,
+          "position": 5,
           "body": "La force de `mapMulti`, c'est la liberté sur le nombre de sorties par entrée :\n\n- **Zéro** : tu n'appelles pas `accept`, l'entrée disparait (comme un `filter`).\n- **Un** : tu appelles `accept` une fois (comme un `map`).\n- **Plusieurs** : tu appelles `accept` autant de fois que nécessaire (comme `flatMap`).\n\nLe petit `<String>` placé avant `mapMulti` sert à dire à Java le type des éléments que tu vas pousser. Sans cette indication, le compilateur ne peut pas toujours deviner, car ce type n'apparait pas dans les arguments.\n\n👉 Un seul outil qui sait, selon l'entrée, jeter (zéro), garder (un) ou démultiplier (plusieurs). C'est un filtre et un multiplicateur réunis."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un seul outil qui sait jeter, garder ou démultiplier selon l'entrée.",
+          "body": "/images/lessons/mapmulti-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "Filtrer et démultiplier en une seule étape",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "java",
           "body": "import java.util.List;\n\npublic class Demo {\n    public static void main(String[] args) {\n        List<Integer> nombres = List.of(1, 2, 3, 4);\n\n        // Pour chaque nombre pair, on pousse le nombre ET son double.\n        // Les nombres impairs ne poussent rien (zero sortie).\n        List<Integer> resultat = nombres.stream()\n                .<Integer>mapMulti((n, push) -> {\n                    if (n % 2 == 0) {\n                        push.accept(n);       // le nombre lui meme\n                        push.accept(n * 2);   // et son double\n                    }\n                })\n                .toList();\n\n        System.out.println(resultat); // [2, 4, 4, 8]\n    }\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Traduis un flatMap en mapMulti",
-          "position": 5,
+          "position": 8,
           "body": "On a phrases.stream().flatMap(p -> Arrays.stream(p.split(\" \"))).toList() qui découpe chaque phrase en mots. Réécris ce traitement avec mapMulti, en poussant chaque mot une fois. Rappelle pourquoi mapMulti peut être plus efficace ici.",
           "solution": "phrases.stream()\n    .<String>mapMulti((p, push) -> {\n        for (String mot : p.split(\" \")) {\n            push.accept(mot);\n        }\n    })\n    .toList();\n\nPourquoi c'est parfois plus efficace : la version flatMap crée un stream intermédiaire (Arrays.stream(...)) pour chaque phrase, soit un objet stream par entrée. mapMulti pousse directement les mots dans le consommateur, sans fabriquer ce stream intermédiaire à chaque phrase. Quand il y a beaucoup de phrases, on économise la création de tous ces petits streams."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : mapMulti",
-          "position": 6,
+          "position": 9,
           "quizRef": "streams-modernes-mapmulti"
         }
       ]
@@ -169,42 +223,60 @@
           "body": "Parfois on veut calculer **deux choses à la fois** sur le même flux, puis les combiner. Exemple typique : la **moyenne**, qui est la somme des valeurs divisée par leur nombre. Il faut donc une somme ET un compte.\n\nSans outil dédié, on serait tenté de parcourir le stream deux fois (une fois pour la somme, une fois pour le compte). Mais un stream se consomme une seule fois, et parcourir deux fois la source est maladroit.\n\n👉 Imagine une caisse qui, pour chaque article, doit à la fois additionner les prix et compter les articles. On veut un seul passage devant la caisse, pas deux files séparées."
         },
         {
+          "type": "IMAGE",
+          "title": "On veut deux calculs en un seul passage, comme une caisse qui additionne et compte à la fois.",
+          "body": "/images/lessons/collectors-teeing-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Collectors.teeing : un T qui réunit deux collecteurs",
-          "position": 1,
+          "position": 2,
           "body": "Java 12 a ajouté le collecteur **`Collectors.teeing`**. Le nom vient du **T** de plomberie (en anglais *tee*), ce raccord en forme de T qui envoie un même flux dans deux directions puis... ici les rejoint. `teeing` prend **trois arguments** :\n\n1. un premier collecteur (ex. faire la somme),\n2. un second collecteur (ex. compter),\n3. une fonction de **fusion** qui reçoit les deux résultats et en fabrique un seul (ex. somme divisée par compte = moyenne).\n\nLe flux n'est parcouru **qu'une seule fois** : chaque élément alimente les deux collecteurs en parallèle, puis la fonction de fusion produit le résultat final.\n\n👉 Le flux arrive, le T l'envoie dans deux tuyaux (somme, compte), et à la sortie un mélangeur combine les deux en une seule valeur. Un seul passage, deux mesures, un résultat."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le raccord en T envoie le flux dans deux collecteurs, puis une fusion combine leurs résultats.",
+          "body": "/images/lessons/collectors-teeing-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Calculer une moyenne avec teeing",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "import java.util.List;\nimport java.util.stream.Collectors;\n\npublic class Demo {\n    public static void main(String[] args) {\n        List<Integer> notes = List.of(12, 15, 9, 18);\n\n        double moyenne = notes.stream()\n                .collect(Collectors.teeing(\n                        Collectors.summingDouble(n -> n), // 1er collecteur : la somme\n                        Collectors.counting(),            // 2e collecteur : le compte\n                        (somme, compte) -> somme / compte // fusion : somme / compte\n                ));\n\n        System.out.println(moyenne); // 13.5\n    }\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "Le flux se dédouble puis se recombine",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    S[\"Source\\nnotes.stream()\"] --> T{{\"teeing\\n(raccord en T)\"}}\n    T --> A[\"Collecteur 1\\nsomme\"]\n    T --> B[\"Collecteur 2\\ncompte\"]\n    A --> F[\"Fusion\\nsomme / compte\"]\n    B --> F\n    F --> R[\"Résultat\\nmoyenne = 13.5\"]"
         },
         {
           "type": "CONCEPT",
           "title": "Pas que la moyenne : combiner ce qu'on veut",
-          "position": 4,
+          "position": 6,
           "body": "La fonction de fusion est libre : elle peut renvoyer n'importe quoi, par exemple un `record` qui porte les deux résultats, ou le minimum et le maximum ensemble, ou \"combien d'éléments au dessus de la moyenne\".\n\nL'idée générale à retenir : `teeing` sert dès que tu as **deux calculs indépendants sur le même flux** à réconcilier en une seule valeur de sortie, en un seul parcours.\n\n👉 Deux capteurs sur le même tapis roulant (l'un pèse, l'autre compte), et un petit cerveau à la fin qui lit les deux cadrans pour annoncer un verdict unique."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deux mesures sur le même tapis, un seul verdict à la sortie : teeing combine ce qu'on veut.",
+          "body": "/images/lessons/collectors-teeing-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Min et max d'un coup",
-          "position": 5,
+          "position": 8,
           "body": "On veut, en un seul parcours du stream nombres, obtenir à la fois le plus petit et le plus grand élément, rassemblés dans un record MinMax(int min, int max). Écris le collect avec Collectors.teeing. Indice : Collectors.minBy et Collectors.maxBy existent et renvoient un Optional.",
           "solution": "record MinMax(int min, int max) { }\n\nMinMax bornes = nombres.stream()\n    .collect(Collectors.teeing(\n        Collectors.minBy(Integer::compareTo),  // 1er collecteur : le minimum (Optional)\n        Collectors.maxBy(Integer::compareTo),  // 2e collecteur : le maximum (Optional)\n        (min, max) -> new MinMax(min.get(), max.get()) // fusion dans le record\n    ));\n\nLe flux n'est parcouru qu'une fois. minBy et maxBy renvoient chacun un Optional (vide si le stream est vide), d'où le .get() dans la fusion quand on sait qu'il y a au moins un élément."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : Collectors.teeing",
-          "position": 6,
+          "position": 9,
           "quizRef": "streams-modernes-collectors-teeing"
         }
       ]
@@ -221,35 +293,53 @@
           "body": "Un stream est au service de la **lisibilité** : il doit rendre l'intention plus claire qu'une boucle. Un bon pipeline se lit presque comme une phrase : \"prends ces éléments, garde ceux qui..., transforme les en..., rassemble\".\n\nQuelques habitudes qui aident : une opération par ligne, des noms de variables parlants dans les lambdas (`client` plutot que `c` si ça clarifie), et extraire une étape compliquée dans une méthode nommée plutot que d'empiler une lambda géante.\n\n👉 Un stream réussi, c'est une recette lisible du haut vers le bas. Si tu dois relire trois fois une ligne pour la comprendre, c'est le signe qu'il faut la simplifier ou la nommer."
         },
         {
+          "type": "IMAGE",
+          "title": "Un bon pipeline se lit comme une phrase, du haut vers le bas.",
+          "body": "/images/lessons/bonnes-pratiques-streams-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Quand une simple boucle est préférable",
-          "position": 1,
+          "position": 2,
           "body": "Le stream n'est pas toujours le meilleur choix. Une **boucle** classique (`for`, `for-each`) est souvent plus claire quand :\n\n- la logique est très courte (un simple parcours qui additionne) ;\n- il faut **sortir en cours de route** (`break`), sauter avec `continue`, ou gérer un index ;\n- il y a besoin de **plusieurs variables** qui évoluent ensemble.\n\nForcer un traitement complexe dans un stream produit parfois du code plus obscur qu'une boucle honnête. Choisis l'outil qui se lit le mieux, pas le plus \"moderne\".\n\n👉 Un tournevis électrique est pratique, mais pour une seule petite vis, le tournevis à main va plus vite. Même logique entre stream et boucle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Pour une seule petite vis, le tournevis à main va plus vite : parfois la boucle bat le stream.",
+          "body": "/images/lessons/bonnes-pratiques-streams-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Éviter les effets de bord",
-          "position": 2,
+          "position": 4,
           "body": "Un **effet de bord** (en anglais *side effect*) est le fait, pour une étape, de modifier quelque chose en dehors d'elle même : ajouter à une liste extérieure, incrémenter un compteur partagé, écrire dans un champ. Dans un stream, les étapes `map` et `filter` devraient rester **pures** : prendre une entrée, renvoyer une sortie, sans rien toucher d'autre.\n\nPourquoi ? Les effets de bord cassent la lisibilité (on ne voit plus le résultat dans le pipeline), et deviennent carrément dangereux si le stream est exécuté en parallèle, car plusieurs threads toucheraient la même variable en même temps.\n\n👉 Chaque étape devrait être comme une machine qui prend une pièce et en ressort une autre, sans aller discrètement gribouiller sur le mur d'à coté."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chaque étape prend une pièce et en ressort une autre, sans aller gribouiller ailleurs.",
+          "body": "/images/lessons/bonnes-pratiques-streams-3.jpg",
+          "position": 5
         },
         {
           "type": "CODE",
           "title": "Effet de bord à éviter, et sa version propre",
-          "position": 3,
+          "position": 6,
           "codeLanguage": "java",
           "body": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class Demo {\n    public static void main(String[] args) {\n        List<String> mots = List.of(\"chat\", \"chien\", \"rat\");\n\n        // A EVITER : map sert d'effet de bord, il remplit une liste exterieure.\n        List<String> sortie = new ArrayList<>();\n        mots.stream()\n            .map(m -> { sortie.add(m); return m; }) // effet de bord cache dans map\n            .count();\n        // Le vrai resultat est planque dans \"sortie\" : illisible et fragile en parallele.\n\n        // PROPRE : le pipeline produit lui meme le resultat, sans variable exterieure.\n        List<String> propre = mots.stream()\n                .filter(m -> m.length() > 3)\n                .toList();\n\n        System.out.println(propre); // [chien]\n    }\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Stream ou boucle ?",
-          "position": 4,
+          "position": 7,
           "body": "Pour chaque cas, dis si un stream ou une boucle est plus adapté, et pourquoi. 1) Transformer une liste de noms en liste de noms en majuscules. 2) Parcourir une liste et s'arrêter au premier élément négatif en renvoyant son index. 3) Remplir une liste externe partagée depuis plusieurs étapes.",
           "solution": "1) Stream : c'est exactement un map suivi d'un toList, pur et lisible (noms.stream().map(String::toUpperCase).toList()). 2) Boucle : on a besoin de l'index et d'un arrêt anticipé (break) dès le premier négatif, ce qu'une boucle for exprime naturellement ; un stream serait tordu ici. 3) Ni l'un ni l'autre sous cette forme : remplir une liste externe est un effet de bord à éviter. Mieux vaut laisser le pipeline produire la liste avec toList (ou un Collectors), sans variable partagée, surtout si un jour le traitement passe en parallèle."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : bonnes pratiques des streams",
-          "position": 5,
+          "position": 8,
           "quizRef": "streams-modernes-bonnes-pratiques-streams"
         }
       ]

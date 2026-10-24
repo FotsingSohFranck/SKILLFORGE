@@ -13,35 +13,53 @@
           "body": "En Java, une classe peut **hériter** d'une autre : elle récupère ce que la première contient et devient un cas particulier d'elle. On parle alors de **sous-type** (la classe fille) et de **super-type** (la classe mère). Une **interface** est un contrat : elle liste des méthodes qu'une classe doit fournir, sans dire comment ; une classe qui remplit ce contrat l'**implémente**.\n\n👉 Imagine une catégorie \"Véhicule\". \"Voiture\" et \"Moto\" sont des sous-types de \"Véhicule\" : ce sont des véhicules plus précis. Hériter, c'est dire \"je suis une sorte de\".\n\nExemple concret : `class Voiture extends Vehicule { }` déclare que `Voiture` est un sous-type de `Vehicule`."
         },
         {
+          "type": "IMAGE",
+          "title": "Hériter, c'est être une sorte de catégorie plus large",
+          "body": "/images/lessons/le-probleme-des-hierarchies-ouvertes-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Par défaut, tout le monde peut hériter",
-          "position": 1,
+          "position": 2,
           "body": "Le souci : sauf si tu l'interdis, **n'importe qui** peut créer un nouveau sous-type de ta classe ou implémenter ton interface. Ton code, celui d'un collègue, celui d'une bibliothèque extérieure. Tu n'as aucune garantie sur la **liste complète** des sous-types existants.\n\nTu as deux outils pour verrouiller, mais ils sont extrêmes :\n\n- `final` sur une classe interdit **toute** descendance (personne ne peut hériter).\n- Ne rien mettre autorise **tout le monde** à hériter.\n\n👉 C'est comme une porte qui ne peut être que grande ouverte ou murée. Il manque la serrure qui laisse entrer seulement les personnes autorisées. Les classes scellées sont cette serrure."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une porte soit grande ouverte, soit murée",
+          "body": "/images/lessons/le-probleme-des-hierarchies-ouvertes-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Une hiérarchie ouverte, et le problème qu'elle pose",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Rien n'empêche d'ajouter un sous-type n'importe où.\nabstract class Paiement {\n    abstract double montant();\n}\n\nclass CarteBancaire extends Paiement {\n    double montant() { return 10.0; }\n}\n\nclass Virement extends Paiement {\n    double montant() { return 20.0; }\n}\n\n// Demain, quelqu'un ajoute ceci SANS te prevenir, dans un autre fichier :\nclass BitcoinDouteux extends Paiement {\n    double montant() { return 0.0; }\n}\n// Ton code qui traite \"tous les paiements possibles\" est maintenant incomplet,\n// et tu ne le sais meme pas."
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi connaître l'ensemble fermé compte",
-          "position": 3,
+          "position": 5,
           "body": "Quand tu écris du code qui réagit différemment selon le type exact (\"si c'est une carte, fais ceci ; si c'est un virement, fais cela\"), tu as besoin de connaitre **tous** les cas possibles. Sinon un jour un nouveau sous-type apparait, ton code ne le gère pas, et tu as un bug silencieux.\n\nUn **ensemble fermé** (en anglais *closed set*) est un ensemble dont on connait tous les membres une fois pour toutes. L'inverse, un **ensemble ouvert**, peut grandir à tout moment, à ton insu.\n\n👉 Un jeu de 7 familles est un ensemble fermé : tu sais qu'il y a exactement 7 familles, pas une de plus. Les classes scellées te permettent de dire \"voici mes 3 cas, il n'y en aura jamais d'autres\"."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un ensemble fermé a tous ses membres connus d'avance",
+          "body": "/images/lessons/le-probleme-des-hierarchies-ouvertes-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Repère le risque",
-          "position": 4,
+          "position": 7,
           "body": "Tu écris une méthode qui calcule une commission selon le type de paiement, avec un cas pour `CarteBancaire` et un pour `Virement`. Un collègue ajoute un sous-type `Especes` dans un autre fichier, puis l'utilise. Que risque t il de se passer avec ta méthode ? Comment aurais tu aimé être prévenu ?",
           "solution": "Ta méthode ne connait pas Especes : elle tombe soit dans un cas par défaut inadapté, soit elle oublie purement ce cas, ce qui donne un résultat faux sans la moindre alerte. Tu aurais aimé que le compilateur t'oblige à traiter tous les cas, ou au moins qu'il refuse qu'un sous-type inconnu apparaisse. C'est exactement ce que permettent les classes scellées : fixer la liste des sous-types autorisés pour que rien ne s'ajoute dans ton dos."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le problème des hiérarchies ouvertes",
-          "position": 5,
+          "position": 8,
           "quizRef": "sealed-classes-le-probleme-des-hierarchies-ouvertes"
         }
       ]
@@ -58,36 +76,48 @@
           "body": "Une classe **scellée** (en anglais *sealed*, qui veut dire \"scellée\", \"cadenassée\") est une classe qui autorise seulement une **liste précise** de sous-types, et aucun autre. On la déclare avec le mot clé `sealed`, puis on énumère les sous-types autorisés avec le mot clé `permits` (en anglais \"autorise\").\n\n👉 Pense à une liste d'invités pour une soirée privée : `sealed` dit \"entrée sur invitation seulement\", et `permits` est la liste nominative des invités. Qui n'est pas sur la liste n'entre pas.\n\nLes classes scellées existent depuis Java 17 (socle stable)."
         },
         {
+          "type": "IMAGE",
+          "title": "Entrée sur invitation seulement, liste nominative",
+          "body": "/images/lessons/declarer-sealed-permits-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "La syntaxe sealed ... permits",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// Paiement est scellee : seuls CarteBancaire et Virement peuvent en heriter.\npublic sealed class Paiement permits CarteBancaire, Virement {\n    // ... contenu commun ...\n}\n\n// Chaque sous-type autorise DOIT choisir son propre regime (voir lecon suivante).\nfinal class CarteBancaire extends Paiement { }\nfinal class Virement extends Paiement { }\n\n// Ceci ne COMPILE PAS : Especes n'est pas dans la liste permits.\n// final class Especes extends Paiement { } // erreur du compilateur"
         },
         {
           "type": "CONCEPT",
           "title": "Le compilateur fait la police",
-          "position": 2,
+          "position": 3,
           "body": "La force de `sealed`, c'est que la règle est vérifiée par le **compilateur** (le programme qui transforme ton code en code exécutable). Si quelqu'un essaie d'hériter d'une classe scellée sans figurer dans son `permits`, le code **refuse de compiler**. L'erreur arrive donc tout de suite, à l'écriture, pas plus tard chez un utilisateur.\n\n👉 C'est un videur à l'entrée : il bloque l'intrus sur le pas de la porte, tu n'as pas à découvrir le problème une fois la fête gâchée.\n\nDeux contraintes à retenir : chaque classe citée dans `permits` doit vraiment hériter de la classe scellée, et toutes doivent se trouver dans le même module (ou, à défaut de modules, le même paquet)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le compilateur bloque l'intrus dès l'entrée",
+          "body": "/images/lessons/declarer-sealed-permits-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Le raccourci : sous-types dans le même fichier",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "// Si tous les sous-types sont dans le MEME fichier source,\n// la clause permits devient facultative : le compilateur la deduit.\npublic sealed class Paiement {\n    // permits CarteBancaire, Virement est implicite ici\n}\n\nfinal class CarteBancaire extends Paiement { }\nfinal class Virement extends Paiement { }\n\n// Pratique pour une petite hierarchie : tout tient sous les yeux,\n// et on n'a pas a maintenir la liste permits a la main."
         },
         {
           "type": "EXERCISE",
           "title": "Écris une déclaration scellée",
-          "position": 4,
+          "position": 6,
           "body": "Déclare une classe scellée `Figure` qui autorise exactement deux sous-types : `Rond` et `Carre`. Écris aussi les deux sous-types (tu peux les rendre `final`).",
           "solution": "public sealed class Figure permits Rond, Carre { }\n\nfinal class Rond extends Figure { }\nfinal class Carre extends Figure { }\n\n// Variante : si les trois declarations sont dans le meme fichier,\n// la clause permits peut etre omise, le compilateur la deduit."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : déclarer sealed et permits",
-          "position": 5,
+          "position": 7,
           "quizRef": "sealed-classes-declarer-sealed-permits"
         }
       ]
@@ -104,42 +134,60 @@
           "body": "Quand une classe hérite d'une classe scellée, Java t'oblige à préciser **ce qui se passe en dessous** de ce sous-type. Tu dois marquer chaque sous-type avec l'un de ces trois mots clés : `final`, `sealed`, ou `non-sealed`. Ce n'est pas optionnel : le compilateur refuse un sous-type qui n'en choisit aucun.\n\n👉 La classe scellée a mis une serrure. Chaque héritier doit dire s'il **referme** la porte derrière lui, s'il pose **une autre serrure**, ou s'il **laisse ouvert**. Pas le droit de laisser la question en suspens."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaque héritier choisit le sort de sa porte",
+          "body": "/images/lessons/final-sealed-non-sealed-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Ce que signifie chacun des trois",
-          "position": 1,
+          "position": 2,
           "body": "- `final` : ce sous-type ferme complètement la porte, **personne** ne peut hériter de lui. C'est le choix le plus fréquent et le plus simple.\n- `sealed` : ce sous-type pose à son tour **sa propre liste** d'héritiers autorisés (avec son propre `permits`). La hiérarchie continue, mais reste controlée.\n- `non-sealed` : ce sous-type **rouvre** la porte, n'importe qui peut de nouveau hériter de lui. C'est une sortie volontaire du verrou.\n\n👉 `final` = porte murée, `sealed` = nouvelle serrure avec sa propre liste d'invités, `non-sealed` = porte réouverte à tous. Le mot `non-sealed` est le seul mot clé de Java qui contient un tiret."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Porte murée, nouvelle serrure ou porte réouverte",
+          "body": "/images/lessons/final-sealed-non-sealed-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Les trois régimes côte à côte",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "public sealed class Vehicule permits Voiture, Camion, Jouet { }\n\n// final : rien ne peut heriter de Voiture.\nfinal class Voiture extends Vehicule { }\n\n// sealed : Camion controle a son tour qui l'etend.\nsealed class Camion extends Vehicule permits Benne { }\nfinal class Benne extends Camion { }\n\n// non-sealed : Jouet rouvre la porte, n'importe qui peut etendre Jouet.\nnon-sealed class Jouet extends Vehicule { }\nclass PetiteVoitureEnPlastique extends Jouet { } // autorise, car Jouet est non-sealed"
         },
         {
           "type": "CONCEPT",
           "title": "Les records, des sous-types parfaits",
-          "position": 3,
+          "position": 5,
           "body": "Un **record** (le type compact pour porter des données que tu as vu dans le nœud précédent) est **implicitement `final`** : par nature, personne ne peut hériter d'un record. Il remplit donc tout seul l'obligation de choisir un régime, sans que tu écrives `final`.\n\nC'est pour ça que les records sont des sous-types idéaux d'une classe ou interface scellée : ils ferment proprement la hiérarchie et, en plus, portent leurs données sans code répétitif.\n\n👉 Un record qui étend un type scellé coche deux cases d'un coup : il est déjà final (porte fermée), et il décrit clairement les données du cas qu'il représente."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le record ferme la porte et porte ses données",
+          "body": "/images/lessons/final-sealed-non-sealed-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Les trois régimes d'un sous-type scellé",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Classe sealed\"] --> B[\"Sous-type final\\nporte fermee, aucun heritier\"]\n    A --> C[\"Sous-type sealed\\nsa propre liste permits\"]\n    A --> D[\"Sous-type non-sealed\\nporte rouverte a tous\"]\n    C --> E[\"Heritiers autorises\\npar ce sous-type\"]\n    D --> F[\"N'importe quel heritier\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Corrige l'erreur de compilation",
-          "position": 5,
+          "position": 8,
           "body": "Ce code ne compile pas : `sealed class Forme permits Cercle { }` suivi de `class Cercle extends Forme { }`. Pourquoi ? Donne deux façons différentes de corriger `Cercle`.",
           "solution": "Cercle hérite d'une classe scellée mais ne précise aucun régime, or c'est obligatoire. Corrections possibles : 1) le rendre final : final class Cercle extends Forme { } (rien n'héritera de Cercle). 2) le rendre non-sealed : non-sealed class Cercle extends Forme { } (on rouvre volontairement l'héritage de Cercle). 3) le transformer en record : record Cercle(double rayon) implements... non, ici c'est une classe ; mais un record Cercle serait implicitement final. Le choix le plus courant est final."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : final, sealed ou non-sealed",
-          "position": 6,
+          "position": 9,
           "quizRef": "sealed-classes-final-sealed-non-sealed"
         }
       ]
@@ -156,37 +204,43 @@
           "body": "Le mot clé `sealed` ne s'applique pas qu'aux classes : une **interface** peut elle aussi être scellée. Elle fixe alors la liste des types autorisés à l'**implémenter** (pour une classe) ou à l'**étendre** (pour une autre interface).\n\nC'est souvent le cas le plus utile. Beaucoup de modélisations partent d'une interface qui dit \"voici une Forme\", \"voici un Évènement\", et on veut limiter la liste des formes ou des évènements possibles.\n\n👉 L'interface scellée, c'est le panneau \"catégorie fermée\" : elle annonce le genre (une Forme) et fixe la liste exacte des membres de ce genre."
         },
         {
+          "type": "IMAGE",
+          "title": "L'interface scellée fixe la liste exacte de ses membres",
+          "body": "/images/lessons/sealed-et-interfaces-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Une hiérarchie de formes scellée",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// L'interface Forme autorise exactement trois formes, pas une de plus.\npublic sealed interface Forme permits Cercle, Rectangle, Triangle { }\n\n// Les records sont implicitement final : sous-types parfaits d'une interface scellee.\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\n// Impossible d'ajouter une 4e forme en dehors de cette liste :\n// record Losange(...) implements Forme { } // ne compile pas"
         },
         {
           "type": "CODE",
           "title": "Modéliser des évènements fermés",
-          "position": 2,
+          "position": 3,
           "codeLanguage": "java",
           "body": "// Cas tres frequent : representer un ensemble fixe d'evenements possibles.\npublic sealed interface Evenement permits Connexion, Deconnexion, Achat { }\n\nrecord Connexion(String utilisateur) implements Evenement { }\nrecord Deconnexion(String utilisateur) implements Evenement { }\nrecord Achat(String utilisateur, double montant) implements Evenement { }\n\n// On sait de maniere certaine qu'il existe exactement 3 sortes d'evenements.\n// Chaque record porte en plus les donnees propres a son cas."
         },
         {
           "type": "DIAGRAM",
           "title": "Interface scellée et ses sous-types permis",
-          "position": 3,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "classDiagram\n    class Forme {\n        <<sealed interface>>\n    }\n    class Cercle {\n        <<record>>\n        +double rayon\n    }\n    class Rectangle {\n        <<record>>\n        +double largeur\n        +double hauteur\n    }\n    class Triangle {\n        <<record>>\n        +double base\n        +double hauteur\n    }\n    Forme <|.. Cercle : permits\n    Forme <|.. Rectangle : permits\n    Forme <|.. Triangle : permits"
         },
         {
           "type": "EXERCISE",
           "title": "Modélise un résultat fermé",
-          "position": 4,
+          "position": 5,
           "body": "Modélise le résultat d'une opération qui peut soit réussir avec une valeur (un texte), soit échouer avec un message d'erreur. Utilise une interface scellée `Resultat` et deux records `Succes` et `Echec`.",
           "solution": "public sealed interface Resultat permits Succes, Echec { }\n\nrecord Succes(String valeur) implements Resultat { }\nrecord Echec(String message) implements Resultat { }\n\n// On a exactement deux issues possibles, ni plus ni moins.\n// Chaque record porte la donnee utile a son cas : la valeur en cas de succes,\n// le message en cas d'echec. C'est un patron tres courant pour representer\n// \"soit un resultat, soit une erreur\" de facon sure."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : interfaces scellées",
-          "position": 5,
+          "position": 6,
           "quizRef": "sealed-classes-sealed-et-interfaces"
         }
       ]
@@ -203,35 +257,53 @@
           "body": "Le premier bénéfice est humain : une hiérarchie scellée **documente** l'ensemble des cas possibles. Quand tu lis `sealed interface Forme permits Cercle, Rectangle, Triangle`, tu sais instantanément qu'il existe exactement trois formes. Pas besoin de fouiller tout le projet pour en être sur.\n\n👉 C'est la liste des ingrédients imprimée sur l'emballage : tout est écrit noir sur blanc, tu n'as pas à deviner ce qu'il y a dedans."
         },
         {
+          "type": "IMAGE",
+          "title": "Tous les cas écrits noir sur blanc, comme une étiquette",
+          "body": "/images/lessons/pourquoi-c-est-utile-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Préparer le pattern matching exhaustif",
-          "position": 1,
+          "position": 2,
           "body": "Le second bénéfice est le plus puissant. Le **pattern matching** (filtrage par motif) est la capacité de Java à exécuter un code différent selon le type exact d'une valeur, dans un `switch`. Quand ce `switch` porte sur un type **scellé**, le compilateur connait la liste complète des cas, et peut vérifier que tu les traites **tous**. On parle de `switch` **exhaustif** (qui couvre tous les cas).\n\nSi tu oublies un cas, le code **ne compile pas**. Et si demain tu ajoutes un sous-type à la liste `permits`, tous les `switch` deviennent incomplets et le compilateur te force à les mettre à jour.\n\n👉 C'est un filet de sécurité : impossible d'oublier un cas, la machine compte à ta place. Combiné aux records, c'est la base de la programmation par cas en Java moderne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un filet de sécurité qui empêche d'oublier un cas",
+          "body": "/images/lessons/pourquoi-c-est-utile-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un switch exhaustif sur un type scellé",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "sealed interface Forme permits Cercle, Rectangle, Triangle { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\nstatic double aire(Forme f) {\n    // Pas de branche \"default\" : les trois cas couvrent TOUT le type scelle.\n    return switch (f) {\n        case Cercle c      -> Math.PI * c.rayon() * c.rayon();\n        case Rectangle r   -> r.largeur() * r.hauteur();\n        case Triangle t    -> t.base() * t.hauteur() / 2;\n    };\n    // Si on ajoutait une 4e forme au permits, ce switch ne compilerait plus\n    // tant qu'on n'aurait pas traite le nouveau cas. Securite garantie.\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Le trio gagnant : sealed + record + switch",
-          "position": 3,
+          "position": 5,
           "body": "Ces trois nouveautés de Java moderne se complètent :\n\n- `sealed` fixe **l'ensemble fermé** des cas possibles.\n- `record` décrit chaque cas de façon **compacte et immuable**, et ferme la porte (implicitement `final`).\n- le `switch` avec pattern matching **traite chaque cas** et vérifie qu'aucun n'est oublié.\n\n👉 C'est comme un formulaire à cases à cocher où la liste des cases est fixée, chaque case a son étiquette claire, et le logiciel refuse de valider tant que toutes les cases obligatoires ne sont pas traitées. Ce patron, courant dans d'autres langages, devient naturel en Java grace aux classes scellées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "sealed, record et switch forment le trio gagnant",
+          "body": "/images/lessons/pourquoi-c-est-utile-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Pourquoi pas de default ?",
-          "position": 4,
+          "position": 7,
           "body": "Dans le `switch` sur `Forme` ci dessus, pourquoi vaut il mieux ne PAS ajouter de branche `default` ? Quel avantage perd on si on en met une ?",
           "solution": "Sans default, le compilateur sait qu'il doit vérifier l'exhaustivité : si un cas manque, il refuse de compiler, et si on ajoute une forme au permits, il signale tous les switch à compléter. En ajoutant un default, on dit au compilateur \"ne t'inquiète pas, j'absorbe le reste\" : il ne vérifie plus l'exhaustivité. Du coup, un nouveau sous-type tomberait silencieusement dans le default au lieu d'être traité correctement, et on perd le filet de sécurité. Sur un type scellé, on préfère donc lister tous les cas sans default."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : pourquoi c'est utile",
-          "position": 5,
+          "position": 8,
           "quizRef": "sealed-classes-pourquoi-c-est-utile"
         }
       ]

@@ -13,43 +13,55 @@
           "body": "Un **switch** (mot anglais qui veut dire \"aiguillage\") est une instruction qui choisit quoi faire selon la valeur d'une variable. Au lieu d'enchainer beaucoup de \"si... sinon si...\", tu dis : \"regarde cette valeur, et selon les cas, fais ceci ou cela\".\n\nChaque possibilité s'écrit avec le mot clé `case` (\"cas\" en anglais), suivie de la valeur à comparer et de deux points `:`. Le mot `default` (\"par défaut\") désigne le cas qui s'applique quand aucun autre ne correspond.\n\n👉 Imagine un aiguillage de train : selon le numéro écrit sur le wagon, on l'envoie sur une voie différente. Le switch fait pareil avec une valeur."
         },
         {
+          "type": "IMAGE",
+          "title": "Le switch choisit une voie selon une valeur, comme un aiguillage oriente un train.",
+          "body": "/images/lessons/le-switch-classique-et-ses-pieges-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Un switch classique avec deux-points",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// L'ancienne forme du switch : des 'case' suivis de deux-points.\nint jour = 3;\nString nom;\n\nswitch (jour) {\n    case 1:\n        nom = \"lundi\";\n        break; // 'break' = \"sors du switch maintenant\".\n    case 2:\n        nom = \"mardi\";\n        break;\n    case 3:\n        nom = \"mercredi\";\n        break;\n    default:\n        nom = \"inconnu\";\n}\n\nSystem.out.println(nom); // mercredi"
         },
         {
           "type": "CONCEPT",
           "title": "Le piège du fall-through",
-          "position": 2,
+          "position": 3,
           "body": "Dans l'ancien switch, chaque `case` ne s'arrête pas tout seul. Si tu oublies le `break`, l'exécution **continue dans le case suivant**, même si sa valeur ne correspond pas. Ce comportement s'appelle le **fall-through** (en anglais, littéralement \"tomber à travers\").\n\n**break** est le mot clé qui ordonne de sortir immédiatement du switch. Sans lui, Java \"déborde\" sur les lignes d'en dessous.\n\n👉 C'est comme une rangée de dominos : tu voulais faire tomber un seul domino (un seul case), mais faute de barrière (le `break`), les suivants tombent aussi. C'est la source de bugs la plus connue de l'ancien switch."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sans break, les cas tombent en chaine comme une rangée de dominos.",
+          "body": "/images/lessons/le-switch-classique-et-ses-pieges-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Un bug typique : le break oublié",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "int jour = 1;\nString nom;\n\nswitch (jour) {\n    case 1:\n        nom = \"lundi\";\n        // OUPS : pas de break ici !\n    case 2:\n        nom = \"mardi\"; // on \"tombe\" dans ce case et nom est ecrase\n        break;\n    default:\n        nom = \"inconnu\";\n}\n\n// On attendait \"lundi\", mais on obtient \"mardi\" :\n// faute de break, l'execution a continue dans le case 2.\nSystem.out.println(nom); // mardi"
         },
         {
           "type": "DIAGRAM",
           "title": "Le fall-through quand le break manque",
-          "position": 4,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"jour = 1\"] --> B[\"case 1 : nom = lundi\"]\n    B --> C{\"break present ?\"}\n    C -- \"oui\" --> D[\"sortie du switch\\nnom = lundi\"]\n    C -- \"non (oublie)\" --> E[\"on tombe dans case 2\\nnom = mardi\"]\n    E --> F[\"break\"]\n    F --> G[\"sortie du switch\\nnom = mardi (bug)\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Trouve le bug",
-          "position": 5,
+          "position": 7,
           "body": "Voici un switch : case \"A\": prix = 10; case \"B\": prix = 20; break; default: prix = 0; (aucun break après le case \"A\"). Si la valeur testée est \"A\", quelle valeur reçoit prix, et pourquoi ?",
           "solution": "prix reçoit 20, pas 10. Comme le case \"A\" n'a pas de break, l'exécution continue (fall-through) dans le case \"B\" qui écrase prix avec 20, puis le break arrête le switch. Pour corriger, il faut ajouter un break après prix = 10;. C'est exactement le genre de bug silencieux que la forme flèche élimine."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le switch classique et ses pièges",
-          "position": 6,
+          "position": 8,
           "quizRef": "switch-expressions-le-switch-classique-et-ses-pieges"
         }
       ]
@@ -66,42 +78,60 @@
           "body": "Il faut distinguer deux mots. Une **instruction** (en anglais *statement*) est un ordre qui fait quelque chose mais ne produit pas de valeur réutilisable. Une **expression** (en anglais *expression*) est un morceau de code qui **se calcule en une valeur** que tu peux affecter à une variable.\n\nPar exemple, `3 + 4` est une expression : elle vaut 7. L'ancien switch, lui, était une simple instruction : il fallait déclarer une variable à côté, puis la remplir dans chaque case.\n\nDepuis Java 14, le switch peut être une **expression** : il se calcule directement en une valeur. On parle alors de **switch expression** (expression switch).\n\n👉 Instruction = \"range la vaisselle\" (une action). Expression = \"combien d'assiettes y a-t-il ?\" (une réponse chiffrée que tu peux noter)."
         },
         {
+          "type": "IMAGE",
+          "title": "Une instruction agit, une expression se calcule en une valeur réutilisable.",
+          "body": "/images/lessons/le-switch-qui-renvoie-une-valeur-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "La forme flèche",
-          "position": 1,
+          "position": 2,
           "body": "La nouvelle forme utilise une **flèche** à la place des deux-points. Cette flèche s'écrit avec le tiret du clavier (le signe moins) suivi du chevron \"plus grand que\", ce qui donne ->. Attention : ce n'est PAS un tiret long de traitement de texte, mais bien deux caractères du clavier collés.\n\nÀ droite de la flèche, tu mets directement la valeur (ou l'action) du cas. Énorme avantage : **il n'y a plus de fall-through**. Chaque cas est isolé, on ne \"tombe\" jamais dans le suivant, et donc **plus besoin de break**.\n\n👉 La flèche dit : \"pour ce cas précis, voici la réponse\", point final. Fini les dominos qui tombent en chaine."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La flèche mène chaque cas droit à sa réponse, sans débordement.",
+          "body": "/images/lessons/le-switch-qui-renvoie-une-valeur-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Le même jour, en switch expression",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "int jour = 3;\n\n// Le switch se calcule en une valeur, affectee directement a 'nom'.\nString nom = switch (jour) {\n    case 1 -> \"lundi\";\n    case 2 -> \"mardi\";\n    case 3 -> \"mercredi\";\n    default -> \"inconnu\";\n};\n// Noter le point-virgule final : c'est une expression affectee a une variable.\n\nSystem.out.println(nom); // mercredi\n\n// Pas de break, pas de fall-through : chaque case -> est isole."
         },
         {
           "type": "CONCEPT",
           "title": "Ce qui change concrètement",
-          "position": 3,
+          "position": 5,
           "body": "Compare mentalement avec la leçon précédente. L'ancienne forme demandait : déclarer `nom` vide, ouvrir un `switch`, et dans chaque `case` écrire une affectation `nom = ...` suivie d'un `break`.\n\nLa forme flèche supprime trois sources d'erreur : plus de variable à moitié remplie, plus de `break` à oublier, plus de fall-through accidentel. Le code dit directement \"nom vaut le résultat de ce switch\".\n\n👉 On passe d'une recette en plusieurs étapes bancales à une phrase claire : \"nom, c'est la valeur qui correspond au jour\"."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La forme flèche supprime variable vide, break oublié et fall-through accidentel.",
+          "body": "/images/lessons/le-switch-qui-renvoie-une-valeur-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Chaque cas mène droit à sa valeur",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"switch (jour)\"] --> B[\"case 1\"]\n    A --> C[\"case 2\"]\n    A --> D[\"case 3\"]\n    A --> E[\"default\"]\n    B --> F[\"lundi\"]\n    C --> G[\"mardi\"]\n    D --> H[\"mercredi\"]\n    E --> I[\"inconnu\"]\n    F --> J[\"valeur de nom\"]\n    G --> J\n    H --> J\n    I --> J"
         },
         {
           "type": "EXERCISE",
           "title": "Transforme l'ancien switch",
-          "position": 5,
+          "position": 8,
           "body": "Réécris en switch expression (forme flèche) ce code : un int note de 1 à 3 doit donner une String appreciation : 1 vaut \"passable\", 2 vaut \"bien\", 3 vaut \"excellent\", et le reste vaut \"non note\". Affecte le résultat à une variable appreciation.",
           "solution": "String appreciation = switch (note) {\n    case 1 -> \"passable\";\n    case 2 -> \"bien\";\n    case 3 -> \"excellent\";\n    default -> \"non note\";\n};\n\nChaque cas pointe directement vers sa valeur grace a la fleche ->, sans break ni variable remplie au fur et a mesure. Le point-virgule final ferme l'affectation."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le switch qui renvoie une valeur",
-          "position": 6,
+          "position": 9,
           "quizRef": "switch-expressions-le-switch-qui-renvoie-une-valeur"
         }
       ]
@@ -118,36 +148,48 @@
           "body": "Parfois, un cas ne se résume pas à une seule valeur : tu veux d'abord afficher un message, faire un petit calcul, puis seulement ensuite fournir la valeur. Pour ça, tu mets à droite de la flèche un **bloc**, c'est à dire plusieurs instructions regroupées entre accolades `{ }`.\n\nMais dans un bloc, la valeur finale ne peut plus être \"juste écrite\" après la flèche. Il faut un mot clé spécial pour dire \"voici la valeur que ce switch doit renvoyer\" : ce mot clé est **yield** (en anglais, \"produire, livrer\").\n\n👉 Un cas sur une ligne, c'est une réponse directe. Un bloc avec `yield`, c'est une réponse après réflexion : tu fais quelques étapes, puis tu annonces le résultat avec `yield`."
         },
         {
+          "type": "IMAGE",
+          "title": "Un bloc entre accolades regroupe plusieurs étapes avant de livrer la valeur.",
+          "body": "/images/lessons/yield-et-blocs-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Un bloc avec yield",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "int jour = 6;\n\nString type = switch (jour) {\n    case 6, 7 -> \"week-end\"; // cas simple : une valeur directe\n    default -> {\n        // Ici on a plusieurs lignes, donc un bloc entre accolades.\n        System.out.println(\"Calcul pour un jour de semaine...\");\n        String resultat = \"jour \" + jour + \" (semaine)\";\n        yield resultat; // 'yield' fournit la valeur du switch\n    }\n};\n\nSystem.out.println(type);"
         },
         {
           "type": "CONCEPT",
           "title": "yield n'est pas return",
-          "position": 2,
+          "position": 3,
           "body": "Attention à ne pas confondre `yield` et `return`. **return** sort complètement de la méthode qui l'entoure. **yield**, lui, ne sort que du switch : il fournit la valeur du switch, et le reste de la méthode continue normalement.\n\nAutre point : `yield` ne sert que dans les **blocs** (entre accolades). Si ton cas tient sur une seule ligne avec la flèche, tu écris juste la valeur, sans `yield`.\n\n👉 `return` quitte le bâtiment. `yield` sort seulement de la pièce \"switch\" en déposant la réponse sur la table ; tu restes dans le bâtiment (la méthode)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "yield sort seulement du switch, return quitte toute la méthode.",
+          "body": "/images/lessons/yield-et-blocs-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Ligne simple contre bloc avec yield",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "int points = 2;\n\nint bonus = switch (points) {\n    // Cas court : valeur directe apres la fleche, SANS yield.\n    case 0 -> 0;\n    case 1 -> 5;\n    // Cas long : un bloc { } donc on DOIT utiliser yield.\n    case 2 -> {\n        int base = 5;\n        int extra = points * 3;\n        yield base + extra; // la valeur renvoyee par ce cas\n    }\n    default -> 0;\n};\n\nSystem.out.println(bonus); // 11"
         },
         {
           "type": "EXERCISE",
           "title": "Ajoute un bloc avec yield",
-          "position": 4,
+          "position": 6,
           "body": "Tu as un switch expression sur une String categorie qui doit renvoyer un int tarif. Pour le cas \"premium\", tu veux afficher un message \"tarif premium applique\" PUIS renvoyer la valeur 50. Écris ce cas.",
           "solution": "case \"premium\" -> {\n    System.out.println(\"tarif premium applique\");\n    yield 50;\n}\n\nComme le cas contient deux instructions, il faut un bloc entre accolades. Dans un bloc, on ne peut pas poser la valeur juste apres la fleche : on la fournit avec yield 50;. Un return serait une erreur ici car il sortirait de toute la methode."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : yield et blocs",
-          "position": 5,
+          "position": 7,
           "quizRef": "switch-expressions-yield-et-blocs"
         }
       ]
@@ -164,42 +206,60 @@
           "body": "Souvent, plusieurs valeurs doivent mener au même résultat. Dans l'ancien switch, on empilait des `case` les uns sur les autres en s'appuyant sur le fall-through, ce qui était confus. Avec la forme flèche, on écrit simplement les valeurs séparées par des **virgules** avant la flèche.\n\nChaque valeur écrite après `case` s'appelle une **étiquette** (en anglais *label*) : c'est l'une des valeurs qui déclenchent ce cas.\n\n👉 C'est comme afficher sur une même porte plusieurs numéros de chambre qui donnent tous sur la même salle : `case 6, 7 ->` veut dire \"6 ou 7 mènent ici\"."
         },
         {
+          "type": "IMAGE",
+          "title": "Plusieurs étiquettes séparées par des virgules mènent au même cas.",
+          "body": "/images/lessons/cas-multiples-et-default-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Des cas groupés avec des virgules",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "int mois = 4;\n\nint jours = switch (mois) {\n    // Plusieurs etiquettes pour un meme cas, separees par des virgules.\n    case 1, 3, 5, 7, 8, 10, 12 -> 31;\n    case 4, 6, 9, 11 -> 30;\n    case 2 -> 28; // on simplifie, sans annee bissextile\n    default -> throw new IllegalArgumentException(\"mois invalide : \" + mois);\n};\n\nSystem.out.println(jours); // 30"
         },
         {
           "type": "CONCEPT",
           "title": "Le rôle de default et l'exhaustivité",
-          "position": 2,
+          "position": 3,
           "body": "Un switch **expression** doit pouvoir renvoyer une valeur quelle que soit l'entrée : on dit qu'il doit être **exhaustif** (en anglais *exhaustive*), c'est à dire couvrir tous les cas possibles. Si tu oublies un cas, le programme ne saurait pas quoi renvoyer.\n\nLe mot `default` est le filet de sécurité : il attrape **toutes les valeurs non citées** par les autres `case`. Dès que tu ne listes pas toutes les valeurs possibles à la main, le compilateur **exige** un `default`, sinon le code ne compile pas.\n\n👉 `default` est la case \"tous les autres\" d'un formulaire : elle garantit qu'aucune réponse ne reste sans traitement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le default est le filet qui attrape toutes les valeurs non citées.",
+          "body": "/images/lessons/cas-multiples-et-default-2.jpg",
+          "position": 4
         },
         {
           "type": "DIAGRAM",
           "title": "Plusieurs étiquettes, puis le filet default",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"switch (mois)\"] --> B[\"case 1,3,5,7,8,10,12\"]\n    A --> C[\"case 4,6,9,11\"]\n    A --> D[\"case 2\"]\n    A --> E[\"default\\ntout le reste\"]\n    B --> F[\"31\"]\n    C --> G[\"30\"]\n    D --> H[\"28\"]\n    E --> I[\"exception\"]"
         },
         {
           "type": "CONCEPT",
           "title": "Exhaustif sans default : le cas des enum",
-          "position": 4,
+          "position": 6,
           "body": "Il existe une situation où tu peux te passer de `default` : quand la valeur testée est un **enum** (un type à liste fermée de valeurs, comme `LUNDI, MARDI, ...`) et que tu cites **toutes** ses valeurs. Là, le compilateur voit que tous les cas possibles sont couverts : le switch est déjà exhaustif.\n\nMais attention, si quelqu'un ajoute plus tard une valeur à l'enum, un `default` t'aurait protégé. Dans le doute, un `default` reste un choix sûr.\n\n👉 Lister toutes les couleurs d'un feu tricolore (rouge, orange, vert) couvre tout : pas besoin de \"autres\". Mais si un jour on invente une 4e couleur, mieux vaut avoir prévu un cas \"autres\"."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Citer toutes les valeurs d'un enum couvre déjà tous les cas possibles.",
+          "body": "/images/lessons/cas-multiples-et-default-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Groupe et sécurise",
-          "position": 5,
+          "position": 8,
           "body": "Écris un switch expression sur un char lettre qui renvoie une String nature : pour 'a', 'e', 'i', 'o', 'u', 'y' il renvoie \"voyelle\", et pour tout le reste \"consonne ou autre\". Pourquoi le default est il obligatoire ici ?",
           "solution": "String nature = switch (lettre) {\n    case 'a', 'e', 'i', 'o', 'u', 'y' -> \"voyelle\";\n    default -> \"consonne ou autre\";\n};\n\nLe default est obligatoire car un char peut prendre enormement de valeurs et on ne les liste pas toutes : sans default, le switch ne serait pas exhaustif et le code ne compilerait pas. Les six voyelles sont groupees sur une seule etiquette separee par des virgules."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : cas multiples et default",
-          "position": 6,
+          "position": 9,
           "quizRef": "switch-expressions-cas-multiples-et-default"
         }
       ]
@@ -216,36 +276,48 @@
           "body": "On écrit souvent des suites de `if (x == ...) ... else if (x == ...) ...` pour choisir une valeur selon une variable. Cette **cascade** (une longue chaine de \"sinon si\") devient vite lourde à lire et facile à casser : on peut oublier un `else`, ou se tromper dans l'ordre.\n\nQuand tous ces tests comparent **la même variable** à des valeurs fixes, un switch expression dit la même chose en plus clair et plus sûr : chaque cas est aligné, et le compilateur vérifie que tout est couvert.\n\n👉 La cascade de if/else, c'est une liste de questions posées une par une. Le switch, c'est un tableau à double entrée où l'on lit directement la bonne ligne."
         },
         {
+          "type": "IMAGE",
+          "title": "Le switch aligne les cas là où la cascade de if/else devient lourde.",
+          "body": "/images/lessons/switch-expression-en-pratique-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Avant : une cascade de if/else",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// Choisir un tarif selon le type de client, avec des if/else.\nString type = \"etudiant\";\nint tarif;\n\nif (type.equals(\"enfant\")) {\n    tarif = 5;\n} else if (type.equals(\"etudiant\")) {\n    tarif = 8;\n} else if (type.equals(\"senior\")) {\n    tarif = 7;\n} else {\n    tarif = 12;\n}\n\nSystem.out.println(tarif); // 8"
         },
         {
           "type": "CODE",
           "title": "Après : un switch expression lisible",
-          "position": 2,
+          "position": 3,
           "codeLanguage": "java",
           "body": "// Exactement la meme logique, en switch expression.\nString type = \"etudiant\";\n\nint tarif = switch (type) {\n    case \"enfant\" -> 5;\n    case \"etudiant\" -> 8;\n    case \"senior\" -> 7;\n    default -> 12; // remplace le 'else' final\n};\n\nSystem.out.println(tarif); // 8\n\n// Plus court, aligne, et le compilateur verifie qu'un cas couvre tout."
         },
         {
           "type": "CONCEPT",
           "title": "Quand garder les if/else",
-          "position": 3,
+          "position": 4,
           "body": "Le switch expression n'est pas toujours le bon outil. Il convient quand tu compares **une seule variable** à des valeurs **fixes et simples** (nombres, chaines, enum).\n\nGarde les `if/else` quand tes conditions sont des **intervalles** ou des tests composés, par exemple \"si l'age est entre 18 et 25 et que le solde dépasse 100\". Ce genre de condition ne se range pas dans des `case` à valeur fixe.\n\n👉 Switch = \"quelle est la valeur exacte ?\". if/else = \"cette situation remplit elle plusieurs conditions ?\". Choisis l'outil selon la question posée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les intervalles et conditions composées restent le terrain des if/else.",
+          "body": "/images/lessons/switch-expression-en-pratique-2.jpg",
+          "position": 5
         },
         {
           "type": "EXERCISE",
           "title": "Convertis la cascade",
-          "position": 4,
+          "position": 6,
           "body": "Transforme en switch expression : un String feu (\"rouge\", \"orange\", \"vert\") doit donner une String action. \"rouge\" vaut \"stop\", \"orange\" vaut \"ralentir\", \"vert\" vaut \"passer\", et tout autre mot vaut \"feu invalide\". Affecte à une variable action.",
           "solution": "String action = switch (feu) {\n    case \"rouge\" -> \"stop\";\n    case \"orange\" -> \"ralentir\";\n    case \"vert\" -> \"passer\";\n    default -> \"feu invalide\";\n};\n\nChaque branche du if/else devient un case aligne ; le else final devient default. C'est un bon candidat au switch car on compare une seule variable (feu) a des valeurs fixes."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : switch expression en pratique",
-          "position": 5,
+          "position": 7,
           "quizRef": "switch-expressions-switch-expression-en-pratique"
         }
       ]

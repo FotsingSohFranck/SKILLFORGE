@@ -13,35 +13,53 @@
           "body": "Quand ton programme crée des objets (un `String`, une `List`, un `Point`...), ils occupent de la mémoire. Dans d'autres langages, c'est au programmeur de rendre cette mémoire à la main quand l'objet ne sert plus, et oublier de le faire fait grossir le programme jusqu'au plantage.\n\nEn Java, c'est automatique : le **ramasse-miettes** (en anglais *garbage collector*, souvent abrégé GC) est un mécanisme de la machine Java qui repère les objets dont plus personne ne se sert et libère la mémoire qu'ils occupaient.\n\n👉 Imagine une table de travail : tu poses des feuilles au fur et à mesure (tes objets). Le ramasse-miettes, c'est l'employé qui passe régulièrement jeter les feuilles que plus personne ne regarde, pour laisser de la place. Tu n'as pas à y penser, il s'en occupe.\n\nExemple concret : dans une boucle qui crée un million de petites chaines temporaires, tu n'écris aucune ligne pour les supprimer. Le GC s'en charge."
         },
         {
+          "type": "IMAGE",
+          "title": "Un employé qui débarrasse la table : la mémoire rangée à ta place",
+          "body": "/images/lessons/qu-est-ce-que-le-gc-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le tas : l'endroit où vivent les objets",
-          "position": 1,
+          "position": 2,
           "body": "Tous ces objets vivent dans une zone de mémoire appelée le **tas** (en anglais *heap*). Le tas est la réserve de mémoire que la machine Java gère pour y ranger les objets créés avec `new`.\n\n👉 Le tas, c'est l'entrepôt : chaque objet y occupe une case. Quand l'entrepôt se remplit, il faut faire le ménage, sinon il n'y a plus de place pour ranger de nouveaux objets.\n\nLe tas a une taille maximale. Si le ménage ne suffit plus et que l'entrepôt est vraiment plein, le programme s'arrête avec une erreur bien connue : `OutOfMemoryError` (plus de mémoire disponible). Le rôle du ramasse-miettes est justement d'éviter ça en libérant régulièrement les cases inutilisées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le tas, un entrepôt : chaque objet occupe une case de mémoire",
+          "body": "/images/lessons/qu-est-ce-que-le-gc-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "Le cycle vie, inutilité, collecte",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"new : l'objet est cree\\net range dans le tas\"] --> B[\"L'objet est utilise\\n(accessible par le programme)\"]\n    B --> C[\"Plus aucune reference :\\nl'objet devient un dechet\"]\n    C --> D[\"Le ramasse-miettes\\nlibere la memoire\"]\n    D --> E[\"La case du tas\\nest de nouveau libre\"]"
         },
         {
           "type": "CONCEPT",
           "title": "La pause GC : quand le ménage interrompt le travail",
-          "position": 3,
+          "position": 5,
           "body": "Faire le ménage a un cout. Pour certaines étapes, le ramasse-miettes doit parfois mettre en pause le reste du programme, le temps de ranger. On appelle ça une **pause GC** (en anglais *stop-the-world pause*, littéralement \"on arrete le monde\") : pendant un court instant, ton code ne tourne plus, le GC travaille seul.\n\n👉 C'est comme un passage à niveau : quand le train (le GC) passe, les voitures (ton programme) s'arretent quelques secondes, puis repartent. Si la pause est très courte, personne ne la remarque ; si elle dure longtemps, ça bloque.\n\nDeux mots reviendront sans cesse dans ce parcours :\n\n- La **latence** (*latency*) : le temps d'attente ressenti, ici la durée d'une pause. Une faible latence = des pauses très courtes.\n- Le **débit** (*throughput*) : la quantité de travail utile accompli sur la durée. Un bon débit = le programme passe le plus de temps possible à faire son vrai travail, et peu de temps à ranger.\n\nExemple concret : une pause de 2 millisecondes sur un site web est invisible ; une pause de 2 secondes bloque tous les visiteurs en meme temps. Choisir un ramasse-miettes, c'est surtout arbitrer entre latence et débit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un passage à niveau : le programme s'arrête le temps du ménage",
+          "body": "/images/lessons/qu-est-ce-que-le-gc-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Avec tes mots",
-          "position": 4,
+          "position": 7,
           "body": "Réponds en une ou deux phrases chacune : 1) À quoi sert le ramasse-miettes ? 2) Qu'est-ce que le tas ? 3) Pourquoi une pause GC trop longue peut-elle etre un problème sur un site web ?",
           "solution": "1) Le ramasse-miettes libère automatiquement la mémoire des objets dont plus personne ne se sert, pour éviter que le tas se remplisse et que le programme plante. 2) Le tas est la zone de mémoire où la machine Java range tous les objets créés avec new. 3) Pendant une pause GC, le programme s'arrete : si la pause dure longtemps (par exemple 2 secondes), tous les visiteurs du site attendent en meme temps, ce qui donne une impression de blocage."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : qu'est-ce que le ramasse-miettes",
-          "position": 5,
+          "position": 8,
           "quizRef": "gc-performance-qu-est-ce-que-le-gc"
         }
       ]
@@ -58,35 +76,53 @@
           "body": "Si tu lances un programme Java moderne sans rien configurer, c'est **G1** qui range ta mémoire. G1 (son nom complet est *Garbage-First*) est le ramasse-miettes **par défaut depuis Java 9** : tant que tu ne demandes rien d'autre, c'est lui qui travaille.\n\nPourquoi G1 comme choix par défaut ? Parce qu'il vise un **bon équilibre entre débit et latence**. Rappel de la leçon précédente : le débit, c'est la quantité de travail utile accompli ; la latence, c'est la durée des pauses. G1 ne cherche pas à etre le champion de l'un au détriment de l'autre, il essaie d'etre correct sur les deux.\n\n👉 G1, c'est la voiture familiale polyvalente : ni la plus rapide, ni la plus économe, mais un choix raisonnable pour la grande majorité des trajets. Pour la plupart des applications, il n'y a tout simplement aucune raison d'en changer."
         },
         {
+          "type": "IMAGE",
+          "title": "La voiture familiale polyvalente : un choix raisonnable par défaut",
+          "body": "/images/lessons/g1-le-defaut-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Comment G1 range : des régions et un objectif de pause",
-          "position": 1,
+          "position": 2,
           "body": "G1 découpe le tas en de nombreux petits morceaux de taille égale appelés **régions** (*regions*). Au lieu de ranger tout le tas d'un coup, il collecte en priorité les régions qui contiennent le plus de déchets, d'où son nom \"Garbage-First\" (les déchets d'abord). C'est futé : on nettoie là où ça rapporte le plus.\n\n👉 Plutot que de vider tout l'entrepot d'un seul coup (long et bloquant), G1 vide d'abord les étagères les plus encombrées de cartons vides. Il récupère beaucoup de place en peu de temps.\n\nAutre point important : G1 essaie de respecter un **objectif de pause** que tu peux lui donner. Tu peux lui dire \"essaie de ne jamais dépasser 200 millisecondes de pause\", et il adapte son travail pour s'en approcher. Ce n'est pas une garantie absolue, mais une cible qu'il vise."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Vider d'abord les étagères les plus encombrées : les déchets d'abord",
+          "body": "/images/lessons/g1-le-defaut-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Lancer avec G1 (et fixer un objectif de pause)",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# G1 est deja le defaut : cette ligne suffit a l'utiliser.\njava -jar monapp.jar\n\n# Rendre le choix explicite (utile pour documenter) : on active un GC\n# avec un drapeau JVM, ici +UseG1GC.\njava -XX:+UseG1GC -jar monapp.jar\n\n# Lui donner un objectif de pause de 200 millisecondes maximum.\n# G1 adaptera son travail pour viser cette cible (sans garantie absolue).\njava -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -jar monapp.jar"
         },
         {
           "type": "CONCEPT",
           "title": "Quand G1 suffit (presque toujours)",
-          "position": 3,
+          "position": 5,
           "body": "La bonne nouvelle pour un débutant : **G1 suffit pour l'immense majorité des applications**. Un service web classique, une API, un batch de traitement, un outil en ligne de commande... G1 fait très bien le travail sans réglage particulier.\n\nTu n'as de raison d'envisager un autre ramasse-miettes que si tu rencontres un vrai problème mesuré, par exemple des pauses trop longues sur un très gros tas (plusieurs dizaines de giga-octets). C'est précisément le terrain des ramasse-miettes qu'on verra dans les leçons suivantes (ZGC).\n\n👉 Règle de bon sens : on ne change pas de voiture familiale pour une voiture de course tant qu'on n'a pas constaté, chronomètre en main, que la familiale est trop lente pour ce qu'on veut faire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On ne change de voiture qu'après avoir mesuré, chronomètre en main",
+          "body": "/images/lessons/g1-le-defaut-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Vrai ou faux, et pourquoi",
-          "position": 4,
+          "position": 7,
           "body": "Un collègue affirme : \"Pour utiliser G1 en Java 21, il faut absolument ajouter le drapeau -XX:+UseG1GC, sinon un autre ramasse-miettes est utilisé.\" A-t-il raison ? Justifie.",
           "solution": "Il a tort. G1 est le ramasse-miettes par défaut depuis Java 9 : sans aucun drapeau, c'est déjà G1 qui travaille. Le drapeau -XX:+UseG1GC ne fait que rendre ce choix explicite (pratique pour documenter une commande), mais il n'est pas nécessaire. On n'ajoute un drapeau de GC que pour demander un autre ramasse-miettes que le défaut, ou pour régler un paramètre comme MaxGCPauseMillis."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : G1, le ramasse-miettes par défaut",
-          "position": 5,
+          "position": 8,
           "quizRef": "gc-performance-g1-le-defaut"
         }
       ]
@@ -103,42 +139,60 @@
           "body": "**ZGC** (*Z Garbage Collector*) est un ramasse-miettes conçu avec une obsession : des **pauses très courtes**, meme quand le tas est très gros. Là où un vieux ramasse-miettes pouvait bloquer le programme pendant des centaines de millisecondes, ZGC vise des pauses de l'ordre de la milliseconde, voire moins.\n\nEt le plus impressionnant : ces pauses restent courtes **que le tas fasse quelques giga-octets ou plusieurs centaines**. La durée des pauses de ZGC ne grandit pas avec la taille du tas.\n\n👉 Reprends l'image du passage à niveau. Avec certains ramasse-miettes, plus l'entrepot est grand, plus le train est long et plus les voitures attendent. Avec ZGC, le train reste tout petit meme devant un immense entrepot : les voitures ne s'arretent qu'un battement de cils.\n\nExemple concret : une application de trading ou un jeu en ligne, où une pause de 300 millisecondes serait catastrophique, préfèrera ZGC à G1."
         },
         {
+          "type": "IMAGE",
+          "title": "Un arrêt d'un battement de cils, même devant un immense entrepôt",
+          "body": "/images/lessons/zgc-faible-latence-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le compromis : latence gagnée, un peu de débit en moins",
-          "position": 1,
+          "position": 2,
           "body": "Rien n'est gratuit. Pour obtenir ces pauses minuscules, ZGC fait une grande partie de son travail **en meme temps que ton programme tourne** (on dit qu'il travaille de façon *concurrente*), au lieu de tout arreter d'un coup. Faire deux choses à la fois demande un peu plus de ressources.\n\nRésultat : ZGC privilégie la **latence** (des pauses très courtes) et peut, en échange, offrir un **débit** légèrement inférieur à G1 sur certaines charges. Pour beaucoup d'applications la différence est faible, mais elle existe.\n\n👉 C'est l'arbitrage classique : ZGC, c'est l'employé qui range l'entrepot sans jamais fermer le magasin aux clients (pauses minuscules), mais qui, pour ça, mobilise un peu plus de personnel. G1 ferme le magasin par courts instants, mais range de façon globalement très efficace."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ranger sans fermer le magasin : plus de personnel pour zéro attente",
+          "body": "/images/lessons/zgc-faible-latence-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "G1 contre ZGC : où va la priorité",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    Q[\"Quel est ton besoin principal ?\"] --> L[\"Pauses tres courtes\\n(faible latence),\\ngros tas\"]\n    Q --> T[\"Bon equilibre general,\\ncas courant\"]\n    L --> Z[\"ZGC\\n-XX:+UseZGC\"]\n    T --> G[\"G1 (par defaut)\\naucun drapeau necessaire\"]"
         },
         {
           "type": "CODE",
           "title": "Activer ZGC",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# On active ZGC avec un drapeau JVM : +UseZGC.\njava -XX:+UseZGC -jar monapp.jar\n\n# En pratique on fixe aussi la taille du tas (voir la derniere lecon).\n# Ici : au plus 16 Go de tas, avec ZGC.\njava -XX:+UseZGC -Xmx16g -jar monapp.jar"
         },
         {
           "type": "CONCEPT",
           "title": "Quand choisir ZGC plutot que G1",
-          "position": 4,
+          "position": 6,
           "body": "Choisis ZGC quand ton vrai problème, **mesuré**, est la latence : des pauses GC trop longues qui gènent les utilisateurs, typiquement sur un gros tas. Exemples : service à très forte exigence de réactivité, application manipulant beaucoup de mémoire (dizaines à centaines de giga-octets).\n\nReste sur G1 (le défaut) quand tu n'as pas ce problème, c'est à dire la plupart du temps. N'adopte pas ZGC \"parce que ça a l'air plus moderne\" : si tu n'as jamais mesuré de pauses genantes, tu risques d'échanger un peu de débit contre un bénéfice que tu ne ressentiras pas.\n\n👉 On verra dans la dernière leçon comment mesurer avant de décider. C'est la seule bonne façon de choisir."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trading ou jeu en ligne : choisir ZGC quand chaque milliseconde compte",
+          "body": "/images/lessons/zgc-faible-latence-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Quel ramasse-miettes conseiller ?",
-          "position": 5,
+          "position": 8,
           "body": "Pour chaque cas, G1 ou ZGC, et pourquoi ? 1) Une petite API interne, tas de 512 Mo, aucune plainte sur les temps de réponse. 2) Une plateforme de jeu en ligne, tas de 64 Go, où l'on a mesuré des pauses de 400 ms très genantes.",
           "solution": "1) G1 (le défaut) : pas de problème mesuré, petit tas, inutile de changer. Adopter ZGC ici n'apporterait rien et pourrait meme réduire un peu le débit. 2) ZGC : gros tas et besoin avéré de pauses très courtes. C'est exactement le terrain de ZGC, dont les pauses restent minuscules meme sur un tas de 64 Go. On l'active avec -XX:+UseZGC."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : ZGC, la faible latence",
-          "position": 6,
+          "position": 9,
           "quizRef": "gc-performance-zgc-faible-latence"
         }
       ]
@@ -155,42 +209,60 @@
           "body": "Avant de parler de la nouveauté de Java 21, il faut connaitre un fait observé depuis longtemps sur les programmes réels : **la plupart des objets ont une vie très courte**. On crée une foule de petits objets temporaires (le temps d'une boucle, d'un calcul, d'une requete) qui deviennent des déchets presque aussitot. À coté, un petit nombre d'objets vivent longtemps (une configuration, un cache, une connexion).\n\nOn appelle ça **l'hypothèse générationnelle** : les objets \"jeunes\" (récemment créés) meurent vite, les \"vieux\" (qui ont déjà survécu) ont tendance à rester.\n\n👉 Pense à une fete : la plupart des gobelets en carton sont jetés dans l'heure (objets jeunes), tandis que les quelques verres de la maison restent toute la soirée (objets vieux). Pour ranger efficacement, mieux vaut passer souvent ramasser les gobelets, et ne s'occuper des verres que de temps en temps."
         },
         {
+          "type": "IMAGE",
+          "title": "Les gobelets jetés dans l'heure, les verres restent : les jeunes meurent vite",
+          "body": "/images/lessons/generational-zgc-21-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Generational ZGC : séparer les jeunes des vieux",
-          "position": 1,
+          "position": 2,
           "body": "Le **Generational ZGC** est la version de ZGC introduite en **Java 21**. Son idée : séparer le tas en deux parties, une pour les objets **jeunes** et une pour les objets **vieux**, et collecter la partie jeune beaucoup plus souvent que la partie vieille.\n\nPourquoi c'est malin ? Comme les jeunes objets meurent vite, visiter souvent leur zone récupère énormément de déchets pour peu d'effort. Et comme les vieux objets bougent peu, inutile de les réexaminer à chaque fois. On concentre l'effort là où il rapporte.\n\n👉 C'est l'équipe de nettoyage de la fete qui passe toutes les dix minutes à la table des gobelets (zone jeune), mais ne vérifie le buffet des verres (zone vieille) qu'une fois par heure. Meme travail de propreté, beaucoup moins de passages inutiles.\n\nLe ZGC d'origine, lui, traitait tous les objets de la meme manière, sans distinguer leur age. Le Generational ZGC est donc plus **efficace** : il obtient les memes pauses très courtes tout en gaspillant moins d'effort."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Passer souvent à la table des gobelets, rarement au buffet des verres",
+          "body": "/images/lessons/generational-zgc-21-2.jpg",
+          "position": 3
         },
         {
           "type": "DIAGRAM",
           "title": "Génération jeune et génération vieille",
-          "position": 2,
+          "position": 4,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    N[\"new : objet cree\"] --> J[\"Generation JEUNE\\ncollectee souvent\\n(beaucoup de dechets vite recuperes)\"]\n    J -->|\"meurt vite\\n(cas le plus frequent)\"| X[\"Memoire liberee\"]\n    J -->|\"a survecu plusieurs collectes\"| V[\"Generation VIEILLE\\ncollectee rarement\"]\n    V -->|\"finit par mourir\"| X"
         },
         {
           "type": "CODE",
           "title": "Activer le Generational ZGC en Java 21",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# En Java 21, le mode generationnel s'active en ajoutant ZGenerational\n# au drapeau ZGC.\njava -XX:+UseZGC -XX:+ZGenerational -jar monapp.jar\n\n# Avec une taille de tas fixee, par exemple 32 Go.\njava -XX:+UseZGC -XX:+ZGenerational -Xmx32g -jar monapp.jar\n\n# Rappel : sans ZGenerational, -XX:+UseZGC seul donne le ZGC classique\n# (non generationnel) en Java 21."
         },
         {
           "type": "CONCEPT",
           "title": "Ce qu'il faut retenir, sans se noyer",
-          "position": 4,
+          "position": 6,
           "body": "En tant que débutant, tu n'as pas besoin de maitriser les rouages internes. Retiens trois idées :\n\n1. La plupart des objets meurent jeunes : c'est l'hypothèse générationnelle.\n2. Séparer jeunes et vieux objets permet de ranger plus souvent là où ça rapporte, donc d'etre plus efficace.\n3. Le **Generational ZGC** apporte cette séparation à ZGC, et il est arrivé en **Java 21**.\n\n👉 Résumé en une phrase : meme philosophie de pauses minuscules que ZGC, mais en travaillant plus intelligemment grace à la distinction jeune/vieux. Comme toujours, on ne l'adopte qu'après avoir mesuré un vrai besoin, pas par réflexe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois idées à garder : jeunes vite morts, séparer, nouveauté Java 21",
+          "body": "/images/lessons/generational-zgc-21-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Explique l'idée générationnelle",
-          "position": 5,
+          "position": 8,
           "body": "En t'appuyant sur l'hypothèse générationnelle, explique pourquoi collecter la zone des objets jeunes plus souvent que celle des objets vieux est une bonne stratégie. Précise en quelle version de Java le Generational ZGC est apparu.",
           "solution": "L'hypothèse générationnelle dit que la plupart des objets meurent jeunes et qu'un petit nombre vit longtemps. Donc la zone jeune se remplit vite de déchets : la visiter souvent récupère beaucoup de mémoire pour peu d'effort. La zone vieille, elle, bouge peu : inutile de la réexaminer à chaque fois, ce serait du travail gaspillé. En concentrant l'effort sur la zone jeune, on range plus efficacement. Le Generational ZGC est apparu en Java 21."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le Generational ZGC de Java 21",
-          "position": 6,
+          "position": 9,
           "quizRef": "gc-performance-generational-zgc-21"
         }
       ]
@@ -207,41 +279,65 @@
           "body": "Le piège le plus courant en performance, c'est de changer des réglages \"au feeling\", sans jamais vérifier si ça améliore quoi que ce soit. On passe à ZGC parce que ça semble moderne, on double la taille du tas \"au cas où\"... et on ne sait meme pas quel était le problème au départ.\n\nLa bonne méthode tient en une phrase : **mesurer, pas deviner**. On observe d'abord le comportement réel (combien de pauses, de quelle durée, le tas est-il saturé ?), on identifie un vrai problème, on change **une** chose, puis on remesure pour vérifier que ça a aidé.\n\n👉 C'est comme régler le chauffage d'une maison : inutile de tout changer en imaginant le problème. On lit le thermomètre, on ajuste un réglage, on relit le thermomètre. Sans thermomètre, on tatonne dans le noir."
         },
         {
+          "type": "IMAGE",
+          "title": "Lire le thermomètre avant de régler : mesurer, pas deviner",
+          "body": "/images/lessons/mesurer-pas-deviner-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Fixer la taille du tas avec -Xmx",
-          "position": 1,
+          "position": 2,
           "body": "Le premier réglage concret et le plus utile : la **taille maximale du tas**, avec le drapeau `-Xmx`. `-Xmx512m` veut dire \"le tas ne dépassera pas 512 méga-octets\" ; `-Xmx4g`, \"au plus 4 giga-octets\".\n\nPourquoi c'est important ? Un tas trop petit sature vite : le ramasse-miettes doit passer sans arret, le programme rame, et à l'extreme il plante avec `OutOfMemoryError`. Un tas trop grand gaspille de la mémoire de la machine et peut rendre certaines pauses plus longues. La bonne taille dépend de ton application, et on la trouve... en mesurant.\n\n👉 `-Xmx`, c'est la taille de l'entrepot que tu alloues à ton programme. Trop petit, les employés se marchent dessus à force de tout réorganiser ; trop grand, tu paies un entrepot à moitié vide.\n\nNote : il existe aussi `-Xms` pour la taille de départ du tas, mais pour débuter, retiens surtout `-Xmx`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Dimensionner l'entrepôt : ni trop petit saturé, ni trop grand gaspillé",
+          "body": "/images/lessons/mesurer-pas-deviner-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Lire les logs GC avec -Xlog:gc",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "bash",
           "body": "# Le thermometre du GC : -Xlog:gc affiche une ligne a chaque collecte,\n# avec la duree de la pause. (\"log\" = journal d'evenements.)\njava -Xlog:gc -jar monapp.jar\n\n# Fixer le tas ET lire les logs GC en meme temps.\njava -Xmx2g -Xlog:gc -jar monapp.jar\n\n# Ecrire le journal dans un fichier plutot qu'a l'ecran, pour l'analyser apres.\njava -Xmx2g -Xlog:gc:file=gc.log -jar monapp.jar\n\n# Exemple de ligne de log (la duree de pause est le chiffre en ms a la fin) :\n#   [2,310s][info][gc] GC(12) Pause Young (Normal) 48M->7M(128M) 3.512ms"
         },
         {
           "type": "CONCEPT",
           "title": "Lire une ligne de log GC sans paniquer",
-          "position": 3,
+          "position": 5,
           "body": "Les logs GC paraissent intimidants, mais pour débuter tu cherches surtout deux informations dans chaque ligne :\n\n- La **durée de la pause** (le nombre en millisecondes, souvent à la fin, par exemple `3.512ms`). C'est ta latence : des pauses courtes et stables, c'est bon signe.\n- L'**évolution du tas** autour de la collecte (par exemple `48M->7M(128M)` : on est passé de 48 Mo occupés à 7 Mo après ménage, sur un tas de 128 Mo). Si le tas reste quasi plein meme après chaque collecte, c'est qu'il est trop petit ou qu'il y a une fuite.\n\n👉 Tu n'as pas besoin de tout comprendre. Repère la durée des pauses et vérifie que le tas se vide bien à chaque passage. Ces deux chiffres suffisent déjà à savoir si ça va ou pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Dans chaque ligne de log : repérer la durée de pause et le tas qui se vide",
+          "body": "/images/lessons/mesurer-pas-deviner-3.jpg",
+          "position": 6
         },
         {
           "type": "CONCEPT",
           "title": "La démarche complète : choisir selon le besoin réel",
-          "position": 4,
+          "position": 7,
           "body": "Mets tout bout à bout. Pour choisir un ramasse-miettes et le régler, suis cet ordre :\n\n1. **Pars du défaut** : G1, sans drapeau. Ça convient la plupart du temps.\n2. **Mesure** avec `-Xlog:gc` : regarde la durée des pauses et le remplissage du tas sous charge réelle.\n3. **Identifie le vrai besoin** : les pauses sont-elles réellement trop longues pour ton application ? Le tas est-il trop petit ?\n4. **Change une seule chose** : ajuster `-Xmx`, ou passer à ZGC (voire au Generational ZGC en Java 21) si, et seulement si, la latence est ton problème sur un gros tas.\n5. **Remesure** et compare. Garde le changement seulement s'il améliore vraiment ce que tu voulais améliorer.\n\n👉 Choisir selon le besoin réel, pas selon la mode. Le meilleur ramasse-miettes, c'est celui qui règle un problème que tu as vraiment mesuré, pas celui qui a le nom le plus impressionnant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Partir du défaut, mesurer, changer une chose, remesurer",
+          "body": "/images/lessons/mesurer-pas-deviner-4.jpg",
+          "position": 8
         },
         {
           "type": "EXERCISE",
           "title": "Remets la démarche dans l'ordre",
-          "position": 5,
+          "position": 9,
           "body": "On te donne ces actions en désordre : (A) passer à ZGC, (B) activer -Xlog:gc et observer les pauses sous charge, (C) remesurer et comparer, (D) lancer avec le défaut G1. Donne le bon ordre et explique pourquoi on ne commence pas par (A).",
           "solution": "Ordre correct : D, puis B, puis A, puis C. On démarre avec le défaut G1 (D), on mesure les pauses avec les logs GC (B) pour savoir s'il y a vraiment un problème de latence, on ne passe à ZGC (A) que si la mesure l'a justifié, puis on remesure et on compare (C) pour vérifier le gain. On ne commence pas par (A) car ce serait optimiser à l'aveugle : changer de ramasse-miettes sans avoir mesuré de problème, c'est deviner au lieu de mesurer, au risque de perdre un peu de débit sans aucun bénéfice réel."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : mesurer, pas deviner",
-          "position": 6,
+          "position": 10,
           "quizRef": "gc-performance-mesurer-pas-deviner"
         }
       ]

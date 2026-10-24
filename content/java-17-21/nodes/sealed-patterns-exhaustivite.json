@@ -13,42 +13,60 @@
           "body": "Tu as deja vu trois outils modernes de Java, chacun de son cote. Dans ce noeud, on les fait travailler ensemble pour obtenir un code que le compilateur verifie, sans branche oubliee.\n\nPetit rappel des trois :\n\n- Un **record** est une classe de donnees immuable declaree en une ligne : `record Cercle(double rayon) { }`. **Immuable** veut dire qu'une fois cree, l'objet ne change plus.\n- Une **classe scellee** (en anglais *sealed class*, ou plus souvent une *interface scellee*) est un type qui declare **la liste fermee** de ses sous types autorises. Personne d'autre ne peut en ajouter.\n- Le **pattern matching avec switch** (filtrage par motif) permet de dire \"si la valeur est de telle forme, fais ceci\", en extrayant au passage les donnees : `case Cercle c -> ...`.\n\n👉 Pense a une boite de jeu avec exactement trois figurines, ni plus ni moins (le scelle), chaque figurine etant une fiche aux cases fixes (le record), et une regle du jeu qui dit quoi faire pour chaque figurine possible (le switch). Comme la liste des figurines est fermee, la regle peut etre complete, sans trou."
         },
         {
+          "type": "IMAGE",
+          "title": "Trois pieces de puzzle qui s'emboitent : sealed, record et switch travaillent ensemble",
+          "body": "/images/lessons/le-trio-sealed-record-switch-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Pourquoi les reunir",
-          "position": 1,
+          "position": 2,
           "body": "Separement, ces outils sont deja utiles. Ensemble, ils rendent possible une chose precieuse : l'**exhaustivite verifiee a la compilation**. \"Exhaustif\" veut dire \"qui couvre tous les cas\". \"Verifiee a la compilation\" veut dire que c'est le **compilateur** (le programme qui transforme ton code Java en code executable) qui controle, avant meme de lancer le programme.\n\nLe raisonnement : si une interface scellee connait TOUS ses sous types, alors un `switch` qui traite chacun d'eux a forcement tout traite. Le compilateur peut le prouver. Et si demain tu ajoutes un sous type, le compilateur te signale immediatement chaque `switch` devenu incomplet.\n\n👉 C'est la difference entre un videur qui connait la liste exacte des invites (il voit tout de suite s'il en manque un) et un videur a qui on dit \"laisse entrer un peu tout le monde\". Le premier peut garantir que personne n'est oublie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un filet de securite : le compilateur verifie que tous les cas sont couverts",
+          "body": "/images/lessons/le-trio-sealed-record-switch-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Les trois outils en action, en un coup d'oeil",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// 1) Une interface SCELLEE : elle fixe la liste fermee de ses sous types.\nsealed interface Forme permits Cercle, Rectangle { }\n\n// 2) Des RECORDS pour les sous types : donnees immuables, courtes a ecrire.\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\n\n// 3) Un SWITCH avec pattern matching : un cas par sous type, et rien d'autre.\nstatic double aire(Forme f) {\n    return switch (f) {\n        case Cercle c -> Math.PI * c.rayon() * c.rayon();\n        case Rectangle r -> r.largeur() * r.hauteur();\n        // Pas de default : les deux seuls cas possibles sont couverts.\n    };\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Ce que tu vas construire dans ce noeud",
-          "position": 3,
+          "position": 5,
           "body": "On va suivre un **exemple fil rouge** : un petit domaine de formes geometriques, puis une mini calculatrice. Lecon apres lecon, tu vas :\n\n1. Modeliser un domaine avec une interface scellee et des records.\n2. Ecrire un `switch` exhaustif qui se passe de `default`.\n3. Voir le compilateur te proteger quand le domaine evolue.\n4. Construire un atelier : evaluer une petite expression arithmetique.\n\nL'idee centrale a retenir des maintenant : **une liste fermee de cas + un switch = un filet de securite**. Le compilateur devient ton relecteur le plus attentif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une feuille de route : du domaine des formes jusqu'a une mini calculatrice",
+          "body": "/images/lessons/le-trio-sealed-record-switch-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Le trio et son role",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "classDiagram\n    class Forme {\n        <<sealed interface>>\n    }\n    class Cercle {\n        <<record>>\n        +double rayon\n    }\n    class Rectangle {\n        <<record>>\n        +double largeur\n        +double hauteur\n    }\n    Forme <|.. Cercle\n    Forme <|.. Rectangle"
         },
         {
           "type": "EXERCISE",
           "title": "Associe chaque outil a son role",
-          "position": 5,
+          "position": 8,
           "body": "Trois roles : A) fixer la liste fermee des cas possibles, B) porter des donnees immuables de facon concise, C) traiter chaque cas en extrayant les donnees. Associe chacun au bon outil parmi : interface scellee, record, switch avec pattern matching.",
           "solution": "A) interface scellee : elle declare avec permits la liste fermee des sous types autorises. B) record : il porte les donnees (ici rayon, largeur, hauteur) en une ligne et de facon immuable. C) switch avec pattern matching : il a un case par sous type et extrait les donnees au passage. Reunis, ils permettent au compilateur de verifier que tous les cas sont traites."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le trio sealed + record + switch",
-          "position": 6,
+          "position": 9,
           "quizRef": "sealed-patterns-exhaustivite-le-trio-sealed-record-switch"
         }
       ]
@@ -65,42 +83,60 @@
           "body": "**Modeliser un domaine**, c'est traduire en code les \"choses\" d'un sujet et leurs variantes. Un **domaine** est simplement le sujet que ton programme traite : ici, la geometrie, avec ses formes.\n\nNotre exemple fil rouge : une **Forme** est soit un **Cercle**, soit un **Rectangle**, soit un **Triangle**. Ce \"soit... soit... soit...\" est le point cle : il existe un nombre fini de variantes, et on veut les ecrire noir sur blanc.\n\n👉 C'est comme declarer sur une affiche \"Les animaux de cette ferme sont : le mouton, la vache, la poule.\" La liste est fermee : si quelqu'un parle d'un dauphin, il est hors sujet. C'est exactement ce qu'une interface scellee exprime en Java."
         },
         {
+          "type": "IMAGE",
+          "title": "Une liste fermee comme a la ferme : voici les seules formes autorisees",
+          "body": "/images/lessons/modeliser-un-domaine-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le mot cle permits",
-          "position": 1,
+          "position": 2,
           "body": "On declare une interface scellee avec `sealed interface`, suivi du mot cle **`permits`** et de la liste des sous types autorises.\n\n```\nsealed interface Forme permits Cercle, Rectangle, Triangle { }\n```\n\n`permits` (de l'anglais \"permet\") veut dire : \"les seuls types autorises a implementer Forme sont Cercle, Rectangle et Triangle, aucun autre\". Une classe exterieure qui tenterait `implements Forme` sans figurer dans la liste provoquerait une **erreur de compilation** (le code refuse d'etre transforme en programme).\n\nNote pratique : si les sous types sont dans le meme fichier, Java peut deviner la liste et tu peux omettre `permits`. On l'ecrit ici en entier pour que l'intention soit explicite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une liste d'invites : permits nomme les seuls sous types admis",
+          "body": "/images/lessons/modeliser-un-domaine-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Le domaine des formes, au complet",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// L'interface scellee : la liste fermee des formes possibles.\nsealed interface Forme permits Cercle, Rectangle, Triangle { }\n\n// Chaque variante est un record : donnees immuables, une ligne chacune.\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\npublic class Demo {\n    public static void main(String[] args) {\n        Forme f = new Cercle(2.0);\n        System.out.println(f); // Cercle[rayon=2.0]  (toString gratuit du record)\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi des records pour les variantes",
-          "position": 3,
+          "position": 5,
           "body": "Chaque variante (Cercle, Rectangle, Triangle) n'est qu'un paquet de donnees : un cercle, c'est un rayon ; un rectangle, c'est une largeur et une hauteur. Le **record** est donc l'outil ideal : il ecrit en une ligne le constructeur, les accesseurs (`rayon()`, `largeur()`...), `equals`, `hashCode` et `toString`.\n\nUn **accesseur** est une methode qui renvoie la valeur d'un composant ; pour un record, elle porte le nom nu du composant, donc `rayon()` et non `getRayon()`.\n\n👉 Resume : l'interface scellee dit \"voici les trois categories permises\", et chaque record remplit une fiche d'identite propre a sa categorie. Les deux outils se completent naturellement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une fiche d'identite par categorie : le record porte les donnees en une ligne",
+          "body": "/images/lessons/modeliser-un-domaine-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Le domaine Forme scelle",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "classDiagram\n    class Forme {\n        <<sealed interface>>\n    }\n    class Cercle {\n        <<record>>\n        +double rayon\n    }\n    class Rectangle {\n        <<record>>\n        +double largeur\n        +double hauteur\n    }\n    class Triangle {\n        <<record>>\n        +double base\n        +double hauteur\n    }\n    Forme <|.. Cercle\n    Forme <|.. Rectangle\n    Forme <|.. Triangle"
         },
         {
           "type": "EXERCISE",
           "title": "Modelise un moyen de paiement",
-          "position": 5,
+          "position": 8,
           "body": "Dans une boutique, un paiement est soit en Carte (avec un numero), soit en Especes (avec un montant recu), soit par Virement (avec un IBAN). Ecris l'interface scellee Paiement et les trois records correspondants.",
           "solution": "sealed interface Paiement permits Carte, Especes, Virement { }\n\nrecord Carte(String numero) implements Paiement { }\nrecord Especes(double montantRecu) implements Paiement { }\nrecord Virement(String iban) implements Paiement { }\n\nLa liste fermee (permits) garantit qu'aucun autre moyen de paiement ne pourra se glisser sans etre declare ici, et donc sans etre pris en compte par les switch qui traitent un Paiement."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : modeliser un domaine scelle",
-          "position": 6,
+          "position": 9,
           "quizRef": "sealed-patterns-exhaustivite-modeliser-un-domaine"
         }
       ]
@@ -117,42 +153,60 @@
           "body": "Dans un `switch` classique, la branche **`default`** sert de filet \"pour tous les autres cas non prevus\". Elle est pratique, mais elle a un defaut cache : elle **masque les oublis**. Si tu ajoutes une variante et oublies de la traiter, le `default` l'avale en silence, et tu ne t'en rends compte qu'au moment ou le programme se comporte mal.\n\nAvec une interface scellee, on peut faire mieux : comme la liste des sous types est **fermee et connue**, le compilateur sait exactement quels cas existent. Si tu les traites tous, le `switch` est **exhaustif** et compile **sans `default`**.\n\n👉 Le `default`, c'est la case \"Autre\" d'un formulaire. Utile quand on ne connait pas toutes les reponses. Mais quand la liste des reponses est fixe et connue, cette case \"Autre\" ne sert qu'a cacher un oubli."
         },
         {
+          "type": "IMAGE",
+          "title": "La case Autre d'un formulaire : pratique, mais elle cache les oublis",
+          "body": "/images/lessons/exhaustivite-sans-default-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Un switch exhaustif, sans default",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "sealed interface Forme permits Cercle, Rectangle, Triangle { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\nstatic double aire(Forme f) {\n    // Un case par sous type permis. Pas de default : c'est volontaire.\n    return switch (f) {\n        case Cercle c -> Math.PI * c.rayon() * c.rayon();\n        case Rectangle r -> r.largeur() * r.hauteur();\n        case Triangle t -> (t.base() * t.hauteur()) / 2;\n    };\n    // Le compilateur accepte : les trois seuls cas possibles sont couverts.\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Le record deconstruction : extraire les donnees dans le case",
-          "position": 2,
+          "position": 3,
           "body": "On peut aller plus loin que `case Cercle c`. Comme un Cercle est un record, on peut **deconstruire** ses composants directement dans le motif : `case Cercle(double r)`. C'est le **record pattern** (motif de record). Il ouvre la fiche et te donne tout de suite le contenu des cases.\n\n👉 `case Cercle c` te tend la boite fermee (il faut ensuite appeler `c.rayon()`). `case Cercle(double r)` ouvre la boite pour toi et te pose `r` sur la table. Les deux marchent ; le second est souvent plus lisible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ouvrir la boite pour en sortir le contenu : le record pattern extrait les composants",
+          "body": "/images/lessons/exhaustivite-sans-default-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "La meme aire, avec deconstruction",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "static double aire(Forme f) {\n    return switch (f) {\n        // On extrait directement les composants : plus de c.rayon().\n        case Cercle(double r) -> Math.PI * r * r;\n        case Rectangle(double larg, double haut) -> larg * haut;\n        case Triangle(double base, double haut) -> (base * haut) / 2;\n    };\n}\n// Toujours exhaustif, toujours sans default, et plus direct a lire."
         },
         {
           "type": "CONCEPT",
           "title": "switch expression : il doit TOUT couvrir",
-          "position": 4,
+          "position": 6,
           "body": "Une precision importante. Quand le `switch` **renvoie une valeur** (on parle de **switch expression**, ici parce qu'on ecrit `return switch (f) { ... }`), Java **exige** qu'il soit exhaustif : il faut une valeur pour chaque cas possible, sinon le code ne compile pas.\n\nC'est justement cette exigence qui fait equipe avec l'interface scellee. Comme la liste des cas est fermee, \"couvrir tous les cas possibles\" devient atteignable et verifiable. Si tu couvres les trois formes, c'est bon ; s'il en manque une, le compilateur refuse. On verra a la lecon suivante ce qui se passe exactement quand une variante manque."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tout cocher sans exception : un switch expression doit couvrir chaque cas",
+          "body": "/images/lessons/exhaustivite-sans-default-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Ecris un nom lisible pour chaque forme",
-          "position": 5,
+          "position": 8,
           "body": "En reprenant Forme (Cercle, Rectangle, Triangle), ecris une methode String nom(Forme f) qui renvoie \"cercle\", \"rectangle\" ou \"triangle\" selon le cas, avec un switch exhaustif et sans default.",
           "solution": "static String nom(Forme f) {\n    return switch (f) {\n        case Cercle c -> \"cercle\";\n        case Rectangle r -> \"rectangle\";\n        case Triangle t -> \"triangle\";\n    };\n}\n\nLes trois sous types permis sont couverts, donc le switch expression est exhaustif et compile sans default. On aurait aussi pu deconstruire, par exemple case Cercle(double r), meme si on n'utilise pas r ici."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : exhaustivite sans default",
-          "position": 6,
+          "position": 9,
           "quizRef": "sealed-patterns-exhaustivite-exhaustivite-sans-default"
         }
       ]
@@ -169,42 +223,60 @@
           "body": "Un domaine vit : un jour, on ajoute une forme. C'est le moment ou le trio montre toute sa valeur. Ajoutons un **Losange** a notre interface scellee.\n\nPour l'autoriser, il faut l'inscrire dans la liste `permits` et creer son record. Rien que ca te force deja a declarer l'existence du nouveau cas au bon endroit. Mais surtout, une fois le Losange permis, **tous les switch exhaustifs qui ne le traitent pas cessent de compiler**.\n\n👉 C'est comme ajouter un invite a la liste du videur : aussitot, chaque poste de controle qui n'a pas sa photo signale \"il me manque quelqu'un\". Impossible de l'oublier en route."
         },
         {
+          "type": "IMAGE",
+          "title": "Ajouter une nouvelle piece : le vrai test d'un domaine scelle",
+          "body": "/images/lessons/faire-evoluer-en-securite-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "On ajoute Losange : le switch casse",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// On etend la liste fermee avec une nouvelle variante.\nsealed interface Forme permits Cercle, Rectangle, Triangle, Losange { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\nrecord Losange(double diagonale1, double diagonale2) implements Forme { }\n\nstatic double aire(Forme f) {\n    return switch (f) {           // ERREUR DE COMPILATION ici.\n        case Cercle c -> Math.PI * c.rayon() * c.rayon();\n        case Rectangle r -> r.largeur() * r.hauteur();\n        case Triangle t -> (t.base() * t.hauteur()) / 2;\n        // Il manque le cas Losange -> le switch n'est plus exhaustif.\n    };\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Le message du compilateur, ton allie",
-          "position": 2,
+          "position": 3,
           "body": "Le compilateur refuse le code et affiche un message du genre : *\"the switch expression does not cover all possible input values\"* (le switch ne couvre pas toutes les valeurs d'entree possibles).\n\nC'est une excellente nouvelle, pas une punition. Le compilateur vient de trouver, **avant l'execution et gratuitement**, chaque endroit de ton programme qui doit etre mis a jour. Tu corriges en ajoutant le cas manquant, et tu as la certitude de n'avoir oublie aucun `switch`.\n\n👉 Compare avec un `switch` a `default` : la, le Losange serait tombe dans le `default`, le code aurait compile sans broncher, et le bug ne serait apparu qu'en production. L'exhaustivite verifiee transforme un bug silencieux futur en une erreur de compilation immediate."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une alarme a la compilation : le compilateur pointe chaque switch a corriger",
+          "body": "/images/lessons/faire-evoluer-en-securite-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "On corrige : le cas manquant ajoute",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "static double aire(Forme f) {\n    return switch (f) {\n        case Cercle c -> Math.PI * c.rayon() * c.rayon();\n        case Rectangle r -> r.largeur() * r.hauteur();\n        case Triangle t -> (t.base() * t.hauteur()) / 2;\n        // Cas ajoute : le compilateur nous avait pointe exactement ici.\n        case Losange l -> (l.diagonale1() * l.diagonale2()) / 2;\n    };\n    // De nouveau exhaustif -> compile a nouveau. Aucun oubli possible.\n}"
         },
         {
           "type": "CONCEPT",
           "title": "La lecon de conception a retenir",
-          "position": 4,
+          "position": 6,
           "body": "Ce comportement change ta facon de concevoir. Tu n'as plus besoin de retenir mentalement \"ou faut il penser au nouveau cas ?\". Le compilateur tient la liste a ta place.\n\nUne nuance utile : si tu AVAIS mis un `default`, le compilateur se tairait et le `default` traiterait le Losange a ta place, peut etre de travers. C'est pourquoi, pour un domaine scelle que tu controles, on **evite le `default`** : on prefere que le code casse franchement pour nous rappeler d'agir.\n\n👉 Mieux vaut une alarme bruyante a la compilation qu'un silence trompeur suivi d'un bug en pleine nuit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mieux vaut une alarme bruyante qu'un silence trompeur suivi d'un bug",
+          "body": "/images/lessons/faire-evoluer-en-securite-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Anticipe l'effet d'un nouveau cas",
-          "position": 5,
+          "position": 8,
           "body": "Tu as un switch expression exhaustif sur Forme (Cercle, Rectangle, Triangle), sans default. Un collegue ajoute record Carre(double cote) implements Forme et l'inscrit dans permits, sans toucher a ton switch. Que se passe t il quand il compile, et pourquoi est ce une bonne chose ?",
           "solution": "La compilation echoue sur le switch : il n'est plus exhaustif car le cas Carre n'est pas traite, et il n'y a pas de default pour rattraper. C'est une bonne chose : l'erreur apparait immediatement, a l'endroit exact a corriger, avant toute execution. Le collegue est force d'ajouter case Carre c -> c.cote() * c.cote(), ce qui garantit qu'aucun traitement de Forme n'a ete oublie."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : faire evoluer en securite",
-          "position": 6,
+          "position": 9,
           "quizRef": "sealed-patterns-exhaustivite-faire-evoluer-en-securite"
         }
       ]
@@ -221,43 +293,55 @@
           "body": "On met tout en pratique sur un classique : evaluer une **expression arithmetique** comme `(2 + 3) * 4`. Une expression peut etre un simple nombre, ou une operation entre deux sous expressions.\n\nOn modelise ca avec une interface scellee **`Expr`** (pour *expression*) qui a trois variantes :\n\n- **Nombre** : une valeur toute simple, par exemple 2.\n- **Addition** : une expression gauche + une expression droite.\n- **Multiplication** : une expression gauche * une expression droite.\n\nPoint interessant : une Addition contient elle meme des Expr. Un type qui se contient ainsi est dit **recursif** (il se refere a lui meme). C'est ce qui permet d'emboiter les operations.\n\n👉 Comme des poupees russes : une boite \"Addition\" peut contenir une autre boite \"Multiplication\", qui contient a son tour des boites \"Nombre\"."
         },
         {
+          "type": "IMAGE",
+          "title": "Des poupees russes : une expression peut en contenir d'autres, encore et encore",
+          "body": "/images/lessons/atelier-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Le domaine Expr",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// Liste fermee des formes d'expression possibles.\nsealed interface Expr permits Nombre, Addition, Multiplication { }\n\n// Une feuille : juste une valeur.\nrecord Nombre(double valeur) implements Expr { }\n\n// Deux noeuds : chacun porte deux sous expressions (type recursif).\nrecord Addition(Expr gauche, Expr droite) implements Expr { }\nrecord Multiplication(Expr gauche, Expr droite) implements Expr { }\n\n// Exemple : (2 + 3) * 4\n// new Multiplication(new Addition(new Nombre(2), new Nombre(3)), new Nombre(4))"
         },
         {
           "type": "DIAGRAM",
           "title": "Le domaine Expr scelle",
-          "position": 2,
+          "position": 3,
           "diagramFormat": "MERMAID",
           "body": "classDiagram\n    class Expr {\n        <<sealed interface>>\n    }\n    class Nombre {\n        <<record>>\n        +double valeur\n    }\n    class Addition {\n        <<record>>\n        +Expr gauche\n        +Expr droite\n    }\n    class Multiplication {\n        <<record>>\n        +Expr gauche\n        +Expr droite\n    }\n    Expr <|.. Nombre\n    Expr <|.. Addition\n    Expr <|.. Multiplication\n    Addition o-- Expr\n    Multiplication o-- Expr"
         },
         {
           "type": "CONCEPT",
           "title": "Evaluer par recursion",
-          "position": 3,
+          "position": 4,
           "body": "**Evaluer** une expression, c'est calculer son resultat numerique. On ecrit une methode `evaluer(Expr e)` avec un `switch` exhaustif, un cas par variante :\n\n- Un **Nombre** vaut sa valeur : c'est le cas simple qui arrete la descente (on l'appelle le **cas de base**).\n- Une **Addition** vaut `evaluer(gauche) + evaluer(droite)` : on rappelle `evaluer` sur chaque cote. C'est la **recursion** (une methode qui s'appelle elle meme).\n- Une **Multiplication** suit la meme idee avec `*`.\n\n👉 Pour calculer une poupee russe, tu ouvres chaque poupee interieure jusqu'a tomber sur les nombres, puis tu remontes en combinant. Le `switch` exhaustif garantit qu'aucune forme d'expression n'est oubliee dans ce calcul."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ouvrir chaque poupee jusqu'aux nombres puis remonter : c'est la recursion",
+          "body": "/images/lessons/atelier-2.jpg",
+          "position": 5
         },
         {
           "type": "CODE",
           "title": "La fonction d'evaluation",
-          "position": 4,
+          "position": 6,
           "codeLanguage": "java",
           "body": "static double evaluer(Expr e) {\n    return switch (e) {\n        // Deconstruction du record : on recupere directement les composants.\n        case Nombre(double v) -> v;\n        case Addition(Expr g, Expr d) -> evaluer(g) + evaluer(d);\n        case Multiplication(Expr g, Expr d) -> evaluer(g) * evaluer(d);\n        // Exhaustif, sans default : les trois variantes d'Expr sont couvertes.\n    };\n}\n\npublic class Demo {\n    public static void main(String[] args) {\n        // (2 + 3) * 4\n        Expr e = new Multiplication(\n            new Addition(new Nombre(2), new Nombre(3)),\n            new Nombre(4));\n        System.out.println(evaluer(e)); // 20.0\n    }\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Ajoute la soustraction",
-          "position": 5,
+          "position": 7,
           "body": "Ajoute une variante Soustraction(Expr gauche, Expr droite) au domaine Expr. Quelles modifications precises dois tu faire, et pourquoi le compilateur t'aide t il a ne rien oublier dans evaluer ?",
           "solution": "Deux modifications : 1) inscrire Soustraction dans permits et creer record Soustraction(Expr gauche, Expr droite) implements Expr { } ; 2) ajouter dans evaluer le cas case Soustraction(Expr g, Expr d) -> evaluer(g) - evaluer(d). Le compilateur aide car, des que Soustraction est permis, le switch expression d'evaluer n'est plus exhaustif et cesse de compiler tant que le cas manquant n'est pas ajoute. Comme il n'y a pas de default, l'oubli est impossible."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : atelier, evaluer une expression",
-          "position": 6,
+          "position": 8,
           "quizRef": "sealed-patterns-exhaustivite-atelier"
         }
       ]

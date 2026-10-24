@@ -13,28 +13,46 @@
           "body": "Tu connais déjà le **pattern de type** (en anglais *type pattern*) : la forme `obj instanceof Point p` qui, en une fois, teste le type et te donne une variable `p` déjà convertie. C'est très pratique, mais ça s'arrête là : `p` est le record entier, pas ses morceaux.\n\nUn **record** est une classe de données immuable, comme `record Point(int x, int y) { }`. Ses valeurs internes s'appellent des **composants** (ici `x` et `y`). Un **accesseur** est la méthode qui renvoie un composant : `p.x()`, `p.y()`.\n\n👉 Imagine recevoir un colis et pouvoir vérifier \"c'est bien un colis\" d'un coup. C'est le pattern de type. Mais pour voir ce qu'il y a dedans, tu dois encore l'ouvrir toi même. Ouvrir le colis, c'est appeler `p.x()` et `p.y()`."
         },
         {
+          "type": "IMAGE",
+          "title": "Le pattern de type donne l'objet entier, pas encore ses morceaux",
+          "body": "/images/lessons/le-probleme-acceder-aux-composants-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "On teste le type, puis on appelle les accesseurs",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "record Point(int x, int y) { }\n\nstatic String decrire(Object obj) {\n    // Pattern de type : on sait que c'est un Point, on recupere p.\n    if (obj instanceof Point p) {\n        // Mais p est le Point ENTIER : pour lire les composants,\n        // on doit encore appeler les accesseurs un par un.\n        int x = p.x();\n        int y = p.y();\n        return \"Point en \" + x + \", \" + y;\n    }\n    return \"autre chose\";\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Ce qu'on aimerait vraiment",
-          "position": 2,
+          "position": 3,
           "body": "Dans l'exemple précédent, on a dû écrire `p.x()` et `p.y()` juste pour sortir les deux valeurs qu'on voulait. Le record a trois noms en jeu (`p`, puis `x`, puis `y`) alors qu'on ne se sert jamais de `p` tout seul.\n\nCe qu'on aimerait, c'est **extraire directement** les composants au moment du test, et obtenir tout de suite des variables `x` et `y` utilisables. Autrement dit, demander \"est ce un Point ? et si oui, donne moi son x et son y\" en une seule phrase.\n\n👉 Au lieu de recevoir le colis fermé puis de l'ouvrir, on aimerait qu'il arrive déjà déballé, avec chaque objet posé devant soi, étiqueté. C'est exactement ce que proposent les **record patterns**, le sujet de ce nœud."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On aimerait extraire directement les composants au moment du test",
+          "body": "/images/lessons/le-probleme-acceder-aux-composants-2.jpg",
+          "position": 4
         },
         {
           "type": "CONCEPT",
           "title": "La déconstruction en un mot",
-          "position": 3,
+          "position": 5,
           "body": "La **déconstruction** (en anglais *destructuring* ou *deconstruction*) consiste à prendre un objet composé et à en sortir ses morceaux dans des variables séparées, en une seule opération.\n\nUn **record pattern** (motif de record) est la forme qui fait ça sur un record : à partir de `Point(int x, int y)`, elle crée directement les variables `x` et `y`. C'est stable depuis Java 21 (la JEP 440). Une **JEP** (*JDK Enhancement Proposal*) est une fiche officielle décrivant une évolution du langage.\n\n👉 Déconstruire, c'est comme vider sa trousse d'un coup sur la table : au lieu de \"voici la trousse\", on obtient \"voici le stylo, voici la gomme, voici la règle\", chacun à sa place, prêt à l'emploi."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deconstruire, c'est sortir chaque morceau dans sa propre variable",
+          "body": "/images/lessons/le-probleme-acceder-aux-composants-3.jpg",
+          "position": 6
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le problème d'accès aux composants",
-          "position": 4,
+          "position": 7,
           "quizRef": "record-patterns-le-probleme-acceder-aux-composants"
         }
       ]
@@ -51,36 +69,48 @@
           "body": "Dans un **switch** (l'aiguillage qui choisit un cas selon une valeur), on peut écrire un cas qui déconstruit le record directement :\n\n```\ncase Point(int x, int y) -> ...\n```\n\nCe cas se lit : \"si la valeur est un `Point`, alors appelle `x` son premier composant et `y` son second, et laisse moi les utiliser tout de suite\". Les variables `x` et `y` existent dans la branche, sans aucun appel à `p.x()` ou `p.y()`.\n\n👉 C'est l'étiquette du colis et son contenu en même temps : \"si c'est un Point, voici son x et son y, sers toi\"."
         },
         {
+          "type": "IMAGE",
+          "title": "Le record pattern donne le type et ses composants en meme temps",
+          "body": "/images/lessons/deconstruire-un-record-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Avant / après : le record pattern allège le code",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "record Point(int x, int y) { }\n\n// AVANT : type pattern, puis accesseurs a la main.\nstatic String ancien(Object obj) {\n    return switch (obj) {\n        case Point p -> \"somme = \" + (p.x() + p.y());\n        default      -> \"inconnu\";\n    };\n}\n\n// APRES : record pattern, x et y sont extraits directement.\nstatic String moderne(Object obj) {\n    return switch (obj) {\n        case Point(int x, int y) -> \"somme = \" + (x + y);\n        default                  -> \"inconnu\";\n    };\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Utiliser var dans un record pattern",
-          "position": 2,
+          "position": 3,
           "body": "Tu n'es pas obligé de réécrire le type de chaque composant. Le mot clé **var** demande au compilateur de **deviner le type tout seul** (on parle d'**inférence de type**). Dans un record pattern, `var x` marche donc très bien :\n\n```\ncase Point(var x, var y) -> ...\n```\n\nIci le compilateur sait déjà que les composants de `Point` sont des `int`, donc `x` et `y` sont des `int`. Le résultat est identique à `case Point(int x, int y)`, en plus court.\n\n👉 `var`, c'est dire \"tu vois bien de quoi il s'agit, inutile que je le répète\". On garde juste le nom de l'étiquette, pas la description du type."
+        },
+        {
+          "type": "IMAGE",
+          "title": "var laisse le compilateur deviner le type de chaque composant",
+          "body": "/images/lessons/deconstruire-un-record-2.jpg",
+          "position": 4
         },
         {
           "type": "DIAGRAM",
           "title": "Du record aux variables extraites",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"obj : Object\"] --> B{\"case Point(var x, var y)\"}\n    B -->|\"obj est un Point\"| C[\"x = premier composant\"]\n    B -->|\"obj est un Point\"| D[\"y = second composant\"]\n    B -->|\"sinon\"| E[\"default\"]\n    C --> F[\"on utilise x et y directement\"]\n    D --> F"
         },
         {
           "type": "EXERCISE",
           "title": "Transforme un type pattern en record pattern",
-          "position": 4,
+          "position": 6,
           "body": "On a `record Prix(int montant, String devise) { }`. Réécris ce switch pour déconstruire le record au lieu d'appeler les accesseurs :\n\nswitch (obj) {\n    case Prix p -> p.montant() + \" \" + p.devise();\n    default -> \"?\";\n}",
           "solution": "switch (obj) {\n    case Prix(int montant, String devise) -> montant + \" \" + devise;\n    default -> \"?\";\n}\n\nOn peut aussi ecrire case Prix(var montant, var devise) -> montant + \" \" + devise; le compilateur deduit int et String. Dans les deux cas, plus besoin d'appeler p.montant() ni p.devise() : les variables sont extraites par le motif."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : déconstruire un record",
-          "position": 5,
+          "position": 7,
           "quizRef": "record-patterns-deconstruire-un-record"
         }
       ]
@@ -97,36 +127,48 @@
           "body": "Un composant peut lui même être un record. Par exemple, une ligne est faite de deux points :\n\n```\nrecord Point(int x, int y) { }\nrecord Ligne(Point debut, Point fin) { }\n```\n\nUn **pattern imbriqué** (en anglais *nested pattern*) est un record pattern placé **à l'intérieur** d'un autre record pattern. Il permet de déconstruire en profondeur, d'un seul coup : la ligne, puis chacun de ses deux points, puis les coordonnées de chaque point.\n\n👉 C'est comme des poupées russes : tu ouvres la grande (la ligne) et, dans le même geste, tu ouvres aussi les petites à l'intérieur (les deux points), jusqu'à tenir chaque valeur dans la main."
         },
         {
+          "type": "IMAGE",
+          "title": "Un pattern imbrique ouvre le record et ceux qu'il contient d'un coup",
+          "body": "/images/lessons/patterns-imbriques-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Déconstruire en profondeur",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "record Point(int x, int y) { }\nrecord Ligne(Point debut, Point fin) { }\n\nstatic String decrire(Object obj) {\n    return switch (obj) {\n        // Pattern imbrique : on ouvre la Ligne ET ses deux Points d'un coup.\n        case Ligne(Point(var x1, var y1), Point(var x2, var y2)) ->\n            \"de (\" + x1 + \", \" + y1 + \") a (\" + x2 + \", \" + y2 + \")\";\n        default -> \"pas une ligne\";\n    };\n}\n\n// decrire(new Ligne(new Point(0, 0), new Point(3, 4)))\n// -> \"de (0, 0) a (3, 4)\""
         },
         {
           "type": "CONCEPT",
           "title": "On déconstruit juste ce dont on a besoin",
-          "position": 2,
+          "position": 3,
           "body": "Tu n'es pas forcé de descendre jusqu'au fond partout. Tu peux mélanger les niveaux : garder un composant entier avec un simple nom, et en déconstruire un autre.\n\nPar exemple `case Ligne(Point(var x1, var y1), var fin)` extrait les coordonnées du point de **début**, mais garde le point de **fin** entier dans la variable `fin` (de type `Point`). Tu choisis la profondeur selon ce que tu veux lire.\n\n👉 Tu ouvres seulement les poupées qui t'intéressent. Celles que tu laisses fermées restent disponibles en entier, prêtes à être ouvertes plus tard si besoin."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On ouvre seulement les niveaux de record qui nous interessent",
+          "body": "/images/lessons/patterns-imbriques-2.jpg",
+          "position": 4
         },
         {
           "type": "DIAGRAM",
           "title": "L'arbre d'un pattern imbriqué",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Ligne\"] --> B[\"Point debut\"]\n    A --> C[\"Point fin\"]\n    B --> D[\"var x1\"]\n    B --> E[\"var y1\"]\n    C --> F[\"var x2\"]\n    C --> G[\"var y2\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Écris le pattern imbriqué",
-          "position": 4,
+          "position": 6,
           "body": "On a record Point(int x, int y) { } et record Segment(Point a, Point b) { }. Écris une branche de switch qui, pour un Segment, récupère uniquement le x du point a et le y du point b, et renvoie leur somme. Les autres coordonnées ne t'intéressent pas.",
           "solution": "switch (obj) {\n    case Segment(Point(var xa, var ya), Point(var xb, var yb)) -> xa + yb;\n    default -> 0;\n}\n\nOn est oblige de nommer tous les composants a chaque niveau qu'on ouvre, donc yA et xB existent meme si on ne s'en sert pas. Astuce : on peut garder un point entier plutot que l'ouvrir, par exemple case Segment(Point(var xa, var ya), var b) -> xa + b.y(); si on prefere ne pas deconstruire le second point."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : patterns imbriqués",
-          "position": 5,
+          "position": 7,
           "quizRef": "record-patterns-patterns-imbriques"
         }
       ]
@@ -143,36 +185,48 @@
           "body": "Les record patterns ne sont pas réservés au switch : ils fonctionnent aussi avec **instanceof** (l'opérateur qui teste si un objet est d'un certain type). On écrit :\n\n```\nif (obj instanceof Point(int x, int y)) { ... }\n```\n\nSi `obj` est bien un `Point`, le test vaut vrai **et** les variables `x` et `y` sont créées, utilisables directement dans le bloc `if`. Plus besoin de `p.x()` ni de `p.y()`.\n\n👉 C'est le même déballage qu'au switch, mais dans une simple question oui/non : \"est ce un Point ? si oui, voici déjà son x et son y, entre et sers toi\"."
         },
         {
+          "type": "IMAGE",
+          "title": "Le record pattern fonctionne aussi dans un simple instanceof",
+          "body": "/images/lessons/dans-instanceof-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "instanceof avec déconstruction",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "record Point(int x, int y) { }\n\nstatic boolean estSurLaDiagonale(Object obj) {\n    // Si obj est un Point, x et y sont extraits et dispo dans le if.\n    if (obj instanceof Point(int x, int y)) {\n        return x == y; // on utilise x et y directement\n    }\n    return false;\n}\n\n// estSurLaDiagonale(new Point(5, 5)) -> true\n// estSurLaDiagonale(new Point(2, 7)) -> false\n// estSurLaDiagonale(\"salut\")         -> false"
         },
         {
           "type": "CONCEPT",
           "title": "Combiner avec des conditions",
-          "position": 2,
+          "position": 3,
           "body": "Comme avec le pattern de type, tu peux enchainer le test et des conditions avec `&&`. L'opérateur `&&` **court circuite** : si la partie de gauche est fausse, la droite n'est même pas évaluée.\n\nDonc dans `if (obj instanceof Point(int x, int y) && x == y)`, la condition `x == y` n'est testée que si `obj` est vraiment un `Point`. C'est sûr : on n'accède jamais à `x` et `y` quand ils n'existent pas.\n\n👉 On vérifie d'abord que la boite existe et qu'elle est ouverte, et seulement ensuite on regarde ce qu'il y a dedans. Jamais l'inverse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La condition n'est testee que si le type correspond deja",
+          "body": "/images/lessons/dans-instanceof-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Déconstruction imbriquée dans un if",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "record Point(int x, int y) { }\nrecord Ligne(Point debut, Point fin) { }\n\nstatic boolean estHorizontale(Object obj) {\n    // On deconstruit en profondeur directement dans le instanceof,\n    // puis on compare les deux ordonnees (y) avec &&.\n    if (obj instanceof Ligne(Point(var x1, var y1), Point(var x2, var y2))\n            && y1 == y2) {\n        return true; // meme y aux deux bouts -> ligne horizontale\n    }\n    return false;\n}\n\n// estHorizontale(new Ligne(new Point(0, 3), new Point(9, 3))) -> true"
         },
         {
           "type": "EXERCISE",
           "title": "Remplace l'ancien style",
-          "position": 4,
+          "position": 6,
           "body": "Réécris ce code avec un record pattern dans le instanceof. On a record Point(int x, int y) { }.\n\nif (obj instanceof Point p) {\n    if (p.x() == 0) {\n        System.out.println(\"sur l'axe vertical\");\n    }\n}",
           "solution": "if (obj instanceof Point(int x, int y) && x == 0) {\n    System.out.println(\"sur l'axe vertical\");\n}\n\nLe record pattern extrait x (et y) directement, et le && ne teste x == 0 que si obj est bien un Point. On passe de deux if imbriques et d'un appel p.x() a une seule ligne claire. On pourrait aussi ecrire Point(var x, var y)."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : dans instanceof",
-          "position": 5,
+          "position": 7,
           "quizRef": "record-patterns-dans-instanceof"
         }
       ]
@@ -189,36 +243,48 @@
           "body": "Les record patterns brillent quand on traite une **hiérarchie** : plusieurs types qui partagent un point commun. On déclare souvent une **interface scellée** (`sealed`), c'est à dire une interface qui liste de façon fermée ses seuls types autorisés.\n\nAvec `sealed`, le compilateur connait toutes les formes possibles. Le switch peut alors les traiter **toutes**, en déconstruisant chacune pour lire ses composants, sans avoir besoin d'un `default`.\n\n👉 C'est comme un trieur de courrier qui connait d'avance la liste exacte des types de colis : il peut prévoir une case par type, ouvrir chaque colis au passage, et être sûr de n'en oublier aucun."
         },
         {
+          "type": "IMAGE",
+          "title": "Le pattern matching clarifie le traitement d'une hierarchie de types",
+          "body": "/images/lessons/en-pratique-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Calculer l'aire de chaque forme",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "sealed interface Forme permits Cercle, Rectangle, Triangle { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Rectangle(double largeur, double hauteur) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\nstatic double aire(Forme forme) {\n    return switch (forme) {\n        // Chaque cas deconstruit le record et lit ses composants.\n        case Cercle(var rayon)            -> Math.PI * rayon * rayon;\n        case Rectangle(var l, var h)      -> l * h;\n        case Triangle(var base, var h)    -> (base * h) / 2;\n        // Pas de default : sealed garantit que tous les cas sont couverts.\n    };\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Déconstruire des évènements",
-          "position": 2,
+          "position": 3,
           "body": "Même idée pour une file d'**évènements** (des messages décrivant \"ce qui vient de se passer\"). Chaque évènement est un record portant ses propres données, et un switch les déconstruit pour réagir.\n\nL'avantage est double : on **choisit le bon traitement** selon le type d'évènement, et on **lit ses données** au même endroit, sans accesseur. Le code reste court et dit exactement ce qu'il fait.\n\n👉 Comme un standard téléphonique : selon le type d'appel (commande, réclamation, info), on route vers le bon service en ayant déjà sous les yeux les détails de l'appel."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un code plus court, aligne et verifie par le compilateur",
+          "body": "/images/lessons/en-pratique-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Router des évènements avec déconstruction",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "sealed interface Evenement permits Connexion, Message, Deconnexion { }\nrecord Connexion(String utilisateur) implements Evenement { }\nrecord Message(String utilisateur, String texte) implements Evenement { }\nrecord Deconnexion(String utilisateur) implements Evenement { }\n\nstatic String journaliser(Evenement e) {\n    return switch (e) {\n        case Connexion(var user)          -> user + \" s'est connecte\";\n        case Message(var user, var texte) -> user + \" dit : \" + texte;\n        case Deconnexion(var user)        -> user + \" est parti\";\n    };\n}"
         },
         {
           "type": "EXERCISE",
           "title": "Traite une petite hiérarchie",
-          "position": 4,
+          "position": 6,
           "body": "On a sealed interface Forme permits Cercle, Carre { }, record Cercle(double rayon) implements Forme { } et record Carre(double cote) implements Forme { }. Écris une méthode perimetre(Forme f) qui renvoie le périmètre, en déconstruisant chaque record. Rappel : périmètre du cercle = 2 * PI * rayon, périmètre du carré = 4 * cote.",
           "solution": "static double perimetre(Forme f) {\n    return switch (f) {\n        case Cercle(var rayon) -> 2 * Math.PI * rayon;\n        case Carre(var cote)   -> 4 * cote;\n    };\n}\n\nComme Forme est sealed et ne permet que Cercle et Carre, le switch est exhaustif : pas besoin de default, et si on ajoute une forme plus tard sans traiter son cas, le compilateur refusera de compiler. Chaque cas deconstruit le record pour lire son unique composant."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : en pratique",
-          "position": 5,
+          "position": 7,
           "quizRef": "record-patterns-en-pratique"
         }
       ]

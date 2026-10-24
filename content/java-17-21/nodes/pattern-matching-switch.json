@@ -13,43 +13,55 @@
           "body": "Le **pattern matching** (en francais \"filtrage par motif\") est une facon de dire a Java : \"regarde si cet objet a telle forme, et si oui, donne le moi deja pret a l'emploi\". Un **motif** (*pattern*), c'est justement cette forme qu'on teste, par exemple \"est ce un texte ?\".\n\nTu connais peut etre deja le pattern matching pour `instanceof`. Le mot `instanceof` sert a demander : \"cet objet est il de tel type ?\". Avant, quand la reponse etait oui, il fallait encore **convertir** l'objet a la main (on appelle ca un *cast*, c'est a dire forcer Java a traiter l'objet comme le type voulu). Depuis Java 16, `instanceof` peut declarer une variable deja convertie dans la foulee.\n\n👉 C'est comme un videur qui verifie ta carte a l'entree : au lieu de dire juste \"oui c'est bien une carte\" et te laisser la ressortir toi meme de ta poche, il te la rend directement dans la main, prete a servir."
         },
         {
+          "type": "IMAGE",
+          "title": "Le pattern matching teste la forme et rend l'objet pret a l'emploi",
+          "body": "/images/lessons/du-instanceof-au-switch-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Avant et apres le pattern matching pour instanceof",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// AVANT (style ancien) : on teste, PUIS on convertit a la main.\nObject obj = \"bonjour\";\nif (obj instanceof String) {\n    String s = (String) obj;   // cast manuel, repetitif\n    System.out.println(s.length());\n}\n\n// APRES (pattern matching pour instanceof, Java 16+) :\n// 's' est declaree ET deja convertie si le test reussit.\nif (obj instanceof String s) {\n    System.out.println(s.length()); // on utilise 's' directement\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi vouloir la meme chose dans un switch",
-          "position": 2,
+          "position": 3,
           "body": "Quand on doit reagir differemment selon le type reel d'un objet, on finit souvent par ecrire une **cascade** de `if / else if` avec plein de `instanceof`. Une cascade, c'est une longue suite de tests enchaines ou chaque `else if` regarde un type possible.\n\nCa fonctionne, mais ca devient vite illisible : les conditions s'empilent, l'ordre compte, et on peut oublier un cas sans que personne ne s'en apercoive.\n\n👉 Imagine un standard telephonique qui, pour chaque appel, pose quinze questions a la suite (\"c'est pour les ventes ? non... c'est pour le SAV ? non...\"). Un `switch` fait le meme travail comme un **aiguillage** : il regarde la forme et t'envoie directement sur la bonne voie. Java 21 permet justement d'utiliser le pattern matching dans un `switch`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le switch agit comme un aiguillage qui envoie chaque cas sur la bonne voie",
+          "body": "/images/lessons/du-instanceof-au-switch-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "La cascade de if que l'on veut remplacer",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "// Une cascade typique : fonctionnelle, mais lourde et facile a rater.\nstatic String decrire(Object obj) {\n    if (obj instanceof Integer i) {\n        return \"un entier : \" + i;\n    } else if (obj instanceof String s) {\n        return \"un texte de \" + s.length() + \" caracteres\";\n    } else if (obj instanceof Double d) {\n        return \"un decimal : \" + d;\n    } else {\n        return \"type inconnu\";\n    }\n}\n// Dans les prochaines lecons, on reecrit ca avec un switch, bien plus clair."
         },
         {
           "type": "DIAGRAM",
           "title": "La cascade de if contre l'aiguillage du switch",
-          "position": 4,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    O[\"Un objet de type inconnu\"] --> Q1{\"instanceof Integer ?\"}\n    Q1 -- non --> Q2{\"instanceof String ?\"}\n    Q2 -- non --> Q3{\"instanceof Double ?\"}\n    Q3 -- non --> DEF[\"cas par defaut\"]\n    Q1 -- oui --> RI[\"traiter l'entier\"]\n    Q2 -- oui --> RS[\"traiter le texte\"]\n    Q3 -- oui --> RD[\"traiter le decimal\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Repere les casts manuels",
-          "position": 5,
+          "position": 7,
           "body": "Dans la methode decrire ecrite en cascade plus haut, combien de casts manuels de style (String) obj y a t il grace au pattern matching ? Et dans la version ancienne (celle tout en haut, avant Java 16), combien y en aurait il ?",
           "solution": "Dans la version en cascade avec pattern matching, il y a zero cast manuel : chaque instanceof Type variable fournit deja la variable convertie (i, s, d). Dans la version ancienne (style pre Java 16), il faudrait un cast manuel par branche, soit trois casts : (Integer) obj, (String) obj et (Double) obj, chacun recopie apres son test. C'est exactement cette repetition que le pattern matching supprime, et que le switch va rendre encore plus lisible."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : du instanceof au switch",
-          "position": 6,
+          "position": 8,
           "quizRef": "pattern-matching-switch-du-instanceof-au-switch"
         }
       ]
@@ -66,35 +78,53 @@
           "body": "Dans un `switch`, une branche s'ecrit avec le mot cle `case`. Jusqu'ici, un `case` ne pouvait comparer qu'a une valeur fixe (un nombre, une chaine). Java 21 permet un **type pattern** (\"motif de type\") : `case Type variable`. Il se lit \"si l'objet est de ce type, range le dans cette variable deja convertie\".\n\nLa forme est `case Integer i -> ...`. La fleche `->` separe la condition de ce qu'on fait quand elle est vraie. On l'ecrit avec le signe inferieur a et le tiret du clavier.\n\n👉 Pense a un centre de tri postal : chaque `case` est un casier etiquete par une forme de colis. Un colis arrive, on regarde sa forme, et on le depose dans le bon casier, deja ouvert et pret."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaque case est un casier etiquete qui recoit le bon type d'objet",
+          "body": "/images/lessons/brancher-selon-le-type-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Le meme comportement, mais en switch",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// La cascade de la lecon precedente, reecrite en switch sur le type.\nstatic String decrire(Object obj) {\n    return switch (obj) {\n        case Integer i -> \"un entier : \" + i;\n        case String s  -> \"un texte de \" + s.length() + \" caracteres\";\n        case Double d   -> \"un decimal : \" + d;\n        default         -> \"type inconnu\";\n    };\n}\n// Plus court, aligne, et chaque forme saute aux yeux."
         },
         {
           "type": "CONCEPT",
           "title": "Switch expression : il renvoie une valeur",
-          "position": 2,
+          "position": 3,
           "body": "Remarque le `return switch (...)` : ici le `switch` est une **expression**, c'est a dire qu'il **produit une valeur** qu'on peut renvoyer ou ranger dans une variable. C'est different du vieux `switch` instruction, qui ne faisait qu'executer des blocs.\n\nAvec la fleche `->`, chaque branche fournit directement son resultat. Et bonne nouvelle : avec `->`, pas de **fall-through**. Le fall-through est le piege de l'ancien `switch` ou, si on oubliait `break`, l'execution \"debordait\" sur la branche suivante.\n\n👉 Chaque branche avec `->` est une boite fermee : elle fait son travail et s'arrete la, sans deborder sur la voisine."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le switch expression produit directement une valeur a renvoyer",
+          "body": "/images/lessons/brancher-selon-le-type-2.jpg",
+          "position": 4
         },
         {
           "type": "CONCEPT",
           "title": "L'ordre des cases compte",
-          "position": 3,
+          "position": 5,
           "body": "Les branches sont examinees **de haut en bas**, et la premiere qui correspond gagne. Si un type est plus general qu'un autre (par exemple `Object` englobe tout), le mettre trop haut masquerait les cas plus precis ecrits en dessous.\n\nHeureusement, Java t'aide : si un `case` ne pourra jamais etre atteint parce qu'un `case` plus haut l'absorbe deja, le code **ne compile pas**. Tu es prevenu tout de suite.\n\n👉 C'est comme trier des pieces avec des tamis empiles : il faut mettre les mailles fines en haut. Si tu mets le tamis a grosses mailles en premier, tout tombe trop tot et les tamis du dessous ne servent a rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les branches sont lues de haut en bas, la premiere qui correspond gagne",
+          "body": "/images/lessons/brancher-selon-le-type-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Ecris ton premier switch de type",
-          "position": 4,
+          "position": 7,
           "body": "Ecris une methode String typeDe(Object obj) qui renvoie \"booleen\" si obj est un Boolean, \"liste\" si c'est une java.util.List, et \"autre\" sinon. Utilise un switch avec des type patterns et la fleche.",
           "solution": "static String typeDe(Object obj) {\n    return switch (obj) {\n        case Boolean b -> \"booleen\";\n        case java.util.List<?> liste -> \"liste\";\n        default -> \"autre\";\n    };\n}\n\n// Chaque case teste un type et fournit la variable convertie (b, liste).\n// Le default attrape tout le reste. Avec la fleche, pas de break a ecrire."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : brancher selon le type",
-          "position": 5,
+          "position": 8,
           "quizRef": "pattern-matching-switch-brancher-selon-le-type"
         }
       ]
@@ -111,35 +141,53 @@
           "body": "Parfois, connaitre le type ne suffit pas : on veut aussi tester une **condition** sur la valeur. Par exemple, distinguer un entier positif d'un entier negatif, alors que les deux sont des `Integer`.\n\nPour ca, on ajoute une **garde** (en anglais *guard*) avec le mot cle `when`. Une garde est une condition booleenne qui vient apres le motif : la branche n'est choisie que si le type **correspond** ET que la condition est **vraie**.\n\n👉 Pense a un controle a l'aeroport : avoir un billet (le bon type) ne suffit pas, il faut aussi que ton vol soit bien celui du jour (la condition `when`). Les deux doivent etre vrais pour passer."
         },
         {
+          "type": "IMAGE",
+          "title": "La garde when ajoute une condition a verifier en plus du type",
+          "body": "/images/lessons/les-gardes-when-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Des gardes when sur un meme type",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// Plusieurs branches sur Integer, departagees par des gardes when.\nstatic String signe(Object obj) {\n    return switch (obj) {\n        case Integer i when i > 0  -> \"entier positif : \" + i;\n        case Integer i when i < 0  -> \"entier negatif : \" + i;\n        case Integer i             -> \"entier nul (zero)\";\n        default                    -> \"pas un entier\";\n    };\n}\n// signe(7) -> \"entier positif : 7\"\n// signe(-3) -> \"entier negatif : -3\"\n// signe(0) -> \"entier nul (zero)\""
         },
         {
           "type": "CONCEPT",
           "title": "L'ordre des gardes est crucial",
-          "position": 2,
+          "position": 3,
           "body": "Les branches gardees sont testees **dans l'ordre**, de haut en bas. Il faut donc placer les conditions les plus **specifiques** avant les plus generales.\n\nDans l'exemple precedent, le `case Integer i` sans garde doit venir **en dernier** parmi les Integer : place en premier, il attraperait tous les entiers et les deux branches `when` ne serviraient jamais (Java refuserait de compiler un `case` devenu inatteignable).\n\n👉 C'est comme des questions dans un formulaire : on demande d'abord le cas particulier (\"avez vous moins de 12 ans ?\") avant le cas general (\"etes vous un adulte ?\"). Dans l'autre sens, la case generale cocherait tout le monde."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On place les conditions les plus specifiques avant les plus generales",
+          "body": "/images/lessons/les-gardes-when-2.jpg",
+          "position": 4
         },
         {
           "type": "CONCEPT",
           "title": "Une garde non remplie n'arrete pas la recherche",
-          "position": 3,
+          "position": 5,
           "body": "Point important : si le type correspond mais que la garde `when` est **fausse**, le `switch` ne s'arrete pas la. Il continue a examiner les branches suivantes pour en trouver une qui convient.\n\nCela veut dire qu'un type peut apparaitre dans plusieurs `case` avec des gardes differentes, et chaque valeur tombera dans la premiere branche dont le type ET la garde sont satisfaits.\n\n👉 Comme un trieur qui, voyant que ton colis ne rentre pas dans le premier casier \"fragile et leger\", le presente au casier suivant \"fragile et lourd\" au lieu de le jeter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Si la garde est fausse, le switch continue vers la branche suivante",
+          "body": "/images/lessons/les-gardes-when-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Classe une temperature",
-          "position": 4,
+          "position": 7,
           "body": "Ecris String meteo(Object obj) : si obj est un Integer representant des degres, renvoie \"gel\" quand il est strictement inferieur a 0, \"chaud\" quand il depasse 30, et \"doux\" sinon. Pour tout autre type, renvoie \"donnee invalide\".",
           "solution": "static String meteo(Object obj) {\n    return switch (obj) {\n        case Integer t when t < 0  -> \"gel\";\n        case Integer t when t > 30 -> \"chaud\";\n        case Integer t             -> \"doux\";\n        default                    -> \"donnee invalide\";\n    };\n}\n\n// Les deux gardes (t < 0, t > 30) viennent avant le case Integer sans garde,\n// qui attrape les temperatures restantes entre 0 et 30 inclus."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : les gardes when",
-          "position": 5,
+          "position": 8,
           "quizRef": "pattern-matching-switch-les-gardes-when"
         }
       ]
@@ -156,42 +204,60 @@
           "body": "En Java, une variable qui ne pointe sur aucun objet vaut `null`. C'est l'absence de valeur, le \"rien\". Un `null` qui traine est une source classique de plantages.\n\nHistoriquement, passer `null` a un `switch` **declenchait une erreur** : une `NullPointerException` (abregee NPE), l'exception levee quand on essaie d'utiliser un objet qui est en fait `null`. Il fallait donc penser a tester `null` avec un `if` **avant** le `switch`, ce qu'on oubliait facilement.\n\n👉 C'est comme une machine qui refuse violemment une enveloppe vide au lieu de simplement la mettre de cote : avant, le `switch` paniquait des qu'il voyait `null`."
         },
         {
+          "type": "IMAGE",
+          "title": "Un null non gere faisait planter le switch avec une erreur",
+          "body": "/images/lessons/l-etiquette-null-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "La solution : case null",
-          "position": 1,
+          "position": 2,
           "body": "Avec le pattern matching pour `switch` (Java 21), on peut ecrire une branche `case null`. Elle attrape proprement le cas ou l'objet est `null`, directement dans le `switch`, sans `if` prealable.\n\nOn peut aussi combiner avec le cas par defaut en ecrivant `case null, default` sur la meme ligne : null et toutes les autres valeurs non traitees partent alors vers le meme comportement.\n\n👉 `case null` ajoute enfin un casier etiquete \"enveloppe vide\" : au lieu de paniquer, le tri sait exactement quoi faire du rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "case null ajoute un casier dedie a l'absence de valeur",
+          "body": "/images/lessons/l-etiquette-null-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Gerer null, puis la variante case null, default",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Variante 1 : null a son propre traitement, distinct du default.\nstatic String longueur(String s) {\n    return switch (s) {\n        case null       -> \"aucune chaine (null)\";\n        case \"\"         -> \"chaine vide\";\n        default         -> s.length() + \" caracteres\";\n    };\n}\n\n// Variante 2 : null et le reste partagent le meme comportement.\nstatic String etiquette(Object obj) {\n    return switch (obj) {\n        case Integer i      -> \"entier : \" + i;\n        case String s       -> \"texte : \" + s;\n        case null, default  -> \"ni entier ni texte (ou null)\";\n    };\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "Le chemin d'une valeur null dans le switch",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    V[\"Valeur entrant dans le switch\"] --> T{\"La valeur est elle null ?\"}\n    T -- oui, et il existe case null --> CN[\"branche case null\"]\n    T -- oui, mais aucun case null --> EX[\"NullPointerException\"]\n    T -- non --> M[\"on teste les motifs de type\"]\n    M --> OK[\"premiere branche qui correspond\"]\n    M --> D[\"sinon : default\"]"
         },
         {
           "type": "CONCEPT",
           "title": "Sans case null, le comportement reste l'ancien",
-          "position": 4,
+          "position": 6,
           "body": "Attention : ajouter le pattern matching ne rend pas `null` magiquement sans danger. Si ton `switch` **n'a pas** de `case null` (ni de `case null, default`), alors une valeur `null` provoque toujours une `NullPointerException`, comme avant.\n\nLa regle est simple : tu ne gagnes la gestion propre de `null` que si tu l'ecris explicitement. Le `default` seul, sans `null` a cote, n'attrape pas `null`.\n\n👉 Le casier \"enveloppe vide\" n'existe que si tu le poses toi meme. Sinon, la machine panique encore devant le vide."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sans case null explicite, un null provoque toujours une erreur",
+          "body": "/images/lessons/l-etiquette-null-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Securise un switch contre null",
-          "position": 5,
+          "position": 8,
           "body": "Soit un switch sur un Object qui renvoie \"nombre\" pour un Integer et \"autre\" en default. Un collegue dit : \"le default attrapera null, on est tranquille\". A t il raison ? Corrige le switch pour que null renvoie \"valeur absente\".",
           "solution": "Non, il a tort : un default seul n'attrape PAS null, donc null leverait une NullPointerException. Il faut une branche null explicite :\n\nstatic String classer(Object obj) {\n    return switch (obj) {\n        case null      -> \"valeur absente\";\n        case Integer i -> \"nombre\";\n        default        -> \"autre\";\n    };\n}\n\n// Maintenant null tombe dans case null et renvoie \"valeur absente\" sans planter."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : l'etiquette null",
-          "position": 6,
+          "position": 9,
           "quizRef": "pattern-matching-switch-l-etiquette-null"
         }
       ]
@@ -208,41 +274,65 @@
           "body": "Un `switch` est **exhaustif** quand ses branches couvrent **tous les cas possibles** de la valeur testee. \"Exhaustif\" veut dire \"qui n'oublie rien\".\n\nComme un `switch` expression doit toujours produire une valeur, Java exige qu'il soit exhaustif : il faut qu'une branche s'applique quoi qu'il arrive. Sinon, le code **ne compile pas**.\n\n👉 C'est comme une liste de reponses a un questionnaire : si une seule reponse possible n'a pas de case a cocher, le formulaire est invalide. Java refuse les trous."
         },
         {
+          "type": "IMAGE",
+          "title": "Un switch exhaustif couvre tous les cas possibles sans en oublier",
+          "body": "/images/lessons/exhaustivite-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Les types scelles : un ensemble ferme de cas",
-          "position": 1,
+          "position": 2,
           "body": "Un **type scelle** (en anglais *sealed type*) est un type qui declare **la liste exacte** des sous types autorises a l'etendre, avec le mot cle `sealed` et une clause `permits`. Personne d'autre ne peut s'y ajouter.\n\nComme la liste est fermee et connue a la compilation, le compilateur sait **tous** les cas possibles. Un `switch` qui traite chacun de ces sous types est alors reconnu comme exhaustif, **souvent sans avoir besoin d'un `default`**.\n\n👉 Un type scelle, c'est un menu a prix fixe : les plats possibles sont imprimes une fois pour toutes. Le serveur (le compilateur) peut verifier d'un coup d'oeil que tu as bien prevu une reponse pour chaque plat de la carte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un type scelle liste une fois pour toutes les sous types autorises",
+          "body": "/images/lessons/exhaustivite-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un switch exhaustif sur un type scelle, sans default",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Hierarchie scellee : les seules formes possibles sont Cercle, Carre, Triangle.\nsealed interface Forme permits Cercle, Carre, Triangle { }\nrecord Cercle(double rayon) implements Forme { }\nrecord Carre(double cote) implements Forme { }\nrecord Triangle(double base, double hauteur) implements Forme { }\n\nstatic double aire(Forme f) {\n    // Pas de default : les trois cas couvrent TOUT l'ensemble scelle.\n    return switch (f) {\n        case Cercle c   -> Math.PI * c.rayon() * c.rayon();\n        case Carre ca   -> ca.cote() * ca.cote();\n        case Triangle t -> (t.base() * t.hauteur()) / 2;\n    };\n}"
         },
         {
           "type": "CONCEPT",
           "title": "L'exhaustivite est verifiee a la compilation",
-          "position": 3,
+          "position": 5,
           "body": "Le grand avantage arrive **le jour ou tu ajoutes un cas**. Si demain tu ajoutes `Losange` a la clause `permits` de `Forme`, tous les `switch` qui ne le traitent pas **cesseront de compiler**.\n\nC'est un filet de securite enorme : l'erreur apparait tout de suite, a la compilation, et non des mois plus tard en production sous forme de bug silencieux. Tu es force de mettre a jour chaque `switch` concerne.\n\n👉 C'est comme un sommaire qui refuse de se refermer tant qu'un nouveau chapitre n'a pas sa ligne : impossible d'oublier de le referencer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un cas oublie casse la compilation, un vrai filet de securite",
+          "body": "/images/lessons/exhaustivite-3.jpg",
+          "position": 6
         },
         {
           "type": "CONCEPT",
           "title": "Default : utile, mais a manier avec soin",
-          "position": 4,
+          "position": 7,
           "body": "Tu peux toujours ajouter un `default` a un `switch` sur un type scelle. Mais attention : un `default` attrape automatiquement tout cas futur, donc le compilateur **ne t'avertira plus** quand tu oublieras de traiter un nouveau sous type.\n\nPour un type scelle dont tu veux suivre chaque evolution, il est souvent **preferable de ne pas mettre de `default`** et de lister chaque cas : tu conserves ainsi le controle a la compilation.\n\n👉 Le `default` est un fourre tout bien pratique, mais pour un menu a prix fixe que tu veux garder a jour, mieux vaut une ligne par plat qu'un \"et tout le reste\" qui masque les nouveautes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le default attrape tout cas futur et masque les nouveaux sous types",
+          "body": "/images/lessons/exhaustivite-4.jpg",
+          "position": 8
         },
         {
           "type": "EXERCISE",
           "title": "Anticipe l'erreur de compilation",
-          "position": 5,
+          "position": 9,
           "body": "On reprend sealed interface Forme permits Cercle, Carre, Triangle et la methode aire sans default. Un developpeur ajoute record Losange(double d1, double d2) implements Forme et l'ajoute a permits. Que se passe t il au prochain compile de aire, et pourquoi est ce une bonne nouvelle ?",
           "solution": "Le switch de aire ne compile plus : il n'est plus exhaustif car Losange n'est traite par aucun case et il n'y a pas de default. Le compilateur signale l'erreur immediatement. C'est une bonne nouvelle : au lieu d'un bug silencieux en production (une aire fausse ou une exception a l'execution), on est force, des la compilation, d'ajouter case Losange l -> ... C'est tout l'interet d'un type scelle sans default."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : exhaustivite",
-          "position": 6,
+          "position": 10,
           "quizRef": "pattern-matching-switch-exhaustivite"
         }
       ]
@@ -259,43 +349,55 @@
           "body": "Mettons tout bout a bout. Le cas le plus courant ou le pattern matching pour `switch` brille, c'est quand tu trouves dans du code une longue **cascade** de `if (x instanceof A a) { ... } else if (x instanceof B b) { ... }`.\n\nCette cascade est un signal : un `switch` fera le meme travail de facon plus courte, plus lisible, et surtout verifiable par le compilateur si le type est scelle.\n\n👉 Quand tu vois trois `instanceof` ou plus qui s'enchainent pour distinguer des types, dis toi : \"ca, c'est un switch qui s'ignore\"."
         },
         {
+          "type": "IMAGE",
+          "title": "Le pattern matching clarifie le traitement d'une hierarchie de types",
+          "body": "/images/lessons/en-pratique-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Avant : la cascade de if/else instanceof",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "sealed interface Paiement permits Carte, Especes, Virement { }\nrecord Carte(String numero) implements Paiement { }\nrecord Especes(double montant) implements Paiement { }\nrecord Virement(String iban) implements Paiement { }\n\n// Version cascade : lourde, et aucun controle d'exhaustivite.\nstatic String libelle(Paiement p) {\n    if (p instanceof Carte c) {\n        return \"Carte se terminant par \" + c.numero();\n    } else if (p instanceof Especes e) {\n        return \"Especes : \" + e.montant() + \" euros\";\n    } else if (p instanceof Virement v) {\n        return \"Virement vers \" + v.iban();\n    }\n    // On est oblige de rajouter ce return \"au cas ou\", meme s'il est inutile.\n    throw new IllegalStateException(\"paiement inconnu\");\n}"
         },
         {
           "type": "CODE",
           "title": "Apres : le switch exhaustif, avec garde et null",
-          "position": 2,
+          "position": 3,
           "codeLanguage": "java",
           "body": "// Version switch : concise, exhaustive (type scelle), null gere proprement.\nstatic String libelle(Paiement p) {\n    return switch (p) {\n        case null                       -> \"aucun paiement\";\n        case Carte c                    -> \"Carte se terminant par \" + c.numero();\n        case Especes e when e.montant() > 1000 -> \"Gros paiement especes a verifier\";\n        case Especes e                  -> \"Especes : \" + e.montant() + \" euros\";\n        case Virement v                 -> \"Virement vers \" + v.iban();\n    };\n}\n// Pas de default : si on ajoute un type a Paiement, ce switch ne compilera plus.\n// La garde when departage les gros paiements especes des petits."
         },
         {
           "type": "CONCEPT",
           "title": "Ce qu'on a gagne",
-          "position": 3,
+          "position": 4,
           "body": "En passant de la cascade au `switch`, on a gagne sur quatre points : le code est **plus court** ; chaque forme est **alignee** et saute aux yeux ; `null` est traite **explicitement** par `case null` ; et surtout, grace au type scelle sans `default`, l'**exhaustivite est verifiee a la compilation**.\n\nRappel important : tout ceci est une fonctionnalite **stable de Java 21** (apportee par la JEP 441). Tu peux l'utiliser en production sans activer aucune option d'apercu.\n\n👉 Tu as transforme une suite de questions fragiles en un aiguillage clair et surveille : le compilateur devient ton garde fou."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un code plus court, aligne et verifie par le compilateur",
+          "body": "/images/lessons/en-pratique-2.jpg",
+          "position": 5
         },
         {
           "type": "DIAGRAM",
           "title": "Reconnaitre les ingredients dans un switch",
-          "position": 4,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    S[\"switch sur un type scelle\"] --> N[\"case null : gere l'absence de valeur\"]\n    S --> T[\"case Type variable : branche selon le type reel\"]\n    T --> G[\"when condition : affine selon la valeur\"]\n    S --> E{\"Tous les sous types couverts ?\"}\n    E -- oui --> OK[\"compile : exhaustif, souvent sans default\"]\n    E -- non --> KO[\"erreur de compilation\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Transforme la cascade",
-          "position": 5,
+          "position": 7,
           "body": "Soit sealed interface Notification permits Email, Sms et les records Email(String adresse) et Sms(String numero). Il existe une cascade if/else instanceof qui renvoie \"mail vers X\" ou \"sms vers Y\". Reecris la en switch exhaustif, sans default, en ajoutant case null qui renvoie \"notification vide\".",
           "solution": "static String envoyer(Notification n) {\n    return switch (n) {\n        case null       -> \"notification vide\";\n        case Email e    -> \"mail vers \" + e.adresse();\n        case Sms s      -> \"sms vers \" + s.numero();\n    };\n}\n\n// Pas de default : les deux sous types scelles Email et Sms couvrent tout,\n// donc le switch est exhaustif et verifie a la compilation. case null gere l'absence."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : en pratique",
-          "position": 6,
+          "position": 8,
           "quizRef": "pattern-matching-switch-en-pratique"
         }
       ]

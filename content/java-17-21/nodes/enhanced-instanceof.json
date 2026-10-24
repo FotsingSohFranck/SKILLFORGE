@@ -13,35 +13,53 @@
           "body": "En Java, une variable peut être déclarée avec un type général (par exemple `Object`, qui est le type parent de tous les objets) alors qu'au fond elle contient quelque chose de plus précis, comme une `String` (une chaine de caractères, c'est à dire du texte).\n\nPour savoir ce qu'elle contient vraiment, on utilise l'opérateur `instanceof` : il pose la question \"cet objet est il de tel type ?\" et répond par vrai ou faux. Le mot vient de l'anglais *instance of*, littéralement \"instance de\".\n\n👉 Imagine un colis étiqueté juste \"objet\". Avant de l'ouvrir, tu vérifies : \"est ce bien un livre ?\" C'est exactement ce que fait `instanceof`.\n\nMais une fois le test réussi, Java ne te laisse pas encore utiliser l'objet comme une `String` : tu dois le lui dire explicitement."
         },
         {
+          "type": "IMAGE",
+          "title": "Un colis étiqueté : vérifier ce qu'il contient avant de l'ouvrir",
+          "body": "/images/lessons/le-probleme-du-cast-repetitif-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le transtypage (cast) : forcer le type",
-          "position": 1,
+          "position": 2,
           "body": "Le **transtypage**, ou **cast** en anglais, consiste à dire au compilateur : \"je sais que cet objet est en réalité une `String`, traite le comme tel\". On l'écrit en plaçant le type voulu entre parenthèses devant la variable : `(String) o`.\n\n👉 C'est comme recoller sur le colis une étiquette plus précise \"livre\" une fois que tu as vérifié : à partir de là, tu peux le ranger sur l'étagère des livres.\n\nLe souci de l'ancienne façon de faire : on écrit le type DEUX fois. Une fois dans le test `instanceof`, une fois dans le cast. On se répète, et c'est une source d'erreurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Recoller une étiquette précise : traiter l'objet selon son vrai type",
+          "body": "/images/lessons/le-probleme-du-cast-repetitif-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "L'ancien schéma : tester puis caster",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// o est déclaré comme Object : on ne sait pas encore ce qu'il contient.\nObject o = \"bonjour\";\n\n// 1. On teste le type avec instanceof.\nif (o instanceof String) {\n    // 2. Le test a réussi, mais o est toujours vu comme un Object ici.\n    //    Il faut le TRANSTYPER (cast) pour pouvoir l'utiliser comme une String.\n    String s = (String) o;\n\n    // 3. Maintenant seulement, on peut appeler les méthodes de String.\n    System.out.println(s.length()); // 7\n}\n\n// On a écrit le mot String TROIS fois pour une seule intention."
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi cette répétition pose problème",
-          "position": 3,
+          "position": 5,
           "body": "Répéter le type n'est pas qu'une question de lignes en trop. C'est surtout risqué :\n\n- Si tu testes `instanceof String` mais que tu castes par erreur en `(Integer) o`, le code compile parfois mais plante à l'exécution avec une `ClassCastException` (l'erreur \"mauvais transtypage\").\n- Quand on change un type, il faut penser à le changer aux deux endroits.\n- La ligne de cast n'apporte aucune information nouvelle : elle redit ce que le test vient de prouver.\n\n👉 C'est comme devoir réécrire ton nom sur un formulaire juste en dessous de la case où tu viens déjà de l'écrire. Java 16 a introduit une façon d'écrire la même chose en une seule étape, et c'est l'objet de ce parcours."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Réécrire deux fois la même chose : une répétition inutile et risquée",
+          "body": "/images/lessons/le-probleme-du-cast-repetitif-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Compte les répétitions",
-          "position": 4,
+          "position": 7,
           "body": "Dans le bloc suivant, combien de fois le type `Integer` est il écrit, et lesquelles de ces occurrences sont vraiment nécessaires ?\n\nObject o = 42;\nif (o instanceof Integer) {\n    Integer n = (Integer) o;\n    System.out.println(n + 1);\n}",
           "solution": "Le type Integer est écrit trois fois : dans le test instanceof Integer, dans le cast (Integer) o, et dans la déclaration Integer n. Le test est nécessaire (on veut vérifier le type). Mais le cast (Integer) o ne fait que redire ce que le test vient de prouver : c'est la répétition que l'on cherche à supprimer. La déclaration du type de n pourrait d'ailleurs s'écrire var n pour l'alléger."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le problème du cast répétitif",
-          "position": 5,
+          "position": 8,
           "quizRef": "enhanced-instanceof-le-probleme-du-cast-repetitif"
         }
       ]
@@ -58,43 +76,55 @@
           "body": "Le **pattern matching** (en français \"filtrage par motif\") est une façon de programmer où l'on décrit la **forme** que doit avoir une donnée, et le langage vérifie d'un coup si la donnée correspond ET en extrait les parties utiles.\n\nUn **pattern** (motif) est justement cette description. Le plus simple est le **pattern de type** (*type pattern*) : il s'écrit avec un type suivi d'un nom de variable, par exemple `String s`.\n\n👉 Pense à un tamis à la forme d'une étoile : tu verses des pièces dessus, seules les pièces en étoile passent, et elles tombent déjà triées dans le bon bac. Le pattern teste la forme et range le résultat en une seule opération."
         },
         {
+          "type": "IMAGE",
+          "title": "Un tamis qui trie en une passe : tester la forme et ranger le résultat",
+          "body": "/images/lessons/le-pattern-de-type-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "instanceof amélioré : tester ET nommer",
-          "position": 1,
+          "position": 2,
           "body": "Depuis Java 16, tu peux écrire un pattern de type directement après `instanceof`. La variable qui suit le type s'appelle la **variable de pattern** (*pattern variable*).\n\nSi l'objet est bien du bon type, deux choses se produisent en même temps : le test renvoie vrai, ET la variable de pattern reçoit déjà l'objet transtypé, prêt à l'emploi. Plus besoin d'écrire la ligne de cast.\n\n👉 Au lieu de dire \"est ce une String ? si oui, range la dans s\" en deux phrases, tu le dis en une : `o instanceof String s`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tester et nommer en un seul geste, sans ligne de cast",
+          "body": "/images/lessons/le-pattern-de-type-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "La forme moderne, en une étape",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "Object o = \"bonjour\";\n\n// o instanceof String s :\n//   - teste si o est une String\n//   - si oui, crée la variable s déjà typée String et déjà remplie avec o\nif (o instanceof String s) {\n    // Pas de cast, pas de redite : s est utilisable tout de suite.\n    System.out.println(s.length()); // 7\n}\n\n// Le type String n'apparait plus qu'une seule fois. Intention claire, zero cast."
         },
         {
           "type": "CODE",
           "title": "Avant et après, côte à côte",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "// AVANT (Java classique) : test, puis cast redondant.\nif (o instanceof String) {\n    String s = (String) o;\n    System.out.println(s.toUpperCase());\n}\n\n// APRÈS (pattern de type) : test et variable en une seule fois.\nif (o instanceof String s) {\n    System.out.println(s.toUpperCase());\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "Ce que fait o instanceof String s",
-          "position": 4,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"o instanceof String s\"] --> B{\"o est il une String ?\"}\n    B -->|\"oui\"| C[\"la variable s recoit o deja typee String\"]\n    C --> D[\"le test vaut vrai, on entre dans le bloc\"]\n    B -->|\"non\"| E[\"le test vaut faux, s n'existe pas\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Réécris en pattern de type",
-          "position": 5,
+          "position": 7,
           "body": "Réécris ce bloc avec un pattern de type pour supprimer le cast.\n\nObject o = ...;\nif (o instanceof Integer) {\n    Integer n = (Integer) o;\n    System.out.println(n * 2);\n}",
           "solution": "if (o instanceof Integer n) {\n    System.out.println(n * 2);\n}\n\nLe pattern Integer n teste le type et déclare en même temps la variable n, déjà transtypée en Integer. La ligne de cast Integer n = (Integer) o disparait, et le type Integer n'est écrit qu'une seule fois."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le pattern de type",
-          "position": 6,
+          "position": 8,
           "quizRef": "enhanced-instanceof-le-pattern-de-type"
         }
       ]
@@ -111,49 +141,67 @@
           "body": "La **portée** (en anglais *scope*) d'une variable, c'est la zone du code où cette variable existe et où tu as le droit de l'utiliser. En dehors de sa portée, la variable est inconnue et le code ne compile pas.\n\n👉 Pense à un badge d'accès valable seulement dans certaines salles : dans la bonne salle il ouvre les portes, ailleurs il ne sert à rien. La portée d'une variable, c'est l'ensemble des salles où son badge fonctionne.\n\nPour la variable de pattern de `instanceof`, la portée a une particularité astucieuse qu'on appelle le flow scoping."
         },
         {
+          "type": "IMAGE",
+          "title": "Un badge d'accès : la variable n'existe que dans sa zone autorisée",
+          "body": "/images/lessons/la-portee-de-la-variable-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le flow scoping : la portée suit la logique",
-          "position": 1,
+          "position": 2,
           "body": "Le **flow scoping** (que l'on peut traduire par \"portée selon le flux d'exécution\") veut dire que la variable de pattern existe exactement là où le compilateur est certain que le test a réussi.\n\nDans un `if (o instanceof String s)`, c'est simple : `s` existe à l'intérieur des accolades du `if`, puisqu'on n'y entre que si le test est vrai.\n\n👉 Le badge n'est actif que dans la pièce où l'on sait que tu as montré patte blanche. Tant que la condition est vérifiée, `s` est utilisable ; dès que ce n'est plus garanti, elle disparait."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La portée suit la logique : active seulement là où le test a réussi",
+          "body": "/images/lessons/la-portee-de-la-variable-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "La variable vit dans le bloc du if",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "Object o = \"salut\";\n\nif (o instanceof String s) {\n    // Ici s existe : le test a forcément réussi pour entrer ici.\n    System.out.println(s.length());\n}\n\n// Ici, en dehors du if, s n'existe plus.\n// La ligne suivante ne compilerait PAS :\n// System.out.println(s); // erreur : cannot find symbol s"
         },
         {
           "type": "CONCEPT",
           "title": "Le cas surprenant : après un return ou un throw",
-          "position": 3,
+          "position": 5,
           "body": "Le flow scoping va plus loin que le simple bloc du `if`. Regarde le motif très courant de la \"sortie anticipée\" : si l'objet n'est PAS du bon type, on quitte tout de suite avec un `return` (sortir de la méthode) ou un `throw` (lever une exception, c'est à dire signaler une erreur).\n\nAprès cette sortie, le compilateur raisonne ainsi : \"si on est encore là, c'est que le test était vrai\". Donc la variable de pattern existe dans TOUT le reste de la méthode, même en dehors d'un bloc `if`.\n\n👉 C'est comme un portique de sécurité : soit tu es refoulé immédiatement, soit tu passes, et alors ton badge reste valable dans tout le batiment qui suit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un portique de sécurité : une fois passé, le badge reste valable ensuite",
+          "body": "/images/lessons/la-portee-de-la-variable-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "Portée étendue grace à la sortie anticipée",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "java",
           "body": "int longueur(Object o) {\n    // Si o n'est PAS une String, on sort immédiatement.\n    if (!(o instanceof String s)) {\n        return -1;\n    }\n    // Si on arrive ici, c'est que o EST une String.\n    // Donc s existe et est utilisable dans tout le reste de la méthode,\n    // alors qu'on n'est pourtant plus dans le bloc du if.\n    return s.length();\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "Où la variable s existe selon le flux",
-          "position": 5,
+          "position": 8,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"if (!(o instanceof String s)) return;\"] --> B{\"o est une String ?\"}\n    B -->|\"non\"| C[\"return : on quitte la methode\"]\n    B -->|\"oui\"| D[\"on continue, s existe ici\"]\n    D --> E[\"return s.length() : s toujours valable\"]"
         },
         {
           "type": "EXERCISE",
           "title": "La variable est elle accessible ?",
-          "position": 6,
+          "position": 9,
           "body": "Dans ce code, la ligne System.out.println(s) compile t elle ? Pourquoi ?\n\nvoid afficher(Object o) {\n    if (!(o instanceof String s)) {\n        return;\n    }\n    System.out.println(s);\n}",
           "solution": "Oui, elle compile. Grace au flow scoping, le compilateur sait que si l'on a dépassé le if (qui fait un return quand o n'est pas une String), alors o est forcément une String. La variable de pattern s est donc valable dans tout le reste de la méthode, y compris sur la ligne System.out.println(s), même si on n'est plus dans le bloc du if."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : la portée de la variable",
-          "position": 7,
+          "position": 10,
           "quizRef": "enhanced-instanceof-la-portee-de-la-variable"
         }
       ]
@@ -170,36 +218,48 @@
           "body": "Très souvent, après avoir vérifié le type, on veut aussi vérifier quelque chose SUR la valeur : qu'une chaine n'est pas vide, qu'un nombre est positif, etc.\n\nLe pattern de type permet d'enchainer tout de suite, dans la même condition, avec l'opérateur `&&` (qui signifie \"ET\" : les deux côtés doivent être vrais). Comme la variable de pattern est déjà disponible à droite du `&&`, on peut l'utiliser aussitôt.\n\n👉 C'est comme un videur qui vérifie en une phrase \"tu as bien un billet ET il n'est pas périmé\" : les deux contrôles s'enchainent naturellement."
         },
         {
+          "type": "IMAGE",
+          "title": "Deux contrôles d'affilée : le bon type ET la bonne valeur",
+          "body": "/images/lessons/combiner-avec-des-conditions-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Tester le type puis la valeur, d'un trait",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "Object o = \"  \";\n\n// o instanceof String s teste le type et crée s.\n// Le && n'évalue sa droite QUE si la gauche est vraie,\n// donc !s.isBlank() n'est examiné que lorsque s existe réellement.\nif (o instanceof String s && !s.isBlank()) {\n    // On entre ici seulement si o est une String ET non vide/non blanche.\n    System.out.println(\"Texte utile : \" + s);\n} else {\n    System.out.println(\"Pas une chaine exploitable.\");\n}\n// isBlank() renvoie vrai si la chaine est vide ou ne contient que des espaces."
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi && fonctionne et pas ||",
-          "position": 2,
+          "position": 3,
           "body": "Cela marche avec `&&` grace au flow scoping : à droite du `&&`, le compilateur sait que la partie gauche (`o instanceof String s`) est forcément vraie, donc `s` existe à cet endroit.\n\nAvec `||` (le \"OU\") ce serait l'inverse : la partie droite n'est évaluée que lorsque la gauche est FAUSSE, c'est à dire quand le test de type a échoué. La variable `s` n'aurait alors aucune valeur sure. C'est pourquoi Java n'autorise pas d'utiliser la variable de pattern après un `||`.\n\n👉 Retiens la règle simple : `&&` prolonge la portée vers la droite (le test a réussi), `||` ne le fait pas (le test a pu échouer)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le ET prolonge la portée, le OU non : une règle simple à retenir",
+          "body": "/images/lessons/combiner-avec-des-conditions-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Un exemple avec un nombre",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "java",
           "body": "Object o = 42;\n\n// On teste le type Integer ET que la valeur est positive, en une condition.\nif (o instanceof Integer n && n > 0) {\n    System.out.println(\"Entier positif : \" + n);\n}\n\n// Autre usage courant : filtrer dans une liste d'objets hétérogènes.\n// for (Object element : elements) {\n//     if (element instanceof String s && s.startsWith(\"A\")) {\n//         System.out.println(s);\n//     }\n// }"
         },
         {
           "type": "EXERCISE",
           "title": "Écris la condition combinée",
-          "position": 4,
+          "position": 6,
           "body": "Écris un if qui, à partir d'un Object o, n'entre dans le bloc que si o est une String d'au moins 3 caractères. Utilise un pattern de type et l'opérateur &&.",
           "solution": "if (o instanceof String s && s.length() >= 3) {\n    System.out.println(s);\n}\n\nLe test o instanceof String s crée la variable s. Grace au flow scoping, s est disponible à droite du &&, donc s.length() >= 3 est valable. Le bloc ne s'exécute que si les DEUX conditions sont vraies : bon type ET longueur suffisante."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : combiner avec des conditions",
-          "position": 5,
+          "position": 7,
           "quizRef": "enhanced-instanceof-combiner-avec-des-conditions"
         }
       ]
@@ -216,43 +276,55 @@
           "body": "La méthode `equals(Object o)` sert à dire si deux objets sont \"égaux\" au sens du contenu. Son paramètre est forcément de type `Object`, car on doit pouvoir la comparer à n'importe quoi. C'est donc le terrain idéal pour `instanceof` : avant de comparer les champs, il faut vérifier que l'autre objet est bien du même type.\n\n👉 Avant de comparer deux fiches d'identité case par case, tu vérifies d'abord que ce sont bien deux fiches d'identité et pas, disons, une fiche et une facture.\n\nAvant le pattern matching, cette méthode contenait toujours un test puis un cast redondant. Avec le pattern de type, elle devient nettement plus propre."
         },
         {
+          "type": "IMAGE",
+          "title": "Comparer deux fiches : d'abord vérifier que ce sont bien deux fiches",
+          "body": "/images/lessons/en-pratique-equals-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "L'ancien equals : test puis cast",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "final class Point {\n    private final int x;\n    private final int y;\n    Point(int x, int y) { this.x = x; this.y = y; }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;          // même objet en mémoire : égal\n        if (!(o instanceof Point)) return false; // pas un Point : pas égal\n        Point other = (Point) o;             // cast redondant, encore lui\n        return x == other.x && y == other.y; // comparaison des champs\n    }\n}"
         },
         {
           "type": "CODE",
           "title": "Le equals moderne avec pattern de type",
-          "position": 2,
+          "position": 3,
           "codeLanguage": "java",
           "body": "final class Point {\n    private final int x;\n    private final int y;\n    Point(int x, int y) { this.x = x; this.y = y; }\n\n    @Override\n    public boolean equals(Object o) {\n        // Un seul test : si o est un Point, la variable other est déjà prête.\n        // Grace au flow scoping, other est utilisable à droite du &&.\n        return o instanceof Point other\n                && x == other.x\n                && y == other.y;\n        // Note : pas besoin du this == o au début, mais on peut le garder\n        // comme petite optimisation si on le souhaite.\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi c'est mieux",
-          "position": 3,
+          "position": 4,
           "body": "Le equals moderne tient en une expression lisible :\n\n- Le type `Point` n'est écrit qu'une fois, plus de cast redondant.\n- Si `o` n'est pas un `Point`, `o instanceof Point other` vaut faux, le `&&` court circuite et la méthode renvoie `false` sans jamais toucher aux champs : aucun risque de `ClassCastException`.\n- La variable `other` n'existe que là où elle a du sens, grace au flow scoping.\n\n👉 Rappel utile : un **record** (le type de données immuable vu dans un autre nœud) génère déjà son `equals` tout seul. Mais pour une classe classique écrite à la main, le pattern de type est la façon recommandée aujourd'hui."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un equals net en une seule expression lisible, sans cast redondant",
+          "body": "/images/lessons/en-pratique-equals-2.jpg",
+          "position": 5
         },
         {
           "type": "DIAGRAM",
           "title": "Le déroulé d'un equals avec pattern",
-          "position": 4,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"equals(Object o)\"] --> B{\"o instanceof Point other ?\"}\n    B -->|\"non\"| C[\"retourne false\"]\n    B -->|\"oui\"| D[\"other est pret, deja type Point\"]\n    D --> E{\"x == other.x && y == other.y ?\"}\n    E -->|\"oui\"| F[\"retourne true\"]\n    E -->|\"non\"| C"
         },
         {
           "type": "EXERCISE",
           "title": "Modernise ce equals",
-          "position": 5,
+          "position": 7,
           "body": "Réécris ce equals en utilisant un pattern de type pour supprimer le cast.\n\n@Override\npublic boolean equals(Object o) {\n    if (!(o instanceof Personne)) return false;\n    Personne p = (Personne) o;\n    return nom.equals(p.nom);\n}",
           "solution": "@Override\npublic boolean equals(Object o) {\n    return o instanceof Personne p && nom.equals(p.nom);\n}\n\nLe pattern o instanceof Personne p teste le type et crée p déjà transtypée. Grace au flow scoping, p est disponible à droite du &&, donc nom.equals(p.nom) est valable. Si o n'est pas une Personne, le && court circuite et la méthode renvoie false, sans cast ni risque de ClassCastException."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : en pratique equals",
-          "position": 6,
+          "position": 8,
           "quizRef": "enhanced-instanceof-en-pratique-equals"
         }
       ]

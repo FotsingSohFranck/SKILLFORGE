@@ -13,42 +13,60 @@
           "body": "Au tout début, tu compiles un programme Java avec `javac Bonjour.java`, puis tu le lances avec `java Bonjour`. `javac` est le **compilateur** : le programme qui traduit ton code source Java en un format que la machine virtuelle Java sait exécuter.\n\nÇa marche pour un ou deux fichiers. Mais un vrai projet, c'est des dizaines ou des centaines de fichiers, des bibliothèques écrites par d'autres, des tests à lancer, et un fichier final à livrer. Tout faire à la main avec `javac` deviendrait vite ingérable : il faudrait retaper de longues commandes, dans le bon ordre, sans rien oublier.\n\n👉 Compiler un fichier avec `javac`, c'est comme clouer deux planches à la main. Construire un projet complet, c'est construire une maison : tu veux un chef de chantier qui connait l'ordre des étapes et les matériaux à commander. Ce chef de chantier, c'est l'**outil de build**."
         },
         {
+          "type": "IMAGE",
+          "title": "Clouer deux planches à la main : javac suffit pour un fichier isolé",
+          "body": "/images/lessons/pourquoi-un-outil-de-build-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Ce qu'est un outil de build",
-          "position": 1,
+          "position": 2,
           "body": "Un **outil de build** (en français \"outil de construction\") est un programme qui automatise la fabrication de ton projet. Le **build** (la \"construction\"), c'est l'ensemble des étapes qui transforment ton code source en produit fini et prêt à être utilisé.\n\nUn outil de build fait principalement quatre choses :\n\n1. **Compiler** tout le code source d'un coup, dans le bon ordre.\n2. **Gérer les dépendances** : récupérer automatiquement les bibliothèques dont ton projet a besoin.\n3. **Lancer les tests** pour vérifier que le code fonctionne.\n4. **Packager** : assembler le résultat dans un fichier livrable.\n\nUne **dépendance** est une bibliothèque de code écrite par quelqu'un d'autre, que ton projet utilise au lieu de tout réécrire. Par exemple une bibliothèque pour lire du JSON, ou pour tester ton code.\n\n👉 Une dépendance, c'est comme un ingrédient tout prêt que tu achètes au lieu de le cuisiner toi même : tu ne vas pas refaire la farine à partir du blé à chaque gateau."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un chef de chantier qui orchestre chaque étape de la construction",
+          "body": "/images/lessons/pourquoi-un-outil-de-build-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Le classpath : où Java cherche les classes",
-          "position": 2,
+          "position": 4,
           "body": "Quand ton programme a besoin d'une classe (la tienne, ou celle d'une bibliothèque), Java doit savoir **où la trouver**. Le **classpath** (en français \"chemin des classes\") est justement la liste des endroits où Java va chercher les classes compilées au moment de compiler et d'exécuter.\n\nUn **artefact** est le fichier produit par un build : le plus souvent un fichier `.jar`. Un **JAR** (*Java ARchive*) est une archive, c'est à dire un seul fichier qui regroupe plein de classes compilées, un peu comme un fichier `.zip`. Une bibliothèque se distribue sous forme de JAR, et ce JAR est ajouté au classpath pour que Java trouve son code.\n\n👉 Le classpath, c'est comme la liste des rayons d'une bibliothèque municipale où le bibliothécaire va chercher un livre. Si le rayon n'est pas dans la liste, il te répondra \"introuvable\", même si le livre existe quelque part. L'erreur `ClassNotFoundException` veut justement dire : la classe demandée n'était sur aucun des chemins du classpath."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les rayons d'une bibliothèque : le classpath dit où Java cherche ses classes",
+          "body": "/images/lessons/pourquoi-un-outil-de-build-3.jpg",
+          "position": 5
         },
         {
           "type": "CODE",
           "title": "À la main contre avec un outil de build",
-          "position": 3,
+          "position": 6,
           "codeLanguage": "bash",
           "body": "# À LA MAIN : fastidieux et facile à rater dès que le projet grossit.\n# Il faut lister soi même tous les fichiers et tous les JAR du classpath.\njavac -cp \"libs/gson.jar:libs/junit.jar\" -d build src/App.java src/Service.java src/Outils.java\njava -cp \"build:libs/gson.jar\" App\n\n# AVEC UN OUTIL DE BUILD : une seule commande, l'outil connait les étapes.\n# Il compile tout, récupère les dépendances, lance les tests, et packe le JAR.\nmvn package\n\n# Le -cp (abréviation de -classpath) est justement l'option qui donne le classpath à javac et java.\n# Un outil de build construit ce classpath pour toi, tu n'as plus à le taper."
         },
         {
           "type": "DIAGRAM",
           "title": "Les quatre taches d'un outil de build",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"Code source\\n.java\"] --> B[\"Compiler\\njavac\"]\n    C[\"Dependances\\n.jar\"] --> B\n    B --> D[\"Lancer les tests\"]\n    D --> E[\"Packager\\nartefact .jar\"]\n    style E fill:#6c5ce7,color:#fff"
         },
         {
           "type": "EXERCISE",
           "title": "Reconnais les taches",
-          "position": 5,
+          "position": 8,
           "body": "Associe chaque action à la tache d'outil de build correspondante parmi : compiler, gérer les dépendances, lancer les tests, packager. 1) Télécharger automatiquement la bibliothèque de test JUnit. 2) Produire le fichier final mon-app.jar. 3) Traduire tous les fichiers .java en .class. 4) Vérifier que addition(2, 2) renvoie bien 4.",
           "solution": "1) Gérer les dépendances : l'outil récupère JUnit tout seul. 2) Packager : il assemble l'artefact mon-app.jar. 3) Compiler : il traduit le source en classes. 4) Lancer les tests : il exécute les vérifications automatiques. Ces quatre taches sont justement ce qu'un outil de build automatise, là où javac ne fait que la compilation."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : pourquoi un outil de build",
-          "position": 6,
+          "position": 9,
           "quizRef": "build-dependances-pourquoi-un-outil-de-build"
         }
       ]
@@ -65,49 +83,67 @@
           "body": "**Maven** est l'outil de build le plus répandu dans le monde Java. Son idée principale : tu décris **ce que** tu veux (les dépendances, la version de Java, le nom du projet), et Maven sait **comment** le construire grace à des conventions communes à tous les projets.\n\nTout se décrit dans un seul fichier nommé `pom.xml`. **POM** signifie *Project Object Model*, c'est à dire \"modèle objet du projet\" : une description structurée de ton projet. Ce fichier est écrit en **XML**, un format texte où l'information est rangée entre des balises ouvrantes et fermantes, comme `<nom>...</nom>`.\n\n👉 Le `pom.xml`, c'est la fiche technique du projet, comme la liste des ingrédients et le mode de cuisson collés sur une boite de gateau. Maven lit la fiche et fabrique le gateau en suivant les étapes connues."
         },
         {
+          "type": "IMAGE",
+          "title": "La fiche technique du projet : le pom.xml décrit ce que Maven doit fabriquer",
+          "body": "/images/lessons/maven-les-bases-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Les coordonnées d'une bibliothèque",
-          "position": 1,
+          "position": 2,
           "body": "Pour désigner une bibliothèque sans ambiguité, Maven utilise trois informations appelées les **coordonnées** (on dit souvent *GAV*) :\n\n- **groupId** : l'organisation ou le groupe qui publie la bibliothèque, par exemple `com.google.code.gson`.\n- **artifactId** : le nom de la bibliothèque elle même, par exemple `gson`.\n- **version** : la version précise voulue, par exemple `2.11.0`.\n\nTon propre projet a lui aussi ses coordonnées, car il est lui même un artefact.\n\n👉 Les coordonnées, c'est comme une adresse postale complète : la ville (groupId), la rue (artifactId) et le numéro (version). Avec les trois, on tombe sur exactement le bon colis, sans confusion possible entre deux bibliothèques qui porteraient le même nom court."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une adresse postale complète : les coordonnées identifient une bibliothèque sans ambiguïté",
+          "body": "/images/lessons/maven-les-bases-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un pom.xml minimal",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "xml",
           "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\">\n    <modelVersion>4.0.0</modelVersion>\n\n    <!-- Les coordonnees de MON projet : groupId, artifactId, version. -->\n    <groupId>com.exemple</groupId>\n    <artifactId>mon-app</artifactId>\n    <version>1.0.0</version>\n\n    <properties>\n        <!-- On dit a Maven de compiler pour Java 21. -->\n        <maven.compiler.release>21</maven.compiler.release>\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\n    </properties>\n\n    <!-- La liste des dependances viendra ici, dans <dependencies>. -->\n</project>"
         },
         {
           "type": "CONCEPT",
           "title": "Le cycle de vie : des étapes dans un ordre fixe",
-          "position": 3,
+          "position": 5,
           "body": "Maven organise le build en **phases** qui s'enchainent toujours dans le même ordre. On appelle cette suite d'étapes le **cycle de vie** (en anglais *lifecycle*). Les phases principales à connaitre sont :\n\n- **compile** : compiler le code source principal.\n- **test** : compiler et exécuter les tests.\n- **package** : assembler l'artefact final, par exemple un JAR.\n\nUne règle importante : quand tu demandes une phase, Maven exécute **toutes les phases précédentes** d'abord. Lancer `package` déclenche donc automatiquement `compile` puis `test` avant de packager.\n\n👉 C'est comme un escalier : tu ne peux pas poser le pied sur la troisième marche sans passer par la première et la deuxième. Demander `package`, c'est dire \"monte jusqu'à la marche package\", et Maven gravit toutes les marches du bas au passage."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un escalier à gravir marche par marche : les phases Maven s'enchaînent dans l'ordre",
+          "body": "/images/lessons/maven-les-bases-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Le cycle de vie Maven",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    A[\"compile\\ncompiler le code\"] --> B[\"test\\nlancer les tests\"]\n    B --> C[\"package\\nfabriquer le .jar\"]\n    C --> D[\"verify / install\\netapes suivantes\"]"
         },
         {
           "type": "CODE",
           "title": "La commande mvn package",
-          "position": 5,
+          "position": 8,
           "codeLanguage": "bash",
           "body": "# mvn est la commande de Maven. On lui donne la phase a atteindre.\nmvn package\n\n# Ce qui se passe dans l'ordre, automatiquement :\n#   1. compile : tout le code source est compile en .class\n#   2. test    : les tests sont compiles puis executes\n#   3. package : un JAR est cree dans le dossier target/\n#\n# Resultat : target/mon-app-1.0.0.jar  (nom = artifactId + version)\n\n# Pour repartir d'un etat propre, on nettoie d'abord le dossier target/ :\nmvn clean package"
         },
         {
           "type": "EXERCISE",
           "title": "Lis les coordonnées",
-          "position": 6,
+          "position": 9,
           "body": "Une bibliothèque a pour coordonnées groupId org.apache.commons, artifactId commons-lang3, version 3.14.0. Réponds : quel est le nom court de la bibliothèque ? Qui la publie ? Et si tu lances mvn package, la phase test est elle exécutée ?",
           "solution": "Le nom court (artifactId) est commons-lang3. Le groupe qui la publie (groupId) est org.apache.commons. Oui, mvn package exécute test au passage : package est une phase plus loin dans le cycle de vie, donc compile puis test sont déclenchées avant. Les trois coordonnées ensemble (GAV) identifient la bibliothèque de façon unique."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : Maven les bases",
-          "position": 7,
+          "position": 10,
           "quizRef": "build-dependances-maven-les-bases"
         }
       ]
@@ -124,42 +160,60 @@
           "body": "**Gradle** est le deuxième grand outil de build du monde Java, très utilisé notamment pour les applications Android. Il fait le même travail que Maven (compiler, gérer les dépendances, tester, packager) mais avec une philosophie différente.\n\nLà où Maven se décrit en XML plutot verbeux, Gradle se décrit dans un fichier plus court nommé `build.gradle`, écrit dans un langage de **script**, c'est à dire un petit langage de programmation qui donne des instructions. Ce langage est **Groovy** (ou **Kotlin** selon le choix du projet).\n\n👉 Si le `pom.xml` de Maven est un formulaire à cases à cocher, le `build.gradle` de Gradle est plutot une petite recette écrite à la main : plus souple, souvent plus courte, mais qui demande de connaitre un peu la grammaire du langage."
         },
         {
+          "type": "IMAGE",
+          "title": "Une recette écrite à la main : Gradle décrit le build en langage de script",
+          "body": "/images/lessons/gradle-les-bases-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Un build.gradle minimal",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "groovy",
           "body": "// Les plugins ajoutent des capacites : 'java' sait compiler et packager du Java.\nplugins {\n    id 'java'\n}\n\n// Les memes coordonnees qu'en Maven : group + name (via le dossier) + version.\ngroup = 'com.exemple'\nversion = '1.0.0'\n\njava {\n    // On compile pour Java 21.\n    toolchain {\n        languageVersion = JavaLanguageVersion.of(21)\n    }\n}\n\n// Ou Gradle va chercher les dependances (voir la lecon suivante).\nrepositories {\n    mavenCentral()\n}\n\ndependencies {\n    // Les dependances se declarent ici, une ligne par bibliotheque.\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Les taches plutot que les phases",
-          "position": 2,
+          "position": 3,
           "body": "Au lieu des phases de Maven, Gradle raisonne en **taches** (en anglais *tasks*). Une **tache** est une unité de travail nommée, par exemple `compileJava` (compiler), `test` (lancer les tests) ou `build` (tout construire).\n\nTu lances une tache avec la commande `gradle <tache>`, par exemple `gradle build`. Comme chez Maven, une tache peut en dépendre d'autres : demander `build` déclenche la compilation et les tests avant d'assembler l'artefact.\n\nUne différence pratique : Gradle est **incrémental**, c'est à dire qu'il évite de refaire un travail déjà fait si rien n'a changé. Si tu n'as modifié aucun fichier source, il ne recompile pas pour rien.\n\n👉 Gradle, c'est comme un cuisinier qui garde en mémoire ce qu'il a déjà préparé : si la sauce est déjà prête et que tu n'y as pas touché, il ne la refait pas, il gagne du temps."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un cuisinier qui garde en mémoire ce qui est déjà prêt : Gradle évite le travail inutile",
+          "body": "/images/lessons/gradle-les-bases-2.jpg",
+          "position": 4
         },
         {
           "type": "CODE",
           "title": "Lancer une tache Gradle",
-          "position": 3,
+          "position": 5,
           "codeLanguage": "bash",
           "body": "# La tache build compile, teste et package, comme mvn package.\ngradle build\n\n# On peut viser une tache precise, par exemple juste les tests :\ngradle test\n\n# En general on utilise le \"wrapper\" fourni avec le projet,\n# qui telecharge la bonne version de Gradle automatiquement :\n./gradlew build      # sous Linux ou macOS\ngradlew.bat build    # sous Windows\n\n# Le resultat se trouve dans build/libs/mon-app-1.0.0.jar"
         },
         {
           "type": "CONCEPT",
           "title": "Maven ou Gradle : lequel choisir",
-          "position": 4,
+          "position": 6,
           "body": "Les deux outils font le même métier. En résumé rapide :\n\n- **Maven** : configuration en XML, très structuré, beaucoup de conventions imposées. Prévisible, facile à lire, immense dans les projets d'entreprise.\n- **Gradle** : configuration en script Groovy ou Kotlin, plus souple et souvent plus concis, builds incrémentaux rapides. Très présent sur Android et les gros projets.\n\nLa bonne nouvelle : le vocabulaire est commun (dépendances, coordonnées, artefact, dépôt central). Si tu comprends l'un, tu comprends vite l'autre.\n\n👉 C'est comme deux marques de voiture : volant, pédales et freins se ressemblent, seuls les boutons et la planche de bord changent. Tu n'as pas à choisir un camp maintenant, tu dois juste savoir lire les deux."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deux marques de voiture : volant et freins se ressemblent, seuls les boutons changent",
+          "body": "/images/lessons/gradle-les-bases-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Traduis de Maven à Gradle",
-          "position": 5,
+          "position": 8,
           "body": "Chez Maven, la commande pour compiler, tester et fabriquer le JAR est mvn package. Quelle est la commande équivalente chez Gradle ? Et comment appelle t on, chez Gradle, l'unité de travail nommée (ce que Maven appelle une phase) ?",
           "solution": "La commande équivalente chez Gradle est gradle build (ou ./gradlew build avec le wrapper), qui compile, teste et package comme mvn package. Chez Gradle, l'unité de travail nommée s'appelle une tache (task), là où Maven parle de phase du cycle de vie. Le vocabulaire diffère, mais le travail accompli est le même."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : Gradle les bases",
-          "position": 6,
+          "position": 9,
           "quizRef": "build-dependances-gradle-les-bases"
         }
       ]
@@ -176,42 +230,60 @@
           "body": "On l'a vu : le **classpath** est la liste des endroits où Java cherche les classes. Historiquement, c'est le seul mécanisme qui existait. Tu mets tous tes JAR dans le classpath, et au moment d'exécuter, Java pioche dedans la classe qu'il lui faut.\n\nLe classpath a un défaut : il est **plat**, c'est à dire que tout est mélangé dans un grand sac, sans frontières. N'importe quelle classe peut en utiliser n'importe quelle autre, même celles qu'une bibliothèque voulait garder internes. Et si deux JAR fournissent par erreur la même classe, Java en prend une au hasard, ce qui donne des bugs difficiles à comprendre.\n\n👉 Le classpath, c'est un grand carton où tu jettes toutes les pièces de tous tes meubles en vrac. Ça fonctionne, mais rien n'empêche de prendre la mauvaise vis, et rien ne dit quelle pièce appartient à quel meuble."
         },
         {
+          "type": "IMAGE",
+          "title": "Un grand carton où tout est jeté en vrac : le classpath mélange toutes les classes",
+          "body": "/images/lessons/classpath-vs-modules-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Le système de modules (JPMS)",
-          "position": 1,
+          "position": 2,
           "body": "Java 9 a introduit le **système de modules**, dont le nom officiel est **JPMS** (*Java Platform Module System*). Un **module** est un groupe de classes qui déclare explicitement deux choses : ce qu'il **expose** aux autres (ses paquets publics) et ce dont il **a besoin** (les autres modules qu'il requiert).\n\nCette déclaration se fait dans un petit fichier nommé `module-info.java`. Les modules sont chargés depuis le **module-path** (le \"chemin des modules\"), l'équivalent du classpath mais pour les modules.\n\n👉 Un module, c'est le carton bien étiqueté d'un meuble en kit : sur la boite, c'est écrit \"ce meuble a besoin de 4 vis de type A\" (les requires) et \"voici les pièces visibles\" (les exports). Impossible d'attraper par erreur une pièce cachée à l'intérieur, et chaque dépendance est annoncée clairement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un carton de meuble bien étiqueté : un module annonce ce qu'il expose et ce qu'il requiert",
+          "body": "/images/lessons/classpath-vs-modules-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Un module-info.java",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Fichier module-info.java, place a la racine des sources du module.\nmodule com.exemple.monapp {\n\n    // Ce module A BESOIN d'un autre module pour fonctionner.\n    requires java.sql;\n\n    // Ce module EXPOSE ce paquet : les autres modules pourront l'utiliser.\n    exports com.exemple.monapp.api;\n\n    // Le paquet com.exemple.monapp.interne n'est PAS exporte :\n    // il reste prive, invisible depuis l'exterieur du module.\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Classpath ou module-path : quand ça compte",
-          "position": 3,
+          "position": 5,
           "body": "Faut il absolument créer des modules ? Non, et c'est une information importante pour un débutant. En pratique :\n\n- Pour **apprendre** et pour la plupart des applications, le **classpath** suffit très bien. Beaucoup de projets professionnels, dont de gros frameworks, restent sur le classpath.\n- Le **module-path** et JPMS deviennent utiles pour des **bibliothèques** qui veulent cacher proprement leurs détails internes, ou pour des runtimes réduits sur mesure.\n\nUn point rassurant : si ton projet n'a pas de `module-info.java`, Java le traite comme un \"module anonyme\" et tout fonctionne sur le classpath comme avant. Tu n'es donc jamais forcé de basculer.\n\n👉 C'est comme ranger ton appartement : les cartons étiquetés (modules) sont plus propres et utiles quand tu déménages souvent ou que tu es nombreux, mais pour vivre au quotidien, le grand placard (classpath) fait parfaitement le travail."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ranger son appartement : le placard simple au quotidien, les cartons étiquetés pour déménager",
+          "body": "/images/lessons/classpath-vs-modules-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "Classpath plat contre modules étiquetés",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart TB\n    subgraph CP[\"Classpath : tout en vrac\"]\n        direction LR\n        X1[\"classe A\"]\n        X2[\"classe B\"]\n        X3[\"classe interne\"]\n    end\n    subgraph MP[\"Module-path : frontieres explicites\"]\n        direction LR\n        M1[\"module monapp\\nexports api\\nrequires java.sql\"]\n        M2[\"module java.sql\"]\n        M1 -->|requires| M2\n    end"
         },
         {
           "type": "EXERCISE",
           "title": "Classpath ou module-path",
-          "position": 5,
+          "position": 8,
           "body": "Pour chaque situation, dis si le classpath simple suffit, ou si le système de modules apporte un vrai plus. 1) Un premier projet d'apprentissage avec une seule application. 2) Une bibliothèque publique qui veut empêcher les autres d'utiliser ses classes internes. 3) Une petite application d'entreprise classique sans besoin particulier d'isolation.",
           "solution": "1) Le classpath suffit largement : inutile de se compliquer la vie avec un module-info quand on débute. 2) Le système de modules apporte un vrai plus : grace à exports, la bibliothèque n'expose que son api et garde ses classes internes privées. 3) Le classpath suffit : beaucoup d'applications d'entreprise tournent très bien sans modules. Retiens la règle : le classpath est le choix par défaut, les modules servent quand on veut des frontières strictes."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : classpath contre modules",
-          "position": 6,
+          "position": 9,
           "quizRef": "build-dependances-classpath-vs-modules"
         }
       ]
@@ -228,42 +300,60 @@
           "body": "Quand tu déclares une dépendance, l'outil de build doit la télécharger quelque part. Ce \"quelque part\" est un **dépôt** (en anglais *repository*) : un serveur qui stocke des milliers de bibliothèques, rangées par leurs coordonnées.\n\nLe dépôt le plus connu est **Maven Central** (le \"dépôt central Maven\"), utilisé aussi bien par Maven que par Gradle. Tu y trouves presque toutes les bibliothèques open source du monde Java.\n\nLa première fois, l'outil télécharge le JAR depuis le dépôt et le range dans un **cache** local sur ta machine (un dossier `.m2` pour Maven). Les fois suivantes, il réutilise la copie locale sans retélécharger.\n\n👉 Maven Central, c'est le grand supermarché des bibliothèques : tu donnes l'adresse exacte du rayon (les coordonnées) et tu repars avec le bon produit. Ton cache local, c'est ton placard à la maison : une fois l'ingrédient acheté, tu le ressors sans retourner au magasin."
         },
         {
+          "type": "IMAGE",
+          "title": "Le grand supermarché des bibliothèques : le dépôt central livre le bon artefact",
+          "body": "/images/lessons/ajouter-une-dependance-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Déclarer une dépendance en Maven",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "xml",
           "body": "<!-- On ajoute un bloc <dependencies> dans le pom.xml. -->\n<dependencies>\n\n    <!-- Gson : une bibliotheque pour lire et ecrire du JSON. -->\n    <dependency>\n        <groupId>com.google.code.gson</groupId>\n        <artifactId>gson</artifactId>\n        <version>2.11.0</version>\n    </dependency>\n\n    <!-- JUnit : une bibliotheque pour ecrire des tests.\n         scope=test veut dire qu'elle ne sert QU'AUX tests,\n         pas dans l'application livree. -->\n    <dependency>\n        <groupId>org.junit.jupiter</groupId>\n        <artifactId>junit-jupiter</artifactId>\n        <version>5.11.0</version>\n        <scope>test</scope>\n    </dependency>\n\n</dependencies>"
         },
         {
           "type": "CODE",
           "title": "La même dépendance en Gradle",
-          "position": 2,
+          "position": 3,
           "codeLanguage": "groovy",
           "body": "dependencies {\n    // Une seule ligne par dependance, au format 'groupId:artifactId:version'.\n    implementation 'com.google.code.gson:gson:2.11.0'\n\n    // testImplementation = dependance utilisee seulement par les tests.\n    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'\n}\n\n// Remarque : les memes coordonnees GAV qu'en Maven, ecrites en plus court.\n// 'implementation' et 'testImplementation' precisent QUAND la dependance sert."
         },
         {
           "type": "CONCEPT",
           "title": "Les dépendances transitives",
-          "position": 3,
+          "position": 4,
           "body": "Une bibliothèque peut elle même avoir besoin d'autres bibliothèques. On appelle ces besoins indirects les **dépendances transitives** : les dépendances de tes dépendances.\n\nLa bonne nouvelle, c'est que l'outil de build les récupère **automatiquement**. Si tu demandes une bibliothèque A qui a besoin de B et C, Maven ou Gradle télécharge A, B et C sans que tu aies à lister B et C toi même.\n\n👉 C'est comme commander un meuble livré \"avec visserie incluse\" : tu commandes le meuble, et les vis et chevilles dont il a besoin arrivent dans le même carton, sans que tu aies à les commander séparément."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un meuble livré avec sa visserie incluse : les dépendances transitives arrivent toutes seules",
+          "body": "/images/lessons/ajouter-une-dependance-2.jpg",
+          "position": 5
         },
         {
           "type": "CONCEPT",
           "title": "Gérer la version : être précis",
-          "position": 4,
+          "position": 6,
           "body": "La **version** n'est pas un détail : elle fixe exactement quel code tu utilises. Deux conseils pour un débutant :\n\n- **Indique toujours une version précise** (par exemple `2.11.0`) plutot que de laisser flou. Un build qui utilise une version fixe donne le même résultat aujourd'hui et dans six mois : on dit qu'il est **reproductible**.\n- Il peut arriver que deux bibliothèques réclament deux versions différentes d'une même troisième : c'est un **conflit de versions**. L'outil de build tranche avec des règles (souvent, il garde une seule version), et tu peux forcer ton choix si besoin.\n\nLa plupart des numéros suivent le format **MAJEUR.MINEUR.CORRECTIF** (par exemple `2.11.0`) : on monte le premier nombre pour un changement qui casse la compatibilité, le deuxième pour un ajout compatible, le troisième pour une correction.\n\n👉 Figer la version, c'est comme noter la référence exacte d'une pièce détachée : tu es sûr de recommander la même, et pas un modèle légèrement différent qui ne s'emboiterait plus pareil."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Noter la référence exacte d'une pièce : figer la version rend le build reproductible",
+          "body": "/images/lessons/ajouter-une-dependance-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Ajoute une dépendance",
-          "position": 5,
+          "position": 8,
           "body": "Tu veux utiliser la bibliothèque Apache Commons Lang, coordonnées groupId org.apache.commons, artifactId commons-lang3, version 3.14.0, dans un projet Maven. Écris le bloc <dependency> à mettre dans le pom.xml. D'où le JAR sera t il téléchargé la première fois ?",
           "solution": "<dependency>\n    <groupId>org.apache.commons</groupId>\n    <artifactId>commons-lang3</artifactId>\n    <version>3.14.0</version>\n</dependency>\n\nLa première fois, Maven télécharge le JAR depuis le dépôt central Maven (Maven Central), puis le range dans le cache local (dossier .m2). Les builds suivants réutilisent cette copie locale sans retélécharger. Si commons-lang3 avait elle même des dépendances, elles seraient récupérées automatiquement (dépendances transitives)."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : ajouter une dépendance",
-          "position": 6,
+          "position": 9,
           "quizRef": "build-dependances-ajouter-une-dependance"
         }
       ]

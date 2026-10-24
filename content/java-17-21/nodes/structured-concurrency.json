@@ -13,28 +13,46 @@
           "body": "Tu sais déjà lancer plusieurs choses en même temps : une **tâche** est un bout de travail qu'on confie à un **thread** (un fil d'exécution, c'est à dire une ligne de calcul qui avance en parallèle des autres). Tu as aussi vu les **virtual threads**, des threads très légers dont on peut créer des milliers sans coût notable.\n\nLe souci, c'est la façon dont on les lance habituellement. On démarre une sous-tâche ici, une autre là, chacune dans son coin, et plus rien ne relie ces départs entre eux. On dit que les tâches sont **éparpillées** : elles partent dans la nature sans structure commune.\n\n👉 Imagine un chef de cuisine qui envoie trois commis faire les courses, chacun par une porte différente, sans liste commune et sans heure de retour. S'il en manque un, personne ne le remarque ; si l'un se blesse, les autres continuent pour rien. C'est exactement le désordre que l'on veut éviter."
         },
         {
+          "type": "IMAGE",
+          "title": "Des sous-tâches lancées chacune dans son coin, sans structure commune ni heure de retour.",
+          "body": "/images/lessons/le-probleme-des-taches-eparpillees-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Trois douleurs concrètes",
-          "position": 1,
+          "position": 2,
           "body": "Quand les sous-tâches ne sont rattachées à rien, trois problèmes reviennent sans cesse :\n\n1. **Les fuites de threads** : une sous-tâche continue de tourner alors que plus personne n'attend son résultat. Une **fuite** (en anglais *leak*), c'est une ressource qu'on a oublié de libérer et qui reste occupée inutilement.\n2. **Les erreurs ignorées** : si une sous-tâche échoue dans son coin, son exception peut se perdre et le programme croit que tout va bien.\n3. **L'annulation difficile** : si la tâche principale abandonne, il faut arrêter les sous-tâches une par une, à la main, et on en oublie toujours une.\n\n👉 Reprends les trois commis : l'un fait encore la queue au marché alors qu'on a annulé le repas (fuite), un autre s'est trompé de magasin sans prévenir (erreur ignorée), et pour tous les rappeler il faut leur téléphoner un par un (annulation difficile)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tâches éparpillées : fuites de threads, erreurs ignorées et annulation à faire une par une.",
+          "body": "/images/lessons/le-probleme-des-taches-eparpillees-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Le code éparpillé, tel qu'on l'écrivait",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Deux sous-tâches lancées \"à la main\", sans lien entre elles.\nExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();\n\n// Future : un \"ticket\" qui promet un résultat plus tard.\nFuture<String> utilisateur = executor.submit(() -> chercherUtilisateur());\nFuture<Integer> commandes   = executor.submit(() -> compterCommandes());\n\ntry {\n    // Si chercherUtilisateur() echoue, compterCommandes() continue... pour rien.\n    String u = utilisateur.get();   // attend la 1re tache\n    int n = commandes.get();        // attend la 2e tache\n    System.out.println(u + \" a \" + n + \" commandes\");\n} catch (Exception e) {\n    // Et ici, comment etre sur que les deux sous-taches sont bien arretees ?\n    // Rien ne garantit l'annulation propre de l'autre tache.\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Ce qu'on aimerait à la place",
-          "position": 3,
+          "position": 5,
           "body": "L'idéal serait de traiter ce **groupe de tâches concurrentes comme une seule unité** : on les lance ensemble, on les attend ensemble, et si l'une tourne mal, le groupe entier réagit de façon cohérente.\n\nC'est exactement l'idée de la **concurrence structurée** (en anglais *structured concurrency*) : donner une **structure** claire à des tâches qui tournent en parallèle, un peu comme les accolades `{ }` donnent une structure à ton code séquentiel. Tout ce qui est ouvert dans le bloc est refermé proprement quand on sort du bloc.\n\n👉 Au lieu de trois commis livrés à eux mêmes, un responsable d'équipe : il les envoie, les attend tous, et si l'un échoue il rappelle les autres immédiatement. On verra l'outil qui joue ce rôle dès la leçon suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Traiter le groupe de tâches comme une seule unité, tel un responsable qui coordonne son équipe.",
+          "body": "/images/lessons/le-probleme-des-taches-eparpillees-3.jpg",
+          "position": 6
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le problème des tâches éparpillées",
-          "position": 4,
+          "position": 7,
           "quizRef": "structured-concurrency-le-probleme-des-taches-eparpillees"
         }
       ]
@@ -51,42 +69,60 @@
           "body": "L'outil de la concurrence structurée s'appelle **StructuredTaskScope**. Le mot clé est **portée** (en anglais *scope*) : c'est un espace délimité qui regroupe un ensemble de sous-tâches et en reste responsable du début à la fin.\n\nTu ouvres une portée, tu y lances tes sous-tâches, tu attends qu'elles finissent, puis tu fermes la portée. Tant que la portée est ouverte, elle connait toutes ses sous-tâches ; quand elle se ferme, elle garantit qu'aucune ne reste en vadrouille.\n\n👉 La portée, c'est le responsable d'équipe de la leçon précédente : il ouvre la mission, confie des courses à chaque commis, attend leur retour, puis clôt la mission en s'assurant que personne ne traine dehors. Rien ne survit à la fermeture de la portée."
         },
         {
+          "type": "IMAGE",
+          "title": "La portée regroupe les sous-tâches et en reste responsable du début à la fin.",
+          "body": "/images/lessons/structuredtaskscope-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "fork pour lancer, join pour attendre",
-          "position": 1,
+          "position": 2,
           "body": "Deux gestes suffisent au cœur d'une portée :\n\n- **fork(...)** lance une sous-tâche dans la portée. Le mot *fork* veut dire \"bifurquer\" : le travail part sur son propre chemin, en parallèle. `fork` renvoie un objet (un **Subtask**) qui portera le résultat plus tard.\n- **join()** attend que **toutes** les sous-tâches lancées soient terminées. Tant que `join()` n'a pas rendu la main, on ne lit aucun résultat.\n\nL'ordre est toujours le même : d'abord tous les `fork`, ensuite un seul `join`, et seulement après on lit les résultats.\n\n👉 `fork`, c'est dire à un commis \"va chercher le pain\" et le laisser partir ; `join`, c'est attendre à la porte que tous les commis soient rentrés avant de commencer à cuisiner."
+        },
+        {
+          "type": "IMAGE",
+          "title": "fork lance chaque sous-tâche en parallèle, join attend qu'elles soient toutes rentrées.",
+          "body": "/images/lessons/structuredtaskscope-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "La forme type d'une portée",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// try-with-resources : la portee se ferme automatiquement a la fin du bloc.\ntry (var scope = new StructuredTaskScope<Object>()) {\n\n    // 1) On lance les sous-taches avec fork(). Elles partent en parallele.\n    Subtask<String>  utilisateur = scope.fork(() -> chercherUtilisateur());\n    Subtask<Integer> commandes   = scope.fork(() -> compterCommandes());\n\n    // 2) On attend que TOUTES les sous-taches soient finies.\n    scope.join();\n\n    // 3) Seulement maintenant, on lit les resultats avec get().\n    System.out.println(utilisateur.get() + \" a \" + commandes.get() + \" commandes\");\n}\n// En sortant du bloc, la portee est fermee : aucune sous-tache ne survit."
         },
         {
           "type": "DIAGRAM",
           "title": "Une portée parent et ses sous-tâches",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    P[\"StructuredTaskScope\\n(portee parent)\"] -->|fork| A[\"Sous-tache 1\\nchercherUtilisateur()\"]\n    P -->|fork| B[\"Sous-tache 2\\ncompterCommandes()\"]\n    A -->|resultat| J[\"join()\\nattend les deux\"]\n    B -->|resultat| J\n    J --> R[\"On lit get()\\npuis la portee se ferme\"]"
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi try-with-resources",
-          "position": 4,
+          "position": 6,
           "body": "La portée s'ouvre avec un **try-with-resources** : la forme `try (var scope = ...) { ... }` que tu connais pour fermer automatiquement un fichier. Ici, c'est la portée qui se ferme automatiquement à la sortie du bloc.\n\nCette fermeture automatique est la clé de voute : même si une exception surgit, même si tu oublies quelque chose, le bloc se referme et la portée arrête ses sous-tâches encore actives. Plus de fuite possible.\n\n👉 C'est la porte de la mission qui se verrouille toute seule quand le responsable part : impossible de laisser un commis enfermé dehors en train de travailler dans le vide."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La portée se ferme toute seule en sortant du bloc : plus aucune sous-tâche ne survit.",
+          "body": "/images/lessons/structuredtaskscope-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Remets les étapes dans l'ordre",
-          "position": 5,
+          "position": 8,
           "body": "On te donne quatre actions dans le désordre : A) lire les résultats avec get(), B) appeler join(), C) ouvrir la portée avec try-with-resources, D) lancer les sous-tâches avec fork(). Dans quel ordre doivent elles s'enchainer, et pourquoi join() doit il venir avant get() ?",
           "solution": "L'ordre correct est C, D, B, A : on ouvre la portée (C), on lance toutes les sous-tâches avec fork (D), on attend leur fin avec join (B), puis on lit les résultats avec get (A). join() doit venir avant get() car tant que join() n'a pas rendu la main, les sous-tâches ne sont pas forcément terminées : lire un résultat avant serait prématuré. On fork tout, on join une fois, on lit ensuite."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : StructuredTaskScope",
-          "position": 6,
+          "position": 9,
           "quizRef": "structured-concurrency-structuredtaskscope"
         }
       ]
@@ -103,49 +139,67 @@
           "body": "Une portée de base attend simplement toutes les sous-tâches. Mais souvent, on veut une **politique** plus intelligente, c'est à dire une règle automatique qui décide quand arrêter le groupe. Java fournit deux politiques prêtes à l'emploi, sous forme de portées spécialisées.\n\n- **ShutdownOnFailure** : la politique du **tout ou rien**. Dès qu'une sous-tâche échoue, on annule toutes les autres.\n- **ShutdownOnSuccess** : la politique de **la première qui réussit**. Dès qu'une sous-tâche réussit, on garde son résultat et on annule les autres.\n\n👉 *Shutdown* veut dire \"arrêt\" : *on failure* signifie \"dès qu'il y a un échec\", *on success* signifie \"dès qu'il y a une réussite\". Le nom de la portée annonce donc exactement ce qui déclenche l'arrêt du groupe."
         },
         {
+          "type": "IMAGE",
+          "title": "Deux politiques prêtes à l'emploi décident quand arrêter le groupe de tâches.",
+          "body": "/images/lessons/shutdownonfailure-et-success-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "ShutdownOnFailure : tout ou rien",
-          "position": 1,
+          "position": 2,
           "body": "**ShutdownOnFailure** sert quand tu as besoin de **tous** les résultats pour continuer. Si une seule sous-tâche échoue, les autres résultats ne servent plus à rien, donc autant les arrêter tout de suite au lieu de gaspiller du temps et des threads.\n\nAprès `join()`, tu appelles `throwIfFailed()` : s'il y a eu un échec, l'exception est relancée ici, dans ta tâche principale. Sinon, tu peux lire tous les résultats en toute confiance.\n\n👉 Pour préparer un plat, il te faut le pain ET le fromage ET le vin. Si le commis au pain revient les mains vides, inutile d'attendre les deux autres : la recette est fichue, on rappelle tout le monde immédiatement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Tout ou rien : il faut tous les résultats, le premier échec rappelle tout le monde.",
+          "body": "/images/lessons/shutdownonfailure-et-success-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "ShutdownOnFailure en action",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Tout ou rien : il faut les DEUX resultats pour continuer.\ntry (var scope = new StructuredTaskScope.ShutdownOnFailure()) {\n\n    Subtask<String>  utilisateur = scope.fork(() -> chercherUtilisateur());\n    Subtask<Integer> commandes   = scope.fork(() -> compterCommandes());\n\n    scope.join();            // attend la fin OU le premier echec\n    scope.throwIfFailed();   // s'il y a eu un echec, l'exception est relancee ici\n\n    // Si on arrive ici, les deux ont reussi : lecture sans risque.\n    System.out.println(utilisateur.get() + \" a \" + commandes.get() + \" commandes\");\n}"
         },
         {
           "type": "CONCEPT",
           "title": "ShutdownOnSuccess : la première qui réussit gagne",
-          "position": 3,
+          "position": 5,
           "body": "**ShutdownOnSuccess** sert quand **un seul** résultat te suffit, peu importe lequel. Dès qu'une sous-tâche réussit, la portée garde son résultat et annule les autres : inutile de les laisser finir.\n\nAprès `join()`, tu appelles `result()` pour récupérer la valeur de la première réussite. C'est typique quand plusieurs sources peuvent répondre à la même question et que tu veux la réponse la plus rapide.\n\n👉 Tu demandes l'heure à trois passants en même temps. Dès que le premier répond, tu as ta réponse : tu n'attends pas les deux autres, tu passes ton chemin."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La première réussite suffit : dès qu'un répond, on garde sa réponse et on annule le reste.",
+          "body": "/images/lessons/shutdownonfailure-et-success-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "ShutdownOnSuccess en action",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "java",
           "body": "// La premiere reussite suffit : on interroge deux miroirs du meme service.\ntry (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {\n\n    scope.fork(() -> interroger(\"serveur-A\"));\n    scope.fork(() -> interroger(\"serveur-B\"));\n\n    scope.join();                 // s'arrete des la 1re reussite\n    String reponse = scope.result();  // le resultat de la tache gagnante\n\n    System.out.println(\"Reponse la plus rapide : \" + reponse);\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "Les deux politiques côte à côte",
-          "position": 5,
+          "position": 8,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    subgraph F[\"ShutdownOnFailure (tout ou rien)\"]\n        F1[\"Une sous-tache ECHOUE\"] --> F2[\"On annule les autres\"]\n        F2 --> F3[\"throwIfFailed relance l'erreur\"]\n    end\n    subgraph S[\"ShutdownOnSuccess (premiere reussite)\"]\n        S1[\"Une sous-tache REUSSIT\"] --> S2[\"On annule les autres\"]\n        S2 --> S3[\"result rend la valeur gagnante\"]\n    end"
         },
         {
           "type": "EXERCISE",
           "title": "Choisis la bonne politique",
-          "position": 6,
+          "position": 9,
           "body": "Pour chaque cas, ShutdownOnFailure ou ShutdownOnSuccess ? 1) Afficher une page qui a besoin du profil ET du panier ET des notifications. 2) Récupérer un prix en interrogeant trois fournisseurs qui renvoient tous le même tarif, en gardant la réponse la plus rapide. 3) Valider une commande seulement si le stock ET le paiement sont tous les deux acceptés.",
           "solution": "1) ShutdownOnFailure : il faut les trois résultats, si un manque la page est incomplète, donc tout ou rien. 2) ShutdownOnSuccess : une seule réponse suffit, on garde la plus rapide et on annule les autres. 3) ShutdownOnFailure : les deux vérifications doivent réussir, le premier échec doit tout annuler."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : ShutdownOnFailure et ShutdownOnSuccess",
-          "position": 7,
+          "position": 10,
           "quizRef": "structured-concurrency-shutdownonfailure-et-success"
         }
       ]
@@ -162,41 +216,65 @@
           "body": "La **propagation** désigne la façon dont une information (ici une erreur ou une demande d'arrêt) **remonte ou se diffuse** à travers la structure. Avec la concurrence structurée, erreurs et annulation circulent dans les deux sens de manière ordonnée, le long du lien entre la portée parent et ses sous-tâches.\n\nDeux sens à retenir :\n\n- **Vers le haut** : l'erreur d'une sous-tâche remonte à la portée, puis à ta tâche principale.\n- **Vers le bas** : une demande d'annulation descend de la portée vers toutes ses sous-tâches.\n\n👉 La portée est comme un arbre généalogique : une mauvaise nouvelle chez un enfant remonte au parent, et une consigne du parent redescend d'un coup à tous les enfants. Rien ne se perd en route."
         },
         {
+          "type": "IMAGE",
+          "title": "Erreurs et annulation circulent le long du lien parent et enfant, sans se perdre en route.",
+          "body": "/images/lessons/propagation-erreurs-annulation-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Vers le haut : l'erreur ne se perd plus",
-          "position": 1,
+          "position": 2,
           "body": "Dans le code éparpillé du début, une sous-tâche pouvait échouer sans que personne ne le sache. Avec une portée, c'est impossible : l'échec est **capturé par la portée**, puis relancé dans ta tâche principale au moment où tu appelles `throwIfFailed()` (ou `result()`).\n\nAutrement dit, tu rattrapes l'erreur au même endroit que pour du code séquentiel normal : dans le `try` qui entoure la portée. Tu n'as plus à surveiller chaque sous-tâche individuellement.\n\n👉 Le commis qui s'est trompé de magasin ne disparait plus dans la nature : son problème revient automatiquement sur le bureau du responsable, qui le traite en un seul endroit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'échec est capturé par la portée puis relancé dans la tâche principale, en un seul endroit.",
+          "body": "/images/lessons/propagation-erreurs-annulation-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Vers le bas : l'annulation touche tout le groupe",
-          "position": 2,
+          "position": 4,
           "body": "Quand la politique déclenche un arrêt (un échec pour ShutdownOnFailure, une réussite pour ShutdownOnSuccess), la portée **interrompt** les sous-tâches encore en cours. **Interrompre** un thread, c'est lui envoyer un signal poli lui demandant de s'arrêter dès que possible.\n\nCet arrêt est **automatique et groupé** : tu n'écris aucune boucle pour annuler les tâches une par une. La fermeture du bloc try-with-resources finit le travail en garantissant que plus aucune sous-tâche ne tourne quand tu sors de la portée.\n\n👉 Le responsable passe un seul coup de fil groupé \"on arrête tout, rentrez\", au lieu d'appeler chaque commis séparément en risquant d'en oublier un."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un seul signal groupé interrompt toutes les sous-tâches encore en cours.",
+          "body": "/images/lessons/propagation-erreurs-annulation-3.jpg",
+          "position": 5
         },
         {
           "type": "DIAGRAM",
           "title": "Le double sens de la propagation",
-          "position": 3,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    Main[\"Tache principale\\n(try autour de la portee)\"] --> P[\"StructuredTaskScope\"]\n    P -->|annulation vers le bas| A[\"Sous-tache 1\"]\n    P -->|annulation vers le bas| B[\"Sous-tache 2\"]\n    B -->|erreur vers le haut| P\n    P -->|erreur relancee| Main"
         },
         {
           "type": "CONCEPT",
           "title": "Pourquoi c'est si net",
-          "position": 4,
+          "position": 7,
           "body": "La raison de cette propreté tient en une règle simple : une sous-tâche **ne peut pas survivre à sa portée**. Son cycle de vie est entièrement contenu dans le bloc. Tout ce qui est forké dans la portée est soit terminé, soit annulé, au moment où le bloc se referme.\n\nCette contrainte élimine d'un coup les trois douleurs de la première leçon : plus de fuite (tout est fermé), plus d'erreur ignorée (tout remonte), plus d'annulation manuelle fastidieuse (tout descend d'un bloc).\n\n👉 C'est la même tranquillité que les accolades `{ }` t'offrent déjà en séquentiel : ce qui est ouvert dans le bloc est forcément refermé en sortant. La concurrence structurée apporte cette garantie au parallèle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une sous-tâche ne survit pas à sa portée : ce qui est ouvert dans le bloc est refermé en sortant.",
+          "body": "/images/lessons/propagation-erreurs-annulation-4.jpg",
+          "position": 8
         },
         {
           "type": "EXERCISE",
           "title": "Explique ce qui se passe",
-          "position": 5,
+          "position": 9,
           "body": "Une portée ShutdownOnFailure lance trois sous-tâches. La deuxième lève une exception au bout de 100 millisecondes, alors que la première et la troisième mettraient 5 secondes. Décris ce qui arrive aux deux tâches lentes, et où ton code récupère l'erreur.",
           "solution": "Dès que la deuxième échoue, la portée interrompt la première et la troisième : elles n'iront pas au bout de leurs 5 secondes, elles sont annulées (propagation vers le bas). L'exception de la deuxième est capturée par la portée puis relancée vers le haut au moment où tu appelles throwIfFailed() après join(). Ton code récupère donc l'erreur dans le catch qui entoure le bloc try-with-resources, en un seul endroit, sans avoir à surveiller chaque sous-tâche."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : propagation des erreurs et annulation",
-          "position": 6,
+          "position": 10,
           "quizRef": "structured-concurrency-propagation-erreurs-annulation"
         }
       ]
@@ -213,42 +291,60 @@
           "body": "Le scénario typique est simple : pour construire une réponse, ton code doit appeler **deux services** indépendants, puis **combiner** leurs résultats. Par exemple récupérer le profil d'un utilisateur d'un côté, et la liste de ses commandes de l'autre.\n\nComme les deux appels ne dépendent pas l'un de l'autre, les lancer en parallèle divise le temps d'attente : au lieu d'additionner les deux durées, tu attends la plus longue des deux. Et comme tu as besoin des deux résultats, c'est un cas de **tout ou rien**, donc ShutdownOnFailure.\n\n👉 Tu envoies deux commis en même temps, l'un à la boulangerie, l'autre à la fromagerie. Tu attends le retour du plus lent, pas la somme des deux trajets. Si l'un échoue, le repas est compromis, donc on rappelle l'autre."
         },
         {
+          "type": "IMAGE",
+          "title": "Deux appels indépendants lancés en parallèle : on attend le plus lent, pas la somme des deux.",
+          "body": "/images/lessons/en-pratique-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Appeler deux services et combiner les résultats",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "// Un record pour combiner proprement les deux resultats.\nrecord PageProfil(Utilisateur profil, List<Commande> commandes) { }\n\nPageProfil chargerPage(String userId) throws Exception {\n    try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {\n\n        // Les deux appels partent EN MEME TEMPS.\n        Subtask<Utilisateur>   profil   = scope.fork(() -> serviceProfil.get(userId));\n        Subtask<List<Commande>> commandes = scope.fork(() -> serviceCommandes.get(userId));\n\n        scope.join();            // attend les deux (ou le 1er echec)\n        scope.throwIfFailed();   // relance l'erreur eventuelle ici\n\n        // Les deux ont reussi : on combine dans le record.\n        return new PageProfil(profil.get(), commandes.get());\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Le mariage avec les virtual threads",
-          "position": 2,
+          "position": 3,
           "body": "La concurrence structurée **se combine naturellement avec les virtual threads** que tu as déjà vus. Par défaut, chaque `fork(...)` lance sa sous-tâche sur un virtual thread : ces threads étant très légers, tu peux en ouvrir des dizaines dans une portée sans t'inquiéter du coût.\n\nLe résultat est un code qui **se lit presque comme du séquentiel** (on fork, on join, on lit) tout en s'exécutant en parallèle. Tu gardes la clarté du code linéaire et la vitesse du parallèle, sans la plomberie manuelle des Future et des annulations.\n\n👉 Les virtual threads sont les commis bon marché qu'on peut recruter à volonté ; la portée est le responsable qui les coordonne proprement. Les deux outils sont faits pour travailler ensemble."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les virtual threads sont les commis bon marché, la portée le responsable qui les coordonne.",
+          "body": "/images/lessons/en-pratique-2.jpg",
+          "position": 4
         },
         {
           "type": "CONCEPT",
           "title": "Important : fonctionnalité en aperçu (preview) en Java 21",
-          "position": 3,
+          "position": 5,
           "body": "StructuredTaskScope est une **fonctionnalité en aperçu** (en anglais *preview feature*) en Java 21, décrite par la **JEP 453** (*JDK Enhancement Proposal*, la proposition officielle qui décrit une évolution du langage). Une fonctionnalité en aperçu est complète et utilisable, mais son **API est encore susceptible de changer** dans une version suivante : des noms de méthodes ou de classes peuvent évoluer.\n\nConséquence pratique : pour compiler et exécuter du code qui l'utilise en Java 21, tu dois l'activer explicitement avec les options **`--release 21 --enable-preview`**. Sans ces options, le compilateur refuse le code.\n\n👉 Pense à un plat proposé \"en avant-première\" au menu : tu peux le gouter dès maintenant, mais le chef prévient que la recette pourrait être ajustée avant de l'inscrire définitivement. D'où l'étiquette `--enable-preview` que tu dois accepter pour y gouter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Fonctionnalité en aperçu : utilisable dès maintenant, mais la recette peut encore être ajustée.",
+          "body": "/images/lessons/en-pratique-3.jpg",
+          "position": 6
         },
         {
           "type": "CODE",
           "title": "Compiler et lancer avec l'aperçu activé",
-          "position": 4,
+          "position": 7,
           "codeLanguage": "bash",
           "body": "# Compilation : on cible Java 21 ET on active les fonctionnalites en apercu.\njavac --release 21 --enable-preview PageService.java\n\n# Execution : --enable-preview est aussi requis au lancement.\njava --enable-preview PageService\n\n# Sans --enable-preview, on obtient une erreur du type :\n#   error: StructuredTaskScope is a preview API and is disabled by default"
         },
         {
           "type": "EXERCISE",
           "title": "Repère les erreurs du code éparpillé",
-          "position": 5,
+          "position": 8,
           "body": "On te donne la consigne : appeler serviceProfil.get(id) et serviceCommandes.get(id) en parallèle, récupérer les deux et renvoyer un record PageProfil ; si l'un des deux échoue, tout annuler. Écris la méthode avec StructuredTaskScope, et indique les deux options de compilation nécessaires en Java 21.",
           "solution": "On utilise ShutdownOnFailure car il faut les deux résultats :\n\nrecord PageProfil(Utilisateur profil, List<Commande> commandes) { }\n\nPageProfil chargerPage(String id) throws Exception {\n    try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {\n        Subtask<Utilisateur> p = scope.fork(() -> serviceProfil.get(id));\n        Subtask<List<Commande>> c = scope.fork(() -> serviceCommandes.get(id));\n        scope.join();\n        scope.throwIfFailed();\n        return new PageProfil(p.get(), c.get());\n    }\n}\n\nEn Java 21, il faut compiler avec javac --release 21 --enable-preview et lancer avec java --enable-preview, car StructuredTaskScope est une fonctionnalité en aperçu (JEP 453)."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : en pratique",
-          "position": 6,
+          "position": 9,
           "quizRef": "structured-concurrency-en-pratique"
         }
       ]

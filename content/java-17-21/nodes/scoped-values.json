@@ -13,42 +13,60 @@
           "body": "Imagine une requête web qui arrive sur ton serveur. Pendant son traitement, plein de méthodes différentes ont besoin de la même information : qui est l'utilisateur connecté, quel est l'identifiant de la requête pour les journaux (*logs*). Tu pourrais passer cette information en paramètre à chaque méthode, mais ça devient vite lourd quand la chaine d'appels est longue.\n\nUn **thread** (en français *fil d'exécution*) est une ligne de travail qui exécute ton code pas à pas. Un serveur traite souvent chaque requête sur son propre thread.\n\n👉 Imagine un livreur qui traverse plusieurs bureaux pour une même livraison. Au lieu de redonner le bon de commande à chaque porte, il aimerait l'avoir épinglé sur lui pendant toute la tournée. C'est exactement ce besoin : partager une donnée sur toute la durée d'un appel, sans la repasser de main en main."
         },
         {
+          "type": "IMAGE",
+          "title": "On veut partager une donnée sur toute la durée d'un appel, comme un bon de commande épinglé au livreur.",
+          "body": "/images/lessons/le-probleme-de-threadlocal-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "ThreadLocal : la solution historique",
-          "position": 1,
+          "position": 2,
           "body": "Depuis longtemps, Java propose **ThreadLocal** (littéralement *local au thread*) : une variable dont chaque thread possède sa propre copie. Le thread A et le thread B peuvent lire la même variable `ThreadLocal` et pourtant voir des valeurs différentes, chacun la sienne.\n\nC'est pratique : une méthode profonde dans la chaine d'appels peut lire la valeur sans qu'on la lui ait passée en paramètre, tant qu'elle s'exécute sur le même thread.\n\n👉 Pense à un casier personnel au travail : tout le monde parle \"du casier\", mais chacun ouvre le sien et y trouve ses propres affaires. `ThreadLocal`, c'est le casier attitré de chaque thread."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ThreadLocal donne à chaque thread son casier personnel, où il range et relit ses propres affaires.",
+          "body": "/images/lessons/le-probleme-de-threadlocal-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "ThreadLocal en action",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "// Une variable propre à chaque thread.\nstatic final ThreadLocal<String> UTILISATEUR = new ThreadLocal<>();\n\nvoid traiterRequete(String nom) {\n    UTILISATEUR.set(nom);   // on range une valeur dans le casier de CE thread\n    try {\n        afficherBienvenue(); // une méthode profonde peut la relire\n    } finally {\n        UTILISATEUR.remove(); // IMPORTANT : vider le casier, sinon fuite mémoire\n    }\n}\n\nvoid afficherBienvenue() {\n    // Pas besoin de passer le nom en paramètre : on le relit depuis le casier.\n    System.out.println(\"Bonjour \" + UTILISATEUR.get());\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Les trois faiblesses de ThreadLocal",
-          "position": 3,
+          "position": 5,
           "body": "`ThreadLocal` fonctionne, mais il traine trois défauts :\n\n1. **Risque de fuite mémoire** : une **fuite mémoire** (*memory leak*) survient quand un objet devrait être libéré mais reste retenu, occupant la mémoire pour rien. Si tu oublies d'appeler `remove()`, la valeur reste collée au thread. Avec des threads réutilisés dans un *pool* (une réserve de threads recyclés), elle survit bien au delà de l'appel.\n2. **Valeur modifiable** : n'importe quelle méthode peut appeler `set()` et changer la valeur en cours de route. On ne peut pas garantir qu'elle reste stable pendant tout l'appel.\n3. **Mal adapté à des millions de threads** : les threads virtuels, qu'on verra plus loin, peuvent exister par millions. Donner à chacun son casier `ThreadLocal`, parfois copié d'un thread à l'autre, coute cher en mémoire.\n\nC'est pour corriger ces trois points qu'arrivent les **Scoped Values**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "ThreadLocal traine trois défauts : fuite mémoire, valeur modifiable et coût élevé à grande échelle.",
+          "body": "/images/lessons/le-probleme-de-threadlocal-3.jpg",
+          "position": 6
         },
         {
           "type": "DIAGRAM",
           "title": "ThreadLocal : du set() à l'oubli de remove()",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Debut de l'appel\"] --> B[\"UTILISATEUR.set(nom)\"]\n    B --> C[\"Methodes profondes\\nlisent get()\"]\n    C --> D{\"remove() appele ?\"}\n    D -->|Oui| E[\"Casier vide\\nmemoire liberee\"]\n    D -->|Non, oubli| F[\"Valeur collee au thread\\nFUITE MEMOIRE\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Repère le danger",
-          "position": 5,
+          "position": 8,
           "body": "Un collègue écrit : UTILISATEUR.set(nom); puis appelle tout le traitement, mais sans bloc try/finally et sans remove(). Le thread provient d'un pool réutilisé. Quel problème concret peut survenir pour la requête SUIVANTE traitée par ce même thread ?",
           "solution": "Comme remove() n'est jamais appelé, la valeur du nom reste attachée au thread après la fin de l'appel. Quand le pool réutilise ce thread pour une autre requête, celle-ci lira l'ancien nom tant qu'elle n'a pas fait son propre set() : c'est à la fois une fuite mémoire (la valeur est retenue inutilement) et un risque de confusion entre utilisateurs. La règle historique est donc d'entourer tout usage de ThreadLocal d'un try/finally avec remove() dans le finally."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : le problème de ThreadLocal",
-          "position": 6,
+          "position": 9,
           "quizRef": "scoped-values-le-probleme-de-threadlocal"
         }
       ]
@@ -65,35 +83,53 @@
           "body": "Un **Scoped Value** (en français *valeur à portée délimitée*) est une donnée partagée qui est **immuable** et **bornée dans le temps**. Décortiquons les deux mots clés :\n\n- **Immuable** veut dire : une fois fixée, la valeur ne change plus pendant l'appel. Personne ne peut la remplacer en cours de route.\n- La **portée** (en anglais *scope*) est la zone du programme où quelque chose existe et est accessible. Ici, la valeur n'existe que pendant l'exécution d'un bloc de code précis, puis disparait.\n\n👉 Compare à `ThreadLocal`, le casier qu'on remplit et qu'on doit penser à vider. Un Scoped Value, c'est plutôt un badge visiteur : on te le remet à l'entrée d'une salle, il reste valable tant que tu es dans la salle, et il est repris automatiquement à la sortie. Rien à vider, et personne ne peut le modifier pendant ta visite."
         },
         {
+          "type": "IMAGE",
+          "title": "Un Scoped Value est un badge visiteur : remis à l'entrée, repris à la sortie, jamais modifiable pendant la visite.",
+          "body": "/images/lessons/declarer-un-scoped-value-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Déclarer la clé avec newInstance()",
-          "position": 1,
+          "position": 2,
           "body": "On ne crée pas directement \"la valeur\" : on crée d'abord une **clé**, l'objet qui représente la donnée partagée. On la déclare une seule fois, en `static final`, avec `ScopedValue.newInstance()`.\n\n`static` veut dire que la clé appartient à la classe, pas à une instance particulière ; `final` veut dire qu'on ne la réaffecte jamais. Le `<String>` entre chevrons indique le type de la valeur qu'elle portera (ici une chaine de caractères).\n\nÀ ce stade, la clé existe mais **ne porte encore aucune valeur**. On dira dans la leçon suivante comment lui en lier une, pour la durée d'un bloc."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On déclare la clé une seule fois en static final avec newInstance(), sans valeur encore liée.",
+          "body": "/images/lessons/declarer-un-scoped-value-2.jpg",
+          "position": 3
         },
         {
           "type": "CODE",
           "title": "Déclarer un Scoped Value",
-          "position": 2,
+          "position": 4,
           "codeLanguage": "java",
           "body": "import java.lang.ScopedValue;\n\npublic class Contexte {\n    // On declare la CLE une seule fois, partagee par toute l'application.\n    // Le <String> dit : cette cle portera une valeur de type String.\n    public static final ScopedValue<String> UTILISATEUR = ScopedValue.newInstance();\n\n    // A ce stade, aucune valeur n'est liee.\n    // UTILISATEUR.get() ici leverait une exception car rien n'est lie.\n    // isBound() permet de verifier s'il y a une valeur disponible.\n    static boolean yAtIlUnUtilisateur() {\n        return UTILISATEUR.isBound();\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "Clé partagée, valeur temporaire",
-          "position": 3,
+          "position": 5,
           "body": "Point important qui surprend au début : la **clé** est unique et vit pendant toute la durée du programme, mais la **valeur** qu'elle porte est temporaire. La clé est le badge vierge réutilisable ; la valeur, c'est l'identité inscrite dessus le temps d'une visite.\n\nSi tu appelles `get()` alors qu'aucune valeur n'est liée, Java lève une exception. Pour éviter la surprise, on peut demander `isBound()` qui répond simplement : \"y a-t-il une valeur disponible ici et maintenant ?\". On verra que lier une valeur se fait toujours autour d'un bloc précis."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La clé est le badge vierge réutilisable ; la valeur, l'identité inscrite dessus le temps d'une visite.",
+          "body": "/images/lessons/declarer-un-scoped-value-3.jpg",
+          "position": 6
         },
         {
           "type": "EXERCISE",
           "title": "Déclare ta clé",
-          "position": 4,
+          "position": 7,
           "body": "Déclare un Scoped Value nommé REQUETE_ID qui portera une valeur de type String, au bon niveau (champ de classe) et avec les bons modificateurs. Pourquoi static final et pas juste une variable locale ?",
           "solution": "public static final ScopedValue<String> REQUETE_ID = ScopedValue.newInstance();\n\nOn la déclare static final comme champ de classe car la clé doit être unique et partagée par tout le code qui voudra lire ou lier la valeur : une variable locale disparaitrait à la fin de la méthode et ne serait visible nulle part ailleurs. static la rattache à la classe (une seule clé pour toute l'application) et final garantit qu'on ne la remplacera jamais par une autre clé."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : déclarer un Scoped Value",
-          "position": 5,
+          "position": 8,
           "quizRef": "scoped-values-declarer-un-scoped-value"
         }
       ]
@@ -110,42 +146,60 @@
           "body": "Pour donner une valeur à ta clé, tu écris `ScopedValue.where(CLE, valeur).run(() -> ...)`. Décortiquons :\n\n- `where(CLE, valeur)` dit : \"pour la clé que voici, utilise cette valeur\".\n- `.run(() -> ...)` exécute un bloc de code. La partie `() -> ...` est une **lambda** (une petite fonction écrite sur place, sans nom), c'est à dire le bloc à exécuter.\n\nPendant tout ce bloc, et dans toutes les méthodes qu'il appelle, `CLE.get()` renvoie la valeur. Dès que le bloc se termine, la liaison disparait automatiquement.\n\n👉 C'est la remise du badge visiteur : il est valable **pendant** ta visite de la salle (`run`), et repris à la sortie, sans que tu aies à y penser."
         },
         {
+          "type": "IMAGE",
+          "title": "where lie la valeur et run exécute le bloc, comme la remise du badge valable le temps de la salle.",
+          "body": "/images/lessons/lier-avec-where-run-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
           "title": "Lier puis lire la valeur",
-          "position": 1,
+          "position": 2,
           "codeLanguage": "java",
           "body": "import java.lang.ScopedValue;\n\npublic class Demo {\n    static final ScopedValue<String> UTILISATEUR = ScopedValue.newInstance();\n\n    public static void main(String[] args) {\n        // On lie la valeur \"Ana\" pour toute la duree du bloc run(...).\n        ScopedValue.where(UTILISATEUR, \"Ana\").run(() -> {\n            saluer(); // une methode profonde relit la valeur\n        });\n        // Ici, hors du bloc, la valeur n'est plus liee.\n    }\n\n    static void saluer() {\n        // Pas de parametre passe : on lit directement depuis le Scoped Value.\n        System.out.println(\"Bonjour \" + UTILISATEUR.get()); // Bonjour Ana\n    }\n}"
         },
         {
           "type": "CONCEPT",
           "title": "La valeur n'existe QUE dans le bloc",
-          "position": 2,
+          "position": 3,
           "body": "C'est le coeur de l'idée : la valeur est **bornée** au bloc. Avant `run`, elle n'existe pas. Pendant `run`, elle est disponible partout dans l'appel. Après `run`, elle disparait toute seule.\n\nTu n'as rien à nettoyer : pas de `remove()` à ne pas oublier, donc pas de fuite mémoire possible de ce côté. Et comme tu ne peux pas la réécrire pendant le bloc (pas de `set()`), tu as la garantie qu'elle reste la même du début à la fin de l'appel.\n\n👉 Hors de la salle, le badge n'est plus valable : si une méthode appelée en dehors du bloc tente `UTILISATEUR.get()`, Java lève une exception parce qu'aucune valeur n'est liée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La valeur n'existe que dans le bloc : avant elle n'est pas là, après elle disparait toute seule.",
+          "body": "/images/lessons/lier-avec-where-run-2.jpg",
+          "position": 4
         },
         {
           "type": "DIAGRAM",
           "title": "Cycle de vie d'une liaison",
-          "position": 3,
+          "position": 5,
           "diagramFormat": "MERMAID",
           "body": "sequenceDiagram\n    participant M as main\n    participant R as run(bloc)\n    participant S as saluer()\n    M->>R: where(UTILISATEUR, \"Ana\").run(...)\n    Note over R: valeur liee = \"Ana\"\n    R->>S: appel\n    S-->>R: get() renvoie \"Ana\"\n    R-->>M: fin du bloc\n    Note over M: valeur deliee automatiquement"
         },
         {
           "type": "CONCEPT",
           "title": "Renvoyer un résultat avec call()",
-          "position": 4,
+          "position": 6,
           "body": "`run()` exécute un bloc qui ne renvoie rien. Quand tu veux **récupérer une valeur** calculée dans le bloc, tu utilises `call()` à la place. La différence est simple : `run` est pour \"fais quelque chose\", `call` est pour \"fais quelque chose et rends moi le résultat\".\n\n`call()` peut aussi propager une exception vérifiée, ce qui est pratique quand le bloc fait des opérations qui peuvent échouer (lecture réseau, accès base). L'idée de liaison bornée au bloc reste exactement la même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "call() exécute le bloc et rend le résultat, là où run() se contente de faire quelque chose.",
+          "body": "/images/lessons/lier-avec-where-run-3.jpg",
+          "position": 7
         },
         {
           "type": "EXERCISE",
           "title": "Lie et lis",
-          "position": 5,
+          "position": 8,
           "body": "On a static final ScopedValue<String> ROLE = ScopedValue.newInstance();. Écris le code qui lie la valeur \"admin\" pour la durée d'un bloc, et dans ce bloc appelle une méthode verifierAcces() qui lit ROLE.get(). Que se passe-t-il si verifierAcces() est appelée en dehors du bloc ?",
           "solution": "ScopedValue.where(ROLE, \"admin\").run(() -> verifierAcces());\n\nstatic void verifierAcces() {\n    System.out.println(\"Role courant : \" + ROLE.get());\n}\n\nSi verifierAcces() est appelée en dehors du bloc run(...), aucune valeur n'est liée à ROLE : l'appel ROLE.get() lève une exception (NoSuchElementException). C'est voulu : la valeur n'existe que pendant l'exécution du bloc. Pour un cas optionnel, on testerait ROLE.isBound() avant de lire, ou on utiliserait orElse(valeurParDefaut)."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : lier avec where et run",
-          "position": 6,
+          "position": 9,
           "quizRef": "scoped-values-lier-avec-where-run"
         }
       ]
@@ -162,42 +216,60 @@
           "body": "Un **thread virtuel** (*virtual thread*) est un thread très léger, géré par la machine virtuelle Java plutôt que par le système d'exploitation. Leur gros avantage : on peut en créer des **millions** en même temps, là où les threads classiques (dits *de plateforme*) sont coûteux et limités à quelques milliers.\n\nIdée typique : un thread virtuel par requête. Si ton serveur traite cent mille requêtes à la fois, cent mille threads virtuels, c'est tout à fait possible.\n\n👉 Les threads classiques sont comme des salariés à plein temps : puissants mais chers, on en a peu. Les threads virtuels sont comme des intérimaires qu'on embauche à la seconde pour une micro tache : on peut en mobiliser une foule sans se ruiner."
         },
         {
+          "type": "IMAGE",
+          "title": "Un thread virtuel est un intérimaire léger qu'on mobilise par millions sans se ruiner.",
+          "body": "/images/lessons/scoped-values-et-virtual-threads-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Pourquoi ThreadLocal vieillit mal ici",
-          "position": 1,
+          "position": 2,
           "body": "Avec des millions de threads virtuels, `ThreadLocal` montre ses limites. Chaque thread ayant potentiellement son propre casier, et ces casiers pouvant être copiés d'un thread parent vers ses threads enfants, la mémoire consommée explose.\n\nS'ajoute le vieux risque : une valeur modifiable qu'on oublie de `remove()` fuit, et multiplié par des millions de threads, le problème devient sérieux.\n\nLes Scoped Values ont été pensés justement pour ce monde là : beaucoup de threads, de courte durée, qui ont besoin de partager quelques données en lecture seule."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Avec des millions de threads, les casiers de ThreadLocal coutent cher et risquent la fuite mémoire.",
+          "body": "/images/lessons/scoped-values-et-virtual-threads-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "Trois propriétés qui tombent à pic",
-          "position": 2,
+          "position": 4,
           "body": "Les Scoped Values collent au modèle des threads virtuels grace à trois propriétés :\n\n1. **Immuable** : la valeur ne change pas pendant le bloc, donc la partager entre plein d'appels concurrents est sûr, sans verrou ni copie défensive.\n2. **Portée claire** : la valeur vit exactement le temps du bloc `run`/`call`. Ni avant, ni après. Facile à raisonner, même avec une multitude de threads.\n3. **Pas de nettoyage manuel** : la liaison disparait automatiquement à la fin du bloc. Aucun `remove()` à ne pas oublier, donc pas de fuite, même à très grande échelle.\n\n👉 Une donnée figée, à durée de vie connue d'avance, qui se range toute seule : c'est exactement ce dont ont besoin des millions de petits threads jetables."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Immuable, à portée claire et sans nettoyage manuel : trois propriétés taillées pour les petits threads jetables.",
+          "body": "/images/lessons/scoped-values-et-virtual-threads-3.jpg",
+          "position": 5
         },
         {
           "type": "CODE",
           "title": "Partage vers des sous taches",
-          "position": 3,
+          "position": 6,
           "codeLanguage": "java",
           "body": "import java.lang.ScopedValue;\n\nstatic final ScopedValue<String> REQUETE_ID = ScopedValue.newInstance();\n\nvoid traiterRequete(String id) {\n    // On lie l'identifiant pour toute la duree du traitement.\n    ScopedValue.where(REQUETE_ID, id).run(() -> {\n        etape1();\n        etape2();\n    });\n}\n\nvoid etape1() {\n    // N'importe quelle methode du bloc lit la meme valeur, en lecture seule.\n    journaliser(\"debut etape 1\");\n}\n\nvoid journaliser(String message) {\n    // La valeur est immuable et garantie identique pendant tout l'appel.\n    System.out.println(\"[\" + REQUETE_ID.get() + \"] \" + message);\n}"
         },
         {
           "type": "DIAGRAM",
           "title": "ThreadLocal contre Scoped Value",
-          "position": 4,
+          "position": 7,
           "diagramFormat": "MERMAID",
           "body": "flowchart LR\n    subgraph TL[\"ThreadLocal\"]\n      A1[\"Modifiable (set)\"] --> A2[\"Nettoyage manuel (remove)\"]\n      A2 --> A3[\"Cher a des millions de threads\"]\n    end\n    subgraph SV[\"Scoped Value\"]\n      B1[\"Immuable\"] --> B2[\"Portee bornee au bloc\"]\n      B2 --> B3[\"Nettoyage automatique\"]\n    end\n    TL -. remplace par .-> SV"
         },
         {
           "type": "EXERCISE",
           "title": "Explique le bon choix",
-          "position": 5,
+          "position": 8,
           "body": "Un service crée un thread virtuel par requête et doit rendre disponible l'identifiant de requête à toutes les méthodes, en lecture seule, sans risque de fuite. En une ou deux phrases, justifie pourquoi un Scoped Value convient mieux qu'un ThreadLocal ici.",
           "solution": "Un Scoped Value convient mieux car la valeur est immuable (aucune méthode ne peut la modifier accidentellement, ce qui est exactement le besoin d'un identifiant de requête en lecture seule) et sa portée est bornée au bloc de traitement avec un nettoyage automatique à la fin (pas de remove() à oublier, donc pas de fuite mémoire). Ces deux points sont décisifs quand on multiplie les threads virtuels par millions, là où les casiers modifiables de ThreadLocal coutent cher et sont risqués."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : Scoped Values et threads virtuels",
-          "position": 6,
+          "position": 9,
           "quizRef": "scoped-values-scoped-values-et-virtual-threads"
         }
       ]
@@ -214,35 +286,53 @@
           "body": "Choisis un Scoped Value quand tu veux **partager une donnée en lecture seule** sur toute la durée d'un appel, sans la passer en paramètre partout, et avec une portée nette :\n\n- Un identifiant de requête pour les journaux (*logs*).\n- L'utilisateur connecté ou son rôle, pendant le traitement d'une requête.\n- Une configuration valable juste le temps d'une opération.\n\nÀ l'inverse, si tu as besoin d'une valeur qui **change** au fil de l'exécution, le Scoped Value ne convient pas : il est volontairement immuable. Et pour une simple donnée locale à une méthode, une variable ordinaire suffit : inutile de sortir l'artillerie."
         },
         {
+          "type": "IMAGE",
+          "title": "On préfère un Scoped Value pour partager une donnée en lecture seule sur toute la durée d'un appel.",
+          "body": "/images/lessons/recapitulatif-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CONCEPT",
           "title": "Ce qu'il remplace, en un coup d'oeil",
-          "position": 1,
+          "position": 2,
           "body": "Face à `ThreadLocal`, le Scoped Value corrige les trois faiblesses vues au début :\n\n- Fini la **fuite mémoire** : la liaison se défait automatiquement à la fin du bloc, aucun `remove()` à oublier.\n- Fini la **valeur modifiable en douce** : elle est immuable pour toute la durée du bloc.\n- Adapté aux **millions de threads virtuels** : léger, à portée connue d'avance.\n\n👉 Résumé imagé : `ThreadLocal`, c'est le casier qu'il faut penser à vider ; le Scoped Value, c'est le badge visiteur valable le temps d'une salle, repris tout seul à la sortie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Il corrige les trois faiblesses de ThreadLocal : fuite, valeur modifiable et coût à grande échelle.",
+          "body": "/images/lessons/recapitulatif-2.jpg",
+          "position": 3
         },
         {
           "type": "CONCEPT",
           "title": "ATTENTION : c'est un APERÇU (preview) en Java 21",
-          "position": 2,
+          "position": 4,
           "body": "Point à retenir absolument : en Java 21, les Scoped Values sont une fonctionnalité en **APERÇU** (en anglais *preview*). Un **aperçu** est une fonctionnalité complète mais encore susceptible d'évoluer, livrée pour être essayée et commentée avant d'être figée dans une version future.\n\nConcrètement, en Java 21 (il s'agit de la **JEP 446**, le document qui décrit la proposition), pour compiler et exécuter du code utilisant les Scoped Values, il faut activer explicitement les aperçus avec l'option `--enable-preview`. Il ne faut donc pas encore s'en servir en production sans en être conscient : l'API peut changer dans une version suivante.\n\n👉 Un aperçu, c'est comme un plat proposé en dégustation avant d'entrer à la carte : tu peux le gouter et donner ton avis, mais la recette peut encore être ajustée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En Java 21, c'est un aperçu à activer avec --enable-preview, comme un plat proposé en dégustation.",
+          "body": "/images/lessons/recapitulatif-3.jpg",
+          "position": 5
         },
         {
           "type": "DIAGRAM",
           "title": "Choisir entre variable, Scoped Value et ThreadLocal",
-          "position": 3,
+          "position": 6,
           "diagramFormat": "MERMAID",
           "body": "flowchart TD\n    A[\"Donnee a partager ?\"] --> B{\"Besoin au-dela\\nd'une seule methode ?\"}\n    B -->|Non| C[\"Variable locale ordinaire\"]\n    B -->|Oui| D{\"La valeur doit-elle\\nchanger pendant l'appel ?\"}\n    D -->|Non, lecture seule| E[\"Scoped Value\\n(apercu en Java 21)\"]\n    D -->|Oui, modifiable| F[\"ThreadLocal\\n(avec remove en finally)\"]"
         },
         {
           "type": "EXERCISE",
           "title": "Vrai bilan",
-          "position": 4,
+          "position": 7,
           "body": "Réponds en une phrase à chaque point. 1) Cite deux avantages d'un Scoped Value sur un ThreadLocal. 2) Dans quel cas un Scoped Value ne convient PAS ? 3) Que faut-il savoir sur son statut en Java 21 ?",
           "solution": "1) Deux avantages : la valeur est immuable (pas de modification accidentelle en cours d'appel) et le nettoyage est automatique à la fin du bloc (pas de fuite mémoire, pas de remove() à oublier) ; en prime, c'est adapté aux millions de threads virtuels. 2) Il ne convient pas quand on a besoin d'une valeur qui change au fil de l'exécution, car un Scoped Value est volontairement immuable. 3) En Java 21, c'est une fonctionnalité en APERÇU (preview, JEP 446) : l'API peut encore évoluer et il faut activer --enable-preview pour l'utiliser."
         },
         {
           "type": "QUIZ",
           "title": "Quiz : récapitulatif",
-          "position": 5,
+          "position": 8,
           "quizRef": "scoped-values-recapitulatif"
         }
       ]
