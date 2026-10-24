@@ -13,17 +13,29 @@
           "body": "Exposer une application se fait en couches : un **Service** donne une adresse stable interne ; un **Ingress** route le HTTP externe (par hôte/chemin) vers des Services ; une **NetworkPolicy** restreint qui peut parler à qui. À l'examen, on demande souvent d'exposer un Deployment puis de vérifier la connectivité."
         },
         {
+          "type": "IMAGE",
+          "title": "Exposer un pod vers le monde extérieur",
+          "body": "/images/lessons/exposer-et-isoler-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Exposer en une commande",
           "codeLanguage": "bash",
           "body": "kubectl expose deployment web --port=80 --target-port=8080\nkubectl get endpoints web        # les pods derrière le service\nkubectl run tmp --image=busybox --rm -it -- wget -qO- web:80"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "NetworkPolicy : refuser par défaut",
           "body": "Sans NetworkPolicy, tout pod peut joindre tout pod. Une bonne posture consiste à **refuser par défaut** puis à autoriser explicitement les flux nécessaires (par labels). Savoir écrire une policy qui n'autorise qu'un namespace ou qu'un label donné est attendu au CKAD."
+        },
+        {
+          "type": "IMAGE",
+          "title": "NetworkPolicy : refuser le trafic par défaut puis autoriser",
+          "body": "/images/lessons/exposer-et-isoler-2.jpg",
+          "position": 4
         }
       ]
     }

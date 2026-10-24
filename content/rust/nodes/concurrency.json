@@ -13,17 +13,29 @@
           "body": "La même règle qui sécurise la mémoire, un seul emprunt mutable à la fois, élimine aussi les **courses de données** entre threads. Rust refuse à la compilation de partager une donnée mutable sans synchronisation. D'où le slogan : *fearless concurrency*, la concurrence sans peur."
         },
         {
+          "type": "IMAGE",
+          "title": "Le compilateur bloque les accès concurrents dangereux dès la compilation",
+          "body": "/images/lessons/concurrence-sans-peur-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Partager en sécurité",
           "codeLanguage": "rust",
           "body": "use std::sync::{Arc, Mutex};\nuse std::thread;\n\nlet compteur = Arc::new(Mutex::new(0));\nlet mut handles = vec![];\nfor _ in 0..4 {\n    let c = Arc::clone(&compteur);\n    handles.push(thread::spawn(move || {\n        *c.lock().unwrap() += 1;\n    }));\n}\nfor h in handles { h.join().unwrap(); }\nprintln!(\"{}\", *compteur.lock().unwrap());"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Arc et Mutex",
           "body": "`Arc` (Atomic Reference Counted) permet de **partager** une donnée entre threads ; `Mutex` en **sérialise** l'accès mutable. Les traits `Send`/`Sync` disent au compilateur ce qui peut traverser les frontières de threads. Vous ne pouvez tout simplement pas compiler un partage non sûr."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Arc partage la donnée entre threads et Mutex en protège l'accès",
+          "body": "/images/lessons/concurrence-sans-peur-2.jpg",
+          "position": 4
         }
       ]
     }

@@ -13,21 +13,33 @@
           "body": "Savoir *qui* appelle (authentification) est distinct de savoir *ce qu'il a le droit de faire* (autorisation). Un utilisateur authentifié peut être autorisé à lire ses données mais pas celles des autres, ni à accéder à l'espace admin. L'autorisation se vérifie à **chaque** requête sensible."
         },
         {
+          "type": "IMAGE",
+          "title": "Être authentifié ne donne pas tous les droits",
+          "body": "/images/lessons/decider-ce-qui-est-permis-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Contrôle d'accès par rôle (RBAC)",
           "codeLanguage": "java",
           "body": "http.authorizeExchange(ex -> ex\n    .pathMatchers(\"/api/v1/auth/**\").permitAll()\n    .pathMatchers(\"/api/v1/admin/**\").hasRole(\"ADMIN\")\n    .anyExchange().authenticated());"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Le piège du BOLA",
           "body": "La faille d'API la plus répandue (OWASP API Top 10) est le **Broken Object Level Authorization** : l'API vérifie qu'on est connecté, mais pas qu'on a le droit d'accéder à *cet objet précis*. `GET /orders/42` doit vérifier que la commande 42 appartient bien à l'appelant. Ne déduisez jamais le droit du seul fait d'être authentifié."
         },
         {
+          "type": "IMAGE",
+          "title": "Vérifier que l'objet appartient bien à l'appelant",
+          "body": "/images/lessons/decider-ce-qui-est-permis-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un endpoint `GET /api/v1/users/{id}/invoices` renvoie les factures sans vérifier que `{id}` correspond à l'utilisateur connecté. Quel type de faille est-ce, et comment corriger ?",
           "solution": "Broken Object Level Authorization (BOLA/IDOR). Correction : vérifier côté serveur que l'utilisateur authentifié est bien propriétaire de {id} (ou a un rôle habilité) avant de renvoyer quoi que ce soit."

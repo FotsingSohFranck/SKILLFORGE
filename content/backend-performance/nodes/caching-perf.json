@@ -13,16 +13,34 @@
           "body": "Le cache est puissant mais vient **après** avoir supprimé le travail inutile (N+1, sur-fetch) et indexé. Cacher une requête déjà mal fichue masque le problème sans le résoudre. Une fois la base saine, le cache sert les données **chaudes et stables** sans la retaper : gros gain de latence et de charge."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Où cacher",
-          "body": "Plusieurs niveaux : **en mémoire** dans le service (le plus rapide, mais local à une instance), **distribué** (Redis, partagé entre instances, indispensable en scale horizontal), ou **HTTP** (en-têtes `Cache-Control`, CDN pour le contenu public). On choisit selon la fraîcheur tolérée et la topologie."
+          "type": "IMAGE",
+          "title": "Le cache intervient après avoir assaini la base, pas avant",
+          "body": "/images/lessons/servir-le-chaud-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Où cacher",
+          "body": "Plusieurs niveaux : **en mémoire** dans le service (le plus rapide, mais local à une instance), **distribué** (Redis, partagé entre instances, indispensable en scale horizontal), ou **HTTP** (en-têtes `Cache-Control`, CDN pour le contenu public). On choisit selon la fraîcheur tolérée et la topologie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mémoire locale, Redis distribué ou CDN HTTP : plusieurs niveaux de cache",
+          "body": "/images/lessons/servir-le-chaud-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Le vrai coût : l'invalidation",
           "body": "Le cache déplace le problème vers la **fraîcheur** : servir une donnée périmée peut être pire que lent. On borne le risque par un **TTL** et/ou une **éviction sur écriture**. Mesurez le **taux de hit** : un cache à 5 % de hit ajoute de la complexité pour rien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une donnée périmée peut coûter plus cher que la lenteur : TTL et taux de hit",
+          "body": "/images/lessons/servir-le-chaud-3.jpg",
+          "position": 5
         }
       ]
     }

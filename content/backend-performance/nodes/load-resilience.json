@@ -13,16 +13,34 @@
           "body": "Un **test de charge** simule un trafic réaliste pour trouver le point de rupture *avant* que les utilisateurs ne le trouvent. On observe latence et erreurs à débit croissant : le seuil où la p99 explose ou les erreurs apparaissent est votre capacité réelle. Sans ce test, la capacité n'est qu'une hypothèse."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Backpressure : dire non proprement",
-          "body": "Quand la demande dépasse la capacité, mieux vaut **refuser vite** (429, file bornée) que d'accepter tout et s'effondrer. La **backpressure** propage la contrainte du consommateur lent vers le producteur, c'est natif dans le réactif. Accepter plus qu'on ne peut traiter, c'est garantir de tout rater."
+          "type": "IMAGE",
+          "title": "Le test de charge trouve le point de rupture avant les utilisateurs",
+          "body": "/images/lessons/tenir-sous-la-charge-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Backpressure : dire non proprement",
+          "body": "Quand la demande dépasse la capacité, mieux vaut **refuser vite** (429, file bornée) que d'accepter tout et s'effondrer. La **backpressure** propage la contrainte du consommateur lent vers le producteur, c'est natif dans le réactif. Accepter plus qu'on ne peut traiter, c'est garantir de tout rater."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La backpressure refuse vite plutôt que tout accepter et s'effondrer",
+          "body": "/images/lessons/tenir-sous-la-charge-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Dégrader plutôt que tomber",
           "body": "Face à une dépendance en panne : **timeout**, **retry** prudent (avec backoff, jamais en boucle), **circuit breaker** qui coupe court après trop d'échecs, et **repli** (valeur par défaut, cache). Objectif : une **dégradation gracieuse**, le service rend un résultat partiel plutôt que de s'écrouler entièrement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mieux vaut un service dégradé qu'un effondrement complet",
+          "body": "/images/lessons/tenir-sous-la-charge-3.jpg",
+          "position": 5
         }
       ]
     }

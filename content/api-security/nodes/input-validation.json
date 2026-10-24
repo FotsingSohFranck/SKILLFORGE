@@ -13,21 +13,33 @@
           "body": "Une **injection** survient quand une entrée utilisateur est interprétée comme du code (SQL, commande shell). Construire une requête en **concaténant** une chaîne fournie par l'utilisateur, c'est ouvrir la porte : `' OR 1=1 --` peut contourner une authentification ou vider une table."
         },
         {
+          "type": "IMAGE",
+          "title": "L'injection reste la faille la plus répandue",
+          "body": "/images/lessons/ne-jamais-concatener-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Requêtes paramétrées",
           "codeLanguage": "java",
           "body": "// DANGER : concaténation\n// \"SELECT * FROM users WHERE email = '\" + email + \"'\"\n\n// SÛR : paramètre lié, jamais interprété comme du code\ndb.sql(\"SELECT * FROM users WHERE email = :email\")\n  .bind(\"email\", email);"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Valider au bord, en liste blanche",
           "body": "On valide les entrées **au bord** (l'adaptateur web) : format, longueur, plage de valeurs. Préférez la **liste blanche** (« seules ces valeurs sont acceptées ») à la liste noire (« tout sauf ça »), toujours contournable. Rejeter tôt une entrée invalide, c'est fermer la porte avant qu'elle n'atteigne le métier."
         },
         {
+          "type": "IMAGE",
+          "title": "Valider les entrées en liste blanche",
+          "body": "/images/lessons/ne-jamais-concatener-2.jpg",
+          "position": 4
+        },
+        {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Vérifions",
           "quizRef": "injection-check"
         }

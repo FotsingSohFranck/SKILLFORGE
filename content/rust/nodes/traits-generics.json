@@ -13,17 +13,29 @@
           "body": "Un **trait** définit un ensemble de méthodes qu'un type peut implémenter, proche d'une interface. Rust n'a pas d'héritage de classes : on **compose** des comportements via des traits. Un type peut implémenter plusieurs traits, et un trait peut fournir des méthodes par défaut."
         },
         {
+          "type": "IMAGE",
+          "title": "Un trait décrit un comportement que plusieurs types partagent",
+          "body": "/images/lessons/polymorphisme-sans-heritage-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Trait + implémentation",
           "codeLanguage": "rust",
           "body": "trait Resume {\n    fn resume(&self) -> String;\n}\n\nstruct Article { titre: String }\n\nimpl Resume for Article {\n    fn resume(&self) -> String {\n        format!(\"Article : {}\", self.titre)\n    }\n}"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Génériques contraints par des traits",
           "body": "Les **génériques** écrivent du code valable pour de nombreux types, et les **bornes de traits** (`T: Resume`) garantissent que le type fournit bien le comportement requis. Le tout est **monomorphisé** à la compilation : abstraction sans coût runtime, un des atouts majeurs de Rust."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les génériques acceptent tout type respectant les traits exigés",
+          "body": "/images/lessons/polymorphisme-sans-heritage-2.jpg",
+          "position": 4
         }
       ]
     }

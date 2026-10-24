@@ -13,15 +13,21 @@
           "body": "Sur un Deployment, vous devez savoir **scaler** (`kubectl scale`), **mettre à jour l'image** (`kubectl set image`), **suivre le déroulé** (`kubectl rollout status`) et **revenir en arrière** (`kubectl rollout undo`). Ce sont des gestes réflexes, pas des manifestes à réécrire."
         },
         {
+          "type": "IMAGE",
+          "title": "Mise à l'échelle et déploiement progressif des applications",
+          "body": "/images/lessons/deployer-et-derouler-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Les gestes qui comptent",
           "codeLanguage": "bash",
           "body": "kubectl create deployment web --image=nginx:1.27-alpine --replicas=3\nkubectl scale deployment/web --replicas=5\nkubectl set image deployment/web nginx=nginx:1.28-alpine\nkubectl rollout status deployment/web\nkubectl rollout undo deployment/web"
         },
         {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 3,
           "title": "À vous",
           "body": "Vous devez déployer 4 répliques de `redis:7` nommé `cache` en une seule commande impérative (sans écrire de YAML). Laquelle ?",
           "solution": "kubectl create deployment cache --image=redis:7 --replicas=4"

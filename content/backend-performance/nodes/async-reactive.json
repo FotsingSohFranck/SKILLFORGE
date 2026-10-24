@@ -13,21 +13,33 @@
           "body": "En modèle **bloquant**, un thread reste occupé à *attendre* une réponse de base ou de réseau, sans rien calculer. Sous forte concurrence, on épuise le pool de threads alors que le CPU est presque inactif : le service refuse des requêtes non par manque de puissance, mais par manque de threads disponibles."
         },
         {
+          "type": "IMAGE",
+          "title": "Des threads bloqués attendent pendant que le processeur reste presque inactif",
+          "body": "/images/lessons/liberer-les-threads-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Non bloquant : rendre la main",
           "codeLanguage": "java",
           "body": "// Réactif (WebFlux + R2DBC) : le thread n'attend pas l'I/O\npublic Mono<RoadmapDto> get(String slug) {\n    return roadmaps.findBySlug(slug)   // ne bloque pas\n            .map(RoadmapDto::from);\n}"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Réactif : à bon escient",
           "body": "Le modèle **non bloquant** (WebFlux, R2DBC) libère le thread pendant l'I/O : quelques threads absorbent des milliers de requêtes en attente. C'est le choix de SkillForge. Contrepartie : un code plus exigeant et une règle d'or, **ne jamais bloquer** dans un pipeline réactif (pas de `.block()`, pas d'I/O bloquante)."
         },
         {
+          "type": "IMAGE",
+          "title": "Le modèle non bloquant libère le thread pendant l'attente et absorbe plus de requêtes",
+          "body": "/images/lessons/liberer-les-threads-2.jpg",
+          "position": 4
+        },
+        {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Vérifions",
           "quizRef": "async-check"
         }

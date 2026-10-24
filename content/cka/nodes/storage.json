@@ -13,17 +13,29 @@
           "body": "Un **PersistentVolume** (PV) est le stockage réel ; un **PersistentVolumeClaim** (PVC) est la demande d'une application ; une **StorageClass** provisionne le PV **dynamiquement** à la création du PVC. L'administrateur relie l'offre à la demande et vérifie qu'un PVC passe bien à l'état `Bound`."
         },
         {
+          "type": "IMAGE",
+          "title": "Volumes persistants, revendications et classes de stockage",
+          "body": "/images/lessons/volumes-persistants-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Diagnostiquer un PVC",
           "codeLanguage": "bash",
           "body": "kubectl get pvc,pv\nkubectl describe pvc data   # events : pas de StorageClass ? pas de PV compatible ?"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Modes d'accès et reclaim",
           "body": "Un PV a un **mode d'accès** (`ReadWriteOnce`, `ReadWriteMany`) et une **politique de récupération** (`Retain` garde les données, `Delete` les supprime avec le PVC). Un PVC reste `Pending` s'il n'existe aucun PV compatible ni StorageClass pour en provisionner un, cause fréquente de pod bloqué."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les modes d'accès et la politique de recyclage des volumes",
+          "body": "/images/lessons/volumes-persistants-2.jpg",
+          "position": 4
         }
       ]
     }

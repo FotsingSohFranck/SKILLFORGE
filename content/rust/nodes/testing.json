@@ -13,15 +13,21 @@
           "body": "Rust intègre les tests au langage : une fonction annotée `#[test]` est un test, lancé par `cargo test`. Les tests unitaires cohabitent souvent avec le code qu'ils vérifient, dans un module `#[cfg(test)]` compilé uniquement en test. Zéro dépendance à installer pour commencer."
         },
         {
+          "type": "IMAGE",
+          "title": "Les tests Rust cohabitent avec le code source qu'ils vérifient",
+          "body": "/images/lessons/tests-integres-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Un module de test",
           "codeLanguage": "rust",
           "body": "fn somme(a: i32, b: i32) -> i32 { a + b }\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn additionne() {\n        assert_eq!(somme(2, 3), 5);\n    }\n}"
         },
         {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 3,
           "title": "À vous",
           "body": "Quelle macro utiliser pour vérifier qu'une valeur calculée vaut exactement une valeur attendue dans un test, et que se passe-t-il si elles diffèrent ?",
           "solution": "assert_eq!(calculé, attendu). Si les deux diffèrent, la macro fait échouer (panic) le test en affichant les deux valeurs (gauche/droite), ce qui facilite le diagnostic."

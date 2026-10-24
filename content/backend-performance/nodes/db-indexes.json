@@ -13,21 +13,33 @@
           "body": "Sans **index**, la base lit toute la table pour trouver une ligne (*sequential scan*) : acceptable sur 100 lignes, catastrophique sur 10 millions. Un index bien placé transforme ce balayage en accès direct. C'est le levier de performance le plus fréquent et le plus rentable côté base de données."
         },
         {
+          "type": "IMAGE",
+          "title": "Sans index, la base balaie toute la table ligne par ligne",
+          "body": "/images/lessons/le-premier-levier-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Lire le plan d'exécution",
           "codeLanguage": "sql",
           "body": "EXPLAIN ANALYZE\nSELECT * FROM enrollments\nWHERE user_id = '...';\n-- \"Seq Scan\" = pas d'index utilisé (à corriger)\n-- \"Index Scan\" = l'index est utilisé\n\nCREATE INDEX idx_enrollments_user ON enrollments(user_id);"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Indexer avec discernement",
           "body": "On indexe les colonnes de **filtre** (`WHERE`), de **jointure** (`JOIN`) et de **tri** (`ORDER BY`) fréquentes, en priorité les clés étrangères. Mais un index a un coût : il ralentit les écritures et occupe de l'espace. On n'indexe donc pas tout : on indexe ce que les requêtes réelles sollicitent."
         },
         {
+          "type": "IMAGE",
+          "title": "On indexe filtres, jointures et tris fréquents, pas toutes les colonnes",
+          "body": "/images/lessons/le-premier-levier-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Un `EXPLAIN ANALYZE` montre un « Seq Scan » sur une table de 5 millions de lignes filtrée par `email`. Quel est le problème et le correctif ?",
           "solution": "La colonne email n'est pas indexée : la base balaie toute la table. Correctif : CREATE INDEX sur email (idéalement UNIQUE si l'email est unique), ce qui fait passer la requête en Index Scan."

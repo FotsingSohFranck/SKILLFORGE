@@ -13,28 +13,40 @@
           "body": "**1)** Chaque valeur a un unique **propriétaire**. **2)** Il ne peut y avoir qu'un seul propriétaire à la fois. **3)** Quand le propriétaire sort du *scope*, la valeur est libérée. Ces trois règles, vérifiées à la compilation, remplacent le ramasse-miettes : la mémoire est libérée de façon déterministe, sans fuite ni double libération."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaque valeur possède un unique propriétaire à tout instant",
+          "body": "/images/lessons/le-concept-central-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Déplacement (move)",
           "codeLanguage": "rust",
           "body": "let s1 = String::from(\"hello\");\nlet s2 = s1;          // s1 est \"déplacé\" dans s2\n// println!(\"{s1}\");   // ERREUR : s1 n'est plus valide\nprintln!(\"{s2}\");      // OK"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Emprunter plutôt que déplacer",
           "body": "Pour utiliser une valeur sans en transférer la propriété, on l'**emprunte** avec une référence `&`. Règle du *borrow checker* : soit **plusieurs emprunts en lecture** (`&`), soit **un seul emprunt en écriture** (`&mut`), jamais les deux simultanément. C'est ce qui élimine les courses de données à la compilation."
         },
         {
+          "type": "IMAGE",
+          "title": "Emprunter donne un accès temporaire sans céder la propriété",
+          "body": "/images/lessons/le-concept-central-2.jpg",
+          "position": 4
+        },
+        {
           "type": "CODE",
-          "position": 3,
+          "position": 5,
           "title": "Emprunt en lecture",
           "codeLanguage": "rust",
           "body": "fn longueur(s: &String) -> usize {\n    s.len()            // on lit sans prendre possession\n}\n\nlet s = String::from(\"hello\");\nlet n = longueur(&s);  // s reste utilisable ici\nprintln!(\"{s} fait {n}\");"
         },
         {
           "type": "QUIZ",
-          "position": 4,
+          "position": 6,
           "title": "Vérifions",
           "quizRef": "ownership-rules"
         }

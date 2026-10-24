@@ -13,15 +13,21 @@
           "body": "Trois sondes à connaître : **liveness** (redémarrer si mort), **readiness** (retirer du Service si pas prêt), **startup** (laisser le temps au démarrage lent avant d'activer les autres). Savoir en ajouter une à un conteneur existant est un grand classique de l'examen."
         },
         {
+          "type": "IMAGE",
+          "title": "Les sondes vérifient la santé et la disponibilité des conteneurs",
+          "body": "/images/lessons/sondes-et-debug-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Diagnostiquer sous pression",
           "codeLanguage": "bash",
           "body": "kubectl get pods -o wide\nkubectl describe pod web        # événements : OOMKilled, ImagePullBackOff…\nkubectl logs web -c sidecar     # logs d'un conteneur précis\nkubectl top pod web             # CPU / mémoire consommés"
         },
         {
           "type": "EXERCISE",
-          "position": 2,
+          "position": 3,
           "title": "À vous",
           "body": "Un pod répond aux requêtes mais est parfois inclus dans le Service avant d'être prêt, provoquant des erreurs. Quelle sonde ajouter, et quel effet a son échec ?",
           "solution": "Une readiness probe : tant qu'elle échoue, le pod est retiré des endpoints du Service (pas de trafic), sans être redémarré."

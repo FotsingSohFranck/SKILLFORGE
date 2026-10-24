@@ -13,21 +13,33 @@
           "body": "Un mot de passe ne se stocke **jamais** en clair, ni même chiffré de façon réversible. On stocke un **hachage** produit par un algorithme lent et salé (**BCrypt**, Argon2). Au login, on re-hache l'entrée et on compare. Ainsi, une fuite de base ne révèle pas les mots de passe."
         },
         {
+          "type": "IMAGE",
+          "title": "Stocker les mots de passe hachés, jamais en clair",
+          "body": "/images/lessons/prouver-qui-appelle-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Hacher et vérifier",
           "codeLanguage": "java",
           "body": "var encoder = new BCryptPasswordEncoder();\nString hash = encoder.encode(rawPassword);   // à l'inscription\n// À la connexion :\nboolean ok = encoder.matches(rawPassword, hash);"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Jetons : JWT et OAuth",
           "body": "Après le login, on ne redemande pas le mot de passe à chaque requête : on émet un **jeton**. Un **JWT** signé porte l'identité et une expiration, vérifiable sans état côté serveur. **OAuth 2 / OIDC** délègue l'authentification à un fournisseur (Google, un IdP d'entreprise). Un access token court + un refresh token limitent l'impact d'un vol."
         },
         {
+          "type": "IMAGE",
+          "title": "Les jetons prouvent l'identité de l'appelant",
+          "body": "/images/lessons/prouver-qui-appelle-2.jpg",
+          "position": 4
+        },
+        {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Vérifions",
           "quizRef": "authn-check"
         }

@@ -13,16 +13,34 @@
           "body": "Établir une connexion à la base (handshake réseau, authentification) prend des millisecondes, une éternité à l'échelle d'une requête. Un **pool de connexions** en garde un petit nombre **ouvertes et réutilisables** : on emprunte, on rend, on ne recrée pas. C'est un réglage incontournable de tout backend."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Trop grand nuit aussi",
-          "body": "Un pool **trop petit** crée une file d'attente ; **trop grand**, il sature la base (chaque connexion consomme des ressources côté serveur). La bonne taille dépend de la base et de la charge : on la **mesure**, on ne la devine pas. Souvent, un pool modéré bat un pool géant qui écroule la base."
+          "type": "IMAGE",
+          "title": "Un pool garde quelques connexions ouvertes et réutilisables",
+          "body": "/images/lessons/reutiliser-au-lieu-de-recreer-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Trop grand nuit aussi",
+          "body": "Un pool **trop petit** crée une file d'attente ; **trop grand**, il sature la base (chaque connexion consomme des ressources côté serveur). La bonne taille dépend de la base et de la charge : on la **mesure**, on ne la devine pas. Souvent, un pool modéré bat un pool géant qui écroule la base."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trop petit crée une file, trop grand sature la base",
+          "body": "/images/lessons/reutiliser-au-lieu-de-recreer-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Timeouts partout",
           "body": "Emprunter une connexion, appeler un service : tout doit avoir un **timeout**. Sans lui, une dépendance lente bloque des threads/connexions qui s'accumulent jusqu'à l'effondrement (*thread pool exhaustion*). Un timeout transforme une panne lente et contagieuse en une erreur rapide et contenue."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un timeout transforme une panne lente en erreur rapide et contenue",
+          "body": "/images/lessons/reutiliser-au-lieu-de-recreer-3.jpg",
+          "position": 5
         }
       ]
     }

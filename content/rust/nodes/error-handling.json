@@ -13,21 +13,33 @@
           "body": "Rust n'a pas d'exceptions. Une opération faillible renvoie un **`Result<T, E>`** : soit `Ok(valeur)`, soit `Err(erreur)`. L'erreur fait partie de la **signature** de la fonction : impossible de l'ignorer silencieusement. On distingue les erreurs *récupérables* (`Result`) des bugs *irrécupérables* (`panic!`)."
         },
         {
+          "type": "IMAGE",
+          "title": "Result encode le succès ou l'échec directement dans la valeur de retour",
+          "body": "/images/lessons/result-et-loperateur-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Propager avec ?",
           "codeLanguage": "rust",
           "body": "use std::num::ParseIntError;\n\nfn double(entree: &str) -> Result<i32, ParseIntError> {\n    let n: i32 = entree.parse()?;  // si Err, retourne tôt\n    Ok(n * 2)\n}"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "L'opérateur ? en un mot",
           "body": "`?` placé après un `Result` fait : « si `Ok`, prends la valeur et continue ; si `Err`, retourne immédiatement cette erreur ». Il remplace des `match` répétitifs et rend le chemin heureux lisible, tout en propageant proprement les erreurs vers l'appelant."
         },
         {
+          "type": "IMAGE",
+          "title": "L'opérateur ? propage l'erreur en un seul caractère",
+          "body": "/images/lessons/result-et-loperateur-2.jpg",
+          "position": 4
+        },
+        {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Vérifions",
           "quizRef": "error-result"
         }

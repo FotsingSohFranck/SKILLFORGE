@@ -13,16 +13,34 @@
           "body": "Un **VPC** (Virtual Private Cloud) est votre réseau isolé dans AWS. On le découpe en **sous-réseaux** : **publics** (accessibles depuis Internet, pour un équilibreur de charge) et **privés** (sans accès entrant direct, pour les bases et les serveurs applicatifs). Ce cloisonnement est la première ligne de défense réseau."
         },
         {
-          "type": "CONCEPT",
-          "position": 1,
-          "title": "Security groups : le pare-feu",
-          "body": "Un **security group** est un pare-feu au niveau de la ressource : il autorise explicitement le trafic entrant/sortant (port, source). Par défaut, tout entrant est **refusé**. Bonne pratique : n'ouvrir que le strict nécessaire, et référencer d'autres security groups plutôt que des plages d'IP larges."
+          "type": "IMAGE",
+          "title": "Le VPC délimite votre réseau privé isolé dans le cloud.",
+          "body": "/images/lessons/isoler-et-connecter-1.jpg",
+          "position": 1
         },
         {
           "type": "CONCEPT",
           "position": 2,
+          "title": "Security groups : le pare-feu",
+          "body": "Un **security group** est un pare-feu au niveau de la ressource : il autorise explicitement le trafic entrant/sortant (port, source). Par défaut, tout entrant est **refusé**. Bonne pratique : n'ouvrir que le strict nécessaire, et référencer d'autres security groups plutôt que des plages d'IP larges."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les security groups filtrent le trafic autorisé vers vos ressources.",
+          "body": "/images/lessons/isoler-et-connecter-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
           "title": "Ne pas tout exposer",
           "body": "Une base de données n'a **rien à faire** dans un sous-réseau public. On la place en privé, joignable uniquement par les serveurs applicatifs via leur security group. L'exposition publique d'une base est une cause classique de fuite : par défaut, on ferme, on n'ouvre qu'à la demande justifiée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On n'expose à Internet que ce qui doit vraiment l'être.",
+          "body": "/images/lessons/isoler-et-connecter-3.jpg",
+          "position": 5
         }
       ]
     }

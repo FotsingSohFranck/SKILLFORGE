@@ -13,21 +13,33 @@
           "body": "Le problème **N+1** : on charge une liste (1 requête), puis pour **chaque** élément on refait une requête (N requêtes). Total : 1 + N appels à la base. C'est invisible sur 5 éléments en développement, dramatique sur 5000 en production. Symptôme typique : une page dont la lenteur croît avec la quantité de données."
         },
         {
+          "type": "IMAGE",
+          "title": "Le N+1 multiplie les appels à la base, un par élément chargé",
+          "body": "/images/lessons/un-plus-n-requetes-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Une requête au lieu de N",
           "codeLanguage": "sql",
           "body": "-- Au lieu de : 1 requête \"nœuds\" + N requêtes \"leçons par nœud\"\nSELECT n.id AS node_id, l.id AS lesson_id, l.title\nFROM nodes n\nJOIN lessons l ON l.node_id = n.id\nWHERE n.roadmap_id = :roadmapId\nORDER BY n.position, l.position;"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Détecter et corriger",
           "body": "On détecte le N+1 en **comptant les requêtes** d'une opération (logs SQL, métriques). Correctifs : charger en une **jointure**, précharger par **lots** (`WHERE id IN (...)`), ou dénormaliser prudemment. Souvent, régler un N+1 rapporte plus qu'ajouter un cache, et c'est à faire *avant* d'ajouter un cache."
         },
         {
+          "type": "IMAGE",
+          "title": "Une jointure ou un chargement par lots remplace les N requêtes",
+          "body": "/images/lessons/un-plus-n-requetes-2.jpg",
+          "position": 4
+        },
+        {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Vérifions",
           "quizRef": "nplus1-check"
         }

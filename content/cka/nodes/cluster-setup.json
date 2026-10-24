@@ -13,21 +13,33 @@
           "body": "Le CKA teste l'**administrateur** : installer un cluster avec **kubeadm**, comprendre les composants du plan de contrôle (API server, etcd, scheduler, controller-manager) et des nœuds (kubelet, kube-proxy). On sait où vivent leurs manifests statiques (`/etc/kubernetes/manifests`) et comment lire leurs logs quand ça coince."
         },
         {
+          "type": "IMAGE",
+          "title": "Les composants du cluster se déploient avec kubeadm",
+          "body": "/images/lessons/installer-et-securiser-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "RBAC : créer un accès restreint",
           "codeLanguage": "bash",
           "body": "kubectl create role dev --verb=get,list,watch --resource=pods\nkubectl create rolebinding dev-bind --role=dev --user=alice\nkubectl auth can-i list pods --as=alice   # vérifier"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "etcd : sauvegarder l'état",
           "body": "**etcd** stocke tout l'état du cluster : le sauvegarder est un grand classique de l'examen. `etcdctl snapshot save` crée une sauvegarde, `snapshot restore` la restaure. Sans etcd, plus de cluster : sa sauvegarde régulière est une responsabilité d'administrateur non négociable."
         },
         {
+          "type": "IMAGE",
+          "title": "etcd conserve l'état du cluster, à sauvegarder régulièrement",
+          "body": "/images/lessons/installer-et-securiser-2.jpg",
+          "position": 4
+        },
+        {
           "type": "QUIZ",
-          "position": 3,
+          "position": 5,
           "title": "Vérifions",
           "quizRef": "cka-cluster"
         }

@@ -13,21 +13,33 @@
           "body": "En Rust, une **enum** ne se limite pas à des constantes : chaque variante peut porter des données. C'est un **type somme**. Combiné au **pattern matching**, il permet de modéliser précisément un domaine et de traiter chaque cas, le compilateur exige que le `match` soit **exhaustif**."
         },
         {
+          "type": "IMAGE",
+          "title": "Chaque variante d'un enum peut transporter ses propres données",
+          "body": "/images/lessons/types-algebriques-1.jpg",
+          "position": 1
+        },
+        {
           "type": "CODE",
-          "position": 1,
+          "position": 2,
           "title": "Enum + match",
           "codeLanguage": "rust",
           "body": "enum Forme {\n    Cercle(f64),\n    Rectangle(f64, f64),\n}\n\nfn aire(f: &Forme) -> f64 {\n    match f {\n        Forme::Cercle(r) => std::f64::consts::PI * r * r,\n        Forme::Rectangle(l, h) => l * h,\n    }\n}"
         },
         {
           "type": "CONCEPT",
-          "position": 2,
+          "position": 3,
           "title": "Option : pas de null",
           "body": "Rust n'a **pas de null**. L'absence de valeur est modélisée par `Option<T>` : soit `Some(valeur)`, soit `None`. Le compilateur vous **oblige** à traiter le cas `None` avant d'accéder à la valeur, d'où l'élimination des erreurs de pointeur nul, si fréquentes ailleurs."
         },
         {
+          "type": "IMAGE",
+          "title": "Option rend l'absence de valeur explicite, sans null",
+          "body": "/images/lessons/types-algebriques-2.jpg",
+          "position": 4
+        },
+        {
           "type": "EXERCISE",
-          "position": 3,
+          "position": 5,
           "title": "À vous",
           "body": "Une fonction cherche un élément dans une liste. Quel type de retour choisir en Rust pour représenter « trouvé / pas trouvé » proprement, et quel avantage cela donne-t-il ?",
           "solution": "Option<T> (Some(x) si trouvé, None sinon). Avantage : l'appelant est forcé par le compilateur de gérer le cas None, impossible d'oublier le cas « absent » et de déréférencer un null."
