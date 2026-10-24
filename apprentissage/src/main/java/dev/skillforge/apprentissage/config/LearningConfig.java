@@ -8,6 +8,7 @@ import dev.skillforge.apprentissage.application.GetStreakService;
 import dev.skillforge.apprentissage.application.ListBookmarksService;
 import dev.skillforge.apprentissage.application.ListEnrollmentsService;
 import dev.skillforge.apprentissage.application.MarkLessonViewedService;
+import dev.skillforge.apprentissage.application.MarkNodePracticalPassedService;
 import dev.skillforge.apprentissage.application.ProgressRecalculator;
 import dev.skillforge.apprentissage.application.ResumeLastService;
 import dev.skillforge.apprentissage.application.StreakUpdater;
@@ -20,6 +21,7 @@ import dev.skillforge.apprentissage.domain.port.in.GetStreakUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ListBookmarksUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ListEnrollmentsUseCase;
 import dev.skillforge.apprentissage.domain.port.in.MarkLessonViewedUseCase;
+import dev.skillforge.apprentissage.domain.port.in.MarkNodePracticalPassedUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ResumeLastUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ToggleBookmarkUseCase;
 import dev.skillforge.apprentissage.domain.port.out.BookmarkStore;
@@ -67,6 +69,15 @@ public class LearningConfig {
                                                 StreakUpdater streakUpdater,
                                                 LearningEventPublisher events) {
         return new CompleteLessonService(enrollments, lessonProgress, recalculator, streakUpdater, events);
+    }
+
+    @Bean
+    MarkNodePracticalPassedUseCase markNodePracticalPassedUseCase(EnrollmentStore enrollments,
+                                                                  NodeProgressStore nodeProgress,
+                                                                  LessonProgressStore lessonProgress,
+                                                                  LearningCatalogPort catalog,
+                                                                  LearningEventPublisher events) {
+        return new MarkNodePracticalPassedService(enrollments, nodeProgress, lessonProgress, catalog, events);
     }
 
     @Bean

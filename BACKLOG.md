@@ -1551,9 +1551,18 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       - Vérifs : module `lab` **13/13** (service réussite/échec/not-found avec doubles, isolation,
         domaine) ; backend **rebuild OK**, Flyway **V12 appliquée**, 315 nœuds `LESSONS_ONLY`
         (0 régression), endpoint câblé (401 sans jeton). Capacité Docker non activée (voir SF-91b).
-    - ⬜ **SF-91d — Lien progression** : listener dans `apprentissage` ; `ProgressRecalculator`
-      tient compte de la politique `LESSONS_AND_PRACTICAL` (nœud COMPLETED ⟺ leçons + pratique).
-      CA : un nœud à politique pratique ne se valide **que** si la pratique est réussie.
+    - ✅ **SF-91d — Lien progression** — **TERMINÉ**
+      - `ProgressRecalculator` intègre la politique : un nœud `LESSONS_AND_PRACTICAL` n'est
+        COMPLETED que si leçons terminées **ET** pratique réussie (lecture `completion_policy` +
+        `practical_passed` via les ports catalogue / node_progress).
+      - Listener `PracticalProgressListener` (@EventListener) consomme `PracticalPassedEvent` →
+        service `MarkNodePracticalPassedService` : résout l'inscription (via `roadmapOfNode`),
+        mémorise la réussite (`markPracticalPassed`), recalcule statut + % parcours (sans déplacer
+        la reprise), émet `NodeCompletedEvent`/`RoadmapCompletedEvent` **à la transition** (pas de
+        double comptage). Migration **V13** (`node_progress.practical_passed`, défaut false).
+      - Vérifs : `apprentissage` **18/18** (dont `PracticalGatingTest` 5 et IT Testcontainers 7),
+        schéma d'IT complété, backend **rebuild OK** + Flyway **V13** appliquée. Défaut
+        `LESSONS_ONLY` partout → **0 régression** (les nœuds existants se valident comme avant).
     - ⬜ **SF-91e — UI pratique (front)** : page/section « Passer la pratique » (éditeur de
       code + bouton Valider + verdict), gating de la validation du nœud, état « pratique
       réussie » persistant. CA : parcours backend jouable de bout en bout dans l'UI.

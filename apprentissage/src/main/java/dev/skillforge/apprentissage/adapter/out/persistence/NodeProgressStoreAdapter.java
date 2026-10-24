@@ -59,6 +59,49 @@ public class NodeProgressStoreAdapter implements NodeProgressStore {
                 .map((row, meta) -> row.get(0, Long.class)).one();
     }
 
+    @Override
+    public Mono<ProgressStatus> status(EnrollmentId enrollment, NodeId node) {
+        return db.sql("SELECT status FROM node_progress WHERE enrollment_id = :eid AND node_id = :nid")
+                .bind("eid", enrollment.value()).bind("nid", node.value())
+                .map((row, meta) -> ProgressStatus.valueOf(row.get(0, String.class)))
+                .one();
+    }
+
+    @Override
+    public Mono<Boolean> isPracticalPassed(EnrollmentId enrollment, NodeId node) {
+        return db.sql("SELECT practical_passed FROM node_progress WHERE enrollment_id = :eid AND node_id = :nid")
+                .bind("eid", enrollment.value()).bind("nid", node.value())
+                .map((row, meta) -> Boolean.TRUE.equals(row.get(0, Boolean.class)))
+                .one()
+                .defaultIfEmpty(false);
+    }
+
+    @Override
+    public Mono<Void> markPracticalPassed(EnrollmentId enrollment, NodeId node, Instant at) {
+        return db.sql("""
+                        INSERT INTO node_progress(enrollment_id, node_id, status, percent, practical_passed, last_viewed_at)
+                        VALUES (:eid, :nid, 'IN_PROGRESS', 0, true, :at)
+                        ON CONFLICT (enrollment_id, node_id) DO UPDATE SET
+                            practical_passed = true, last_viewed_at = EXCLUDED.last_viewed_at
+                        """)
+                .bind("eid", enrollment.value()).bind("nid", node.value())
+                .bind("at", OffsetDateTime.ofInstant(at, ZoneOffset.UTC))
+                .fetch().rowsUpdated().then();
+    }
+
+    @Override
+    public Mono<Void> updateStatus(EnrollmentId enrollment, NodeId node, ProgressStatus status,
+                                   double percent, Instant at) {
+        return db.sql("""
+                        UPDATE node_progress SET status = :status, percent = :percent, last_viewed_at = :at
+                        WHERE enrollment_id = :eid AND node_id = :nid
+                        """)
+                .bind("status", status.name()).bind("percent", percent)
+                .bind("at", OffsetDateTime.ofInstant(at, ZoneOffset.UTC))
+                .bind("eid", enrollment.value()).bind("nid", node.value())
+                .fetch().rowsUpdated().then();
+    }
+
     private static NodeProgress map(Readable row) {
         UUID lesson = row.get("last_lesson_id", UUID.class);
         BigDecimal percent = row.get("percent", BigDecimal.class);

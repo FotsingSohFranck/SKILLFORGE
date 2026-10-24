@@ -83,6 +83,11 @@ class LearningServicesTest {
         }
 
         @Override
+        public Mono<Void> updatePercent(EnrollmentId id, double p, Instant at) {
+            return Mono.empty();
+        }
+
+        @Override
         public Mono<Enrollment> findLastActive(LearnerId l) {
             return Mono.empty();
         }

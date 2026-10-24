@@ -3,9 +3,10 @@
 -- compteurs (nodes, lessons) avec un petit jeu de données.
 
 CREATE TABLE nodes (
-    id         uuid PRIMARY KEY DEFAULT uuidv7(),
-    roadmap_id uuid NOT NULL,
-    slug       varchar(120) NOT NULL
+    id                uuid PRIMARY KEY DEFAULT uuidv7(),
+    roadmap_id        uuid NOT NULL,
+    slug              varchar(120) NOT NULL,
+    completion_policy varchar(32) NOT NULL DEFAULT 'LESSONS_ONLY'
 );
 
 CREATE TABLE lessons (
@@ -36,6 +37,7 @@ CREATE TABLE node_progress (
     percent        numeric(5,2) NOT NULL DEFAULT 0,
     last_lesson_id uuid,
     last_viewed_at timestamptz,
+    practical_passed boolean NOT NULL DEFAULT false,
     created_at     timestamptz NOT NULL DEFAULT now(),
     updated_at     timestamptz NOT NULL DEFAULT now(),
     UNIQUE (enrollment_id, node_id)

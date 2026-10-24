@@ -35,12 +35,15 @@ public class ProgressRecalculator {
     public Mono<ProgressOutcome> recalculate(Enrollment enrollment, NodeId node, LessonId lesson, Instant at) {
         return Mono.zip(
                         lessonProgress.countCompletedInNode(enrollment.id(), node),
-                        catalog.countLessonsInNode(node))
-                .flatMap(counts -> {
-                    long done = counts.getT1();
-                    long total = counts.getT2();
+                        catalog.countLessonsInNode(node),
+                        catalog.completionPolicy(node),
+                        nodeProgress.isPracticalPassed(enrollment.id(), node))
+                .flatMap(t -> {
+                    long done = t.getT1();
+                    long total = t.getT2();
+                    boolean practicalOk = !t.getT3().requiresPractical() || t.getT4();
                     double nodePercent = total == 0 ? 0.0 : Math.min(100.0, done * 100.0 / total);
-                    ProgressStatus status = (total > 0 && done >= total)
+                    ProgressStatus status = (total > 0 && done >= total && practicalOk)
                             ? ProgressStatus.COMPLETED : ProgressStatus.IN_PROGRESS;
                     return nodeProgress.upsert(enrollment.id(), node, status, nodePercent, lesson, at)
                             .then(updateRoadmap(enrollment, node, lesson, at))

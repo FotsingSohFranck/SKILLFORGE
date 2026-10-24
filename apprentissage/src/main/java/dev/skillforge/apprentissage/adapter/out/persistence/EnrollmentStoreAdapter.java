@@ -73,6 +73,15 @@ public class EnrollmentStoreAdapter implements EnrollmentStore {
     }
 
     @Override
+    public Mono<Void> updatePercent(EnrollmentId id, double percent, Instant at) {
+        return db.sql("UPDATE enrollments SET progress_percent = :percent, last_activity_at = :at WHERE id = :id")
+                .bind("percent", percent)
+                .bind("at", OffsetDateTime.ofInstant(at, ZoneOffset.UTC))
+                .bind("id", id.value())
+                .fetch().rowsUpdated().then();
+    }
+
+    @Override
     public Mono<Enrollment> findLastActive(LearnerId learner) {
         return db.sql(SELECT + "WHERE user_id = :uid AND last_activity_at IS NOT NULL "
                         + "ORDER BY last_activity_at DESC LIMIT 1")

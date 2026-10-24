@@ -26,6 +26,9 @@ public interface EnrollmentStore {
     Mono<Void> updateProgress(EnrollmentId id, NodeId lastNode, LessonId lastLesson,
                               double percent, Instant at);
 
+    /** Met à jour uniquement le % du parcours (sans déplacer le point de reprise). */
+    Mono<Void> updatePercent(EnrollmentId id, double percent, Instant at);
+
     /** Dernière inscription active (reprise globale) ; vide si aucune activité. */
     Mono<Enrollment> findLastActive(LearnerId learner);
 }

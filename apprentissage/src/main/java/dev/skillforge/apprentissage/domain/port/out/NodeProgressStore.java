@@ -21,4 +21,17 @@ public interface NodeProgressStore {
 
     /** Nombre de nœuds complétés (pour le % du parcours). */
     Mono<Long> countCompleted(EnrollmentId enrollment);
+
+    /** Statut actuel du nœud ({@link Mono#empty()} si aucune progression enregistrée). */
+    Mono<ProgressStatus> status(EnrollmentId enrollment, NodeId node);
+
+    /** Vrai si l'épreuve pratique du nœud a été réussie par cette inscription. */
+    Mono<Boolean> isPracticalPassed(EnrollmentId enrollment, NodeId node);
+
+    /** Marque l'épreuve pratique réussie (crée la ligne si besoin), sans toucher au reste. */
+    Mono<Void> markPracticalPassed(EnrollmentId enrollment, NodeId node, Instant at);
+
+    /** Met à jour uniquement statut et pourcentage (sans toucher à la reprise ni à la pratique). */
+    Mono<Void> updateStatus(EnrollmentId enrollment, NodeId node, ProgressStatus status,
+                            double percent, Instant at);
 }

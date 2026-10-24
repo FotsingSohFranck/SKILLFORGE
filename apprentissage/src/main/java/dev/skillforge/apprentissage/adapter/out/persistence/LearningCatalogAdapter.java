@@ -1,5 +1,6 @@
 package dev.skillforge.apprentissage.adapter.out.persistence;
 
+import dev.skillforge.apprentissage.domain.model.CompletionPolicy;
 import dev.skillforge.apprentissage.domain.model.NodeId;
 import dev.skillforge.apprentissage.domain.model.RoadmapId;
 import dev.skillforge.apprentissage.domain.port.out.LearningCatalogPort;
@@ -33,5 +34,22 @@ public class LearningCatalogAdapter implements LearningCatalogPort {
         return db.sql("SELECT count(*) FROM nodes WHERE roadmap_id = :rid")
                 .bind("rid", roadmap.value())
                 .map((row, meta) -> row.get(0, Long.class)).one();
+    }
+
+    @Override
+    public Mono<CompletionPolicy> completionPolicy(NodeId node) {
+        return db.sql("SELECT completion_policy FROM nodes WHERE id = :nid")
+                .bind("nid", node.value())
+                .map((row, meta) -> CompletionPolicy.fromDb(row.get(0, String.class)))
+                .one()
+                .defaultIfEmpty(CompletionPolicy.LESSONS_ONLY);
+    }
+
+    @Override
+    public Mono<RoadmapId> roadmapOfNode(NodeId node) {
+        return db.sql("SELECT roadmap_id FROM nodes WHERE id = :nid")
+                .bind("nid", node.value())
+                .map((row, meta) -> new RoadmapId(row.get(0, java.util.UUID.class)))
+                .one();
     }
 }
