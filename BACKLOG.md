@@ -1515,10 +1515,15 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     `LESSONS_AND_PRACTICAL`) ; la réussite émet `PracticalPassedEvent` consommé par
     `apprentissage`.
   - **Découpage proposé (à prendre dans l'ordre, WIP = 1) :**
-    - ⬜ **SF-91a — Modèle & migration `lab`** : entités `practical_task` (par nœud) +
-      `practical_attempt` (session, statut, résultat) ; champ `completion_policy` sur le nœud
-      (catalogue) ; migration Flyway (V12). Domaine pur + ports, pas d'orchestration encore.
-      CA : schéma validé, défaut `LESSONS_ONLY` partout (aucune régression de progression).
+    - ✅ **SF-91a — Modèle & migration `lab`** — **TERMINÉ**
+      - Module `lab` créé (hexagonal, câblé dans le pom parent + dépendance `app`). Domaine pur :
+        `PracticalTask`, `PracticalAttempt` (transitions immuables + garde terminal), enums
+        `AttemptStatus` / `CompletionPolicy`, value objects `PracticalTaskId` / `LearnerId` ;
+        ports sortants `PracticalTaskStore` / `PracticalAttemptStore`. Pas d'orchestration (SF-91b+).
+      - Migration **V12** : colonne `nodes.completion_policy` (CHECK, défaut **`LESSONS_ONLY`** =
+        aucune régression), tables `practical_tasks` (une par nœud) et `practical_attempts`.
+      - Vérifs : `mvn -pl lab test` **5/5 verts** ; `mvn -pl app -am compile` OK ; V12 jouée en
+        transaction ROLLBACK sur Postgres (syntaxe valide, état Flyway intact).
     - ⬜ **SF-91b — Port d'exécution + orchestrateur Docker durci** : `LabRuntimePort`
       (start/exec/stop) ; adapter Docker (socket) avec **sandbox** : `--network none`,
       limites CPU/mémoire/pids, `--no-new-privileges`, seccomp, cap-drop ALL, non-root,
