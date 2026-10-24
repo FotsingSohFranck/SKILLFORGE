@@ -264,6 +264,7 @@ async function ingestParcours(opts, dir, token, state) {
       instructions: data.instructions,
       workspaceSeed: data.workspaceSeed ?? null,
       validationRef: data.validationRef,
+      expectedPath: data.expectedPath ?? null,
       timeoutSeconds: data.timeoutSeconds ?? null,
       requiresPractical: data.requiresPractical ?? false,
     }

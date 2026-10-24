@@ -76,7 +76,8 @@ public class LabController {
                 request.workspaceSeed(),
                 request.validationRef(),
                 request.timeoutOrDefault(),
-                request.requiresPracticalOrDefault());
+                request.requiresPracticalOrDefault(),
+                request.expectedPath());
         return importPractical.importTask(command);
     }
 

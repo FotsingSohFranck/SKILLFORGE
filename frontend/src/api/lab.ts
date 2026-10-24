@@ -6,6 +6,7 @@ export interface LabPractical {
   required: boolean
   title: string | null
   instructions: string | null
+  expectedPath: string | null
   latestStatus: string | null
   latestPassed: boolean
 }

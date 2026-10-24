@@ -32,6 +32,7 @@ const PRACTICAL_ABSENT: LabPractical = {
   required: false,
   title: null,
   instructions: null,
+  expectedPath: null,
   latestStatus: null,
   latestPassed: false,
 }

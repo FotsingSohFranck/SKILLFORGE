@@ -8,11 +8,12 @@ public record LabPracticalDto(
         boolean required,
         String title,
         String instructions,
+        String expectedPath,
         String latestStatus,
         boolean latestPassed
 ) {
     public static LabPracticalDto from(PracticalView v) {
         return new LabPracticalDto(v.exists(), v.required(), v.title(), v.instructions(),
-                v.latestStatus(), v.latestPassed());
+                v.expectedPath(), v.latestStatus(), v.latestPassed());
     }
 }

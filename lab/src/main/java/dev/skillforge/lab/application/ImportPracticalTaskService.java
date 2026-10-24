@@ -33,7 +33,8 @@ public class ImportPracticalTaskService implements ImportPracticalTaskUseCase {
                 command.instructions(),
                 command.workspaceSeed(),
                 command.validationRef(),
-                command.timeoutSeconds());
+                command.timeoutSeconds(),
+                command.expectedPath());
         return tasks.upsert(task)
                 .then(catalog.setCompletionPolicy(command.nodeId(), command.requiresPractical()));
     }

@@ -13,7 +13,8 @@ public record LabPracticalImportRequest(
         String workspaceSeed,
         @NotBlank String validationRef,
         Integer timeoutSeconds,
-        Boolean requiresPractical
+        Boolean requiresPractical,
+        String expectedPath
 ) {
     public int timeoutOrDefault() {
         return timeoutSeconds == null || timeoutSeconds <= 0 ? 900 : timeoutSeconds;

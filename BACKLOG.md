@@ -1595,6 +1595,13 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
         `passed:true` / `PRATIQUE_OK`** (~12 s), **fausse → `passed:false`** + feedback filtré ;
         `latestPassed` persisté ; `PracticalPassedEvent` propagé (`node_progress.practical_passed=t`) ;
         **aucun conteneur de lab résiduel** (stop après chaque correction). `lab`+`iam` **32 tests**.
+      - **Correctifs UX (revue navigateur)** : (1) chemin de fichier attendu `expectedPath`
+        (migration V14 + modèle/port/DTO/schéma/contenu) **pré-rempli** dans l'UI au lieu de
+        `solution.txt` trompeur ; (2) consigne rendue en **Markdown + coloration** via nouveau
+        composant `RichText` (réutilise `CodeBlock`) ; (3) **spinner + message** « correction en
+        cours ~15 s » ; (4) **message de gating** après réussite (« termine aussi les leçons ») ;
+        (5) **carte de parcours cliquable** au catalogue (clavier + focus, boutons isolés) ;
+        (6) **a11y** : `id`/`htmlFor` + `role=status`/`aria-live` sur le panneau.
     - 🧊 **SF-91h — Phase 3 (hors pilote)** : bacs à sable infra (k3d/dind) pour docker,
       kubernetes, terraform, cka, ckad (terminal complet, clusters jetables). ADR dédié au
       durcissement du mode privilégié avant de commencer.

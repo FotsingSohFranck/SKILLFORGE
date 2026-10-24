@@ -36,7 +36,8 @@ class SubmitPracticalServiceTest {
 
     private PracticalTask task() {
         return new PracticalTask(PracticalTaskId.of(UUID.randomUUID()), nodeId,
-                "Afficher Bonjour", "eclipse-temurin:21-jdk", "Ecris le code", null, "bash /grader/check.sh", 900);
+                "Afficher Bonjour", "eclipse-temurin:21-jdk", "Ecris le code", null, "bash /grader/check.sh", 900,
+                "src/main/java/forge/Solution.java");
     }
 
     @Test

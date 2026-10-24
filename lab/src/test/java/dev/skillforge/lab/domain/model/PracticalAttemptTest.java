@@ -49,13 +49,13 @@ class PracticalAttemptTest {
     void la_tache_exige_un_timeout_strictement_positif() {
         assertThrows(IllegalArgumentException.class, () -> new PracticalTask(
                 PracticalTaskId.of(UUID.randomUUID()), UUID.randomUUID(),
-                "Titre", "eclipse-temurin:21-jdk", "Fais la chose", null, "grader/check.sh", 0));
+                "Titre", "eclipse-temurin:21-jdk", "Fais la chose", null, "grader/check.sh", 0, null));
     }
 
     @Test
     void la_tache_refuse_un_champ_texte_vide() {
         assertThrows(IllegalArgumentException.class, () -> new PracticalTask(
                 PracticalTaskId.of(UUID.randomUUID()), UUID.randomUUID(),
-                " ", "image", "instructions", null, "ref", 900));
+                " ", "image", "instructions", null, "ref", 900, null));
     }
 }

@@ -14,8 +14,8 @@ import java.util.UUID;
 public class PracticalTaskStoreAdapter implements PracticalTaskStore {
 
     private static final String SELECT =
-            "SELECT id, node_id, title, image, instructions, workspace_seed, validation_ref, timeout_seconds "
-                    + "FROM practical_tasks ";
+            "SELECT id, node_id, title, image, instructions, workspace_seed, validation_ref, timeout_seconds, "
+                    + "expected_path FROM practical_tasks ";
 
     private final DatabaseClient db;
 
@@ -43,8 +43,9 @@ public class PracticalTaskStoreAdapter implements PracticalTaskStore {
     public Mono<Void> upsert(PracticalTask task) {
         DatabaseClient.GenericExecuteSpec spec = db.sql("""
                         INSERT INTO practical_tasks
-                            (id, node_id, title, image, instructions, workspace_seed, validation_ref, timeout_seconds)
-                        VALUES (:id, :node, :title, :image, :instructions, :seed, :ref, :timeout)
+                            (id, node_id, title, image, instructions, workspace_seed, validation_ref,
+                             timeout_seconds, expected_path)
+                        VALUES (:id, :node, :title, :image, :instructions, :seed, :ref, :timeout, :epath)
                         ON CONFLICT (node_id) DO UPDATE SET
                             title = EXCLUDED.title,
                             image = EXCLUDED.image,
@@ -52,6 +53,7 @@ public class PracticalTaskStoreAdapter implements PracticalTaskStore {
                             workspace_seed = EXCLUDED.workspace_seed,
                             validation_ref = EXCLUDED.validation_ref,
                             timeout_seconds = EXCLUDED.timeout_seconds,
+                            expected_path = EXCLUDED.expected_path,
                             updated_at = now()
                         """)
                 .bind("id", task.id().value())
@@ -64,6 +66,9 @@ public class PracticalTaskStoreAdapter implements PracticalTaskStore {
         spec = task.workspaceSeed() == null
                 ? spec.bindNull("seed", String.class)
                 : spec.bind("seed", task.workspaceSeed());
+        spec = task.expectedPath() == null
+                ? spec.bindNull("epath", String.class)
+                : spec.bind("epath", task.expectedPath());
         return spec.fetch().rowsUpdated().then();
     }
 
@@ -76,6 +81,7 @@ public class PracticalTaskStoreAdapter implements PracticalTaskStore {
                 row.get("instructions", String.class),
                 row.get("workspace_seed", String.class),
                 row.get("validation_ref", String.class),
-                row.get("timeout_seconds", Integer.class));
+                row.get("timeout_seconds", Integer.class),
+                row.get("expected_path", String.class));
     }
 }

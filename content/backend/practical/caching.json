@@ -3,6 +3,7 @@
   "title": "Implementer un cache LRU borne",
   "image": "skillforge-lab-backend:pilot",
   "validationRef": "/grader/grade.sh caching-lru",
+  "expectedPath": "src/main/java/forge/LruCache.java",
   "requiresPractical": true,
   "timeoutSeconds": 300,
   "instructions": "Ecris une classe `forge.LruCache` dans le fichier `src/main/java/forge/LruCache.java`.\n\nElle modelise un cache a capacite fixe qui evince l'entree la moins recemment utilisee (LRU) :\n\n```java\npublic LruCache(int capacity)\npublic void put(String key, String value)\npublic String get(String key)   // null si la cle est absente\npublic int size()\n```\n\nRegles :\n\n- quand on depasse la capacite, on supprime la cle la moins recemment utilisee ;\n- un `get` ou un `put` sur une cle la rend \"recemment utilisee\" ;\n- `size()` ne depasse jamais la capacite.\n\nAstuce : `LinkedHashMap` possede un constructeur en mode acces (`accessOrder = true`) et une methode `removeEldestEntry` a surcharger. Des tests JUnit caches valident le comportement ; vise le verdict `PRATIQUE_OK`."

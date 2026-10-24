@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { getPractical, submitPractical, type LabPractical, type LabVerdict } from '../api/lab'
 import { ApiError } from '../api/types'
 import { useToasts } from './toast/toastStore'
 import { Badge } from './Badge'
 import { Button } from './Button'
 import { Card } from './Card'
+import { RichText } from './RichText'
 import styles from './PracticalPanel.module.css'
 
 interface Props {
@@ -15,7 +16,9 @@ interface Props {
 /** Épreuve pratique d'un nœud : consigne, éditeur de code, validation et verdict. */
 export function PracticalPanel({ nodeId, practical }: Props) {
   const push = useToasts((s) => s.push)
-  const [path, setPath] = useState('solution.txt')
+  const fileId = useId()
+  const codeId = useId()
+  const [path, setPath] = useState(practical.expectedPath ?? 'solution.txt')
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [verdict, setVerdict] = useState<LabVerdict | null>(null)
@@ -62,11 +65,16 @@ export function PracticalPanel({ nodeId, practical }: Props) {
         </div>
       }
     >
-      {practical.instructions && <div className={styles.instructions}>{practical.instructions}</div>}
+      {practical.instructions && (
+        <div className={styles.instructions}>
+          <RichText text={practical.instructions} />
+        </div>
+      )}
 
-      <label className={styles.field}>
+      <label className={styles.field} htmlFor={fileId}>
         <span className={styles.label}>Fichier</span>
         <input
+          id={fileId}
           className={styles.filename}
           value={path}
           onChange={(e) => setPath(e.target.value)}
@@ -76,9 +84,10 @@ export function PracticalPanel({ nodeId, practical }: Props) {
         />
       </label>
 
-      <label className={styles.field}>
+      <label className={styles.field} htmlFor={codeId}>
         <span className={styles.label}>Ta solution</span>
         <textarea
+          id={codeId}
           className={styles.editor}
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -90,15 +99,37 @@ export function PracticalPanel({ nodeId, practical }: Props) {
 
       <div className={styles.actions}>
         <Button onClick={() => void valider()} disabled={busy}>
-          {busy ? 'Validation…' : 'Valider la pratique'}
+          {busy ? (
+            <span className={styles.busy}>
+              <span className={styles.spinner} aria-hidden="true" />
+              Validation…
+            </span>
+          ) : (
+            'Valider la pratique'
+          )}
         </Button>
+        {busy && (
+          <span className={styles.hint} role="status">
+            Correction en cours, cela peut prendre une quinzaine de secondes.
+          </span>
+        )}
       </div>
 
       {verdict && (
-        <div className={[styles.verdict, verdict.passed ? styles.ok : styles.ko].join(' ')}>
+        <div
+          className={[styles.verdict, verdict.passed ? styles.ok : styles.ko].join(' ')}
+          role="status"
+          aria-live="polite"
+        >
           <strong>{verdict.passed ? 'Réussi' : 'Échoué'}</strong>
           {verdict.output && <pre className={styles.output}>{verdict.output}</pre>}
         </div>
+      )}
+
+      {passed && practical.required && (
+        <p className={styles.gatingNote}>
+          Épreuve réussie. Termine aussi toutes les leçons de ce nœud pour le valider entièrement.
+        </p>
       )}
     </Card>
   )

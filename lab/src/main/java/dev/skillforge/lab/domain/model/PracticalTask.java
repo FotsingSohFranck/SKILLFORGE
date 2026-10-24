@@ -17,6 +17,7 @@ import java.util.UUID;
  * @param workspaceSeed  contenu initial du dossier de travail (peut être {@code null})
  * @param validationRef  référence du script de validation (code de sortie 0 = réussi)
  * @param timeoutSeconds TTL de la session, en secondes (> 0)
+ * @param expectedPath   chemin de fichier attendu pour la soumission (indice UI, peut être {@code null})
  */
 public record PracticalTask(
         PracticalTaskId id,
@@ -26,7 +27,8 @@ public record PracticalTask(
         String instructions,
         String workspaceSeed,
         String validationRef,
-        int timeoutSeconds
+        int timeoutSeconds,
+        String expectedPath
 ) {
     public PracticalTask {
         Objects.requireNonNull(id, "PracticalTask.id");

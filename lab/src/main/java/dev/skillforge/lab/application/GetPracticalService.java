@@ -36,7 +36,8 @@ public class GetPracticalService implements GetPracticalUseCase {
                             boolean required = t.getT2();
                             String status = latest.map(a -> a.status().name()).orElse(null);
                             boolean passed = latest.map(PracticalAttempt::passed).orElse(false);
-                            return PracticalView.present(required, task.title(), task.instructions(), status, passed);
+                            return PracticalView.present(required, task.title(), task.instructions(),
+                                    task.expectedPath(), status, passed);
                         }))
                 .switchIfEmpty(catalog.requiresPractical(nodeId).map(PracticalView::absent));
     }

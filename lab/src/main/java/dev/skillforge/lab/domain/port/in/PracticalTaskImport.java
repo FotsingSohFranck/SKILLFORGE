@@ -13,6 +13,7 @@ import java.util.UUID;
  * @param validationRef    commande de validation exécutée dans le conteneur (exit 0 = réussi)
  * @param timeoutSeconds   TTL de la session, en secondes (> 0)
  * @param requiresPractical vrai si l'épreuve est requise pour valider le nœud (politique)
+ * @param expectedPath     chemin de fichier attendu pour la soumission (indice UI, peut être {@code null})
  */
 public record PracticalTaskImport(
         UUID nodeId,
@@ -22,6 +23,7 @@ public record PracticalTaskImport(
         String workspaceSeed,
         String validationRef,
         int timeoutSeconds,
-        boolean requiresPractical
+        boolean requiresPractical,
+        String expectedPath
 ) {
 }

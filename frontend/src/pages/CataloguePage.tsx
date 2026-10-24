@@ -171,7 +171,17 @@ export function CataloguePage() {
                       return (
                         <Card
                           key={roadmap.id}
-                          className="sf-lift"
+                          className={`sf-lift ${styles.cardClickable}`}
+                          role="link"
+                          tabIndex={0}
+                          aria-label={`Ouvrir le parcours ${roadmap.title}`}
+                          onClick={() => navigate(`/roadmaps/${roadmap.slug}`)}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter' || ev.key === ' ') {
+                              ev.preventDefault()
+                              navigate(`/roadmaps/${roadmap.slug}`)
+                            }
+                          }}
                           media={<TrackCover slug={roadmap.slug} />}
                           title={
                             <div className={styles.cardHead}>
@@ -183,7 +193,12 @@ export function CataloguePage() {
                             </div>
                           }
                           footer={
-                            <div className={styles.actions}>
+                            <div
+                              className={styles.actions}
+                              onClick={(ev) => ev.stopPropagation()}
+                              onKeyDown={(ev) => ev.stopPropagation()}
+                              role="presentation"
+                            >
                               <Button
                                 variant="ghost"
                                 size="sm"

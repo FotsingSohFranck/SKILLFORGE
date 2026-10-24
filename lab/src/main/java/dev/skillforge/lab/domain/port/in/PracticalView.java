@@ -7,6 +7,7 @@ package dev.skillforge.lab.domain.port.in;
  * @param required      vrai si la politique du nœud exige la pratique pour le valider
  * @param title         intitulé (null si absente)
  * @param instructions  énoncé (null si absente)
+ * @param expectedPath  chemin de fichier attendu pour la soumission (null si non défini)
  * @param latestStatus  statut de la dernière tentative (null si aucune)
  * @param latestPassed  vrai si la dernière tentative connue est réussie
  */
@@ -15,15 +16,16 @@ public record PracticalView(
         boolean required,
         String title,
         String instructions,
+        String expectedPath,
         String latestStatus,
         boolean latestPassed
 ) {
     public static PracticalView absent(boolean required) {
-        return new PracticalView(false, required, null, null, null, false);
+        return new PracticalView(false, required, null, null, null, null, false);
     }
 
     public static PracticalView present(boolean required, String title, String instructions,
-                                        String latestStatus, boolean latestPassed) {
-        return new PracticalView(true, required, title, instructions, latestStatus, latestPassed);
+                                        String expectedPath, String latestStatus, boolean latestPassed) {
+        return new PracticalView(true, required, title, instructions, expectedPath, latestStatus, latestPassed);
     }
 }
