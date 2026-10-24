@@ -51,6 +51,16 @@ public class DockerCliLabRuntime implements LabRuntimePort {
     }
 
     @Override
+    public Mono<Void> putFile(RunningLab lab, String relativePath, String content) {
+        return Mono.fromRunnable(() -> {
+            CommandOutcome out = runWithInput(SandboxPolicy.writeFileArgs(lab.containerId(), relativePath), content);
+            if (out.exitCode() != 0) {
+                throw new LabRuntimeException("Echec d'ecriture du fichier " + relativePath + ": " + out.stderr().strip());
+            }
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    @Override
     public Mono<ExecResult> exec(RunningLab lab, List<String> command) {
         return Mono.fromCallable(() -> {
             CommandOutcome out = run(SandboxPolicy.execArgs(lab.containerId(), command));
@@ -90,6 +100,32 @@ public class DockerCliLabRuntime implements LabRuntimePort {
         command.addAll(dockerArgs);
         try {
             Process process = new ProcessBuilder(command).start();
+            String stdout = read(process, false);
+            String stderr = read(process, true);
+            boolean finished = process.waitFor(commandTimeout.toSeconds(), TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new LabRuntimeException("Commande docker expiree: " + String.join(" ", dockerArgs));
+            }
+            return new CommandOutcome(process.exitValue(), stdout, stderr);
+        } catch (LabRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new LabRuntimeException("Erreur d'execution docker: " + e.getMessage(), e);
+        }
+    }
+
+    /** Comme {@link #run(List)}, mais alimente l'entrée standard avec {@code input}. */
+    private CommandOutcome runWithInput(List<String> dockerArgs, String input) {
+        List<String> command = new ArrayList<>(dockerArgs.size() + 1);
+        command.add(dockerBin);
+        command.addAll(dockerArgs);
+        try {
+            Process process = new ProcessBuilder(command).start();
+            try (var stdin = process.getOutputStream()) {
+                stdin.write(input.getBytes(StandardCharsets.UTF_8));
+                stdin.flush();
+            }
             String stdout = read(process, false);
             String stderr = read(process, true);
             boolean finished = process.waitFor(commandTimeout.toSeconds(), TimeUnit.SECONDS);

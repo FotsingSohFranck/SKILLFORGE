@@ -85,6 +85,19 @@ public final class SandboxPolicy {
         return List.copyOf(a);
     }
 
+    /**
+     * Arguments de {@code docker exec -i} pour écrire un fichier (chemin relatif au workspace)
+     * depuis l'entrée standard, en créant les dossiers parents. Tourne en non-root dans le workspace.
+     */
+    public static List<String> writeFileArgs(String containerId, String relativePath) {
+        return List.of(
+                "exec", "--interactive",
+                "--user", NON_ROOT_USER,
+                "--workdir", LabRuntimeSpec.WORKDIR,
+                containerId,
+                "sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && cat > \"$1\"", "sh", relativePath);
+    }
+
     /** Arguments de {@code docker rm -f} (arrêt + suppression, idempotent). */
     public static List<String> removeArgs(String containerIdOrName) {
         return List.of("rm", "--force", containerIdOrName);

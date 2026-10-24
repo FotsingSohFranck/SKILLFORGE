@@ -18,6 +18,9 @@ public interface LabRuntimePort {
     /** Démarre un conteneur jetable selon la spécification (durcissement appliqué d'office). */
     Mono<RunningLab> start(LabRuntimeSpec spec);
 
+    /** Écrit un fichier (chemin relatif au workspace) dans le conteneur, en créant les dossiers. */
+    Mono<Void> putFile(RunningLab lab, String relativePath, String content);
+
     /** Exécute une commande dans le conteneur et renvoie son code de sortie et sa sortie. */
     Mono<ExecResult> exec(RunningLab lab, List<String> command);
 

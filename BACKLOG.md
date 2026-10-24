@@ -1539,10 +1539,18 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       - Choix de sécurité : **le socket Docker n'est PAS monté dans le compose** (capacité
         quasi-root non activée tant que la fonctionnalité n'est pas complète et relue) ;
         l'adapter n'est pas encore câblé en bean. Activation = étape explicite (SF-91c+).
-    - ⬜ **SF-91c — Soumission & correction** : endpoint « valider la pratique » → exécute
-      le **script de validation** dans le conteneur → `passed` + sortie ; persiste la
-      tentative ; émet `PracticalPassedEvent`. Pas encore de terminal (soumission de
-      fichiers/code). CA : une tâche backend réussie/échouée renvoie un verdict fiable.
+    - ✅ **SF-91c — Soumission & correction** — **TERMINÉ**
+      - Use case `SubmitPracticalUseCase` + service `SubmitPracticalService` : démarre le
+        conteneur durci (`Mono.usingWhen` → arrêt garanti), y dépose les fichiers soumis
+        (`putFile`), exécute le script de validation, en déduit `passed` + sortie, persiste la
+        tentative, et publie **`PracticalPassedEvent`** (dans `common.event`) si réussi.
+      - Port `putFile` ajouté (seed via `docker exec -i`), adapters R2DBC `PracticalTaskStore`/
+        `PracticalAttemptStore` (DatabaseClient, upsert), `SpringLabEventPublisher`, `LabConfig`
+        (orchestrateur inerte sans démon Docker), contrôleur `POST /api/v1/lab/nodes/{id}/submit`
+        (protégé par la chaîne de sécurité existante, garde anti-traversée sur les chemins).
+      - Vérifs : module `lab` **13/13** (service réussite/échec/not-found avec doubles, isolation,
+        domaine) ; backend **rebuild OK**, Flyway **V12 appliquée**, 315 nœuds `LESSONS_ONLY`
+        (0 régression), endpoint câblé (401 sans jeton). Capacité Docker non activée (voir SF-91b).
     - ⬜ **SF-91d — Lien progression** : listener dans `apprentissage` ; `ProgressRecalculator`
       tient compte de la politique `LESSONS_AND_PRACTICAL` (nœud COMPLETED ⟺ leçons + pratique).
       CA : un nœud à politique pratique ne se valide **que** si la pratique est réussie.
