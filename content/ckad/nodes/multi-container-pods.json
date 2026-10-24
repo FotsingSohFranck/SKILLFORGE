@@ -1,0 +1,95 @@
+{
+  "node": "multi-container-pods",
+  "lessons": [
+    {
+      "slug": "init-containers",
+      "title": "Les init containers",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Préparer le terrain avant de démarrer",
+          "body": "Un **init container** est un conteneur qui s'exécute **avant** les conteneurs applicatifs du pod, l'un après l'autre, jusqu'à réussite. Le conteneur principal ne démarre que lorsque **tous** les init containers se sont terminés avec succès.\n\nUsages typiques : attendre qu'un service soit prêt, cloner une configuration, appliquer une migration de base, poser des fichiers dans un volume partagé. Si un init container échoue, Kubernetes le relance (selon la politique de redémarrage) et le pod reste bloqué en `Init`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les init containers préparent le terrain avant le démarrage de l'application",
+          "body": "/images/lessons/init-containers-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un init container qui attend une dépendance",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\nspec:\n  initContainers:\n    - name: attendre-db\n      image: busybox:1.36\n      # bloque tant que le service `db` ne repond pas\n      command: ['sh', '-c', 'until nc -z db 5432; do sleep 2; done']\n  containers:\n    - name: app\n      image: mon-app:1.0"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Diagnostiquer un pod bloqué en Init",
+          "body": "Si un pod reste en statut `Init:0/1`, c'est qu'un init container ne se termine pas. On inspecte ses journaux en ciblant le conteneur avec l'option `-c` :\n\n`kubectl logs web -c attendre-db`\n\nC'est un réflexe utile le jour de l'examen CKAD, où il faut souvent comprendre vite pourquoi un pod ne démarre pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Inspecter les journaux pour comprendre un pod resté bloqué en phase Init",
+          "body": "/images/lessons/init-containers-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "init-containers-check"
+        }
+      ]
+    },
+    {
+      "slug": "sidecars-et-patrons",
+      "title": "Sidecars et patrons multi-conteneurs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des conteneurs qui vivent ensemble",
+          "body": "Les conteneurs d'un même pod **partagent le réseau** (même IP, communication via `localhost`) et peuvent **partager des volumes**. Cela permet des patrons où un conteneur secondaire assiste le conteneur principal :\n- **Sidecar** : ajoute une capacité (par exemple collecter les logs, rafraîchir un fichier).\n- **Ambassador** : fait le relais vers l'extérieur (un proxy local).\n- **Adapter** : transforme la sortie du principal vers un format attendu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Plusieurs conteneurs qui vivent côte à côte dans un même pod",
+          "body": "/images/lessons/sidecars-et-patrons-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un sidecar partageant un volume",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: avec-sidecar\nspec:\n  volumes:\n    - name: logs\n      emptyDir: {}\n  containers:\n    - name: app\n      image: mon-app:1.0\n      volumeMounts:\n        - { name: logs, mountPath: /var/log/app }\n    - name: expedieur-logs       # sidecar\n      image: busybox:1.36\n      args: ['sh', '-c', 'tail -f /var/log/app/app.log']\n      volumeMounts:\n        - { name: logs, mountPath: /var/log/app }"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Un pod, deux conteneurs, un volume",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph POD[\"Pod (une seule IP)\"]\n    APP[\"app\"] -->|\"ecrit\"| V[(\"volume partage\")]\n    SIDE[\"sidecar\"] -->|\"lit\"| V\n  end\n  SIDE -->|\"envoie\"| EXT[\"Collecteur de logs\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Une application écrit ses logs dans un fichier, mais tu veux les envoyer vers un collecteur central sans modifier l'application. Quel patron multi-conteneurs utilises-tu, et comment les deux conteneurs échangent-ils les données ?",
+          "solution": "On utilise un sidecar. L'application écrit ses logs dans un volume partagé du pod (par exemple un `emptyDir` monté dans les deux conteneurs). Un conteneur sidecar lit ce même volume et transmet les lignes vers le collecteur central. Les deux conteneurs partagent le volume (et le réseau via localhost), donc l'application n'a pas besoin d'être modifiée : c'est le sidecar qui porte la responsabilité d'expédition des logs."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "sidecars-et-patrons-check"
+        }
+      ]
+    }
+  ]
+}

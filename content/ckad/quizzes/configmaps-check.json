@@ -1,0 +1,43 @@
+{
+  "ref": "configmaps-check",
+  "node": "configmaps-secrets",
+  "lesson": "configmaps",
+  "title": "Quiz : Les ConfigMaps",
+  "description": "Vérifie que tu sais créer et injecter une ConfigMap.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande crée une ConfigMap avec deux paires clé/valeur en ligne ?",
+      "justification": "L'option from-literal passe directement des paires clé/valeur ; on la répète pour chaque clé.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl create configmap app-config --from-literal=LOG_LEVEL=info --from-literal=APP_MODE=prod", "correct": true, "position": 0 },
+        { "label": "kubectl create secret app-config --from-literal=LOG_LEVEL=info", "correct": false, "position": 1 },
+        { "label": "kubectl apply configmap app-config LOG_LEVEL=info", "correct": false, "position": 2 },
+        { "label": "kubectl set configmap app-config --data LOG_LEVEL=info", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment importer toutes les clés d'une ConfigMap comme variables d'environnement d'un conteneur ?",
+      "justification": "envFrom avec configMapRef importe l'ensemble des clés ; configMapKeyRef ne sert qu'à injecter une seule clé.",
+      "position": 1,
+      "options": [
+        { "label": "Avec envFrom et un configMapRef", "correct": true, "position": 0 },
+        { "label": "Avec un volume de type secret", "correct": false, "position": 1 },
+        { "label": "Avec imagePullSecrets", "correct": false, "position": 2 },
+        { "label": "Avec un valueFrom.fieldRef", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Modifier une ConfigMap redémarre automatiquement les pods qui l'utilisent.",
+      "justification": "Faux : le pod n'est pas redémarré automatiquement ; les variables d'environnement gardent l'ancienne valeur jusqu'au prochain redémarrage.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

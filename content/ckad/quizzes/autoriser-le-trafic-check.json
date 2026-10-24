@@ -1,0 +1,43 @@
+{
+  "ref": "autoriser-le-trafic-check",
+  "node": "network-policies",
+  "lesson": "autoriser-le-trafic",
+  "title": "Quiz : Autoriser le bon trafic",
+  "description": "Vérifie que tu sais ouvrir précisément le trafic voulu avec une NetworkPolicy.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel champ utilise-t-on dans un bloc from pour n'autoriser que les pods portant le label app=frontend ?",
+      "justification": "On autorise des pods précis via un podSelector avec matchLabels dans le bloc from.",
+      "position": 0,
+      "options": [
+        { "label": "podSelector avec matchLabels app=frontend", "correct": true, "position": 0 },
+        { "label": "namespaceSelector avec matchLabels app=frontend", "correct": false, "position": 1 },
+        { "label": "ipBlock avec le CIDR du frontend", "correct": false, "position": 2 },
+        { "label": "serviceSelector avec le nom frontend", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans un bloc from, quelle écriture exige qu'un pod porte le label ET se trouve dans le namespace ciblé (les deux à la fois) ?",
+      "justification": "podSelector et namespaceSelector sous une même entrée de liste forment un ET. Deux entrées séparées formeraient un OU.",
+      "position": 1,
+      "options": [
+        { "label": "podSelector et namespaceSelector sous la même entrée de liste", "correct": true, "position": 0 },
+        { "label": "podSelector et namespaceSelector en deux entrées de liste distinctes", "correct": false, "position": 1 },
+        { "label": "Deux podSelector dans la même entrée", "correct": false, "position": 2 },
+        { "label": "Un namespaceSelector suivi d'un ipBlock", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une même NetworkPolicy peut régir à la fois le trafic entrant (Ingress) et sortant (Egress).",
+      "justification": "Vrai : il suffit de déclarer les deux dans policyTypes et de fournir les règles ingress et egress correspondantes.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

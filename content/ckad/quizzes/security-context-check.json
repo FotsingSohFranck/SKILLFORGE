@@ -1,0 +1,43 @@
+{
+  "ref": "security-context-check",
+  "node": "security-context-rbac",
+  "lesson": "security-context",
+  "title": "Quiz : Le SecurityContext",
+  "description": "Vérifie que tu maîtrises le durcissement d'un conteneur avec securityContext.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel champ empêche un conteneur de démarrer s'il tente de tourner en root (UID 0) ?",
+      "justification": "runAsNonRoot: true fait refuser le conteneur par le kubelet si le processus démarre avec l'UID 0.",
+      "position": 0,
+      "options": [
+        { "label": "runAsNonRoot: true", "correct": true, "position": 0 },
+        { "label": "privileged: false", "correct": false, "position": 1 },
+        { "label": "readOnlyRootFilesystem: true", "correct": false, "position": 2 },
+        { "label": "runAsUser: 0", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle paire de champs n'existe qu'au niveau conteneur, jamais au niveau pod ?",
+      "justification": "capabilities, readOnlyRootFilesystem et allowPrivilegeEscalation ne sont définis qu'au niveau conteneur ; fsGroup et runAsNonRoot existent au niveau pod.",
+      "position": 1,
+      "options": [
+        { "label": "capabilities et readOnlyRootFilesystem", "correct": true, "position": 0 },
+        { "label": "runAsUser et fsGroup", "correct": false, "position": 1 },
+        { "label": "runAsNonRoot et runAsGroup", "correct": false, "position": 2 },
+        { "label": "fsGroup et runAsUser", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec readOnlyRootFilesystem: true, il faut monter un volume inscriptible (par exemple un emptyDir) pour les répertoires où l'application écrit.",
+      "justification": "Vrai : la racine devient en lecture seule, donc tout chemin réellement inscriptible, comme /tmp, doit être couvert par un volume monté.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

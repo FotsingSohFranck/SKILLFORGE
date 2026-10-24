@@ -10,42 +10,16 @@
     "durationMinutes": 120,
     "passingScore": 66.0,
     "domains": [
-      {
-        "name": "Application Design and Build",
-        "weight": 20,
-        "position": 0
-      },
-      {
-        "name": "Application Deployment",
-        "weight": 20,
-        "position": 1
-      },
-      {
-        "name": "Application Observability and Maintenance",
-        "weight": 15,
-        "position": 2
-      },
-      {
-        "name": "Application Environment, Configuration and Security",
-        "weight": 25,
-        "position": 3
-      },
-      {
-        "name": "Services and Networking",
-        "weight": 20,
-        "position": 4
-      }
+      { "name": "Application Design and Build", "weight": 20, "position": 0 },
+      { "name": "Application Deployment", "weight": 20, "position": 1 },
+      { "name": "Application Observability and Maintenance", "weight": 15, "position": 2 },
+      { "name": "Application Environment, Configuration and Security", "weight": 25, "position": 3 },
+      { "name": "Services and Networking", "weight": 20, "position": 4 }
     ]
   },
   "phases": [
-    {
-      "title": "Concevoir & déployer",
-      "position": 0
-    },
-    {
-      "title": "Configurer, observer & exposer",
-      "position": 1
-    }
+    { "title": "Concevoir & déployer", "position": 0 },
+    { "title": "Configurer, observer & exposer", "position": 1 }
   ],
   "nodes": [
     {
@@ -56,12 +30,27 @@
       "importance": "CORE",
       "estimatedMinutes": 60,
       "position": 0,
-      "examDomains": [
-        {
-          "domain": "Application Design and Build",
-          "weight": 20
-        }
-      ]
+      "examDomains": [{ "domain": "Application Design and Build", "weight": 20 }]
+    },
+    {
+      "slug": "multi-container-pods",
+      "title": "Pods multi-conteneurs",
+      "summary": "Init containers, sidecars et patrons ambassador/adapter.",
+      "phase": "Concevoir & déployer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 1,
+      "examDomains": [{ "domain": "Application Design and Build", "weight": 20 }]
+    },
+    {
+      "slug": "jobs-cronjobs",
+      "title": "Jobs & CronJobs",
+      "summary": "Tâches ponctuelles et planifiées, parallélisme et reprises.",
+      "phase": "Concevoir & déployer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 2,
+      "examDomains": [{ "domain": "Application Design and Build", "weight": 20 }]
     },
     {
       "slug": "deployment",
@@ -70,13 +59,28 @@
       "phase": "Concevoir & déployer",
       "importance": "CORE",
       "estimatedMinutes": 60,
-      "position": 1,
-      "examDomains": [
-        {
-          "domain": "Application Deployment",
-          "weight": 20
-        }
-      ]
+      "position": 3,
+      "examDomains": [{ "domain": "Application Deployment", "weight": 20 }]
+    },
+    {
+      "slug": "rolling-updates",
+      "title": "Rolling updates & rollbacks",
+      "summary": "Stratégies de déploiement, suivi du rollout et retour arrière.",
+      "phase": "Concevoir & déployer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 4,
+      "examDomains": [{ "domain": "Application Deployment", "weight": 20 }]
+    },
+    {
+      "slug": "helm-kustomize",
+      "title": "Helm & Kustomize",
+      "summary": "Paramétrer et déployer avec des charts Helm et des overlays Kustomize.",
+      "phase": "Concevoir & déployer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 5,
+      "examDomains": [{ "domain": "Application Deployment", "weight": 20 }]
     },
     {
       "slug": "config-security",
@@ -86,12 +90,37 @@
       "importance": "CORE",
       "estimatedMinutes": 75,
       "position": 0,
-      "examDomains": [
-        {
-          "domain": "Application Environment, Configuration and Security",
-          "weight": 25
-        }
-      ]
+      "examDomains": [{ "domain": "Application Environment, Configuration and Security", "weight": 25 }]
+    },
+    {
+      "slug": "configmaps-secrets",
+      "title": "ConfigMaps & Secrets",
+      "summary": "Externaliser la configuration et injecter des secrets dans un pod.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 1,
+      "examDomains": [{ "domain": "Application Environment, Configuration and Security", "weight": 25 }]
+    },
+    {
+      "slug": "security-context-rbac",
+      "title": "SecurityContext & RBAC",
+      "summary": "Utilisateur non root, capabilities, ServiceAccounts et RBAC.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 2,
+      "examDomains": [{ "domain": "Application Environment, Configuration and Security", "weight": 25 }]
+    },
+    {
+      "slug": "resource-limits",
+      "title": "Ressources & quotas",
+      "summary": "Requests, limits, LimitRange et ResourceQuota.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 3,
+      "examDomains": [{ "domain": "Application Environment, Configuration and Security", "weight": 25 }]
     },
     {
       "slug": "observability",
@@ -100,13 +129,18 @@
       "phase": "Configurer, observer & exposer",
       "importance": "RECOMMENDED",
       "estimatedMinutes": 60,
-      "position": 1,
-      "examDomains": [
-        {
-          "domain": "Application Observability and Maintenance",
-          "weight": 15
-        }
-      ]
+      "position": 4,
+      "examDomains": [{ "domain": "Application Observability and Maintenance", "weight": 15 }]
+    },
+    {
+      "slug": "probes-logging",
+      "title": "Sondes & diagnostic",
+      "summary": "liveness, readiness, startup, logs et debug d'un pod.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 5,
+      "examDomains": [{ "domain": "Application Observability and Maintenance", "weight": 15 }]
     },
     {
       "slug": "networking",
@@ -115,35 +149,44 @@
       "phase": "Configurer, observer & exposer",
       "importance": "CORE",
       "estimatedMinutes": 60,
-      "position": 2,
-      "examDomains": [
-        {
-          "domain": "Services and Networking",
-          "weight": 20
-        }
-      ]
+      "position": 6,
+      "examDomains": [{ "domain": "Services and Networking", "weight": 20 }]
+    },
+    {
+      "slug": "services-ingress",
+      "title": "Services & Ingress en détail",
+      "summary": "Types de Services, Ingress et routage HTTP vers les pods.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 7,
+      "examDomains": [{ "domain": "Services and Networking", "weight": 20 }]
+    },
+    {
+      "slug": "network-policies",
+      "title": "NetworkPolicies",
+      "summary": "Restreindre le trafic entre pods avec des politiques réseau.",
+      "phase": "Configurer, observer & exposer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 8,
+      "examDomains": [{ "domain": "Services and Networking", "weight": 20 }]
     }
   ],
   "edges": [
-    {
-      "source": "design-build",
-      "target": "deployment",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "deployment",
-      "target": "config-security",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "deployment",
-      "target": "observability",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "config-security",
-      "target": "networking",
-      "kind": "PREREQ"
-    }
+    { "source": "design-build", "target": "multi-container-pods", "kind": "PREREQ" },
+    { "source": "design-build", "target": "jobs-cronjobs", "kind": "PREREQ" },
+    { "source": "design-build", "target": "deployment", "kind": "PREREQ" },
+    { "source": "deployment", "target": "rolling-updates", "kind": "PREREQ" },
+    { "source": "deployment", "target": "helm-kustomize", "kind": "PREREQ" },
+    { "source": "deployment", "target": "config-security", "kind": "PREREQ" },
+    { "source": "config-security", "target": "configmaps-secrets", "kind": "PREREQ" },
+    { "source": "config-security", "target": "security-context-rbac", "kind": "PREREQ" },
+    { "source": "config-security", "target": "resource-limits", "kind": "PREREQ" },
+    { "source": "deployment", "target": "observability", "kind": "PREREQ" },
+    { "source": "observability", "target": "probes-logging", "kind": "PREREQ" },
+    { "source": "config-security", "target": "networking", "kind": "PREREQ" },
+    { "source": "networking", "target": "services-ingress", "kind": "PREREQ" },
+    { "source": "networking", "target": "network-policies", "kind": "PREREQ" }
   ]
 }

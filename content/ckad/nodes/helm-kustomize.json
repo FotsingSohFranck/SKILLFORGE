@@ -1,0 +1,121 @@
+{
+  "node": "helm-kustomize",
+  "lessons": [
+    {
+      "slug": "helm",
+      "title": "Helm, le gestionnaire de paquets",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un paquet paramétrable pour Kubernetes",
+          "body": "**Helm** est le gestionnaire de paquets de Kubernetes. Un paquet s'appelle un **chart** : c'est un modèle de manifestes (Deployment, Service, ConfigMap, etc.) dans lesquels certaines valeurs sont laissées variables.\n\nLe principe : un chart contient des **templates** (fichiers YAML avec des trous) et un fichier **`values.yaml`** qui donne les valeurs par défaut. Au moment de l'installation, Helm fusionne les templates et les values, **rend** les manifestes finaux, puis les applique au cluster. Un déploiement installé s'appelle une **release** : on peut en installer plusieurs fois le même chart avec des noms et des valeurs différents.\n\nL'intérêt : on package une application une fois, puis on la déploie dans plusieurs environnements en changeant seulement les values, sans dupliquer les manifestes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Helm empaquete une application une fois et la deploie partout en changeant seulement ses valeurs",
+          "body": "/images/lessons/helm-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Structure d'un chart et templating",
+          "body": "Un chart est un dossier organisé ainsi :\n\n- **`Chart.yaml`** : métadonnées (nom, version du chart, version de l'application).\n- **`values.yaml`** : les valeurs par défaut, modifiables à l'installation.\n- **`templates/`** : les manifestes paramétrés.\n\nDans un template, on insère une valeur avec la syntaxe `{{ .Values.chemin }}`. Par exemple `image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"` ira chercher `image.repository` et `image.tag` dans `values.yaml`. On peut surcharger ces valeurs à l'installation, soit en ligne avec `--set`, soit avec un fichier via `-f`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un chart regroupe des templates et un fichier values qui remplit les champs variables",
+          "body": "/images/lessons/helm-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un template qui lit les values",
+          "codeLanguage": "yaml",
+          "body": "# templates/deployment.yaml : les valeurs entre {{ }} viennent de values.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {{ .Release.Name }}-web\nspec:\n  replicas: {{ .Values.replicaCount }}   # nombre de repliques parametrable\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n        - name: web\n          # image et tag injectes depuis les values\n          image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n          ports:\n            - containerPort: {{ .Values.service.port }}"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Installer, surcharger, mettre à jour, annuler",
+          "codeLanguage": "bash",
+          "body": "# installer une release nommee mon-site a partir du chart local ./web\nhelm install mon-site ./web\n\n# installer en surchargeant une valeur a la volee avec --set\nhelm install mon-site ./web --set replicaCount=3\n\n# installer en fournissant un fichier de values dedie avec -f\nhelm install mon-site ./web -f values-prod.yaml\n\n# mettre a jour la release apres un changement (ici 5 repliques)\nhelm upgrade mon-site ./web --set replicaCount=5\n\n# lister les releases et voir leur numero de revision\nhelm list\n\n# annuler et revenir a la revision precedente (par ex. la revision 1)\nhelm rollback mon-site 1\n\n# desinstaller la release\nhelm uninstall mon-site"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Du chart au cluster",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  CHART[\"Chart (templates/)\"] --> RENDER{\"Rendu Helm\"}\n  VALUES[\"values.yaml (+ --set / -f)\"] --> RENDER\n  RENDER --> MANIFESTS[\"Manifestes rendus (YAML)\"]\n  MANIFESTS --> CLUSTER[\"Cluster Kubernetes (release)\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "helm-check"
+        }
+      ]
+    },
+    {
+      "slug": "kustomize",
+      "title": "Kustomize, les overlays",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Personnaliser sans templating",
+          "body": "**Kustomize** est une autre approche pour adapter des manifestes selon l'environnement, mais **sans aucun templating** : pas de `{{ }}`, uniquement du YAML Kubernetes valide. Il est **intégré directement à kubectl** via l'option `-k`, donc rien à installer.\n\nLe coeur de Kustomize est le fichier **`kustomization.yaml`**. Il déclare un ensemble de ressources (`resources:`) et des transformations à leur appliquer : préfixe de nom, labels communs, nombre de répliques, images, patches, etc.\n\nLe modèle est **base + overlays** : une **base** contient les manifestes communs et complets ; chaque **overlay** (par exemple `dev` et `prod`) référence la base et n'y applique que ses différences. On ne duplique donc pas les manifestes : on part du commun et on ajoute les écarts par environnement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Kustomize superpose une base commune et des overlays qui n ajoutent que leurs ecarts",
+          "body": "/images/lessons/kustomize-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Patches et application avec -k",
+          "body": "Un overlay modifie la base avec des **patches**. Deux styles courants :\n\n- un **patch stratégique** : un fragment de YAML qui cible une ressource par son `kind` et son `name`, et dont les champs remplacent ceux de la base (par exemple changer le nombre de répliques).\n- des champs directs du `kustomization.yaml` comme `replicas:`, `images:` (changer le tag d'une image) ou `namePrefix:`.\n\nPour visualiser le résultat sans l'appliquer : `kubectl kustomize overlays/prod`. Pour l'appliquer au cluster : `kubectl apply -k overlays/prod`. L'option `-k` désigne un dossier contenant un `kustomization.yaml`, là où `-f` désigne un fichier de manifeste classique."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des patches adaptent la base par environnement et kubectl apply -k deploie le resultat",
+          "body": "/images/lessons/kustomize-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une base et deux overlays",
+          "codeLanguage": "yaml",
+          "body": "# base/kustomization.yaml : les ressources communes\nresources:\n  - deployment.yaml\n  - service.yaml\ncommonLabels:\n  app: web\n---\n# overlays/dev/kustomization.yaml : part de la base, 1 replique, prefixe dev\nresources:\n  - ../../base\nnamePrefix: dev-\nreplicas:\n  - name: web\n    count: 1\n---\n# overlays/prod/kustomization.yaml : part de la base, 4 repliques, image figee\nresources:\n  - ../../base\nnamePrefix: prod-\nreplicas:\n  - name: web\n    count: 4\nimages:\n  - name: mon-app\n    newTag: \"1.4.2\"   # prod epingle une version precise"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Rendre et appliquer un overlay",
+          "codeLanguage": "bash",
+          "body": "# afficher les manifestes rendus pour prod sans rien appliquer\nkubectl kustomize overlays/prod\n\n# appliquer l'overlay dev au cluster\nkubectl apply -k overlays/dev\n\n# appliquer l'overlay prod au cluster\nkubectl apply -k overlays/prod\n\n# supprimer ce qu'un overlay a cree\nkubectl delete -k overlays/dev"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À toi",
+          "body": "Tu dois déployer la même application web dans deux environnements : en `dev`, une seule réplique et l'image en tag `latest` ; en `prod`, quatre répliques et l'image épinglée au tag `1.4.2`. Tu veux éviter de dupliquer les manifestes. Décris l'organisation des dossiers (base et overlays), ce que contient chaque `kustomization.yaml`, et les commandes pour déployer chaque environnement.",
+          "solution": "On crée une **base** et deux **overlays**.\n\nArborescence :\n- `base/` : `deployment.yaml`, `service.yaml` et un `kustomization.yaml` qui liste ces deux ressources (`resources: [deployment.yaml, service.yaml]`). La base contient les manifestes complets et communs.\n- `overlays/dev/kustomization.yaml` : référence la base (`resources: [../../base]`), fixe `replicas` à 1 pour le déploiement `web`, et peut mettre `namePrefix: dev-`. L'image reste en `latest` (celle de la base).\n- `overlays/prod/kustomization.yaml` : référence la base, fixe `replicas` à 4, met `namePrefix: prod-`, et surcharge l'image avec `images: [{name: mon-app, newTag: \"1.4.2\"}]`.\n\nDéploiement :\n- `kubectl apply -k overlays/dev` pour l'environnement de dev.\n- `kubectl apply -k overlays/prod` pour la production.\n\nAinsi la base n'est écrite qu'une fois, et chaque overlay n'exprime que ses écarts (nombre de répliques, tag d'image, préfixe de nom), sans aucun templating."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "kustomize-check"
+        }
+      ]
+    }
+  ]
+}

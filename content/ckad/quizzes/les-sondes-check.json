@@ -1,0 +1,43 @@
+{
+  "ref": "les-sondes-check",
+  "node": "probes-logging",
+  "lesson": "les-sondes",
+  "title": "Quiz : Les sondes (probes)",
+  "description": "Vérifie que tu distingues liveness, readiness et startup, ainsi que les types de sondes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait Kubernetes quand une livenessProbe échoue de façon répétée ?",
+      "justification": "La livenessProbe sert à détecter un conteneur bloqué : en cas d'échec répété, le kubelet redémarre le conteneur.",
+      "position": 0,
+      "options": [
+        { "label": "Il redémarre le conteneur", "correct": true, "position": 0 },
+        { "label": "Il retire le pod des endpoints du Service", "correct": false, "position": 1 },
+        { "label": "Il supprime définitivement le pod", "correct": false, "position": 2 },
+        { "label": "Il suspend les autres sondes du pod", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'effet d'une readinessProbe en échec sur un pod membre d'un Service ?",
+      "justification": "Tant que la readinessProbe échoue, le pod est retiré des endpoints du Service et ne reçoit plus de trafic, mais il n'est pas redémarré.",
+      "position": 1,
+      "options": [
+        { "label": "Le pod est retiré des endpoints du Service et ne reçoit plus de trafic", "correct": true, "position": 0 },
+        { "label": "Le conteneur est immédiatement redémarré", "correct": false, "position": 1 },
+        { "label": "Le pod passe en statut ImagePullBackOff", "correct": false, "position": 2 },
+        { "label": "Rien, la readinessProbe est purement informative", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La startupProbe sert à laisser le temps à une application au démarrage lent de s'initialiser avant que les sondes liveness et readiness ne prennent le relais.",
+      "justification": "Vrai : tant que la startupProbe n'a pas réussi, les sondes liveness et readiness sont suspendues, ce qui évite de tuer une application lente avant la fin de son démarrage.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

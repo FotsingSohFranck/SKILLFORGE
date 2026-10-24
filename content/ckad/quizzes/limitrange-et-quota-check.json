@@ -1,0 +1,43 @@
+{
+  "ref": "limitrange-et-quota-check",
+  "node": "resource-limits",
+  "lesson": "limitrange-et-quota",
+  "title": "Quiz : LimitRange et ResourceQuota",
+  "description": "Vérifie que tu distingues LimitRange et ResourceQuota et leur rôle dans un namespace.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quoi agit un **ResourceQuota** ?",
+      "justification": "Le ResourceQuota plafonne le total du namespace : somme des requests/limits et nombre d'objets, contrairement au LimitRange qui agit par conteneur.",
+      "position": 0,
+      "options": [
+        { "label": "Sur le total des ressources et le nombre d'objets du namespace", "correct": true, "position": 0 },
+        { "label": "Sur un seul conteneur pris individuellement", "correct": false, "position": 1 },
+        { "label": "Sur le cluster entier, tous namespaces confondus", "correct": false, "position": 2 },
+        { "label": "Sur le nombre de noeuds du cluster", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le champ `defaultRequest` d'un LimitRange de type Container ?",
+      "justification": "Le LimitRange fournit une request par défaut aux conteneurs qui n'en déclarent pas ; c'est utile quand un ResourceQuota exige des requests.",
+      "position": 1,
+      "options": [
+        { "label": "Attribuer une request par défaut aux conteneurs qui n'en précisent pas", "correct": true, "position": 0 },
+        { "label": "Supprimer toute limite sur les conteneurs", "correct": false, "position": 1 },
+        { "label": "Définir le nombre maximal de pods du namespace", "correct": false, "position": 2 },
+        { "label": "Forcer tous les conteneurs à la classe BestEffort", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Si un ResourceQuota impose des requests sur le namespace, un pod qui ne déclare aucune ressource peut être refusé à la création.",
+      "justification": "Vrai : quand le quota exige des requests/limits, un pod sans ressources est rejeté, sauf si un LimitRange lui fournit des valeurs par défaut.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

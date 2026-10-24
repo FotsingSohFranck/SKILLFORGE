@@ -1,0 +1,43 @@
+{
+  "ref": "revenir-en-arriere-check",
+  "node": "rolling-updates",
+  "lesson": "revenir-en-arriere",
+  "title": "Quiz : Revenir en arrière",
+  "description": "Vérifie que tu sais annuler, mettre en pause et mettre à l'échelle un déploiement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande revient à la révision précédente d'un déploiement ?",
+      "justification": "kubectl rollout undo annule la dernière mise à jour et restaure la révision précédente ; on cible une révision précise avec --to-revision=N.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl rollout undo deployment/web", "correct": true, "position": 0 },
+        { "label": "kubectl rollout back deployment/web", "correct": false, "position": 1 },
+        { "label": "kubectl rollback deployment/web", "correct": false, "position": 2 },
+        { "label": "kubectl rollout history --undo deployment/web", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment changer le nombre de répliques du déploiement `web` à 6 ?",
+      "justification": "kubectl scale ajuste le nombre de répliques, indépendamment de la version de l'image.",
+      "position": 1,
+      "options": [
+        { "label": "kubectl scale deployment/web --replicas=6", "correct": true, "position": 0 },
+        { "label": "kubectl set replicas deployment/web 6", "correct": false, "position": 1 },
+        { "label": "kubectl rollout scale deployment/web 6", "correct": false, "position": 2 },
+        { "label": "kubectl resize deployment/web --count=6", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Mettre un rollout en pause permet d'enchaîner plusieurs modifications avant de déclencher une seule bascule.",
+      "justification": "Vrai : kubectl rollout pause fige la bascule, on applique plusieurs changements, puis kubectl rollout resume déclenche une unique mise à jour.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

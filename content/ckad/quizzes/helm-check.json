@@ -1,0 +1,43 @@
+{
+  "ref": "helm-check",
+  "node": "helm-kustomize",
+  "lesson": "helm",
+  "title": "Quiz : Helm, le gestionnaire de paquets",
+  "description": "Vérifie que tu maîtrises les charts Helm, les values et le cycle install / upgrade / rollback.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans un chart Helm, où sont stockées les valeurs par défaut injectées dans les templates ?",
+      "justification": "Les valeurs par défaut vivent dans values.yaml ; les templates les lisent via {{ .Values.chemin }} et on peut les surcharger avec --set ou -f.",
+      "position": 0,
+      "options": [
+        { "label": "Dans le fichier values.yaml", "correct": true, "position": 0 },
+        { "label": "Dans le dossier templates/ uniquement", "correct": false, "position": 1 },
+        { "label": "Dans Chart.yaml", "correct": false, "position": 2 },
+        { "label": "Directement dans le cluster", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande annule une release et la ramène à sa révision 1 ?",
+      "justification": "helm rollback <release> <revision> revient à une révision antérieure ; ici helm rollback mon-site 1.",
+      "position": 1,
+      "options": [
+        { "label": "helm rollback mon-site 1", "correct": true, "position": 0 },
+        { "label": "helm upgrade mon-site --undo 1", "correct": false, "position": 1 },
+        { "label": "helm install mon-site --revision 1", "correct": false, "position": 2 },
+        { "label": "helm reset mon-site 1", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Helm rend les manifestes en fusionnant les templates du chart avec les values avant de les appliquer au cluster.",
+      "justification": "Vrai : Helm combine templates et values pour produire les manifestes finaux, puis les applique au cluster sous forme de release.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

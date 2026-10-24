@@ -1,0 +1,121 @@
+{
+  "node": "security-context-rbac",
+  "lessons": [
+    {
+      "slug": "security-context",
+      "title": "Le SecurityContext",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Durcir l'exécution d'un conteneur",
+          "body": "Le **securityContext** définit les privilèges et les contrôles d'accès d'un pod ou d'un conteneur. Par défaut, un conteneur tourne souvent en **root** (UID 0) avec un système de fichiers inscriptible, ce qui élargit la surface d'attaque. Le durcissement consiste à réduire ces privilèges au strict nécessaire.\n\nChamps clés à connaître pour le CKAD :\n- **runAsUser / runAsGroup** : forcent l'UID et le GID du processus.\n- **runAsNonRoot: true** : empêche le démarrage si l'image tente de tourner en root (UID 0). Le kubelet refuse alors le conteneur.\n- **readOnlyRootFilesystem: true** : rend le système de fichiers racine en lecture seule (on monte un `emptyDir` pour les répertoires réellement inscriptibles).\n- **allowPrivilegeEscalation: false** : empêche un processus d'obtenir plus de privilèges que son parent (bloque le bit setuid et `no_new_privs`).\n- **capabilities** : on **drop** les capacités Linux inutiles (idéalement `drop: [\"ALL\"]`), puis on **add** seulement celles nécessaires."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le securityContext durcit le conteneur en reduisant ses privileges au strict necessaire",
+          "body": "/images/lessons/security-context-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Niveau pod contre niveau conteneur",
+          "body": "Le `securityContext` existe à **deux niveaux** :\n- Au niveau **pod** (`spec.securityContext`), il s'applique par défaut à tous les conteneurs. On y place `runAsUser`, `runAsNonRoot`, `fsGroup` (propriétaire de groupe des volumes).\n- Au niveau **conteneur** (`spec.containers[].securityContext`), il cible un seul conteneur.\n\nEn cas de conflit, le **niveau conteneur l'emporte** sur le niveau pod. Attention : `capabilities`, `readOnlyRootFilesystem` et `allowPrivilegeEscalation` n'existent **qu'au niveau conteneur**, jamais au niveau pod."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deux niveaux de reglages, pod et conteneur, et le niveau conteneur l emporte en cas de conflit",
+          "body": "/images/lessons/security-context-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un pod durci de bout en bout",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-durcie\nspec:\n  securityContext:            # niveau pod, s'applique a tous les conteneurs\n    runAsNonRoot: true        # refuse le demarrage en root\n    runAsUser: 1000\n    fsGroup: 2000             # proprietaire de groupe des volumes montes\n  containers:\n    - name: app\n      image: nginxinc/nginx-unprivileged:1.27\n      securityContext:        # niveau conteneur, prioritaire\n        allowPrivilegeEscalation: false\n        readOnlyRootFilesystem: true\n        capabilities:\n          drop: [\"ALL\"]       # on retire toutes les capacites\n          add: [\"NET_BIND_SERVICE\"]  # puis on ajoute le strict minimum\n      volumeMounts:\n        - { name: cache, mountPath: /tmp }   # repertoire inscriptible\n  volumes:\n    - name: cache\n      emptyDir: {}"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Vérifier l'identité effective",
+          "codeLanguage": "bash",
+          "body": "# L'UID du processus dans le conteneur doit etre 1000, pas 0\nkubectl exec app-durcie -- id\n# attendu : uid=1000 gid=0 groups=2000\n\n# Une ecriture a la racine doit echouer (readOnlyRootFilesystem)\nkubectl exec app-durcie -- sh -c 'touch /interdit' || echo 'ecriture refusee, bon signe'"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Les barrières d'un conteneur durci",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph POD[\"Pod : runAsNonRoot, runAsUser 1000, fsGroup 2000\"]\n    subgraph C[\"Conteneur durci\"]\n      P[\"Processus UID 1000\"]\n      RO[\"racine en lecture seule\"]\n      NOESC[\"allowPrivilegeEscalation false\"]\n      CAP[\"capabilities : drop ALL\"]\n    end\n    P --> RO\n    P --> NOESC\n    P --> CAP\n  end\n  P -->|\"ecriture autorisee\"| V[(\"emptyDir sur /tmp\")]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "security-context-check"
+        }
+      ]
+    },
+    {
+      "slug": "serviceaccounts-rbac",
+      "title": "ServiceAccounts & RBAC",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Donner une identité au pod",
+          "body": "Un **ServiceAccount** (SA) est l'identité qu'un pod présente lorsqu'il appelle le serveur d'API Kubernetes. Chaque pod en possède un : s'il n'en indique aucun, il reçoit le SA `default` de son namespace.\n\nKubernetes monte automatiquement un **jeton** dans le pod (sous `/var/run/secrets/kubernetes.io/serviceaccount/`). Ce jeton authentifie les requêtes vers l'API. Mais être authentifié ne suffit pas : il faut aussi être **autorisé**, et c'est le rôle du RBAC.\n\nBonne pratique : ne jamais s'appuyer sur le SA `default` pour les pods qui parlent à l'API. On crée un SA dédié et on désactive le montage du jeton quand il est inutile (`automountServiceAccountToken: false`)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le ServiceAccount donne au pod une identite pour s authentifier aupres de l API",
+          "body": "/images/lessons/serviceaccounts-rbac-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "RBAC : rôles et liaisons",
+          "body": "Le **RBAC** (Role-Based Access Control) relie une **identité** à des **permissions** via quatre objets :\n- **Role** : un ensemble de permissions (verbs : `get`, `list`, `watch`, `create`, etc. sur des `resources`) valable dans **un seul namespace**.\n- **RoleBinding** : attache un Role (ou un ClusterRole) à des sujets (ServiceAccount, utilisateur, groupe), dans **un seul namespace**.\n- **ClusterRole** : mêmes permissions, mais **global** au cluster (ou réutilisable dans tous les namespaces).\n- **ClusterRoleBinding** : attache un ClusterRole à l'échelle du **cluster entier**.\n\nPrincipe du **moindre privilège** : on accorde uniquement les verbs et les ressources nécessaires, dans la portée la plus étroite. Un Role plus un RoleBinding suffisent presque toujours pour un pod cantonné à son namespace."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le RBAC relie cette identite a des permissions precises selon le moindre privilege",
+          "body": "/images/lessons/serviceaccounts-rbac-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "SA, Role et RoleBinding ensemble",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: lecteur-pods\n  namespace: equipe-a\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: lire-pods\n  namespace: equipe-a\nrules:\n  - apiGroups: [\"\"]           # groupe core (pods, services...)\n    resources: [\"pods\"]\n    verbs: [\"get\", \"list\", \"watch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: lecteur-pods-peut-lire\n  namespace: equipe-a\nsubjects:\n  - kind: ServiceAccount\n    name: lecteur-pods\n    namespace: equipe-a\nroleRef:\n  kind: Role\n  name: lire-pods\n  apiGroup: rbac.authorization.k8s.io"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Affecter le SA et tester les droits",
+          "codeLanguage": "bash",
+          "body": "# Lancer un pod avec le ServiceAccount dedie\nkubectl run sonde --image=busybox:1.36 \\\n  --overrides='{\"spec\":{\"serviceAccountName\":\"lecteur-pods\"}}' \\\n  -n equipe-a -- sleep 3600\n\n# Verifier ce que le SA a le droit de faire (sans lancer de pod)\nkubectl auth can-i list pods \\\n  --as=system:serviceaccount:equipe-a:lecteur-pods -n equipe-a\n# attendu : yes\n\nkubectl auth can-i delete pods \\\n  --as=system:serviceaccount:equipe-a:lecteur-pods -n equipe-a\n# attendu : no"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À toi",
+          "body": "Dans le namespace `equipe-a`, un pod a besoin d'appeler l'API Kubernetes pour **lister les pods de son propre namespace**, et rien d'autre. On refuse d'utiliser le ServiceAccount `default` et on applique le moindre privilège. Décris les objets à créer (ServiceAccount, Role, RoleBinding), la portée de chacun, les verbs accordés, et comment le pod utilise ce ServiceAccount.",
+          "solution": "On crée trois objets, tous dans le namespace `equipe-a` (portée namespace, pas cluster).\n\n1. Un **ServiceAccount** dédié, par exemple `lecteur-pods`, dans `equipe-a`. Il donne au pod une identité distincte du `default`.\n\n2. Un **Role** (et non un ClusterRole, car on reste dans un seul namespace), par exemple `lire-pods`, avec une seule règle : `apiGroups: [\"\"]`, `resources: [\"pods\"]`, `verbs: [\"get\", \"list\", \"watch\"]`. On n'ajoute aucun verb d'écriture (`create`, `delete`, `update`) : seul le minimum pour lister.\n\n3. Un **RoleBinding**, par exemple `lecteur-pods-peut-lire`, dans `equipe-a`, qui lie le Role `lire-pods` au sujet `kind: ServiceAccount, name: lecteur-pods, namespace: equipe-a`.\n\nEnsuite, le pod référence ce SA avec `spec.serviceAccountName: lecteur-pods`. Kubernetes monte alors le jeton correspondant, et toute requête du pod vers l'API est authentifiée comme `system:serviceaccount:equipe-a:lecteur-pods` puis autorisée par le RBAC. On valide sans rien casser avec `kubectl auth can-i list pods --as=system:serviceaccount:equipe-a:lecteur-pods -n equipe-a` (doit répondre `yes`) et `kubectl auth can-i delete pods ...` (doit répondre `no`). Comme Role et RoleBinding sont namespacés, le pod ne peut pas lister les pods des autres namespaces."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "serviceaccounts-rbac-check"
+        }
+      ]
+    }
+  ]
+}

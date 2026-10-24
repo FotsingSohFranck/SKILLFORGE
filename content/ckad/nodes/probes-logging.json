@@ -1,0 +1,102 @@
+{
+  "node": "probes-logging",
+  "lessons": [
+    {
+      "slug": "les-sondes",
+      "title": "Les sondes (probes)",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Trois sondes, trois rôles",
+          "body": "Kubernetes surveille l'état d'un conteneur avec des **sondes** (probes). Il en existe trois, aux rôles bien distincts :\n\n- **livenessProbe** : vérifie que le conteneur est **vivant**. Si elle échoue de façon répétée, Kubernetes **redémarre le conteneur** (utile quand le processus est bloqué, en interblocage, mais toujours en cours).\n- **readinessProbe** : vérifie que le conteneur est **prêt à recevoir du trafic**. Tant qu'elle échoue, le pod est **retiré des endpoints du Service** : il ne reçoit plus de requêtes, mais il n'est pas redémarré.\n- **startupProbe** : laisse le temps à une application au **démarrage lent** de s'initialiser. Tant qu'elle n'a pas réussi, les sondes liveness et readiness sont suspendues, ce qui évite qu'une application lente soit tuée avant même d'avoir fini de démarrer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Liveness, readiness, startup : trois sondes aux roles bien distincts.",
+          "body": "/images/lessons/les-sondes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Types de sondes et paramètres",
+          "body": "Chaque sonde peut mesurer la santé de trois manières :\n\n- **httpGet** : envoie une requête HTTP sur un `path` et un `port` ; un code de 200 à 399 vaut succès.\n- **tcpSocket** : tente d'ouvrir une connexion TCP sur un `port` ; la connexion établie vaut succès.\n- **exec** : exécute une `command` dans le conteneur ; un code de sortie 0 vaut succès.\n\nParamètres de réglage courants :\n- `initialDelaySeconds` : délai avant la toute première sonde.\n- `periodSeconds` : intervalle entre deux sondes.\n- `timeoutSeconds` : délai au-delà duquel la sonde est considérée en échec.\n- `failureThreshold` : nombre d'échecs consécutifs avant d'agir.\n- `successThreshold` : nombre de succès consécutifs pour redevenir sain."
+        },
+        {
+          "type": "IMAGE",
+          "title": "httpGet, tcpSocket, exec et leurs parametres de reglage.",
+          "body": "/images/lessons/les-sondes-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Liveness et readiness sur un même conteneur",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\nspec:\n  containers:\n    - name: app\n      image: mon-app:1.0\n      ports:\n        - containerPort: 8080\n      # redemarre le conteneur s'il est bloque\n      livenessProbe:\n        httpGet:\n          path: /healthz\n          port: 8080\n        initialDelaySeconds: 10   # attend 10s avant la 1re sonde\n        periodSeconds: 5          # verifie toutes les 5s\n        failureThreshold: 3       # 3 echecs -> redemarrage\n      # retire du Service tant que l'app n'est pas prete\n      readinessProbe:\n        httpGet:\n          path: /ready\n          port: 8080\n        initialDelaySeconds: 5\n        periodSeconds: 5"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Sondes tcpSocket et exec",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: base-de-donnees\nspec:\n  containers:\n    - name: db\n      image: postgres:18\n      ports:\n        - containerPort: 5432\n      # sonde TCP : le port accepte-t-il une connexion ?\n      readinessProbe:\n        tcpSocket:\n          port: 5432\n        initialDelaySeconds: 15\n        periodSeconds: 10\n      # sonde exec : la commande renvoie-t-elle le code 0 ?\n      livenessProbe:\n        exec:\n          command: ['sh', '-c', 'pg_isready -U postgres']\n        initialDelaySeconds: 20\n        periodSeconds: 10"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Ce que déclenche chaque échec",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  START([\"Kubelet sonde le conteneur\"]) --> READY{\"readinessProbe OK ?\"}\n  READY -->|\"non\"| OUT[\"Pod retire des endpoints du Service, plus aucun trafic\"]\n  READY -->|\"oui\"| IN[\"Pod garde sa place dans le Service\"]\n  START --> LIVE{\"livenessProbe OK ?\"}\n  LIVE -->|\"non\"| RESTART[\"Kubelet redemarre le conteneur\"]\n  LIVE -->|\"oui\"| KEEP[\"Conteneur conserve, aucune action\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "les-sondes-check"
+        }
+      ]
+    },
+    {
+      "slug": "diagnostiquer-un-pod",
+      "title": "Diagnostiquer un pod",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La boîte à outils du diagnostic",
+          "body": "Le jour de l'examen CKAD, savoir **pourquoi** un pod ne fonctionne pas vaut autant que savoir en créer un. Quatre commandes forment la base :\n\n- **kubectl get pod** : vue rapide du statut, du nombre de redémarrages (`RESTARTS`) et de l'état (`Running`, `Pending`, `CrashLoopBackOff`, `ImagePullBackOff`).\n- **kubectl describe pod** : le plus riche. Sa section **Events** en bas révèle les causes (image introuvable, volume non monté, sonde en échec, éviction).\n- **kubectl logs** : la sortie de l'application. L'option `--previous` (ou `-p`) montre les journaux de l'**instance précédente** d'un conteneur qui a planté et redémarré.\n- **kubectl exec -it** : ouvre un shell **dans** le conteneur pour inspecter de l'intérieur (fichiers, variables d'environnement, réseau).\n\nDeux statuts reviennent sans cesse :\n- **CrashLoopBackOff** : le conteneur démarre puis plante en boucle. Le problème est **à l'intérieur** (mauvaise commande, config absente, dépendance manquante). On lit les logs, surtout `--previous`.\n- **ImagePullBackOff** : l'image ne peut pas être téléchargée (nom erroné, tag inexistant, registre privé sans identifiants). La cause est dans les **Events** du `describe`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La boite a outils du diagnostic : get, describe, logs et exec.",
+          "body": "/images/lessons/diagnostiquer-un-pod-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Les commandes de diagnostic",
+          "codeLanguage": "bash",
+          "body": "# 1. Vue d'ensemble : statut et nombre de redemarrages\nkubectl get pod web\n\n# 2. Le detail, et surtout la section Events en bas\nkubectl describe pod web\n\n# 3. Les journaux de l'instance qui vient de planter\nkubectl logs web --previous\n# idem en ciblant un conteneur precis dans un pod multi-conteneurs\nkubectl logs web -c app --previous\n\n# 4. Entrer dans le conteneur pour inspecter de l'interieur\nkubectl exec -it web -- sh\n# ou lancer une seule commande sans ouvrir de shell\nkubectl exec web -- env"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "Un pod en CrashLoopBackOff",
+          "body": "Tu lances `kubectl get pod api` et tu vois :\n\n`api   0/1   CrashLoopBackOff   5 (20s ago)   3m`\n\nLe pod redémarre en boucle depuis trois minutes. Décris la démarche de diagnostic, commande par commande, pour trouver la cause et la confirmer, sans supposer tout de suite ce qui ne va pas.",
+          "solution": "Démarche pas à pas :\n\n1. `kubectl describe pod api` : lire la section Events et l'état du conteneur (`State`, `Last State`, `Reason: Error`, `Exit Code`). Un code de sortie non nul confirme que l'application plante à l'intérieur plutôt qu'un souci d'image ou de planification.\n\n2. `kubectl logs api --previous` : comme le conteneur a déjà redémarré, les logs de l'instance courante peuvent être vides ou trop récents. L'option `--previous` montre la sortie de l'instance qui vient de planter, où se trouve en général le message d'erreur réel (variable d'environnement manquante, fichier de config absent, port déjà pris, exception au démarrage).\n\n3. Si le message évoque une configuration ou un fichier, `kubectl exec -it api -- sh` pour inspecter de l'intérieur... mais attention : un pod en CrashLoopBackOff n'a souvent pas de conteneur en cours d'exécution, donc `exec` peut échouer. Dans ce cas on se fie aux logs `--previous` et au `describe`.\n\n4. Confirmer la cause : corriger la cause identifiée (par exemple ajouter la variable d'environnement ou la ConfigMap manquante), puis vérifier avec `kubectl get pod api -w` que le nombre de `RESTARTS` se stabilise et que le pod passe en `Running`.\n\nL'idée clé : observer d'abord (describe + logs --previous), comprendre ensuite, agir enfin."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "diagnostiquer-un-pod-check"
+        }
+      ]
+    }
+  ]
+}

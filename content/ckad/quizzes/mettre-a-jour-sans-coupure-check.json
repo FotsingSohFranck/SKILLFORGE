@@ -1,0 +1,43 @@
+{
+  "ref": "mettre-a-jour-sans-coupure-check",
+  "node": "rolling-updates",
+  "lesson": "mettre-a-jour-sans-coupure",
+  "title": "Quiz : Mettre à jour sans coupure",
+  "description": "Vérifie que tu maîtrises la stratégie RollingUpdate et la mise à jour d'image.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande remplace l'image du conteneur `app` du déploiement `web` ?",
+      "justification": "kubectl set image modifie l'image d'un conteneur d'un déploiement, ce qui déclenche une nouvelle révision et une bascule RollingUpdate.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl set image deployment/web app=mon-app:2.0", "correct": true, "position": 0 },
+        { "label": "kubectl replace image web mon-app:2.0", "correct": false, "position": 1 },
+        { "label": "kubectl rollout image web app=mon-app:2.0", "correct": false, "position": 2 },
+        { "label": "kubectl update deployment web --image=mon-app:2.0", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit un `maxUnavailable: 0` dans une stratégie RollingUpdate ?",
+      "justification": "Avec maxUnavailable à 0, aucune réplique ne peut être indisponible pendant la bascule, donc le service ne subit aucune coupure (la bascule s'appuie alors sur maxSurge).",
+      "position": 1,
+      "options": [
+        { "label": "Qu'aucune réplique n'est indisponible pendant la mise à jour", "correct": true, "position": 0 },
+        { "label": "Que la mise à jour est instantanée", "correct": false, "position": 1 },
+        { "label": "Que tous les pods sont supprimés avant d'être recréés", "correct": false, "position": 2 },
+        { "label": "Que l'historique des révisions est désactivé", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La stratégie Recreate supprime tous les anciens pods avant de créer les nouveaux, ce qui provoque une coupure.",
+      "justification": "Vrai : contrairement à RollingUpdate, Recreate arrête d'abord toutes les anciennes répliques, donc l'application est indisponible le temps du redémarrage.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

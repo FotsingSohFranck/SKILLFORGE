@@ -1,0 +1,43 @@
+{
+  "ref": "ingress-check",
+  "node": "services-ingress",
+  "lesson": "ingress",
+  "title": "Quiz : L'Ingress",
+  "description": "Vérifie que tu comprends le rôle de l'Ingress, son controller et ses règles host/path.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Sur quels critères un Ingress route-t-il une requête HTTP vers un Service ?",
+      "justification": "Les règles Ingress aiguillent selon l'hôte (le domaine) et le chemin de l'URL vers le Service correspondant.",
+      "position": 0,
+      "options": [
+        { "label": "Selon l'hôte et le chemin de l'URL", "correct": true, "position": 0 },
+        { "label": "Selon l'adresse MAC du client", "correct": false, "position": 1 },
+        { "label": "Selon l'ordre alphabétique des Services", "correct": false, "position": 2 },
+        { "label": "Selon la charge CPU des pods", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un objet Ingress route le trafic même sans aucun Ingress controller installé dans le cluster.",
+      "justification": "Faux : l'Ingress n'est qu'un ensemble de règles. Il faut un Ingress controller (par exemple ingress-nginx) pour les appliquer.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment active-t-on le HTTPS pour un hôte dans un Ingress ?",
+      "justification": "Le bloc tls référence un Secret contenant le certificat et la clé ; le controller termine alors le TLS pour cet hôte.",
+      "position": 2,
+      "options": [
+        { "label": "Avec un bloc tls référençant un Secret (certificat et clé)", "correct": true, "position": 0 },
+        { "label": "En ajoutant le mot-clé https dans le nom du Service", "correct": false, "position": 1 },
+        { "label": "En ouvrant un NodePort sur le port 443", "correct": false, "position": 2 },
+        { "label": "C'est automatique, rien à configurer", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

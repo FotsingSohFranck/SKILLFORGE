@@ -1,0 +1,43 @@
+{
+  "ref": "kustomize-check",
+  "node": "helm-kustomize",
+  "lesson": "kustomize",
+  "title": "Quiz : Kustomize, les overlays",
+  "description": "Vérifie que tu maîtrises Kustomize, le modèle base + overlays et l'application avec -k.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande applique un overlay Kustomize situé dans overlays/prod ?",
+      "justification": "Kustomize est intégré à kubectl ; l'option -k désigne un dossier contenant un kustomization.yaml, d'où kubectl apply -k overlays/prod.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl apply -k overlays/prod", "correct": true, "position": 0 },
+        { "label": "kubectl apply -f overlays/prod", "correct": false, "position": 1 },
+        { "label": "kustomize install overlays/prod", "correct": false, "position": 2 },
+        { "label": "helm apply overlays/prod", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Kustomize personnalise les manifestes sans utiliser de templating comme {{ }}.",
+      "justification": "Vrai : Kustomize n'utilise que du YAML Kubernetes valide et applique des transformations (patches, replicas, images), sans langage de template.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans le modèle base + overlays, à quoi sert un overlay comme overlays/dev ?",
+      "justification": "Un overlay référence la base et n'y applique que ses écarts (répliques, tag d'image, préfixe), évitant de dupliquer les manifestes communs.",
+      "position": 2,
+      "options": [
+        { "label": "Il référence la base et n'exprime que les différences propres à l'environnement", "correct": true, "position": 0 },
+        { "label": "Il contient une copie complète et indépendante des manifestes", "correct": false, "position": 1 },
+        { "label": "Il remplace kubectl par un autre outil", "correct": false, "position": 2 },
+        { "label": "Il définit les valeurs par défaut pour tous les environnements", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

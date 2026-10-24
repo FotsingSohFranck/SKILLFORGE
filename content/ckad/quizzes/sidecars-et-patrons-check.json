@@ -1,0 +1,43 @@
+{
+  "ref": "sidecars-et-patrons-check",
+  "node": "multi-container-pods",
+  "lesson": "sidecars-et-patrons",
+  "title": "Quiz : Sidecars et patrons",
+  "description": "Vérifie que tu connais les patrons multi-conteneurs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment deux conteneurs d'un même pod partagent-ils des fichiers ?",
+      "justification": "Via un volume monté dans les deux conteneurs (par exemple un emptyDir) ; ils partagent aussi le réseau via localhost.",
+      "position": 0,
+      "options": [
+        { "label": "Par un volume monté dans les deux conteneurs", "correct": true, "position": 0 },
+        { "label": "En s'envoyant des e-mails", "correct": false, "position": 1 },
+        { "label": "Par des adresses IP différentes", "correct": false, "position": 2 },
+        { "label": "Ils ne peuvent pas partager de fichiers", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel patron ajoute une capacité au conteneur principal sans le modifier (par exemple expédier ses logs) ?",
+      "justification": "Le sidecar accompagne le conteneur principal et lui ajoute une fonction annexe sans toucher à son code.",
+      "position": 1,
+      "options": [
+        { "label": "Le sidecar", "correct": true, "position": 0 },
+        { "label": "Le init container", "correct": false, "position": 1 },
+        { "label": "Le DaemonSet", "correct": false, "position": 2 },
+        { "label": "Le StatefulSet", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les conteneurs d'un même pod partagent la même adresse IP.",
+      "justification": "Vrai : un pod a une seule IP, ses conteneurs communiquent entre eux via localhost.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

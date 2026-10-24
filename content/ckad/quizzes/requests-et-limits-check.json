@@ -1,0 +1,43 @@
+{
+  "ref": "requests-et-limits-check",
+  "node": "resource-limits",
+  "lesson": "requests-et-limits",
+  "title": "Quiz : Requests et limits",
+  "description": "Vérifie que tu distingues requests et limits et que tu connais les conséquences d'un dépassement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le scheduler avec la valeur `requests` d'un conteneur ?",
+      "justification": "Les requests représentent ce que le conteneur réserve ; le scheduler ne place le pod que sur un noeud qui dispose d'assez de ressources libres pour les couvrir.",
+      "position": 0,
+      "options": [
+        { "label": "Il s'en sert pour choisir un noeud ayant assez de ressources libres", "correct": true, "position": 0 },
+        { "label": "Il tue le conteneur dès qu'il dépasse cette valeur", "correct": false, "position": 1 },
+        { "label": "Il ignore cette valeur, seule la limit compte", "correct": false, "position": 2 },
+        { "label": "Il convertit cette valeur en nombre de pods", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il quand un conteneur dépasse sa limite de **mémoire** ?",
+      "justification": "La mémoire est non compressible : au dépassement, le noyau tue le conteneur (état OOMKilled) et Kubernetes le redémarre.",
+      "position": 1,
+      "options": [
+        { "label": "Il est tué et redémarré : état OOMKilled", "correct": true, "position": 0 },
+        { "label": "Il est simplement ralenti sans être tué", "correct": false, "position": 1 },
+        { "label": "Le noeud entier redémarre", "correct": false, "position": 2 },
+        { "label": "Rien, la limite mémoire est indicative", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un conteneur dont les requests sont égales à ses limits pour le CPU et la mémoire obtient la classe de QoS Guaranteed.",
+      "justification": "Vrai : l'égalité stricte des requests et des limits sur les deux ressources donne la classe Guaranteed, la plus protégée en cas de pression mémoire.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

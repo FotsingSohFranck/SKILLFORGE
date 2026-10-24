@@ -1,0 +1,104 @@
+{
+  "node": "services-ingress",
+  "lessons": [
+    {
+      "slug": "types-de-services",
+      "title": "Les types de Services",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Exposer un ensemble de pods",
+          "body": "Les pods sont éphémères et changent d'adresse IP. Un **Service** donne un point d'accès stable (une IP virtuelle et un nom DNS) vers un groupe de pods. Le Service choisit ses pods grâce à un **selector** : il route le trafic vers tous les pods dont les **labels** correspondent.\n\nTrois types principaux :\n- **ClusterIP** (le défaut) : une IP interne au cluster. Accessible uniquement depuis l'intérieur, idéal pour la communication entre services.\n- **NodePort** : ouvre un même port (plage 30000 à 32767) sur **chaque nœud** du cluster, qui redirige vers le Service. Accessible depuis l'extérieur via `IP_du_noeud:nodePort`.\n- **LoadBalancer** : demande au fournisseur cloud une **IP externe** et un répartiteur de charge devant les nœuds. En local (sans cloud), cette IP reste souvent en `pending`.\n\nÀ retenir : `port` est le port exposé par le Service, `targetPort` est le port écouté par le conteneur dans le pod. Ils peuvent différer."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un point d'accès stable qui aiguille le trafic vers les pods choisis par leurs labels",
+          "body": "/images/lessons/types-de-services-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un Service ClusterIP",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api\nspec:\n  type: ClusterIP            # type par defaut, interne au cluster\n  selector:\n    app: api                 # cible les pods portant le label app=api\n  ports:\n    - port: 80               # port expose par le Service\n      targetPort: 8080       # port ecoute par le conteneur"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Un Service NodePort",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api-externe\nspec:\n  type: NodePort\n  selector:\n    app: api\n  ports:\n    - port: 80               # port interne du Service\n      targetPort: 8080       # port du conteneur\n      nodePort: 30080        # port ouvert sur chaque noeud (30000 a 32767)"
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Vérifier le Service et ses Endpoints",
+          "codeLanguage": "bash",
+          "body": "# creer un Service rapidement en exposant un deploiement\nkubectl expose deployment api --port=80 --target-port=8080\n\n# lister les Services\nkubectl get svc\n\n# les Endpoints listent les IP des pods reellement selectionnes\n# si cette liste est vide, le selector ne correspond a aucun pod\nkubectl get endpoints api"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Du Service aux pods, par les labels",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  CLIENT[\"Client\"] -->|\"port 80\"| SVC[\"Service api (selector app=api)\"]\n  SVC -->|\"targetPort 8080\"| P1[\"Pod app=api\"]\n  SVC -->|\"targetPort 8080\"| P2[\"Pod app=api\"]\n  P3[\"Pod app=autre\"] -. \"label different, ignore\" .- SVC"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "types-de-services-check"
+        }
+      ]
+    },
+    {
+      "slug": "ingress",
+      "title": "L'Ingress",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Router le HTTP externe vers plusieurs services",
+          "body": "Un **Ingress** expose des Services HTTP/HTTPS vers l'extérieur avec un routage **au niveau applicatif** : il dirige une requête vers tel ou tel Service selon l'**hôte** (le nom de domaine) et le **chemin** de l'URL. Cela évite d'ouvrir un NodePort ou un LoadBalancer par service.\n\nPoint essentiel pour l'examen : un objet Ingress ne fait rien tout seul. Il faut un **Ingress controller** installé dans le cluster (par exemple ingress-nginx, Traefik). Le controller lit les règles Ingress et configure un reverse proxy réel. Sans controller, l'Ingress reste inerte.\n\nUne règle se compose d'un `host`, d'un ou plusieurs `paths`, et pour chaque chemin un `pathType` (`Prefix` ou `Exact`) et le Service cible avec son port. Le **TLS** se configure via un bloc `tls` qui référence un Secret contenant certificat et clé pour terminer le HTTPS."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une passerelle applicative qui route le HTTP externe vers plusieurs services",
+          "body": "/images/lessons/ingress-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une règle Ingress avec hôte, chemin et TLS",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: site\nspec:\n  tls:\n    - hosts:\n        - app.exemple.fr\n      secretName: app-tls       # Secret contenant le certificat et la cle\n  rules:\n    - host: app.exemple.fr\n      http:\n        paths:\n          - path: /              # tout le trafic de cet hote\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend\n                port:\n                  number: 80"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Un Ingress controller aiguille vers les Services",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  USER[\"Navigateur\"] -->|\"https app.exemple.fr\"| CTRL[\"Ingress controller (reverse proxy)\"]\n  CTRL -->|\"/boutique\"| S1[\"Service boutique\"]\n  CTRL -->|\"/blog\"| S2[\"Service blog\"]\n  S1 --> P1[\"Pods boutique\"]\n  S2 --> P2[\"Pods blog\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Tu as deux applications déjà exposées par deux Services ClusterIP : `boutique` (port 80) et `blog` (port 80). Tu veux qu'un seul domaine, `app.exemple.fr`, serve la boutique sous `/boutique` et le blog sous `/blog`, en une seule entrée externe. Décris ce qu'il faut mettre en place et écris l'Ingress correspondant. N'oublie pas le prérequis indispensable.",
+          "solution": "Prérequis : un **Ingress controller** doit être installé dans le cluster (par exemple ingress-nginx). Sans lui, l'objet Ingress ne route rien. Ensuite on crée un seul Ingress avec un `host` unique et deux `paths` en `pathType: Prefix`, chacun pointant vers le bon Service :\n\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: app\nspec:\n  rules:\n    - host: app.exemple.fr\n      http:\n        paths:\n          - path: /boutique\n            pathType: Prefix\n            backend:\n              service:\n                name: boutique\n                port:\n                  number: 80\n          - path: /blog\n            pathType: Prefix\n            backend:\n              service:\n                name: blog\n                port:\n                  number: 80\n\nLes deux Services ClusterIP restent internes ; c'est le controller, exposé en NodePort ou LoadBalancer, qui reçoit le trafic externe et l'aiguille vers le bon Service selon le chemin. On peut vérifier avec `kubectl get ingress` et `kubectl describe ingress app`."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "ingress-check"
+        }
+      ]
+    }
+  ]
+}

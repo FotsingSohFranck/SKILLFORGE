@@ -1,0 +1,102 @@
+{
+  "node": "network-policies",
+  "lessons": [
+    {
+      "slug": "principe-des-networkpolicies",
+      "title": "Le principe des NetworkPolicies",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Par défaut, tout circule",
+          "body": "Dans un cluster Kubernetes, **par défaut tout le trafic entre pods est autorisé** : n'importe quel pod peut joindre n'importe quel autre pod, sur n'importe quel port. Une **NetworkPolicy** change cette règle. C'est un objet namespacé qui **sélectionne un ensemble de pods** via un `podSelector` et restreint leur trafic **entrant** (`Ingress`) et **sortant** (`Egress`).\n\nPoint clé pour l'examen CKAD : **dès qu'au moins une NetworkPolicy s'applique à un pod pour une direction donnée, tout ce qui n'est pas explicitement autorisé est bloqué** pour cette direction. Les policies sont **additives** : plusieurs policies qui ciblent le même pod s'additionnent (l'union de leurs autorisations).\n\nDernier prérequis : les NetworkPolicies ne font effet que si le **plugin CNI le supporte** (Calico, Cilium, Weave, etc.). Avec un CNI qui les ignore, l'objet est créé mais le trafic n'est pas filtré."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sans filtrage, tout le trafic entre pods circule librement dans le cluster",
+          "body": "/images/lessons/principe-des-networkpolicies-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une policy deny par défaut",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: deny-tout-ingress\n  namespace: prod\nspec:\n  # podSelector vide : selectionne TOUS les pods du namespace\n  podSelector: {}\n  policyTypes:\n    - Ingress\n  # aucune regle ingress : donc tout le trafic entrant est bloque\n  ingress: []"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Lire la logique d'une policy",
+          "body": "Trois réflexes pour analyser une NetworkPolicy le jour J :\n- Le `podSelector` dit **à quels pods** la policy s'applique. Un `podSelector: {}` cible **tous les pods** du namespace.\n- `policyTypes` dit **quelles directions** sont régies (`Ingress`, `Egress` ou les deux). Si `Ingress` figure mais que la liste `ingress` est vide, alors **aucun** flux entrant n'est autorisé.\n- Inversement, **n'écrire aucune policy** sur un pod le laisse entièrement ouvert.\n\nPour inspecter : `kubectl get networkpolicy -n prod` puis `kubectl describe networkpolicy deny-tout-ingress -n prod`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lire une policy, c'est repérer les pods ciblés et les directions régies",
+          "body": "/images/lessons/principe-des-networkpolicies-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Avant et après la policy",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph SANS[\"Sans NetworkPolicy\"]\n    A1[\"pod A\"] -->|\"passe\"| B1[\"pod B\"]\n    C1[\"pod C\"] -->|\"passe\"| B1\n  end\n  subgraph AVEC[\"Avec policy sur pod B\"]\n    A2[\"pod A autorise\"] -->|\"passe\"| B2[\"pod B\"]\n    C2[\"pod C non autorise\"] -.->|\"bloque\"| B2\n  end"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "principe-des-networkpolicies-check"
+        }
+      ]
+    },
+    {
+      "slug": "autoriser-le-trafic",
+      "title": "Autoriser le bon trafic",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ouvrir juste ce qu'il faut",
+          "body": "Une fois qu'une policy s'applique, on déclare les flux autorisés. Les leviers disponibles dans une règle `ingress` ou `egress` :\n- **`podSelector`** dans le bloc `from` ou `to` : autoriser depuis (ou vers) **certains pods**, repérés par leurs labels.\n- **`namespaceSelector`** : autoriser depuis (ou vers) **tous les pods d'un namespace** repéré par ses labels.\n- **`ports`** : limiter à certains ports et protocoles (`TCP`, `UDP`).\n- On peut **combiner `Ingress` et `Egress`** dans une même policy via `policyTypes`.\n\nAttention au piège classique : dans un bloc `from`, deux entrées de liste séparées (`- podSelector` puis `- namespaceSelector`) forment un **OU**, alors que `podSelector` et `namespaceSelector` **sous une même entrée** forment un **ET** (pods portant ce label **et** situés dans ce namespace)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ouvrir juste les flux voulus, par labels de pods, namespace et ports",
+          "body": "/images/lessons/autoriser-le-trafic-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Autoriser frontend vers backend sur un port",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: autoriser-frontend-vers-backend\n  namespace: prod\nspec:\n  # cette policy protege les pods backend\n  podSelector:\n    matchLabels:\n      app: backend\n  policyTypes:\n    - Ingress\n  ingress:\n    - from:\n        # uniquement les pods portant le label app=frontend\n        - podSelector:\n            matchLabels:\n              app: frontend\n      ports:\n        - protocol: TCP\n          port: 8080"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Tester le flux avec kubectl",
+          "codeLanguage": "bash",
+          "body": "# on lance un pod frontend et on tente de joindre le backend\nkubectl run frontend --image=busybox:1.36 --labels=app=frontend \\\n  -n prod --rm -it --restart=Never -- \\\n  wget -qO- --timeout=3 backend:8080\n\n# depuis un pod sans le bon label, la connexion doit expirer (bloquee)\nkubectl run pirate --image=busybox:1.36 --labels=app=autre \\\n  -n prod --rm -it --restart=Never -- \\\n  wget -qO- --timeout=3 backend:8080"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Dans le namespace `prod`, une base de données tourne dans des pods portant le label `app=db` et écoute sur le port `5432` (TCP). Tu veux que **seuls** les pods `app=frontend` puissent joindre la base sur ce port, et rien d'autre. Décris la NetworkPolicy à écrire : quel `podSelector`, quel `policyType`, quel `from` et quels `ports` ?",
+          "solution": "On écrit une policy qui cible la base et n'autorise en entrée que le frontend sur 5432.\n\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: db-depuis-frontend\n  namespace: prod\nspec:\n  podSelector:\n    matchLabels:\n      app: db\n  policyTypes:\n    - Ingress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: frontend\n      ports:\n        - protocol: TCP\n          port: 5432\n\nExplication : le `podSelector` applique la policy aux pods `app=db`. Comme `Ingress` figure dans `policyTypes`, tout le trafic entrant non autorisé est bloqué. La seule règle `from` ouvre l'entrée aux pods `app=frontend`, et `ports` la limite au port 5432 en TCP. Tout autre pod, ou le frontend sur un autre port, est refusé."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "autoriser-le-trafic-check"
+        }
+      ]
+    }
+  ]
+}

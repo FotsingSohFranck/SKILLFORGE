@@ -1,0 +1,43 @@
+{
+  "ref": "diagnostiquer-un-pod-check",
+  "node": "probes-logging",
+  "lesson": "diagnostiquer-un-pod",
+  "title": "Quiz : Diagnostiquer un pod",
+  "description": "Vérifie que tu sais enchaîner les commandes de diagnostic et lire les statuts d'erreur.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un conteneur a planté puis redémarré ; ses logs actuels sont vides. Quelle option de kubectl logs montre la sortie de l'instance précédente ?",
+      "justification": "L'option --previous (ou -p) affiche les journaux de l'instance précédente d'un conteneur qui a redémarré, là où se trouve souvent le message d'erreur.",
+      "position": 0,
+      "options": [
+        { "label": "kubectl logs api --previous", "correct": true, "position": 0 },
+        { "label": "kubectl logs api --follow", "correct": false, "position": 1 },
+        { "label": "kubectl logs api --old", "correct": false, "position": 2 },
+        { "label": "kubectl logs api --since=1h", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où regarder en priorité pour comprendre un pod en ImagePullBackOff ?",
+      "justification": "ImagePullBackOff vient du téléchargement de l'image ; la cause (nom erroné, tag inexistant, registre privé) apparaît dans la section Events de kubectl describe pod.",
+      "position": 1,
+      "options": [
+        { "label": "La section Events de kubectl describe pod", "correct": true, "position": 0 },
+        { "label": "Les logs de l'application avec kubectl logs", "correct": false, "position": 1 },
+        { "label": "L'intérieur du conteneur avec kubectl exec -it", "correct": false, "position": 2 },
+        { "label": "Le nombre de redémarrages dans kubectl top pod", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un statut CrashLoopBackOff indique que le conteneur démarre puis plante en boucle, et la cause est généralement interne au conteneur.",
+      "justification": "Vrai : CrashLoopBackOff signifie que le conteneur plante de façon répétée après son démarrage ; la cause (commande erronée, config absente, dépendance manquante) est à l'intérieur et se lit dans les logs, surtout avec --previous.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

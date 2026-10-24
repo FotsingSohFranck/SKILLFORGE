@@ -1,0 +1,43 @@
+{
+  "ref": "init-containers-check",
+  "node": "multi-container-pods",
+  "lesson": "init-containers",
+  "title": "Quiz : Les init containers",
+  "description": "Vérifie que tu maîtrises les init containers.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quand les conteneurs applicatifs d'un pod démarrent-ils par rapport aux init containers ?",
+      "justification": "Les conteneurs principaux ne démarrent qu'après la réussite de tous les init containers, exécutés l'un après l'autre.",
+      "position": 0,
+      "options": [
+        { "label": "Après que tous les init containers se sont terminés avec succès", "correct": true, "position": 0 },
+        { "label": "En même temps que les init containers", "correct": false, "position": 1 },
+        { "label": "Avant les init containers", "correct": false, "position": 2 },
+        { "label": "Seulement si aucun init container n'est défini", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle commande affiche les journaux d'un init container nommé attendre-db dans le pod web ?",
+      "justification": "On cible le conteneur avec l'option -c : kubectl logs web -c attendre-db.",
+      "position": 1,
+      "options": [
+        { "label": "kubectl logs web -c attendre-db", "correct": true, "position": 0 },
+        { "label": "kubectl logs attendre-db", "correct": false, "position": 1 },
+        { "label": "kubectl describe init attendre-db", "correct": false, "position": 2 },
+        { "label": "kubectl get logs web", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un pod reste bloqué au statut Init tant qu'un init container n'a pas réussi.",
+      "justification": "Vrai : tant qu'un init container échoue ou tourne, le pod reste en Init et les conteneurs principaux ne démarrent pas.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

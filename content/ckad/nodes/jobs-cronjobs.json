@@ -1,0 +1,97 @@
+{
+  "node": "jobs-cronjobs",
+  "lessons": [
+    {
+      "slug": "les-jobs",
+      "title": "Les Jobs",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une tâche qui tourne jusqu'à complétion",
+          "body": "Un **Job** crée un ou plusieurs pods et garantit qu'un nombre donné d'entre eux se terminent **avec succès**. Contrairement à un Deployment, qui maintient un service en vie en permanence, un Job sert une **tâche ponctuelle** : une migration de base, un traitement par lot, un calcul, puis il s'arrête.\n\nChamps clés d'un Job :\n- **completions** : nombre de pods qui doivent réussir pour que le Job soit considéré comme terminé.\n- **parallelism** : nombre de pods exécutés **en parallèle** à un instant donné.\n- **backoffLimit** : nombre de **reprises** autorisées avant que le Job soit marqué en échec (par défaut 6).\n- **restartPolicy** : pour un Job, seules `Never` et `OnFailure` sont autorisées (jamais `Always`).\n- **ttlSecondsAfterFinished** : délai après lequel un Job terminé (et ses pods) est **nettoyé** automatiquement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une tâche par lot qui tourne jusqu'à sa complétion puis s'arrête",
+          "body": "/images/lessons/les-jobs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un Job qui calcule puis se termine",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: batch/v1\nkind: Job\nmetadata:\n  name: calcul-pi\nspec:\n  completions: 1           # 1 pod doit reussir\n  parallelism: 1           # 1 pod a la fois\n  backoffLimit: 4          # 4 reprises max avant echec\n  ttlSecondsAfterFinished: 120  # nettoyage 2 min apres la fin\n  template:\n    spec:\n      restartPolicy: Never # autorise pour un Job (ou OnFailure)\n      containers:\n        - name: pi\n          image: perl:5.38\n          # calcule 200 decimales de pi puis s'arrete\n          command: ['perl', '-Mbignum=bpi', '-wle', 'print bpi(200)']"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Créer et suivre un Job avec kubectl",
+          "codeLanguage": "bash",
+          "body": "# creer le Job a partir du manifeste\nkubectl apply -f calcul-pi.yaml\n\n# suivre l'etat (COMPLETIONS passe a 1/1 quand c'est fini)\nkubectl get jobs calcul-pi\n\n# retrouver le pod cree par le Job et lire sa sortie\nkubectl logs job/calcul-pi\n\n# raccourci imperatif, sans ecrire de fichier\nkubectl create job calcul-pi --image=perl:5.38 \\\n  -- perl -Mbignum=bpi -wle 'print bpi(200)'"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Le Job relance jusqu'au succès",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  J[\"Job calcul-pi\"] --> P1[\"Pod (tentative 1)\"]\n  P1 -->|\"echec\"| P2[\"Pod (tentative 2)\"]\n  P2 -->|\"succes\"| OK[\"Job termine : 1/1\"]\n  P2 -.->|\"au dela de backoffLimit\"| KO[\"Job en echec\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "les-jobs-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-cronjobs",
+      "title": "Les CronJobs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Planifier des Jobs dans le temps",
+          "body": "Un **CronJob** crée des **Jobs** à intervalles réguliers, selon une **expression cron** définie dans le champ `schedule`. C'est l'outil des tâches récurrentes : sauvegardes nocturnes, rapports quotidiens, nettoyages périodiques.\n\nUne expression cron a cinq champs : `minute heure jour-du-mois mois jour-de-la-semaine`. Par exemple `0 2 * * *` signifie **tous les jours à 2h00**.\n\nChamps importants d'un CronJob :\n- **schedule** : l'expression cron qui déclenche un nouveau Job.\n- **concurrencyPolicy** : que faire si un Job précédent tourne encore :\n  - `Allow` (défaut) : laisse les exécutions se chevaucher.\n  - `Forbid` : saute la nouvelle exécution tant que l'ancienne tourne.\n  - `Replace` : remplace l'ancienne exécution par la nouvelle.\n- **successfulJobsHistoryLimit** et **failedJobsHistoryLimit** : nombre de Jobs terminés conservés dans l'historique.\n- **suspend** : à `true`, le CronJob est **suspendu** et ne crée plus de Jobs (utile pour une pause sans supprimer l'objet)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Planifier des Jobs récurrents dans le temps, au rythme d'une horloge",
+          "body": "/images/lessons/les-cronjobs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un CronJob avec schedule",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: rapport-quotidien\nspec:\n  schedule: \"0 2 * * *\"            # tous les jours a 2h00\n  concurrencyPolicy: Forbid        # pas de chevauchement\n  successfulJobsHistoryLimit: 3    # garde les 3 derniers succes\n  failedJobsHistoryLimit: 1\n  jobTemplate:\n    spec:\n      backoffLimit: 2\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: rapport\n              image: busybox:1.36\n              command: ['sh', '-c', 'echo rapport genere le $(date)']"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Piloter un CronJob avec kubectl",
+          "codeLanguage": "bash",
+          "body": "# appliquer le CronJob\nkubectl apply -f rapport-quotidien.yaml\n\n# voir la planification et le dernier declenchement\nkubectl get cronjob rapport-quotidien\n\n# lister les Jobs crees par le CronJob\nkubectl get jobs\n\n# suspendre temporairement (ne cree plus de Jobs)\nkubectl patch cronjob rapport-quotidien -p '{\"spec\":{\"suspend\":true}}'\n\n# declencher manuellement un Job a partir du CronJob\nkubectl create job --from=cronjob/rapport-quotidien rapport-test"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi : une sauvegarde nocturne",
+          "body": "Tu dois planifier une sauvegarde de base de données qui s'exécute **chaque nuit à 1h30**. Deux exigences : les exécutions ne doivent **jamais se chevaucher** (si une sauvegarde déborde, on saute la suivante plutôt que d'en lancer deux), et tu ne veux conserver que les **trois derniers** Jobs réussis dans l'historique. Décris le manifeste CronJob correspondant (champs `schedule`, `concurrencyPolicy`, limite d'historique) ainsi que la commande kubectl qui permet de vérifier que le CronJob est bien planifié.",
+          "solution": "On crée un CronJob avec `schedule: \"30 1 * * *\"` (minute 30, heure 1, tous les jours). Pour empêcher le chevauchement, on met `concurrencyPolicy: Forbid`, ce qui saute une exécution tant que la précédente tourne encore. Pour l'historique, on fixe `successfulJobsHistoryLimit: 3`. Le `jobTemplate` contient le conteneur qui lance la sauvegarde (par exemple `pg_dump`) avec `restartPolicy: OnFailure`.\n\nManifeste (extrait du spec) :\n```yaml\napiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: sauvegarde-nocturne\nspec:\n  schedule: \"30 1 * * *\"\n  concurrencyPolicy: Forbid\n  successfulJobsHistoryLimit: 3\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          restartPolicy: OnFailure\n          containers:\n            - name: dump\n              image: postgres:18\n              command: ['sh', '-c', 'pg_dump -h db -U app app > /sauvegardes/app.sql']\n```\n\nVérification : `kubectl get cronjob sauvegarde-nocturne` affiche la colonne SCHEDULE (`30 1 * * *`), l'indicateur SUSPEND et le dernier déclenchement. On peut aussi lancer `kubectl describe cronjob sauvegarde-nocturne` pour confirmer `Concurrency Policy: Forbid` et la limite d'historique."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "les-cronjobs-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "principe-des-networkpolicies-check",
+  "node": "network-policies",
+  "lesson": "principe-des-networkpolicies",
+  "title": "Quiz : Le principe des NetworkPolicies",
+  "description": "Vérifie que tu comprends comment les NetworkPolicies filtrent le trafic.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "En l'absence de toute NetworkPolicy, quel est le comportement du trafic entre pods ?",
+      "justification": "Par défaut, tout le trafic entre pods est autorisé. C'est l'ajout d'une policy qui commence à restreindre.",
+      "position": 0,
+      "options": [
+        { "label": "Tout le trafic entre pods est autorisé", "correct": true, "position": 0 },
+        { "label": "Tout le trafic entre pods est bloqué", "correct": false, "position": 1 },
+        { "label": "Seul le trafic dans le même namespace est autorisé", "correct": false, "position": 2 },
+        { "label": "Seul le trafic HTTP est autorisé", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Une policy cible un pod avec policyTypes: [Ingress] et une liste ingress vide. Que se passe-t-il pour le trafic entrant de ce pod ?",
+      "justification": "Dès qu'une policy Ingress s'applique, tout ce qui n'est pas autorisé est bloqué. Une liste ingress vide n'autorise rien, donc tout l'entrant est bloqué.",
+      "position": 1,
+      "options": [
+        { "label": "Tout le trafic entrant est bloqué", "correct": true, "position": 0 },
+        { "label": "Tout le trafic entrant reste autorisé", "correct": false, "position": 1 },
+        { "label": "Seul le trafic sortant est bloqué", "correct": false, "position": 2 },
+        { "label": "La policy est ignorée car elle n'a pas de règle", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les NetworkPolicies ne prennent effet que si le plugin CNI du cluster les supporte.",
+      "justification": "Vrai : avec un CNI qui n'implémente pas les NetworkPolicies, l'objet est créé mais le trafic n'est pas filtré.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

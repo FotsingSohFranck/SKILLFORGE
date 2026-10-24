@@ -1,0 +1,43 @@
+{
+  "ref": "types-de-services-check",
+  "node": "services-ingress",
+  "lesson": "types-de-services",
+  "title": "Quiz : Les types de Services",
+  "description": "Vérifie que tu distingues ClusterIP, NodePort et LoadBalancer et le rôle du selector.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de Service est utilisé par défaut et n'est accessible que depuis l'intérieur du cluster ?",
+      "justification": "ClusterIP est le type par défaut : il fournit une IP virtuelle interne, idéale pour la communication entre services.",
+      "position": 0,
+      "options": [
+        { "label": "ClusterIP", "correct": true, "position": 0 },
+        { "label": "NodePort", "correct": false, "position": 1 },
+        { "label": "LoadBalancer", "correct": false, "position": 2 },
+        { "label": "ExternalName", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un Service sait-il quels pods il doit cibler ?",
+      "justification": "Le selector du Service compare les labels des pods : tous ceux qui correspondent deviennent des Endpoints du Service.",
+      "position": 1,
+      "options": [
+        { "label": "Par un selector qui filtre les pods selon leurs labels", "correct": true, "position": 0 },
+        { "label": "Par l'ordre de création des pods", "correct": false, "position": 1 },
+        { "label": "Par l'adresse IP fixe de chaque pod", "correct": false, "position": 2 },
+        { "label": "Par le nom du nœud qui héberge le pod", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Dans un Service, le champ targetPort désigne le port écouté par le conteneur dans le pod.",
+      "justification": "Vrai : port est le port exposé par le Service, targetPort est le port du conteneur ; les deux peuvent différer.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "node": "resource-limits",
+  "lessons": [
+    {
+      "slug": "requests-et-limits",
+      "title": "Requests et limits",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Réserver et plafonner",
+          "body": "Pour chaque conteneur, on déclare deux niveaux de ressources :\n- **requests** : ce que le conteneur **réserve**. Le scheduler s'en sert pour choisir un noeud : il n'y place le pod que si le noeud a assez de CPU et de mémoire libres pour couvrir la somme des requests.\n- **limits** : le **plafond** que le conteneur ne peut pas dépasser à l'exécution.\n\nDeux ressources principales : le **CPU** et la **mémoire**. Les requests garantissent un minimum disponible ; les limits protègent le noeud contre un conteneur qui consommerait tout."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Requests reservent, limits plafonnent : deux niveaux pour chaque conteneur.",
+          "body": "/images/lessons/requests-et-limits-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les unités : millicores et Mi/Gi",
+          "body": "**CPU** : exprimé en coeurs ou en **millicores**. `1` vaut un coeur complet, `500m` vaut un demi-coeur, `250m` vaut un quart de coeur. Le `m` signifie milli (millièmes de coeur).\n\n**Mémoire** : exprimée en octets, le plus souvent avec les suffixes binaires `Mi` (mébioctet, 1024 Ki) et `Gi` (gibioctet, 1024 Mi). Attention à ne pas confondre `Mi` (base 1024) et `M` (base 1000).\n\nExemples : `cpu: 250m`, `memory: 128Mi`, `memory: 1Gi`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Millicores pour le CPU, Mi et Gi pour la memoire : les unites a maitriser.",
+          "body": "/images/lessons/requests-et-limits-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déclarer requests et limits",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-dimensionnee\nspec:\n  containers:\n    - name: app\n      image: mon-app:1.0\n      resources:\n        requests:          # ce que le conteneur reserve\n          cpu: 250m        # un quart de coeur\n          memory: 128Mi    # 128 mebioctets\n        limits:            # plafond a ne pas depasser\n          cpu: 500m        # un demi-coeur\n          memory: 256Mi"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Dépasser son plafond : throttling et OOMKilled",
+          "body": "Le CPU et la mémoire ne réagissent pas de la même façon quand on atteint la limite :\n- **CPU** : ressource compressible. Si le conteneur veut plus que sa limite CPU, il est **ralenti** (CPU throttling). Il n'est pas tué, il attend simplement son tour.\n- **Mémoire** : ressource non compressible. Si le conteneur dépasse sa limite mémoire, il est **tué** par le noyau et redémarré : c'est l'état **OOMKilled** (Out Of Memory). On le repère avec `kubectl describe pod` dans la section `Last State`.\n\nConséquence pratique : une limite mémoire trop basse provoque des redémarrages en boucle, visibles dans la colonne `RESTARTS`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Depasser son plafond : CPU ralenti, memoire tuee en OOMKilled.",
+          "body": "/images/lessons/requests-et-limits-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Requests réserve, limits plafonne",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  SCHED[\"Scheduler\"] -->|\"lit les requests\"| PLACE[\"Choisit un noeud avec assez de place\"]\n  PLACE --> RUN[\"Conteneur en execution\"]\n  RUN -->|\"consomme sous la request\"| OK[\"Tout va bien\"]\n  RUN -->|\"depasse la limit CPU\"| THR[\"Ralenti (throttling)\"]\n  RUN -->|\"depasse la limit memoire\"| OOM[\"Tue : OOMKilled puis redemarre\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Les classes de QoS en bref",
+          "body": "Selon la façon dont on règle requests et limits, Kubernetes attribue une **classe de qualité de service (QoS)** au pod, visible dans `kubectl describe pod` :\n- **Guaranteed** : chaque conteneur a des requests **égales** à ses limits pour CPU et mémoire. Le pod est le plus protégé en cas de pression mémoire sur le noeud.\n- **Burstable** : au moins une request ou limit est définie, mais sans l'égalité stricte ci-dessus. Le pod peut dépasser temporairement sa request si le noeud a de la place.\n- **BestEffort** : **aucune** request ni limit. C'est le premier candidat à être expulsé (evicted) quand le noeud manque de mémoire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Guaranteed, Burstable, BestEffort : les trois classes de qualite de service.",
+          "body": "/images/lessons/requests-et-limits-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "requests-et-limits-check"
+        }
+      ]
+    },
+    {
+      "slug": "limitrange-et-quota",
+      "title": "LimitRange et ResourceQuota",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Cadrer un namespace",
+          "body": "Deux objets permettent d'imposer des règles de ressources à l'échelle d'un **namespace** :\n- **LimitRange** : agit sur chaque **conteneur (ou pod) pris individuellement**. Il fournit des valeurs **par défaut** (appliquées quand un conteneur n'en déclare pas) et des **bornes** (min et max autorisés par conteneur).\n- **ResourceQuota** : agit sur le **total du namespace**. Il plafonne la somme des requests et limits de tous les pods, et peut aussi limiter le **nombre d'objets** (pods, services, secrets, etc.).\n\nBut commun : éviter qu'une seule équipe ou application monopolise le cluster partagé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Cadrer un namespace partage avec LimitRange et ResourceQuota.",
+          "body": "/images/lessons/limitrange-et-quota-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Qui fait quoi",
+          "body": "La distinction tombe souvent à l'examen :\n- Le **LimitRange** répond à : \"quelle taille a le droit d'avoir un conteneur, et que lui donne-t-on s'il ne précise rien ?\".\n- Le **ResourceQuota** répond à : \"combien ce namespace peut-il consommer au total, et combien d'objets peut-il contenir ?\".\n\nPoint important : si un ResourceQuota impose des requests/limits sur le namespace, chaque pod **doit** déclarer ces ressources, sinon sa création est refusée. C'est justement là qu'un LimitRange avec des defaults devient précieux : il remplit automatiquement les valeurs manquantes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Par conteneur ou sur le total : qui fait quoi entre les deux objets.",
+          "body": "/images/lessons/limitrange-et-quota-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un LimitRange et un ResourceQuota",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: LimitRange\nmetadata:\n  name: limites-conteneur\n  namespace: equipe-a\nspec:\n  limits:\n    - type: Container\n      default:            # limit appliquee si non precisee\n        cpu: 500m\n        memory: 256Mi\n      defaultRequest:     # request appliquee si non precisee\n        cpu: 250m\n        memory: 128Mi\n      max:                # borne haute par conteneur\n        cpu: \"1\"\n        memory: 512Mi\n      min:                # borne basse par conteneur\n        cpu: 100m\n        memory: 64Mi\n---\napiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: quota-global\n  namespace: equipe-a\nspec:\n  hard:\n    requests.cpu: \"2\"         # somme des requests CPU du namespace\n    requests.memory: 2Gi\n    limits.cpu: \"4\"          # somme des limits CPU du namespace\n    limits.memory: 4Gi\n    pods: \"10\"               # nombre maximal de pods"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Vérifier la consommation",
+          "codeLanguage": "bash",
+          "body": "# Voir l'etat du quota (utilise / limite)\nkubectl get resourcequota quota-global -n equipe-a\nkubectl describe resourcequota quota-global -n equipe-a\n\n# Voir les defaults et bornes imposes par le LimitRange\nkubectl describe limitrange limites-conteneur -n equipe-a\n\n# Si un pod sans resources est refuse, le message d'erreur\n# cite le ResourceQuota en cause lors du kubectl apply"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À toi",
+          "body": "Scénario : le namespace `equipe-a` est partagé. On te demande deux choses. Premièrement, empêcher que l'ensemble des pods de ce namespace dépasse au total 2 coeurs et 2Gi de mémoire en requests, avec un plafond de 10 pods. Deuxièmement, faire en sorte qu'un conteneur qui ne déclare aucune ressource reçoive automatiquement une request de 250m CPU et 128Mi de mémoire. Quels objets crées-tu, et que mets-tu dans chacun ?",
+          "solution": "Il faut deux objets dans le namespace `equipe-a`.\n\n1. Un **ResourceQuota** pour le plafond global. On met dans `spec.hard` : `requests.cpu: \"2\"`, `requests.memory: 2Gi` et `pods: \"10\"`. Il additionne les requests de tous les pods du namespace et refuse toute création qui ferait dépasser ces totaux, ou un onzième pod.\n\n2. Un **LimitRange** de `type: Container` pour les valeurs par défaut. On met `defaultRequest.cpu: 250m` et `defaultRequest.memory: 128Mi`. Ainsi un conteneur qui ne précise rien se voit attribuer ces requests automatiquement, ce qui lui permet d'être accepté malgré le ResourceQuota (qui exige des requests). Le LimitRange agit par conteneur, le ResourceQuota agit sur le total du namespace : les deux sont complémentaires."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "limitrange-et-quota-check"
+        }
+      ]
+    }
+  ]
+}

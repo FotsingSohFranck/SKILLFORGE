@@ -1,0 +1,90 @@
+{
+  "node": "rolling-updates",
+  "lessons": [
+    {
+      "slug": "mettre-a-jour-sans-coupure",
+      "title": "Mettre à jour sans coupure",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La stratégie RollingUpdate",
+          "body": "Par défaut, un `Deployment` met à jour ses pods avec la stratégie **RollingUpdate** : il remplace les anciennes répliques **progressivement** par les nouvelles, de sorte que l'application reste disponible pendant toute la montée de version.\n\nDeux leviers contrôlent le rythme :\n- **maxSurge** : combien de pods **en plus** du nombre désiré peuvent être créés pendant le déploiement (par exemple `25%` ou un entier). Plus il est grand, plus la bascule est rapide.\n- **maxUnavailable** : combien de pods peuvent être **indisponibles** à un instant donné. Mettre `0` garantit zéro coupure, au prix d'une bascule un peu plus lente.\n\nLa stratégie alternative **Recreate** supprime d'abord **tous** les anciens pods, puis crée les nouveaux : il y a donc une **coupure** le temps du redémarrage. On la réserve aux cas où deux versions ne peuvent pas coexister (par exemple un schéma de base incompatible)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Remplacer progressivement les répliques pour garder le service disponible",
+          "body": "/images/lessons/mettre-a-jour-sans-coupure-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Déclarer la stratégie dans le Deployment",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 4\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1          # au plus 1 pod en plus pendant la bascule\n      maxUnavailable: 0    # aucune replique indisponible, donc zero coupure\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n        - name: app\n          image: mon-app:1.0"
+        },
+        {
+          "type": "CODE",
+          "position": 3,
+          "title": "Changer l'image et suivre la bascule",
+          "codeLanguage": "bash",
+          "body": "# remplacer l'image du conteneur `app` du deployment `web`\nkubectl set image deployment/web app=mon-app:2.0\n\n# suivre la progression du deploiement jusqu'a la fin\nkubectl rollout status deployment/web\n\n# alternative : editer directement le deployment puis observer\n# kubectl edit deployment web\n\n# verifier la nouvelle image reellement appliquee\nkubectl get deployment web -o jsonpath='{.spec.template.spec.containers[0].image}'"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Les anciennes répliques cèdent la place",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph AVANT[\"Avant (v1.0)\"]\n    A1[\"pod v1\"]\n    A2[\"pod v1\"]\n    A3[\"pod v1\"]\n    A4[\"pod v1\"]\n  end\n  subgraph PENDANT[\"Pendant (bascule)\"]\n    B1[\"pod v1\"]\n    B2[\"pod v1\"]\n    B3[\"pod v2\"]\n    B4[\"pod v2\"]\n  end\n  subgraph APRES[\"Apres (v2.0)\"]\n    C1[\"pod v2\"]\n    C2[\"pod v2\"]\n    C3[\"pod v2\"]\n    C4[\"pod v2\"]\n  end\n  AVANT -->|\"set image\"| PENDANT -->|\"rollout termine\"| APRES"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "mettre-a-jour-sans-coupure-check"
+        }
+      ]
+    },
+    {
+      "slug": "revenir-en-arriere",
+      "title": "Revenir en arrière",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Historique, annulation, pause et mise à l'échelle",
+          "body": "Chaque changement du modèle de pod d'un `Deployment` crée une **révision**. Kubernetes garde cet historique, ce qui permet de **revenir en arrière** si une nouvelle version pose problème.\n\nLes opérations clés :\n- **Historique** : `kubectl rollout history deployment/web` liste les révisions ; on détaille une révision avec `--revision=N`.\n- **Annuler** : `kubectl rollout undo deployment/web` revient à la révision précédente ; `--to-revision=N` cible une révision précise.\n- **Pause / reprise** : `kubectl rollout pause deployment/web` fige la bascule (utile pour enchaîner plusieurs modifications en une seule mise à jour), `kubectl rollout resume deployment/web` la relance.\n- **Mise à l'échelle** : `kubectl scale deployment/web --replicas=6` change le nombre de répliques, indépendamment de la version de l'image.\n\nAstuce : lancer la mise à jour avec `--record` (ou annoter le déploiement) rend l'historique plus lisible, car la cause du changement y apparaît."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Garder l'historique des révisions pour pouvoir revenir en arrière",
+          "body": "/images/lessons/revenir-en-arriere-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Lister l'historique puis annuler",
+          "codeLanguage": "bash",
+          "body": "# lister les revisions du deployment\nkubectl rollout history deployment/web\n\n# detailler une revision precise (par exemple la 2)\nkubectl rollout history deployment/web --revision=2\n\n# revenir a la revision precedente\nkubectl rollout undo deployment/web\n\n# ou revenir a une revision precise\nkubectl rollout undo deployment/web --to-revision=1\n\n# mettre en pause, modifier, puis reprendre\nkubectl rollout pause deployment/web\nkubectl set image deployment/web app=mon-app:2.1\nkubectl rollout resume deployment/web\n\n# changer le nombre de repliques\nkubectl scale deployment/web --replicas=6"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "Rollback en production",
+          "body": "Tu viens de déployer `mon-app:2.0` sur le déploiement `web`, mais cette version est buggée en production : les pods tournent, pourtant l'application renvoie des erreurs 500. Tu dois revenir à la version précédente le plus vite possible, puis vérifier que tout est rentré dans l'ordre. Donne la suite de commandes kubectl que tu exécutes.",
+          "solution": "1. Consulter l'historique pour identifier la révision stable précédente :\n`kubectl rollout history deployment/web`\n\n2. Revenir à la révision précédente (ici v1.0) :\n`kubectl rollout undo deployment/web`\n(ou, si on vise une révision précise, `kubectl rollout undo deployment/web --to-revision=1`)\n\n3. Suivre la bascule de retour jusqu'à son terme :\n`kubectl rollout status deployment/web`\n\n4. Vérifier que l'image servie est bien revenue à la version stable :\n`kubectl get deployment web -o jsonpath='{.spec.template.spec.containers[0].image}'`\n\n5. Contrôler que les pods sont bien Running et prêts :\n`kubectl get pods -l app=web`\n\nLe rollback est lui aussi un RollingUpdate : il remet progressivement les anciennes répliques en place, donc le retour se fait sans coupure."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "revenir-en-arriere-check"
+        }
+      ]
+    }
+  ]
+}
