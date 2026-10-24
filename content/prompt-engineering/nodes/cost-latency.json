@@ -1,0 +1,131 @@
+{
+  "node": "cost-latency",
+  "lessons": [
+    {
+      "slug": "le-cout-des-tokens",
+      "title": "Le coût des tokens",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "On paie au token, à l'entrée comme à la sortie",
+          "body": "Un **token** est un petit morceau de texte (souvent quelques caractères ou un bout de mot) que le modèle manipule. La plupart des fournisseurs facturent **au token** : on compte les tokens que tu envoies (l'**entrée**, c'est à dire ton prompt et le contexte) et ceux que le modèle génère (la **sortie**, sa réponse).\n\nDeux conséquences simples. D'abord, un prompt plus court coûte moins cher à l'entrée : tout le contexte inutile se paie. Ensuite, une sortie plus courte coûte moins cher à la sortie : si tu demandes une réponse brève ou si tu **bornes** la longueur (une limite de tokens de sortie), tu réduis la facture. La sortie est souvent facturée plus cher que l'entrée, donc borner la sortie compte beaucoup.\n\nUn ordre de grandeur utile, sans chiffre exact : en français ou en anglais, un token vaut environ trois quarts d'un mot. Mille mots font donc à peu près mille trois cents tokens. Les tarifs varient selon le fournisseur et le modèle, donc on raisonne ici en tendances, pas en prix précis."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On paie au token, à l'entrée comme à la sortie",
+          "body": "/images/lessons/le-cout-des-tokens-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le choix du modèle pèse sur le prix",
+          "body": "À texte égal, un **gros modèle** (plus de paramètres, plus capable) coûte en général nettement plus par token qu'un modèle plus petit, et il est souvent plus **lent** à répondre. Un petit modèle coûte moins et répond plus vite, mais peut être moins précis sur les tâches difficiles.\n\nLa bonne pratique n'est pas de toujours prendre le plus gros, ni toujours le plus petit : on choisit le plus petit modèle qui fait correctement le travail. Pour une tâche simple (classer un message, extraire un champ), un petit modèle suffit souvent. On réserve le gros modèle aux tâches qui en ont vraiment besoin."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le choix du modèle fait pencher la balance du prix et de la vitesse",
+          "body": "/images/lessons/le-cout-des-tokens-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Mesurer avant d'optimiser",
+          "body": "On n'optimise bien que ce qu'on mesure. La plupart des API renvoient, à chaque appel, le nombre de tokens d'entrée et de sortie consommés (souvent dans un bloc `usage`). Journalise ces nombres.\n\nAvec ces mesures, tu repères les prompts les plus coûteux, les réponses trop longues, et l'effet d'un changement (un prompt raccourci, une limite de sortie, un modèle plus petit). Avant de chercher à réduire la facture, regarde donc où partent réellement les tokens : c'est souvent le contexte répété à chaque appel qui coûte le plus."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mesurer la consommation de tokens avant de chercher à l'optimiser",
+          "body": "/images/lessons/le-cout-des-tokens-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Prompt verbeux contre prompt concis",
+          "codeLanguage": "text",
+          "body": "# Prompt VERBEUX (beaucoup de tokens d'entree pour pas grand chose)\nBonjour, j'espere que vous allez tres bien aujourd'hui. Je voudrais, si\ncela ne vous derange pas, que vous ayez la gentillesse de bien vouloir\nme donner, dans la mesure du possible, la capitale du pays qui s'appelle\nla France, en une phrase complete et bien redigee s'il vous plait.\n# ~55 mots, soit environ 70 tokens d'entree\n\n# Prompt CONCIS (meme resultat, bien moins de tokens)\nCapitale de la France ? Reponds en un mot.\n# ~8 mots, soit environ 11 tokens d'entree\n\n# Meme reponse attendue (\"Paris\"), mais l'entree est ~6 fois plus\n# legere. En plus, \"Reponds en un mot\" borne la sortie : moins de\n# tokens de sortie generes, donc double economie.\n# (Nombres de tokens approximatifs : ils dependent du modele.)"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "D'où vient le coût d'un appel",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  E[\"Tokens d'entree (prompt + contexte)\"] --> C[\"Cout de l'appel\"]\n  S[\"Tokens de sortie (reponse)\"] --> C\n  M[\"Taille du modele (prix par token)\"] --> C\n  C --> F[\"Facture totale\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "le-cout-des-tokens-check"
+        }
+      ]
+    },
+    {
+      "slug": "latence-et-caching",
+      "title": "Latence et caching",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "D'où vient la latence",
+          "body": "La **latence** est le temps que met une réponse à arriver. Pour un LLM, elle dépend surtout de deux choses. D'abord la **taille de la sortie** : le modèle génère les tokens un par un, donc une réponse longue prend mécaniquement plus de temps. Ensuite la **taille du modèle** : un gros modèle est en général plus lent qu'un petit.\n\nDeux leviers découlent directement de là : demander des réponses plus courtes (et borner la sortie), et choisir un modèle plus petit quand la tâche le permet. Ce sont les mêmes leviers que pour le coût, ce qui tombe bien."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La latence est le temps que met la réponse à arriver",
+          "body": "/images/lessons/latence-et-caching-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le streaming : afficher au fil de l'eau",
+          "body": "Le **streaming** ne rend pas la réponse plus rapide à produire, mais il la rend plus rapide à **ressentir**. Au lieu d'attendre que toute la réponse soit prête, l'API te renvoie les tokens au fur et à mesure qu'ils sont générés, et tu les affiches immédiatement.\n\nL'utilisateur voit le texte apparaître tout de suite, comme quand quelqu'un tape. La durée totale est la même, mais l'attente perçue chute fortement. C'est particulièrement utile pour une interface de chat ou toute réponse un peu longue."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le streaming affiche la réponse au fil de l'eau, dès les premiers tokens",
+          "body": "/images/lessons/latence-et-caching-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Mettre en cache pour ne pas repayer",
+          "body": "Un **cache** est une mémoire qui garde un résultat déjà calculé pour le réutiliser. Deux usages ici.\n\nPremièrement, le **cache de réponses** : si deux requêtes sont **identiques**, inutile de rappeler le modèle. Tu gardes la réponse associée à la question (par exemple dans un dictionnaire ou une base) et tu la ressers directement. Coût et latence tombent à presque zéro pour ces cas.\n\nDeuxièmement, le **prompt caching** quand le fournisseur le propose : si une grande partie de ton prompt est **stable** d'un appel à l'autre (de longues instructions, un gros document de référence), le fournisseur peut mettre en cache cette partie commune. Les appels suivants qui réutilisent ce même préfixe sont alors moins chers et plus rapides sur cette portion. L'idée générale : ne pas refaire travailler le modèle sur ce qui n'a pas changé.\n\nEnfin, **grouper les appels** aide aussi : si tu as dix petites questions indépendantes, les traiter ensemble (dans un même appel ou en parallèle maîtrisé) évite de répéter le coût fixe de chaque requête."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mettre en cache un résultat déjà calculé pour ne pas le repayer",
+          "body": "/images/lessons/latence-et-caching-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Un cache de réponses simple",
+          "codeLanguage": "javascript",
+          "body": "// Cache en memoire : la cle est la requete, la valeur sa reponse\nconst cache = new Map()\n\nasync function repondre(requete) {\n  // Requete deja vue ? On ressert la reponse, sans appeler le modele\n  if (cache.has(requete)) return cache.get(requete)\n\n  // Sinon on appelle le modele (c'est la partie couteuse et lente)\n  const reponse = await modele(requete)\n\n  // On memorise pour la prochaine fois\n  cache.set(requete, reponse)\n  return reponse\n}\n\n// 1er appel : va au modele. 2e appel identique : instantane, gratuit.\nawait repondre('Capitale de la France ?')\nawait repondre('Capitale de la France ?')"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Une barre de recherche appelle un LLM **à chaque frappe** de l'utilisateur pour suggérer des résultats, avec le gros modèle, sans streaming. C'est lent et la facture explose. Propose au moins quatre changements pour réduire le coût et la latence, et explique brièvement l'effet de chacun.",
+          "solution": "Quatre changements efficaces :\n\n1. Ne pas appeler à chaque frappe, mais attendre une courte pause de saisie (debounce, par exemple 300 ms) : on supprime la plupart des appels inutiles pendant que l'utilisateur tape encore. C'est le gain le plus important ici.\n\n2. Mettre en cache les réponses : beaucoup d'utilisateurs tapent les mêmes requêtes. Une requête déjà vue est resservie instantanément, sans nouvel appel au modèle.\n\n3. Utiliser un modèle plus petit pour des suggestions : la tâche est simple, un petit modèle suffit souvent, il coûte moins et répond plus vite.\n\n4. Borner la sortie (réponses courtes, peu de suggestions) et activer le streaming : moins de tokens générés réduit coût et latence, et le streaming fait apparaître les premières suggestions tout de suite.\n\nBonus : si le prompt contient de longues instructions stables, le prompt caching les rend moins chères à chaque appel ; et on peut annuler l'appel en cours dès que l'utilisateur tape un nouveau caractère."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "latence-et-caching-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "node": "tool-use-agents",
+  "lessons": [
+    {
+      "slug": "donner-des-outils-au-modele",
+      "title": "Donner des outils au modèle",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un modèle seul ne sait qu'écrire du texte",
+          "body": "Un LLM, par lui-même, ne peut pas chercher sur le web, lire une base de données ni envoyer un e-mail : il ne produit que du texte. Les **outils** (aussi appelés *function calling*) changent cela.\n\nLe principe : tu décris au modèle des fonctions disponibles (leur nom, ce qu'elles font, leurs paramètres). Quand la tâche le demande, le modèle ne répond pas directement : il **demande d'appeler un outil** avec des arguments. Ton code exécute l'outil et renvoie le résultat au modèle, qui s'en sert pour répondre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les outils donnent au modèle le pouvoir d'agir au delà du texte",
+          "body": "/images/lessons/donner-des-outils-au-modele-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Décrire un outil (schéma JSON)",
+          "codeLanguage": "json",
+          "body": "{\n  \"name\": \"obtenir_meteo\",\n  \"description\": \"Donne la meteo actuelle d'une ville\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"ville\": { \"type\": \"string\", \"description\": \"Nom de la ville\" }\n    },\n    \"required\": [\"ville\"]\n  }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "La description est un prompt",
+          "body": "Le modèle choisit d'appeler un outil **en lisant sa description**. Une description claire, qui dit quand utiliser l'outil et ce que signifie chaque paramètre, améliore nettement la fiabilité.\n\nTrois bonnes pratiques : des noms d'outils explicites, des paramètres typés et contraints (listes de valeurs autorisées), et un nombre d'outils raisonnable (trop d'outils noient le choix)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une description claire guide le modèle vers le bon outil",
+          "body": "/images/lessons/donner-des-outils-au-modele-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "donner-des-outils-au-modele-check"
+        }
+      ]
+    },
+    {
+      "slug": "la-boucle-dagent",
+      "title": "La boucle d'agent",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Observer, décider, agir, recommencer",
+          "body": "Un **agent** est un LLM placé dans une boucle : il reçoit un objectif, décide d'une action (souvent un appel d'outil), observe le résultat, puis recommence jusqu'à ce que la tâche soit finie.\n\nCette boucle laisse le modèle enchaîner plusieurs étapes (chercher, puis calculer, puis rédiger) sans qu'on scripte chaque étape à l'avance. En contrepartie, il faut la **borner** : limiter le nombre d'itérations, poser des garde-fous et gérer les erreurs d'outil."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'agent observe, décide, agit, puis recommence jusqu'au but",
+          "body": "/images/lessons/la-boucle-dagent-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "La boucle, en pseudo-code",
+          "codeLanguage": "javascript",
+          "body": "let messages = [{ role: 'user', content: objectif }]\nfor (let i = 0; i < MAX_ETAPES; i++) {\n  const rep = await modele(messages, outils)\n  if (!rep.appelOutil) return rep.texte        // le modele a fini\n  const resultat = await executer(rep.appelOutil) // ton code agit\n  messages.push(rep, { role: 'tool', content: resultat })\n}\nthrow new Error('Trop d etapes, on arrete') // garde-fou"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "La boucle d'agent",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  O[\"Objectif\"] --> M[\"Le modele decide\"]\n  M --> D{\"Appel d'outil ?\"}\n  D -->|\"Oui\"| T[\"Executer l'outil\"]\n  T --> R[\"Renvoyer le resultat au modele\"]\n  R --> M\n  D -->|\"Non\"| F[\"Reponse finale\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Tu construis un agent qui répond à des questions sur la documentation interne. Il dispose d'un outil `rechercher_doc(requete)`. Décris les étapes d'une boucle d'agent pour la question « Quelle est la politique de congés ? », et nomme deux garde-fous indispensables.",
+          "solution": "Boucle : 1) le modèle reçoit la question et la liste d'outils ; 2) il décide d'appeler `rechercher_doc('politique de conges')` ; 3) ton code exécute la recherche et renvoie les extraits trouvés ; 4) le modèle lit les extraits et rédige la réponse en citant la source, ou relance une recherche si besoin ; 5) il renvoie la réponse finale sans appel d'outil, la boucle s'arrête.\n\nDeux garde-fous indispensables : une limite du nombre d'itérations (pour éviter une boucle infinie si le modèle n'aboutit jamais), et la gestion des erreurs d'outil (recherche vide ou en échec) avec un repli, par exemple répondre qu'il n'a pas trouvé plutôt que d'inventer."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "la-boucle-dagent-check"
+        }
+      ]
+    }
+  ]
+}

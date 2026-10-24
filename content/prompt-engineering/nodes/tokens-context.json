@@ -1,0 +1,107 @@
+{
+  "node": "tokens-context",
+  "lessons": [
+    {
+      "slug": "tokens-et-fenetre",
+      "title": "Tokens et fenêtre de contexte",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un token, c'est un morceau de mot",
+          "body": "Un modèle de langage ne lit pas des lettres une par une, ni des mots entiers : il travaille sur des **tokens**. Un token est un petit morceau de texte, souvent un bout de mot, parfois un mot court entier, parfois juste un espace ou un signe de ponctuation.\n\nAvant de traiter ton texte, le modèle le **découpe en tokens** (on dit *tokeniser*). Quelques repères utiles :\n\n- Un mot courant tient souvent en un seul token.\n- Un mot long ou rare est coupé en plusieurs tokens.\n- Les espaces et la ponctuation comptent aussi.\n\nRetiens l'ordre de grandeur, pas un chiffre exact : en français, un texte fait en général un peu plus de tokens que de mots."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le modèle découpe le texte en tokens, de petits morceaux de mots",
+          "body": "/images/lessons/tokens-et-fenetre-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Découper une phrase en tokens (approximatif)",
+          "codeLanguage": "text",
+          "body": "Phrase : \"Le chat dort tranquillement.\"\n\n# Decoupage approximatif en tokens (le \"|\" separe deux tokens) :\nLe | chat | dort | tranquil | lement | .\n\n# Observations :\n# - \"Le\", \"chat\", \"dort\" : mots courants, un token chacun\n# - \"tranquillement\" : mot long, coupe en plusieurs morceaux\n# - le point \".\" : un token a lui seul\n#\n# Resultat : 6 tokens pour 4 mots.\n# Le decoupage exact depend du modele, mais l'idee reste la meme."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "La fenêtre de contexte : ce que le modèle peut lire et écrire",
+          "body": "La **fenêtre de contexte** est la quantité maximale de tokens que le modèle peut prendre en compte en une seule fois. C'est un peu sa mémoire de travail pour un échange.\n\nPoint essentiel : **l'entrée et la sortie comptent toutes les deux** dans cette limite.\n\n- L'**entrée** : ta consigne, le texte fourni, et souvent l'historique de la conversation.\n- La **sortie** : la réponse que le modèle génère.\n\nLa place prise par l'entrée réduit d'autant celle qui reste pour la réponse. Un très long document en entrée laisse donc moins de marge pour une longue réponse.\n\nSi le total **dépasse** la fenêtre, deux choses peuvent arriver : le texte le plus ancien est **tronqué** (coupé, donc oublié), ou l'appel renvoie une **erreur**. Dans les deux cas, on perd de l'information : il faut surveiller la taille de ce qu'on envoie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La fenêtre de contexte limite tout ce que le modèle lit et écrit",
+          "body": "/images/lessons/tokens-et-fenetre-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Tout doit tenir dans la fenêtre",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  subgraph FEN[\"Fenetre de contexte (limite en tokens)\"]\n    H[\"Historique de la conversation\"]\n    P[\"Prompt actuel\"]\n    R[\"Reponse du modele\"]\n  end\n  H --> P --> R\n  FEN -.->|\"Si le total depasse la limite\"| X[\"Troncature ou erreur\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "tokens-et-fenetre-check"
+        }
+      ]
+    },
+    {
+      "slug": "regler-la-generation",
+      "title": "Régler la génération",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le modèle choisit ses mots avec un peu de hasard",
+          "body": "À chaque étape, le modèle ne connaît pas \"le\" mot suivant : il estime des **probabilités** pour plein de tokens possibles, puis en choisit un. Quelques réglages contrôlent ce choix.\n\n- **Température** : règle le niveau de hasard. Une température **basse** rend le modèle **déterministe et factuel** (il prend presque toujours le token le plus probable, donc des réponses stables et répétables). Une température **haute** le rend **plus créatif et varié** (il ose des choix moins probables, donc des réponses plus originales mais parfois moins fiables).\n- **Top-p** (*échantillonnage par noyau*, ou *nucleus sampling*) : limite le choix aux tokens les plus probables dont les probabilités cumulées atteignent une part `p`. Un top-p bas garde peu de candidats (réponses prudentes), un top-p haut en garde beaucoup (plus de diversité).\n- **max_tokens** : borne la **longueur de la sortie**. Il protège du dépassement de la fenêtre de contexte et évite des réponses interminables."
+        },
+        {
+          "type": "IMAGE",
+          "title": "À chaque étape, le modèle choisit un token avec une part de hasard",
+          "body": "/images/lessons/regler-la-generation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Deux jeux de réglages selon l'objectif",
+          "codeLanguage": "json",
+          "body": "{\n  \"extraction_factuelle\": {\n    \"temperature\": 0.1,\n    \"top_p\": 0.9,\n    \"max_tokens\": 200,\n    \"_note\": \"On veut une reponse stable et exacte : temperature basse\"\n  },\n  \"brainstorming\": {\n    \"temperature\": 0.9,\n    \"top_p\": 1.0,\n    \"max_tokens\": 600,\n    \"_note\": \"On veut de la variete et des idees : temperature plus haute\"\n  }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Quand choisir quoi",
+          "body": "La règle de base tient en une phrase : **moins on veut de hasard, plus on baisse la température**.\n\n- **Extraction d'informations, classification, réponse factuelle, code** : température **basse**. On veut la même réponse fiable à chaque fois.\n- **Brainstorming, rédaction créative, variantes de slogans** : température **plus haute**. On accepte, et on recherche, de la variété.\n\nConseils pratiques : règle surtout la température, et ajuste le top-p seulement si besoin (évite de pousser les deux à fond en même temps). Pense toujours à fixer un `max_tokens` adapté pour maîtriser la longueur et le coût."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Moins on veut de hasard, plus on baisse la température",
+          "body": "/images/lessons/regler-la-generation-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi de régler",
+          "body": "Pour chacun des deux cas suivants, indique si tu choisis une température **basse** ou **haute**, et explique pourquoi en une phrase.\n\n- Cas A : extraire la date et le montant d'une facture, et les renvoyer en JSON.\n- Cas B : générer dix idées de noms pour une nouvelle application de méditation.",
+          "solution": "Cas A (extraction d'informations) : température **basse** (par exemple autour de 0.1). On veut une sortie exacte, stable et répétable, sans invention : le modèle doit presque toujours prendre le token le plus probable pour ne pas se tromper sur la date ou le montant.\n\nCas B (génération d'idées) : température **plus haute** (par exemple autour de 0.9). On recherche de la variété et de l'originalité : une température élevée pousse le modèle à proposer des noms différents et moins attendus, ce qui est exactement le but d'un brainstorming."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "regler-la-generation-check"
+        }
+      ]
+    }
+  ]
+}

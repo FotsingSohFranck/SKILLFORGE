@@ -1,0 +1,119 @@
+{
+  "node": "context-management",
+  "lessons": [
+    {
+      "slug": "quand-le-contexte-deborde",
+      "title": "Quand le contexte déborde",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La fenêtre de contexte est limitée",
+          "body": "Un modèle de langage ne lit pas un texte de taille infinie. Tout ce que tu lui envoies (tes instructions, l'historique de la conversation, les documents fournis) plus ce qu'il répond doit tenir dans une limite appelée **fenêtre de contexte** (en anglais *context window*).\n\nCette limite se mesure en **tokens**. Un token est un petit morceau de texte, souvent un mot court ou une partie de mot. En français, compte environ 3 à 4 caractères par token. La fenêtre peut aller de quelques milliers à plusieurs centaines de milliers de tokens selon le modèle, mais elle reste finie.\n\nTant que tout tient dans la fenêtre, pas de problème. Les ennuis commencent quand le total dépasse cette limite."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La fenêtre de contexte : une limite fixe mesurée en tokens.",
+          "body": "/images/lessons/quand-le-contexte-deborde-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi et quand ça déborde",
+          "body": "Deux situations font gonfler le contexte au point de le faire déborder.\n\n1. **Une longue conversation.** À chaque échange, on renvoie généralement tout l'historique au modèle pour qu'il garde le fil. Plus la discussion dure, plus cet historique grossit, jusqu'à dépasser la fenêtre.\n\n2. **Un gros document.** Coller un manuel entier, un long fichier de logs ou plusieurs articles peut à lui seul remplir, voire dépasser, la fenêtre.\n\nTrois conséquences quand on approche ou franchit la limite. **Troncature** : le texte en trop est coupé, souvent le plus ancien, donc le modèle perd le début. **Oubli du début** : si les consignes importantes étaient au début, elles disparaissent et le modèle dérive. **Coût** : plus il y a de tokens, plus chaque réponse est lente et chère à produire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quand l'historique gonfle, le contenu déborde et le début est coupé.",
+          "body": "/images/lessons/quand-le-contexte-deborde-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "L'historique grossit et dépasse la fenêtre",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  subgraph FEN[\"Fenetre de contexte (limite fixe)\"]\n    S[\"Consignes systeme\"]\n    M1[\"Message 1\"]\n    M2[\"Message 2\"]\n    M3[\"Message 3\"]\n  end\n  M4[\"Message 4\"] -.->|\"ne rentre plus\"| X[\"Tronque : le debut est coupe\"]\n  S --> M1 --> M2 --> M3 --> M4\n  X --> C[\"Le modele oublie les consignes du debut\"]"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Un historique trop long",
+          "codeLanguage": "text",
+          "body": "# Imaginons une fenetre de 1000 tokens pour l'exemple.\n# On additionne le cout de chaque partie envoyee au modele.\n\nConsignes systeme ............  200 tokens\nMessage 1 (utilisateur) ......  150 tokens\nReponse 1 (modele) ...........  180 tokens\nMessage 2 (utilisateur) ......  160 tokens\nReponse 2 (modele) ...........  170 tokens\nMessage 3 (utilisateur) ......  200 tokens\n-------------------------------------------\nTotal ........................ 1060 tokens  -> DEPASSE la limite de 1000\n\n# Resultat : les 60 tokens en trop sont coupes.\n# Souvent, ce sont les consignes systeme (en tete) qui sautent,\n# et le modele repond sans plus connaitre les regles du debut."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Repérer le problème",
+          "body": "Quelques signes montrent que tu touches la limite de contexte. Le modèle **oublie une consigne** donnée plus tôt, ou se répète. Il **ignore le début** d'un document long et ne parle que de la fin. Les réponses deviennent **plus lentes** et, sur une API payante, **plus chères**. Certaines API renvoient aussi une **erreur explicite** du type « context length exceeded ».\n\nDès que tu observes ces symptômes, ne continue pas à empiler du texte : il faut réduire ce que tu envoies. C'est l'objet de la leçon suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Oublis, lenteur et coûts : les signes qu'on touche la limite.",
+          "body": "/images/lessons/quand-le-contexte-deborde-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "quand-le-contexte-deborde-check"
+        }
+      ]
+    },
+    {
+      "slug": "strategies-de-reduction",
+      "title": "Stratégies de réduction",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Envoyer moins, mais l'essentiel",
+          "body": "Puisque la fenêtre est limitée, l'art consiste à n'envoyer que ce qui compte vraiment. Quatre stratégies, souvent combinées, permettent de rester sous la limite sans perdre le fil.\n\n**1. Résumer l'historique ancien.** Au lieu de renvoyer chaque message mot pour mot, on remplace les vieux échanges par un court résumé. Par exemple : « L'utilisateur s'appelle Léa, elle veut réserver un vol Paris vers Lisbonne pour deux personnes en juin. » Ce résumé tient en quelques tokens et conserve les faits utiles.\n\n**2. Ne garder que l'essentiel.** On conserve les messages récents tels quels (le modèle en a besoin pour répondre précisément) et on remplace tout le passé par ce résumé. C'est le schéma « résumé du début + messages récents »."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Résumer le passé pour n'envoyer que l'essentiel au modèle.",
+          "body": "/images/lessons/strategies-de-reduction-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Découper les documents et prioriser",
+          "body": "**3. Découper un gros document et ne fournir que les passages pertinents.** On n'envoie pas tout le manuel : on le coupe en morceaux, puis on sélectionne seulement les passages liés à la question posée. C'est l'idée derrière le **RAG** (*Retrieval-Augmented Generation*, en français « génération augmentée par la recherche ») : on cherche d'abord les extraits utiles dans une base, puis on les colle dans le contexte avant de demander la réponse. Tu verras le RAG en détail plus tard ; retiens ici qu'il sert à n'injecter que le nécessaire.\n\n**4. Prioriser les instructions importantes.** Les consignes critiques (le rôle du modèle, les règles à ne jamais enfreindre) doivent rester présentes à chaque appel. On les garde donc toujours, même quand on taille dans le reste. Ne jamais sacrifier une règle de sécurité pour gagner quelques tokens."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Découper les documents et ne garder que les passages pertinents.",
+          "body": "/images/lessons/strategies-de-reduction-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Résumer le passé, garder le récent",
+          "codeLanguage": "javascript",
+          "body": "// Objectif : rester sous la limite de tokens de la fenetre.\n// Idee : garder les N derniers messages intacts, resumer le reste.\n\nfunction reduireContexte(consignes, historique, N) {\n  const recents = historique.slice(-N)        // les N messages recents, intacts\n  const anciens = historique.slice(0, -N)     // tout le passe a condenser\n\n  // On remplace le passe par un court resume (quelques tokens).\n  const resume = resumer(anciens)             // ex: \"Lea reserve Paris->Lisbonne, juin, 2 pers.\"\n\n  // Les consignes importantes restent toujours en tete.\n  return [\n    consignes,\n    { role: 'system', content: 'Resume de la discussion : ' + resume },\n    ...recents\n  ]\n}\n\n// Resultat : un contexte court mais qui conserve le role, les regles,\n// les faits essentiels du passe et les derniers echanges."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi de réduire",
+          "body": "Un chatbot de support a une fenêtre de contexte trop petite pour toute la conversation ci-dessous. Tu dois réduire le contexte envoyé au modèle tout en gardant l'essentiel pour qu'il réponde correctement à la dernière question.\n\nConversation (du plus ancien au plus récent) :\n1. Système : « Tu es l'assistant support de l'application Bidulo. Réponds en français, reste poli, ne promets jamais de remboursement sans validation humaine. »\n2. Client : « Bonjour, je m'appelle Karim, je suis sur le forfait Pro. »\n3. Assistant : « Bonjour Karim, en quoi puis-je vous aider ? »\n4. Client : « Mon export PDF plante depuis la mise à jour de mardi. »\n5. Assistant : « Merci, je note : export PDF en échec depuis la version de mardi sur forfait Pro. »\n6. Client : « Oui c'est ça. Au fait il fait beau chez vous ? »\n7. Assistant : « Je n'ai pas la météo, mais revenons à votre souci. »\n8. Client : « D'accord. Donc, est-ce que vous avez une solution pour mon export ? »\n\nÉcris le contexte réduit (consignes + résumé + message récent) que tu enverrais au modèle, et explique en une phrase ce que tu as retiré et pourquoi.",
+          "solution": "Contexte réduit à envoyer :\n\n1. Système (gardé tel quel, car c'est une règle critique) : « Tu es l'assistant support de l'application Bidulo. Réponds en français, reste poli, ne promets jamais de remboursement sans validation humaine. »\n2. Résumé du passé : « Le client Karim est sur le forfait Pro. Son export PDF plante depuis la mise à jour de mardi. »\n3. Message récent (gardé tel quel) : « Donc, est-ce que vous avez une solution pour mon export ? »\n\nCe que j'ai retiré et pourquoi : j'ai condensé les échanges anciens en un résumé de deux faits utiles (identité et forfait, nature du bug) et supprimé la digression sur la météo, car elle n'apporte rien à la réponse ; j'ai conservé la consigne système intègre, car c'est une règle à ne jamais perdre, et le dernier message intact, car c'est la question à traiter."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "strategies-de-reduction-check"
+        }
+      ]
+    }
+  ]
+}

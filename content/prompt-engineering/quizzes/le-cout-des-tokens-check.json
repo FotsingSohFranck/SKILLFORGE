@@ -1,0 +1,43 @@
+{
+  "ref": "le-cout-des-tokens-check",
+  "node": "cost-latency",
+  "lesson": "le-cout-des-tokens",
+  "title": "Quiz : Le coût des tokens",
+  "description": "Vérifie que tu as compris comment se forme le coût d'un appel à un LLM.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel changement réduit le coût d'un appel sans changer la question posée ?",
+      "justification": "Borner la sortie et retirer le contexte inutile réduit les tokens facturés. La sortie étant souvent facturée plus cher, la limiter compte beaucoup ; prendre un plus gros modèle ou ajouter du texte de politesse augmente au contraire la facture.",
+      "position": 0,
+      "options": [
+        { "label": "Raccourcir le prompt et borner la longueur de la réponse", "correct": true, "position": 0 },
+        { "label": "Ajouter de longues formules de politesse au prompt", "correct": false, "position": 1 },
+        { "label": "Choisir systématiquement le plus gros modèle disponible", "correct": false, "position": 2 },
+        { "label": "Répéter tout le contexte à chaque appel par sécurité", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi journaliser les tokens d'entrée et de sortie renvoyés par l'API ?",
+      "justification": "On n'optimise bien que ce qu'on mesure : les compteurs d'usage montrent où partent les tokens et permettent de voir l'effet d'un changement.",
+      "position": 1,
+      "options": [
+        { "label": "Pour repérer les prompts coûteux et mesurer l'effet d'une optimisation", "correct": true, "position": 0 },
+        { "label": "Parce que c'est obligatoire pour que le modèle réponde", "correct": false, "position": 1 },
+        { "label": "Pour rendre le modèle plus rapide automatiquement", "correct": false, "position": 2 },
+        { "label": "Cela n'a aucun intérêt, le coût est toujours fixe", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "À texte égal, un gros modèle coûte en général plus par token et répond souvent plus lentement qu'un petit modèle.",
+      "justification": "Vrai : un modèle plus gros est en général plus cher par token et plus lent ; on choisit donc le plus petit modèle qui fait correctement le travail.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

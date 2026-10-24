@@ -1,0 +1,43 @@
+{
+  "ref": "latence-et-caching-check",
+  "node": "cost-latency",
+  "lesson": "latence-et-caching",
+  "title": "Quiz : Latence et caching",
+  "description": "Vérifie que tu sais réduire la latence et éviter les appels inutiles.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le streaming rend la réponse plus rapide à produire par le modèle.",
+      "justification": "Faux : le streaming ne change pas la durée totale de génération. Il affiche les tokens au fur et à mesure, ce qui réduit l'attente perçue, pas le temps de calcul.",
+      "position": 0,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand peut-on resservir une réponse depuis un cache sans rappeler le modèle ?",
+      "justification": "Un cache de réponses sert quand la requête est identique à une déjà vue : on ressert la réponse mémorisée, à coût et latence quasi nuls.",
+      "position": 1,
+      "options": [
+        { "label": "Quand la nouvelle requête est identique à une requête déjà traitée", "correct": true, "position": 0 },
+        { "label": "Quand la requête est totalement nouvelle et jamais vue", "correct": false, "position": 1 },
+        { "label": "Uniquement si on utilise le plus gros modèle", "correct": false, "position": 2 },
+        { "label": "Jamais, chaque requête doit toujours rappeler le modèle", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert le prompt caching quand le fournisseur le propose ?",
+      "justification": "Le prompt caching met en cache la partie stable du prompt (longues instructions, document de référence réutilisé) pour rendre les appels suivants qui la réutilisent moins chers et plus rapides sur cette portion.",
+      "position": 2,
+      "options": [
+        { "label": "Réutiliser la portion stable du prompt pour payer et attendre moins sur cette partie", "correct": true, "position": 0 },
+        { "label": "Empêcher le modèle de générer une réponse", "correct": false, "position": 1 },
+        { "label": "Augmenter la taille du modèle automatiquement", "correct": false, "position": 2 },
+        { "label": "Supprimer toutes les réponses déjà mises en cache", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

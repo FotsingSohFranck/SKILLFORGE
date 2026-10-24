@@ -1,0 +1,83 @@
+{
+  "node": "role-persona",
+  "lessons": [
+    {
+      "slug": "donner-un-role",
+      "title": "Donner un rôle au modèle",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Assigner une persona pour cadrer la réponse",
+          "body": "Donner un **rôle** (aussi appelé *persona*) au modèle, c'est lui dire qui il doit incarner avant de répondre, par exemple « Tu es un professeur de mathématiques patient » ou « Tu es un relecteur juridique rigoureux ».\n\nCe cadrage oriente trois choses à la fois : le **ton** (chaleureux, neutre, formel), le **niveau de langue** (vulgarisé ou technique) et l'**expertise supposée** (les notions que le modèle va mobiliser et le vocabulaire qu'il va employer).\n\nL'intérêt principal : adapter la réponse à un **public**. Un même sujet expliqué « pour un enfant de 10 ans » ou « pour un ingénieur senior » ne produit pas le même texte. On place en général ce rôle dans le **message système** (les instructions de départ qui valent pour toute la conversation), de sorte qu'il s'applique à tous les échanges qui suivent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Assigner une persona cadre le ton, le vocabulaire et le niveau de la reponse",
+          "body": "/images/lessons/donner-un-role-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Avant / après : sans rôle, puis avec rôle",
+          "codeLanguage": "text",
+          "body": "// Sans rôle : la demande est vague, le niveau de réponse est imprévisible\nPrompt : Explique ce qu'est une variable.\n\nRéponse possible : Une variable est un emplacement nommé en mémoire\nqui stocke une valeur susceptible de changer au cours de l'exécution.\n(Réponse correcte, mais peut-être trop technique pour un débutant.)\n\n\n// Avec rôle : on cadre le public, le ton et le niveau de langue\nMessage système : Tu es un professeur patient qui enseigne à des\ngrands débutants. Tu utilises des mots simples et une image du quotidien.\n\nPrompt : Explique ce qu'est une variable.\n\nRéponse attendue : Imagine une boîte sur laquelle tu colles une\nétiquette avec un nom, par exemple age. Dans cette boîte tu ranges une\nvaleur, par exemple 10. Plus tard tu peux ouvrir la boîte age et\nchanger ce qu'il y a dedans. Une variable, c'est cette boîte étiquetée."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Ce qu'un rôle met en place",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  P[\"Persona assignee\"] --> T[\"Ton\"]\n  P --> V[\"Vocabulaire\"]\n  P --> N[\"Niveau de detail\"]\n  T --> R[\"Reponse adaptee au public\"]\n  V --> R\n  N --> R"
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "donner-un-role-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-limites-des-personas",
+      "title": "Les limites des personas",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un rôle change le style, pas les connaissances",
+          "body": "Écrire « Tu es un expert mondial en cardiologie » ne rend pas le modèle expert et ne le rend pas fiable. Un rôle **ne crée aucune connaissance** : le modèle dispose des mêmes informations qu'avant, il change seulement sa manière de les présenter.\n\nLe piège classique est de **confondre style et exactitude**. Une persona confiante produit un texte au ton assuré, qui *paraît* fiable, mais ce ton n'est pas une garantie d'exactitude. Au contraire, un « expert très sûr de lui » peut rendre une erreur plus convaincante et donc plus dangereuse.\n\nLa bonne pratique est de **combiner** la persona avec des éléments concrets : des exemples de ce qu'on attend, des sources ou des données fournies dans le prompt, des contraintes claires, et une étape de **vérification** (demander les sources, faire relire, croiser avec un outil). Le rôle sert à cadrer la forme ; l'exactitude vient du contenu que tu fournis et des contrôles que tu ajoutes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un role change le style affiche, pas les connaissances reelles du modele",
+          "body": "/images/lessons/les-limites-des-personas-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le ton assuré ne vaut pas preuve",
+          "codeLanguage": "text",
+          "body": "// Rôle seul : le ton est sûr de lui, mais rien ne garantit l'exactitude\nMessage système : Tu es un expert en finance de renommée mondiale.\nPrompt : Quel sera le cours de cette action le mois prochain ?\n\nRéponse risquée : En tant qu'expert, je peux affirmer que l'action\natteindra 150 euros. (Affirmation confiante, mais inventée.)\n\n\n// Mieux : le rôle cadre la forme, et on demande prudence et sources\nMessage système : Tu es un analyste financier prudent. Tu distingues\nles faits des hypothèses et tu signales ce que tu ne peux pas savoir.\nPrompt : Quels éléments publics aident à analyser cette action ?\nIndique tes sources et dis clairement ce qui reste incertain.\n\nRéponse plus fiable : Je ne peux pas prédire un cours futur. Voici des\néléments vérifiables à consulter, leurs sources, et les limites de\nchacun."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi",
+          "body": "Voici un prompt qui repose uniquement sur un rôle : « Tu es un expert en cybersécurité. Dis-moi si mon mot de passe est sûr. »\n\nCe prompt mise tout sur l'étiquette « expert » et ne donne rien de concret au modèle. Réécris-le pour qu'il soit plus fiable : garde un rôle utile, mais ajoute des éléments concrets (critères explicites, données fournies, demande de justification et de vérification).",
+          "solution": "Un prompt amélioré pourrait être : « Tu es un analyste en cybersécurité qui explique ses décisions. Évalue la robustesse de ce mot de passe : Soleil2024. Vérifie ces critères précis : longueur d'au moins 12 caractères, présence de majuscules, de minuscules, de chiffres et de symboles, absence de mots du dictionnaire et de dates. Pour chaque critère, dis s'il est respecté et pourquoi. Termine par un verdict (faible, moyen, fort) et deux améliorations concrètes. »\n\nCe qui a changé et pourquoi c'est plus fiable : le rôle reste présent mais au service de la forme (un analyste qui explique) ; on fournit la donnée réelle à évaluer (le mot de passe) au lieu d'une question abstraite ; on remplace le jugement vague « est-il sûr » par des critères explicites et vérifiables ; on exige une justification par critère, ce qui rend l'erreur plus facile à repérer. L'exactitude vient des critères et des données, pas de l'étiquette expert."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "les-limites-des-personas-check"
+        }
+      ]
+    }
+  ]
+}

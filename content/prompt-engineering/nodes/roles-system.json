@@ -1,0 +1,107 @@
+{
+  "node": "roles-system",
+  "lessons": [
+    {
+      "slug": "les-trois-roles",
+      "title": "Les trois rôles",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une conversation est une liste de messages",
+          "body": "Quand tu discutes avec un modèle de langage, tu ne lui envoies pas juste un bloc de texte : tu lui envoies une **liste de messages**. Chaque message porte un **rôle**, c'est à dire une étiquette qui dit qui parle. Il y a trois rôles de base.\n\n**system** : les règles et le cadre général. C'est toi, le concepteur, qui le poses. Il décrit comment le modèle doit se comporter pendant toute la conversation (sa persona, son ton, ses limites).\n\n**user** : les demandes de la personne qui utilise l'application. Chaque question ou instruction de l'utilisateur est un message `user`.\n\n**assistant** : les réponses produites par le modèle. Chaque fois que le modèle répond, sa réponse est enregistrée comme un message `assistant`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une conversation est une liste de messages portant chacun un rôle",
+          "body": "/images/lessons/les-trois-roles-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Comment les rôles s'enchaînent",
+          "body": "Une conversation typique commence par un message `system` (posé une fois), puis alterne `user` et `assistant` : l'utilisateur demande, le modèle répond, l'utilisateur relance, le modèle répond encore.\n\nPoint essentiel pour un débutant : à chaque nouvel appel, le modèle **ne se souvient de rien par lui même**. Il ne garde aucune mémoire entre deux appels. Pour qu'il tienne compte de ce qui a déjà été dit, on lui **renvoie tout l'historique** des messages à chaque fois. C'est en relisant cette liste complète (system, puis tous les échanges précédents) qu'il peut répondre de façon cohérente."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sans mémoire, le modèle relit tout l'historique à chaque appel",
+          "body": "/images/lessons/les-trois-roles-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un tableau de messages avec les trois rôles",
+          "codeLanguage": "json",
+          "body": "[\n  {\n    \"role\": \"system\",\n    \"content\": \"Tu es un assistant de cuisine. Reponds en francais, de facon simple et concise.\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"Donne-moi une idee de plat rapide avec des oeufs.\"\n  },\n  {\n    \"role\": \"assistant\",\n    \"content\": \"Une omelette aux fines herbes : 3 oeufs battus, sel, poivre, persil, cuisson 4 minutes.\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"Et sans matiere grasse ?\"\n  }\n]"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "L'enchaînement des rôles",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  S[\"system : regles et cadre\"] --> U1[\"user : 1re demande\"]\n  U1 --> A1[\"assistant : 1re reponse\"]\n  A1 --> U2[\"user : 2e demande\"]\n  U2 --> A2[\"assistant : 2e reponse\"]\n  A2 --> U3[\"user : suite...\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "les-trois-roles-check"
+        }
+      ]
+    },
+    {
+      "slug": "le-message-systeme",
+      "title": "Le message système",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "À quoi sert le message système",
+          "body": "Le message `system` est l'endroit où tu poses le **cadre** de toute la conversation. Contrairement aux messages `user`, il ne vient pas de l'utilisateur final : c'est toi, le concepteur de l'application, qui l'écris. Il sert à quatre choses principales.\n\n**La persona** : qui le modèle est censé être (par exemple, un conseiller clientèle courtois).\n\n**Les règles** : ce qu'il doit ou ne doit pas faire (rester poli, ne pas inventer de prix, rediriger vers un humain si besoin).\n\n**Le format attendu** : comment structurer ses réponses (langue, longueur, style, présence d'une formule de politesse).\n\n**Les limites** : les sujets interdits ou hors périmètre.\n\nCe message s'applique à **toute la conversation** : il reste en tête de la liste et le modèle le relit à chaque réponse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le message système pose le cadre de toute la conversation",
+          "body": "/images/lessons/le-message-systeme-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Bonnes pratiques et limites",
+          "body": "**Bonnes pratiques** : écris un message système **clair** (des consignes simples et sans ambiguïté), **stable** (le même pendant toute la conversation, on ne le change pas à chaque échange), et **sans contradiction** avec les messages `user`. Si le système dit « réponds toujours en français » et que l'utilisateur écrit en anglais, précise dans le système comment trancher (par exemple : réponds en français quoi qu'il arrive).\n\n**Ses limites** : le message système oriente fortement le modèle, mais il ne **garantit pas une obéissance absolue**. Un modèle peut parfois s'écarter des consignes, surtout si elles sont floues, trop nombreuses ou contradictoires. Il ne faut donc pas compter dessus comme une barrière de sécurité infaillible : les contrôles vraiment critiques (droits d'accès, validation des données) doivent être faits dans ton code, pas seulement demandés dans le prompt."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Clair et stable, il oriente le modèle sans garantir l'obéissance",
+          "body": "/images/lessons/le-message-systeme-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Exemple de message système",
+          "codeLanguage": "text",
+          "body": "Tu es l'assistant de support client de la boutique en ligne \"Boreal\".\n\nRegles :\n- Reponds en francais, de maniere courtoise et concise.\n- Reste sur les sujets lies aux commandes, livraisons et retours.\n- N'invente jamais un numero de commande ni un montant : si l'information manque, demande-la.\n- Si la demande concerne un remboursement de plus de 100 euros, oriente vers un conseiller humain.\n\nFormat : commence par saluer, reponds en 3 phrases maximum, termine par une question utile."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Rédige un bon message système pour un assistant de support client d'un service de billets de train nommé « Railo ». Il doit : adopter une persona de conseiller aimable, répondre en français de façon brève, rester sur les sujets billets, horaires et remboursements, ne jamais inventer de numéro de réservation, et renvoyer vers un humain pour tout litige. Indique aussi un format de réponse.",
+          "solution": "Exemple de réponse attendue :\n\n« Tu es l'assistant de support client de Railo, un service de réservation de billets de train. Adopte le ton d'un conseiller aimable et rassurant.\n\nRègles :\n- Réponds en français, de manière brève et claire.\n- Reste uniquement sur les sujets suivants : billets, horaires et remboursements.\n- N'invente jamais un numéro de réservation ni un horaire : si l'information manque, demande-la à la personne.\n- Pour tout litige (réclamation, contestation, incident), oriente vers un conseiller humain sans trancher toi même.\n\nFormat : commence par une salutation courte, réponds en 3 phrases maximum, puis termine par une question utile pour faire avancer la demande. »\n\nCe message est bon parce qu'il pose une persona claire, des règles sans contradiction, une limite de périmètre, une consigne anti invention, un chemin d'escalade vers un humain, et un format de réponse précis."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "le-message-systeme-check"
+        }
+      ]
+    }
+  ]
+}

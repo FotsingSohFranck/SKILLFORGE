@@ -30,6 +30,24 @@
       "position": 1
     },
     {
+      "slug": "tokens-context",
+      "title": "Tokens, contexte & température",
+      "summary": "Ce que coûte un prompt et comment régler la génération.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 50,
+      "position": 2
+    },
+    {
+      "slug": "roles-system",
+      "title": "Rôles : system, user, assistant",
+      "summary": "Structurer une conversation et poser les règles avec le rôle système.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 50,
+      "position": 3
+    },
+    {
       "slug": "few-shot",
       "title": "Zero-shot & few-shot",
       "summary": "Guider par l'exemple.",
@@ -46,6 +64,33 @@
       "importance": "RECOMMENDED",
       "estimatedMinutes": 60,
       "position": 1
+    },
+    {
+      "slug": "role-persona",
+      "title": "Personas & cadrage de rôle",
+      "summary": "Donner un rôle au modèle pour cadrer le ton et l'expertise.",
+      "phase": "Techniques de prompting",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 2
+    },
+    {
+      "slug": "decomposition",
+      "title": "Décomposer une tâche complexe",
+      "summary": "Découper en étapes et enchaîner les prompts (chaînage).",
+      "phase": "Techniques de prompting",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 3
+    },
+    {
+      "slug": "self-consistency",
+      "title": "Auto-cohérence & vérification",
+      "summary": "Générer plusieurs réponses et faire vérifier le modèle.",
+      "phase": "Techniques de prompting",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 50,
+      "position": 4
     },
     {
       "slug": "structured-output",
@@ -66,6 +111,24 @@
       "position": 1
     },
     {
+      "slug": "prompt-templates",
+      "title": "Templates & variables",
+      "summary": "Industrialiser ses prompts avec des gabarits paramétrés.",
+      "phase": "Contexte & données",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 45,
+      "position": 2
+    },
+    {
+      "slug": "context-management",
+      "title": "Gérer la fenêtre de contexte",
+      "summary": "Résumer, tronquer et prioriser quand le contexte déborde.",
+      "phase": "Contexte & données",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 3
+    },
+    {
       "slug": "evaluation",
       "title": "Évaluer & itérer",
       "summary": "Mesurer la qualité d'un prompt, pas la deviner.",
@@ -82,15 +145,52 @@
       "importance": "OPTIONAL",
       "estimatedMinutes": 60,
       "position": 1
+    },
+    {
+      "slug": "tool-use-agents",
+      "title": "Outils & agents",
+      "summary": "Donner des outils au modèle et orchestrer une boucle d'agent.",
+      "phase": "Fiabilité & production",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 2
+    },
+    {
+      "slug": "guardrails-injection",
+      "title": "Garde-fous & injection de prompt",
+      "summary": "Se défendre contre l'injection et cadrer les réponses.",
+      "phase": "Fiabilité & production",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 3
+    },
+    {
+      "slug": "cost-latency",
+      "title": "Coût, latence & caching",
+      "summary": "Maîtriser le nombre de tokens, la vitesse et la facture.",
+      "phase": "Fiabilité & production",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 4
     }
   ],
   "edges": [
     { "source": "how-llms-work", "target": "anatomy", "kind": "PREREQ" },
+    { "source": "how-llms-work", "target": "tokens-context", "kind": "PREREQ" },
+    { "source": "anatomy", "target": "roles-system", "kind": "PREREQ" },
     { "source": "anatomy", "target": "few-shot", "kind": "PREREQ" },
     { "source": "few-shot", "target": "chain-of-thought", "kind": "PREREQ" },
+    { "source": "few-shot", "target": "role-persona", "kind": "PREREQ" },
+    { "source": "chain-of-thought", "target": "decomposition", "kind": "PREREQ" },
+    { "source": "chain-of-thought", "target": "self-consistency", "kind": "PREREQ" },
     { "source": "anatomy", "target": "structured-output", "kind": "PREREQ" },
     { "source": "structured-output", "target": "rag", "kind": "PREREQ" },
+    { "source": "structured-output", "target": "prompt-templates", "kind": "PREREQ" },
+    { "source": "rag", "target": "context-management", "kind": "PREREQ" },
     { "source": "anatomy", "target": "evaluation", "kind": "PREREQ" },
-    { "source": "evaluation", "target": "safety", "kind": "PREREQ" }
+    { "source": "evaluation", "target": "safety", "kind": "PREREQ" },
+    { "source": "evaluation", "target": "tool-use-agents", "kind": "PREREQ" },
+    { "source": "safety", "target": "guardrails-injection", "kind": "PREREQ" },
+    { "source": "evaluation", "target": "cost-latency", "kind": "PREREQ" }
   ]
 }

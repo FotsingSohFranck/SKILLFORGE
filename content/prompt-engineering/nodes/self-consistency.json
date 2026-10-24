@@ -1,0 +1,107 @@
+{
+  "node": "self-consistency",
+  "lessons": [
+    {
+      "slug": "plusieurs-reponses",
+      "title": "Générer plusieurs réponses",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une seule réponse peut se tromper par hasard",
+          "body": "Sur une tâche de raisonnement (un calcul, une déduction en plusieurs étapes), le modèle suit un chemin de réflexion. Si une seule étape dérape, toute la réponse est fausse. Et comme une partie de l'aléa fait partie du fonctionnement du modèle, demander deux fois la même chose peut donner deux réponses différentes.\n\nL'**auto-cohérence** (en anglais *self-consistency*) exploite cet aléa au lieu de le subir : au lieu de se fier à une seule réponse, on en génère **plusieurs** pour la même question, puis on garde la **réponse majoritaire**, celle qui revient le plus souvent. L'idée : il y a plus de façons de se tromper que de tomber juste, donc la bonne réponse a tendance à ressortir le plus souvent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une seule reponse peut se tromper par hasard, comme un coup de des",
+          "body": "/images/lessons/plusieurs-reponses-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La température, pour varier les réponses",
+          "body": "Pour obtenir des réponses différentes, il faut de la variété. C'est le rôle de la **température** : un réglage (souvent entre 0 et 1) qui contrôle le degré de hasard dans la génération.\n\nÀ température 0, le modèle répond de façon quasi identique à chaque fois (peu utile ici). Avec une **température supérieure à 0** (par exemple 0,7), il explore des chemins de raisonnement variés. On lance donc la même question N fois avec une température supérieure à 0, puis on vote.\n\nLe revers : chaque réponse est un **appel** au modèle. Générer 5 réponses coûte environ 5 fois plus cher et prend plus de temps qu'un seul appel. On réserve donc l'auto-cohérence aux questions de raisonnement qui le justifient, pas à tout."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La temperature regle le degre de hasard pour varier les reponses",
+          "body": "/images/lessons/plusieurs-reponses-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Générer N réponses puis voter",
+          "codeLanguage": "javascript",
+          "body": "// On pose la meme question N fois, avec une temperature > 0\nasync function autoCoherence(question, N) {\n  const reponses = []\n  for (let i = 0; i < N; i++) {\n    const r = await modele(question, { temperature: 0.7 })\n    reponses.push(r.reponseFinale) // ex : \"42\"\n  }\n\n  // Vote majoritaire : on compte les occurrences de chaque reponse\n  const comptes = {}\n  for (const r of reponses) {\n    comptes[r] = (comptes[r] || 0) + 1\n  }\n\n  // On garde la reponse qui revient le plus souvent\n  let gagnante = null, max = 0\n  for (const [valeur, n] of Object.entries(comptes)) {\n    if (n > max) { max = n; gagnante = valeur }\n  }\n  return gagnante\n}\n\n// Ex : 5 reponses = [42, 42, 37, 42, 40] -> on garde 42 (majoritaire)"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le principe de l'auto-cohérence",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  P[\"Meme prompt\"] --> R1[\"Reponse 1 : 42\"]\n  P --> R2[\"Reponse 2 : 42\"]\n  P --> R3[\"Reponse 3 : 37\"]\n  P --> R4[\"Reponse 4 : 42\"]\n  R1 --> V[\"Vote majoritaire\"]\n  R2 --> V\n  R3 --> V\n  R4 --> V\n  V --> F[\"Reponse retenue : 42\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "plusieurs-reponses-check"
+        }
+      ]
+    },
+    {
+      "slug": "faire-verifier",
+      "title": "Faire vérifier le modèle",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Demander au modèle de se relire",
+          "body": "Autre technique pour fiabiliser une réponse : demander au modèle de **critiquer ou vérifier sa propre réponse** avant de la valider. On parle d'**auto-critique** (en anglais *self-critique*).\n\nConcrètement, on découpe en deux étapes. D'abord la **génération** : le modèle produit une première réponse. Ensuite la **vérification** : on lui renvoie sa réponse en lui demandant de la contrôler, par exemple « Vérifie ton calcul étape par étape et corrige toute erreur ». Souvent, en se relisant, le modèle repère une faute qu'il avait laissée passer au premier jet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Demander au modele de relire sa reponse pour reperer ses erreurs",
+          "body": "/images/lessons/faire-verifier-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Limites et vérification externe",
+          "body": "Attention, ce n'est pas magique. Le modèle peut **valider une erreur** : il relit, se trouve cohérent et confirme une réponse pourtant fausse. L'auto-critique réduit les erreurs, elle ne les supprime pas.\n\nQuand c'est possible, le plus sûr est de combiner avec une **vérification externe**, c'est-à-dire un contrôle qui ne dépend pas du modèle : exécuter réellement le code produit, recalculer le résultat avec une calculatrice ou du code, comparer à une source de référence. Le modèle propose, un outil extérieur tranche."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une verification externe tranche, independamment du modele",
+          "body": "/images/lessons/faire-verifier-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Deux étapes : générer puis vérifier",
+          "codeLanguage": "text",
+          "body": "Etape 1 (generation) :\n  Prompt : \"Combien font 17 x 23 ? Reponds par un nombre.\"\n  Reponse : \"391\"\n\nEtape 2 (verification) :\n  Prompt : \"Tu as repondu 391 a la question 17 x 23.\n            Verifie ce calcul etape par etape.\n            Si c'est faux, donne la bonne reponse.\"\n  Reponse : \"17 x 23 = 17 x 20 + 17 x 3 = 340 + 51 = 391. Correct.\"\n\nVerification externe (ideale) : recalculer 17 * 23 avec du code\n  -> 391, on confirme sans se fier au modele."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Voici un prompt de calcul en une seule étape, sans vérification :\n\n« Un panier contient 3 boîtes de 12 œufs et 2 boîtes de 6 œufs. Combien d'œufs en tout ? Réponds par un nombre. »\n\nRéécris ce prompt pour y ajouter une **étape de vérification** par le modèle, puis indique quelle vérification externe tu pourrais faire en plus.",
+          "solution": "Prompt avec étape de vérification :\n\n« Un panier contient 3 boîtes de 12 œufs et 2 boîtes de 6 œufs. Combien d'œufs en tout ?\n1) Donne d'abord ton calcul détaillé étape par étape.\n2) Ensuite, relis ton calcul et vérifie chaque étape ; si tu trouves une erreur, corrige-la.\n3) Termine par la réponse finale sous la forme : Réponse = <nombre>. »\n\nAttendu : 3 x 12 = 36, plus 2 x 6 = 12, soit 36 + 12 = 48. Réponse = 48.\n\nVérification externe possible : refaire le calcul 3*12 + 2*6 avec une calculatrice ou une ligne de code, et comparer au résultat annoncé par le modèle. Si les deux diffèrent, c'est le calcul externe qui fait foi."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "faire-verifier-check"
+        }
+      ]
+    }
+  ]
+}

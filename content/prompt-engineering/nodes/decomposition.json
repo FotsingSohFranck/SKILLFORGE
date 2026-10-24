@@ -1,0 +1,107 @@
+{
+  "node": "decomposition",
+  "lessons": [
+    {
+      "slug": "decouper-la-tache",
+      "title": "Découper la tâche",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une tâche complexe se traite mieux en morceaux",
+          "body": "Quand on demande tout en une seule fois (« analyse ce texte, résume le, traduis le et propose un titre »), le modèle doit tout faire d'un coup. Il mélange les objectifs, en oublie un, ou traite mal celui qui compte le plus.\n\nLa parade : **décomposer**, c'est à dire découper la tâche complexe en **sous-tâches** claires, puis demander une étape à la fois. Chaque consigne devient simple et sans ambiguïté, donc le modèle a moins de marge pour se tromper.\n\nPourquoi ça marche. D'abord, **moins d'ambiguïté** : une consigne qui ne vise qu'un but se comprend d'une seule façon. Ensuite, **moins d'erreurs cumulées** : si chaque étape est petite et vérifiable, une erreur se repère tout de suite au lieu de se noyer dans une grosse réponse fourre tout."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une tache complexe se traite mieux en petits morceaux clairs",
+          "body": "/images/lessons/decouper-la-tache-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Prompt vague contre consigne découpée",
+          "codeLanguage": "text",
+          "body": "# Version vague (une seule demande, tout mélangé)\nRésume cet article, trouve les points faibles de l'argumentation,\npropose un titre accrocheur et dis moi si je dois le publier.\n\n# Version découpée en étapes numérotées (une intention par étape)\nTravaille étape par étape et attends la fin de chaque étape.\n1. Résume l'article en 3 phrases, sans donner ton avis.\n2. Liste les 3 points faibles les plus importants de l'argumentation.\n3. Propose 2 titres possibles, un sobre et un accrocheur.\n4. Donne une recommandation : publier, corriger ou refuser, avec une raison.\n\n# Pourquoi la seconde est meilleure :\n# chaque étape a un seul but, un format précis, et un résultat\n# facile à vérifier avant de passer à la suite."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "De la tâche aux sous-tâches, puis à l'assemblage",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  T[\"Tâche complexe\"] --> S1[\"Sous-tâche 1 : résumer\"]\n  T --> S2[\"Sous-tâche 2 : analyser\"]\n  T --> S3[\"Sous-tâche 3 : proposer un titre\"]\n  S1 --> A[\"Assemblage de la réponse finale\"]\n  S2 --> A\n  S3 --> A"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Comment bien découper",
+          "body": "Trois repères simples. **Une intention par étape** : si une étape contient un « et », elle cache souvent deux sous-tâches. **Numéroter et ordonner** : le modèle suit l'ordre, et on peut vérifier chaque sortie avant la suivante. **Nommer le résultat attendu** : « 3 phrases », « une liste », « un tableau », pour que la sortie d'une étape serve proprement d'entrée à la suivante.\n\nAttention à ne pas sur découper non plus : des étapes trop fines rendent l'échange lourd pour rien. On vise des morceaux assez petits pour être clairs, assez gros pour rester utiles."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Bien decouper, c'est une intention par etape, numerotee et ordonnee",
+          "body": "/images/lessons/decouper-la-tache-2.jpg",
+          "position": 5
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "decouper-la-tache-check"
+        }
+      ]
+    },
+    {
+      "slug": "chainer-les-prompts",
+      "title": "Chaîner les prompts",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La sortie d'un prompt devient l'entrée du suivant",
+          "body": "Découper une tâche, c'est bien. **Chaîner les prompts**, c'est brancher ces morceaux les uns aux autres : la **sortie** d'un prompt sert d'**entrée** au prompt suivant. On ne fait plus une seule grosse demande, mais une suite d'appels reliés.\n\nExemple classique en trois maillons : **extraire** (tirer les informations brutes d'un texte), puis **transformer** (nettoyer, trier, structurer ces informations), puis **rédiger** (produire le texte final à partir des données propres). Chaque maillon reçoit exactement ce dont il a besoin et rien d'autre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La sortie d'un prompt devient l'entree du suivant, comme des maillons relies",
+          "body": "/images/lessons/chainer-les-prompts-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Avantages, coûts et lien avec les agents",
+          "body": "**Avantages.** Chaque étape est **testable** séparément : si le résultat final est mauvais, on voit tout de suite quel maillon a fauté. On peut aussi améliorer un maillon sans tout refaire, et réutiliser un maillon dans une autre chaîne.\n\n**Coûts.** Plus de maillons, c'est **plus d'appels** au modèle : donc plus de temps, plus de jetons (les unités de texte facturées) et un peu plus de code pour relier les étapes. Il faut que le découpage en vaille la peine.\n\n**Lien avec les agents.** Une chaîne de prompts est **fixe** : c'est toi qui décides à l'avance de l'ordre des étapes. Un agent (vu au nœud précédent) choisit lui même ses étapes dans une boucle. Le chaînage est le cas simple et prévisible ; l'agent est le cas souple mais moins contrôlable."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Chaque maillon reste testable, au prix d'appels supplementaires au modele",
+          "body": "/images/lessons/chainer-les-prompts-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une chaîne extraire puis transformer puis rédiger",
+          "codeLanguage": "text",
+          "body": "# Maillon 1 : EXTRAIRE\nPrompt : \"Extrais de l'article les faits chiffrés sous forme de liste\n(valeur puis signification). N'invente rien.\"\nSortie 1 : une liste brute de chiffres.\n\n# Maillon 2 : TRANSFORMER\nPrompt : \"Voici la liste : {sortie 1}. Garde les 3 chiffres les plus\nimportants et classe les du plus parlant au moins parlant.\"\nSortie 2 : 3 chiffres triés.\n\n# Maillon 3 : RÉDIGER\nPrompt : \"Voici les 3 chiffres classés : {sortie 2}. Rédige un\nparagraphe de 4 phrases qui les met en valeur pour un lecteur pressé.\"\nSortie 3 : le paragraphe final.\n\n# {sortie 1} et {sortie 2} : le texte produit à l'étape précédente,\n# réinjecté tel quel dans le prompt suivant."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "On veut produire un **résumé structuré** d'un article de presse : un titre, trois points clés, et une phrase de conclusion. Conçois une **chaîne de 3 prompts** pour y arriver. Pour chaque maillon, indique son entrée, sa consigne, et sa sortie. Explique en une phrase pourquoi chaîner vaut mieux ici qu'un seul gros prompt.",
+          "solution": "Chaîne possible :\n\nMaillon 1, EXTRAIRE. Entrée : l'article complet. Consigne : « Extrais les idées principales de l'article sous forme de liste à puces, une idée par puce, sans commentaire. » Sortie : une liste brute d'idées.\n\nMaillon 2, TRANSFORMER. Entrée : la liste du maillon 1. Consigne : « Voici la liste d'idées : {sortie 1}. Regroupe les et garde les 3 points clés les plus importants, formulés chacun en une phrase courte. » Sortie : 3 points clés.\n\nMaillon 3, RÉDIGER. Entrée : les 3 points clés du maillon 2. Consigne : « Voici les 3 points clés : {sortie 2}. Produis un résumé structuré avec : un titre de 6 mots maximum, ces 3 points clés en liste, puis une phrase de conclusion. » Sortie : le résumé structuré final.\n\nPourquoi chaîner : chaque étape est testable isolément, donc si le résumé final est mauvais on voit tout de suite si le problème vient de l'extraction, du tri ou de la rédaction, au lieu de deviner dans une seule grosse réponse."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "chainer-les-prompts-check"
+        }
+      ]
+    }
+  ]
+}
