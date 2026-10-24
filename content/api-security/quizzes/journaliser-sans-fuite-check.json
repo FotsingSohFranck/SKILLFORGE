@@ -1,0 +1,43 @@
+{
+  "ref": "journaliser-sans-fuite-check",
+  "node": "logging-monitoring",
+  "lesson": "journaliser-sans-fuite",
+  "title": "Quiz : Journaliser sans fuite",
+  "description": "Vérifie que tu sais quoi journaliser, quoi masquer et pourquoi structurer les logs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Parmi ces éléments, lequel ne faut-il JAMAIS écrire dans un log ?",
+      "justification": "Un jeton d'accès copié dans un log peut être réutilisé par un attaquant pour se faire passer pour l'utilisateur. Les secrets (mots de passe, jetons) et les données personnelles en clair ne doivent jamais être journalisés. L'horodatage, l'identifiant de corrélation et l'identifiant utilisateur, eux, sont utiles et sans danger.",
+      "position": 0,
+      "options": [
+        { "label": "Le jeton d'accès de l'utilisateur", "correct": true, "position": 0 },
+        { "label": "L'horodatage de la requête", "correct": false, "position": 1 },
+        { "label": "L'identifiant de corrélation", "correct": false, "position": 2 },
+        { "label": "L'identifiant de l'utilisateur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert un identifiant de corrélation dans les logs ?",
+      "justification": "L'identifiant de corrélation est un code unique attribué à chaque requête et recopié dans tous les logs produits pour la traiter. Il permet de retrouver toutes les lignes liées à un même appel, même réparties sur plusieurs services.",
+      "position": 1,
+      "options": [
+        { "label": "À relier entre elles toutes les lignes de log d'une même requête", "correct": true, "position": 0 },
+        { "label": "À chiffrer le contenu des logs", "correct": false, "position": 1 },
+        { "label": "À remplacer le mot de passe de l'utilisateur", "correct": false, "position": 2 },
+        { "label": "À accélérer la base de données", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un log structuré au format JSON est plus facile à rechercher et à filtrer automatiquement qu'une phrase en texte libre.",
+      "justification": "Vrai : un log structuré en paires clé/valeur se prête à la recherche, au filtrage et au comptage automatiques, ce qui est impossible de façon fiable avec une phrase libre.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

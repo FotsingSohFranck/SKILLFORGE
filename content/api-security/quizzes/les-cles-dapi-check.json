@@ -1,0 +1,43 @@
+{
+  "ref": "les-cles-dapi-check",
+  "node": "api-keys-mtls",
+  "lesson": "les-cles-dapi",
+  "title": "Quiz : Les clés d'API",
+  "description": "Vérifie que tu as compris le rôle et les bonnes pratiques des clés d'API.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que permet d'identifier une clé d'API ?",
+      "justification": "Une clé d'API identifie l'application appelante, c'est-à-dire quel service parle à l'API, et non la personne qui l'utilise. Pour authentifier un humain, on emploie d'autres mécanismes comme les jetons.",
+      "position": 0,
+      "options": [
+        { "label": "L'application appelante, pas un utilisateur humain", "correct": true, "position": 0 },
+        { "label": "L'identité forte de l'utilisateur connecté", "correct": false, "position": 1 },
+        { "label": "La version du protocole TLS utilisée", "correct": false, "position": 2 },
+        { "label": "L'adresse physique du serveur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où faut-il faire voyager une clé d'API dans une requête HTTP ?",
+      "justification": "La clé doit passer dans un en-tête (par exemple Authorization ou X-API-Key). Dans l'URL, elle se retrouverait dans les journaux des serveurs, l'historique et les référents, donc exposée.",
+      "position": 1,
+      "options": [
+        { "label": "Dans un en-tête HTTP comme Authorization ou X-API-Key", "correct": true, "position": 0 },
+        { "label": "Dans l'URL, en paramètre de requête", "correct": false, "position": 1 },
+        { "label": "Dans un commentaire du code source public", "correct": false, "position": 2 },
+        { "label": "Dans le nom de domaine appelé", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une clé d'API constitue à elle seule une authentification forte de l'utilisateur.",
+      "justification": "Faux. Une clé d'API est un secret partagé qui identifie une application : quiconque la détient peut s'en servir. Elle ne prouve pas qui est l'humain derrière l'appel et n'offre pas de second facteur.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

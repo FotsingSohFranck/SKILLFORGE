@@ -1,0 +1,107 @@
+{
+  "node": "api-surface",
+  "lessons": [
+    {
+      "slug": "rest-surface",
+      "title": "La surface d'une API REST",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce que la surface d'attaque",
+          "body": "La **surface d'attaque** d'une API, c'est l'ensemble de tous les points par lesquels un appelant (légitime ou malveillant) peut interagir avec elle. Plus cette surface est large, plus il y a d'endroits à sécuriser, et plus un oubli devient probable.\n\nPour une API REST (un style d'API où chaque **ressource**, par exemple un utilisateur ou une facture, s'adresse par une URL et un verbe HTTP comme `GET` ou `POST`), la surface regroupe :\n- les **endpoints** : les chemins exposés, par exemple `/api/v1/factures`.\n- les **paramètres** : valeurs dans l'URL (`/factures/123`), dans la requête (`?page=2`) ou dans le corps.\n- les **en-têtes** (*headers*) : métadonnées envoyées avec la requête, comme `Authorization` ou `Content-Type`.\n- le **corps** (*body*) : les données transmises, souvent en JSON.\n- les **versions d'API** : `/api/v1/`, `/api/v2/`, parfois des versions anciennes jamais retirées.\n- les **endpoints oubliés ou de debug** : routes de test, d'administration ou de diagnostic laissées accessibles en production."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La surface d'attaque regroupe tous les points par lesquels on peut interagir avec l'API",
+          "body": "/images/lessons/rest-surface-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Réduire la surface",
+          "body": "Une règle simple : **tout ce qui est exposé doit être protégé, donc n'exposer que le nécessaire**. Réduire la surface diminue mécaniquement le risque.\n\nEn pratique :\n- **Désactiver ce qui ne sert pas** : endpoints de debug, documentation interne, verbes HTTP non utilisés, routes d'anciennes fonctionnalités.\n- **Versionner proprement** : annoncer la fin de vie des anciennes versions (`v1`) et les retirer vraiment, au lieu de les laisser traîner.\n- **Inventorier** : tenir à jour la liste des endpoints réellement en production. Un endpoint qu'on a oublié est un endpoint que personne ne surveille, mais qu'un attaquant peut trouver.\n\nUn endpoint de debug oublié, ou une `v1` jamais retirée qui ignore un correctif de sécurité appliqué seulement sur la `v2`, sont des portes d'entrée classiques."
+        },
+        {
+          "type": "IMAGE",
+          "title": "N'exposer que le necessaire reduit mecaniquement le risque",
+          "body": "/images/lessons/rest-surface-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Anatomie d'une requête REST",
+          "codeLanguage": "http",
+          "body": "# Une seule requete expose deja plusieurs points de la surface\n\n# Verbe + endpoint + version + parametre de chemin + parametre de requete\nGET /api/v1/factures/123?format=pdf HTTP/1.1\nHost: api.exemple.fr\n\n# En-tetes : chacun est une entree a valider cote serveur\nAuthorization: Bearer eyJhbGciOiJIUzI1NiJ9...   # jeton d'authentification\nAccept: application/json\nX-Debug-Mode: true                               # en-tete suspect : a ignorer en prod\n\n# Points de surface ici : l'endpoint /factures, la version v1,\n# le parametre de chemin 123 (qu'un attaquant peut changer en 124),\n# le parametre de requete format, et chaque en-tete envoye."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Les points d'entrée d'une API REST",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  C[\"Client (legitime ou attaquant)\"] --> E1[\"Endpoints : /factures, /utilisateurs\"]\n  C --> E2[\"Parametres : chemin, requete, corps\"]\n  C --> E3[\"En-tetes : Authorization, Content-Type\"]\n  C --> E4[\"Versions : /v1, /v2\"]\n  C --> E5[\"Endpoints oublies ou de debug\"]\n  E1 --> S[\"Surface d'attaque totale\"]\n  E2 --> S\n  E3 --> S\n  E4 --> S\n  E5 --> S\n  S --> R[\"Chaque point doit etre protege et valide cote serveur\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "rest-surface-check"
+        }
+      ]
+    },
+    {
+      "slug": "graphql-surface",
+      "title": "Le cas de GraphQL",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un seul endpoint, un schéma riche",
+          "body": "**GraphQL** est un style d'API différent de REST. Au lieu de multiplier les endpoints, il en expose souvent **un seul** (par exemple `/graphql`) auquel le client envoie une **requête** décrivant exactement les données qu'il veut.\n\nLa surface ne se mesure donc plus au nombre d'endpoints, mais à la richesse du **schéma** : le catalogue de tous les types, champs et relations que l'API sait renvoyer. C'est le client qui compose sa requête, ce qui déplace la surface d'attaque vers le **contenu** des requêtes.\n\nRisques spécifiques à GraphQL :\n- **Requêtes profondes ou imbriquées** : en suivant les relations (un auteur a des articles, chaque article a des commentaires, chaque commentaire a un auteur...), une requête peut devenir très coûteuse à exécuter.\n- **Introspection exposée en production** : GraphQL permet d'interroger son propre schéma. Pratique en développement, mais laissée active en production, elle offre à un attaquant la carte complète de l'API.\n- **Sur-exposition de champs** : le schéma expose parfois des champs sensibles (mot de passe haché, e-mail d'un autre utilisateur) que rien ne filtre côté serveur."
+        },
+        {
+          "type": "IMAGE",
+          "title": "GraphQL expose un seul endpoint mais un schema riche qui deplace la surface vers le contenu des requetes",
+          "body": "/images/lessons/graphql-surface-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les parades",
+          "body": "Les défenses visent à **borner ce que le client peut demander** :\n- **Limite de profondeur** : refuser les requêtes imbriquées au-delà d'un certain niveau (par exemple 5 niveaux).\n- **Limite de complexité** : attribuer un coût à chaque champ et plafonner le coût total d'une requête, pour bloquer celles qui ratisseraient trop large.\n- **Désactiver l'introspection en production** : ne l'autoriser qu'en développement.\n- **Contrôler l'exposition des champs** : vérifier côté serveur les droits sur chaque champ sensible, exactement comme en REST. Le fil rouge reste le même : ne jamais faire confiance à la requête du client."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les parades bornent ce que le client peut demander, profondeur, complexite et introspection",
+          "body": "/images/lessons/graphql-surface-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une requête imbriquée coûteuse",
+          "codeLanguage": "graphql",
+          "body": "# Cette requete suit les relations en boucle et explose en cout.\n# A chaque niveau, le serveur doit charger de plus en plus de donnees.\nquery RequeteAbusive {\n  utilisateurs {           # tous les utilisateurs\n    articles {             # tous leurs articles\n      commentaires {       # tous les commentaires de chaque article\n        auteur {           # l'auteur de chaque commentaire\n          articles {       # ses articles... la boucle recommence\n            commentaires {\n              auteur {\n                nom\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n# Sans limite de profondeur ni de complexite, une seule requete\n# de ce genre peut saturer la base de donnees et le service."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Un serveur GraphQL public accepte n'importe quelle requête, sans limite. Un attaquant envoie des requêtes profondément imbriquées comme celle de l'exemple et le service ralentit fortement jusqu'à ne plus répondre. Quel risque est exploité, et quelles mesures concrètes mets-tu en place pour limiter l'abus de ces requêtes imbriquées ?",
+          "solution": "Le risque est une **consommation de ressources sans limite** (déni de service) via des requêtes GraphQL trop profondes et trop coûteuses.\n\nMesures concrètes :\n1. **Limite de profondeur** : plafonner le nombre de niveaux d'imbrication autorisés (par exemple 5). Au-delà, la requête est rejetée avant exécution.\n2. **Limite de complexité** : attribuer un coût à chaque champ, calculer le coût total de la requête et la refuser si elle dépasse un budget maximal.\n3. **Limiter le débit** (*rate limiting*) : plafonner le nombre de requêtes par client et par minute.\n4. **Désactiver l'introspection en production**, pour ne pas donner à l'attaquant la carte des relations à exploiter.\n5. Éventuellement un **délai maximal d'exécution** par requête (*timeout*), pour couper celles qui durent trop longtemps.\n\nCes mesures bornent ce que le client peut demander : le serveur ne fait plus confiance à la requête reçue."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "graphql-surface-check"
+        }
+      ]
+    }
+  ]
+}

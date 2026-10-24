@@ -1,0 +1,43 @@
+{
+  "ref": "nosql-et-commandes-check",
+  "node": "injection",
+  "lesson": "nosql-et-commandes",
+  "title": "Quiz : Injections NoSQL et de commandes",
+  "description": "Vérifie que tu repères les injections NoSQL et de commandes et leurs parades.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment une injection NoSQL se produit-elle souvent avec une base comme MongoDB ?",
+      "justification": "Les requêtes sont des objets. Si on insère tel quel un objet reçu du client, il peut porter des opérateurs comme $ne ou $gt qui faussent la condition.",
+      "position": 0,
+      "options": [
+        { "label": "Le client glisse des opérateurs (comme $ne) dans un objet JSON inséré tel quel dans la requête", "correct": true, "position": 0 },
+        { "label": "Le client envoie trop de requêtes en même temps", "correct": false, "position": 1 },
+        { "label": "La base est hébergée dans une mauvaise région", "correct": false, "position": 2 },
+        { "label": "Le client utilise un navigateur obsolète", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle pratique protège contre l'injection de commandes OS ?",
+      "justification": "On évite de construire une commande shell à partir d'une entrée ; on utilise une API sûre qui reçoit les arguments séparément, comme execFile avec un tableau d'arguments.",
+      "position": 1,
+      "options": [
+        { "label": "Utiliser une API sûre qui passe les arguments séparément plutôt que construire une chaîne shell", "correct": true, "position": 0 },
+        { "label": "Lancer la commande avec les droits administrateur", "correct": false, "position": 1 },
+        { "label": "Concaténer l'entrée après avoir retiré les espaces", "correct": false, "position": 2 },
+        { "label": "Exécuter la commande deux fois pour vérifier le résultat", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Forcer le type d'une entrée (par exemple exiger une chaîne) aide à empêcher l'injection NoSQL.",
+      "justification": "Vrai : si on convertit l'entrée en chaîne, un objet porteur d'opérateurs comme { $ne: null } ne peut plus atteindre la requête sous sa forme dangereuse.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

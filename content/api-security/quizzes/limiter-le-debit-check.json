@@ -1,0 +1,43 @@
+{
+  "ref": "limiter-le-debit-check",
+  "node": "rate-limiting",
+  "lesson": "limiter-le-debit",
+  "title": "Quiz : Limiter le débit",
+  "description": "Vérifie que tu as compris pourquoi et comment limiter le débit d'une API.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel code HTTP une API renvoie-t-elle quand un appelant dépasse la limite de débit autorisée ?",
+      "justification": "Le code 429 (Too Many Requests) signale que l'appelant a envoyé trop de requêtes. On l'accompagne de l'en-tête Retry-After pour indiquer le délai d'attente.",
+      "position": 0,
+      "options": [
+        { "label": "429 Too Many Requests", "correct": true, "position": 0 },
+        { "label": "404 Not Found", "correct": false, "position": 1 },
+        { "label": "200 OK", "correct": false, "position": 2 },
+        { "label": "500 Internal Server Error", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans l'algorithme du seau à jetons, que se passe-t-il quand il ne reste plus de jeton ?",
+      "justification": "Le seau se remplit à vitesse constante et chaque requête consomme un jeton. Quand il n'en reste plus, la requête est refusée jusqu'à ce que le seau se recharge, ce qui lisse le débit tout en autorisant de courtes rafales.",
+      "position": 1,
+      "options": [
+        { "label": "La requête est refusée jusqu'à ce que le seau se recharge", "correct": true, "position": 0 },
+        { "label": "La requête double la capacité du seau", "correct": false, "position": 1 },
+        { "label": "Le serveur redémarre automatiquement", "correct": false, "position": 2 },
+        { "label": "Toutes les requêtes suivantes sont acceptées sans limite", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Limiter uniquement par adresse IP suffit toujours à identifier précisément chaque appelant.",
+      "justification": "Faux : plusieurs personnes peuvent partager une même IP (réseau d'entreprise, réseau mobile). Limiter par clé d'API ou par utilisateur authentifié est plus précis.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

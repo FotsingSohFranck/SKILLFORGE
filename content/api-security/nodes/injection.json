@@ -1,0 +1,131 @@
+{
+  "node": "injection",
+  "lessons": [
+    {
+      "slug": "sql-injection",
+      "title": "L'injection SQL",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Comment naît une injection SQL",
+          "body": "Une **injection SQL** apparaît quand une entrée fournie par l'utilisateur est **collée directement** dans le texte d'une requête SQL. Le serveur ne distingue plus alors ce qui est du **code** (la requête) et ce qui est de la **donnée** (ce que l'utilisateur a tapé).\n\nImagine une recherche par nom. Le code construit la requête en concaténant : `\"SELECT * FROM comptes WHERE nom = '\" + saisie + \"'\"`. Tant que l'utilisateur tape un vrai nom, tout va bien. Mais s'il tape des caractères spéciaux comme une apostrophe, il peut **refermer la chaîne** et ajouter sa propre logique SQL à la requête."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une saisie utilisateur collée dans le texte d'une requête : le point de départ d'une injection SQL",
+          "body": "/images/lessons/sql-injection-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'exemple classique et son impact",
+          "body": "La charge la plus connue est `' OR '1'='1`. Injectée dans la recherche ci-dessus, la requête devient : `SELECT * FROM comptes WHERE nom = '' OR '1'='1'`. Comme `'1'='1'` est toujours vrai, la condition filtre renvoie **toutes les lignes** de la table.\n\nL'impact ne se limite pas à la lecture. Selon les droits de la connexion, un attaquant peut aussi **modifier** ou **supprimer** des données (avec `UPDATE`, `DELETE`, voire `DROP TABLE`), contourner une page de connexion, ou exfiltrer des mots de passe. C'est pour cela que l'injection reste l'un des risques les plus graves d'une API."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Détournée, la requête ouvre l'accès à toute la base : lecture, modification ou suppression des données",
+          "body": "/images/lessons/sql-injection-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Vulnérable, puis corrigé",
+          "codeLanguage": "javascript",
+          "body": "// VULNERABLE : la saisie est concatenee dans le texte SQL\napp.get('/comptes', requireAuth, async (req, res) => {\n  const nom = req.query.nom\n  // si nom vaut  ' OR '1'='1  la requete renvoie toute la table\n  const sql = \"SELECT * FROM comptes WHERE nom = '\" + nom + \"'\"\n  const lignes = await db.query(sql)\n  res.json(lignes)\n})\n\n// CORRIGE : requete parametree, la saisie reste une simple donnee\napp.get('/comptes', requireAuth, async (req, res) => {\n  const nom = req.query.nom\n  // le $1 est un parametre : jamais interprete comme du SQL\n  const lignes = await db.query(\n    'SELECT * FROM comptes WHERE nom = $1',\n    [nom]\n  )\n  res.json(lignes)\n})"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Les parades",
+          "body": "La parade principale est la **requête paramétrée** (aussi appelée *prepared statement*). On écrit la requête avec des **emplacements** (`$1`, `?`, etc.) et on passe les valeurs séparément. Le moteur traite alors la saisie comme une pure donnée : même `' OR '1'='1` est cherché tel quel, comme un nom bizarre, et ne modifie jamais la logique.\n\nRègle simple : **ne jamais concaténer** une entrée utilisateur dans une requête. Deux renforts utiles :\n- **Moindre privilège** : l'utilisateur de base de données de l'API n'a que les droits nécessaires (par exemple lecture seule là où il suffit), pour limiter les dégâts si une faille passe.\n- **Validation des entrées** au bord de l'API (type et format attendus) en complément, jamais à la place des requêtes paramétrées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La requête paramétrée et le moindre privilège referment la porte sur l'attaquant",
+          "body": "/images/lessons/sql-injection-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Le chemin d'une injection",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  U[\"Entree utilisateur : ' OR '1'='1\"] --> C{\"Assainie ?\"}\n  C -->|\"Non : concatenee dans le SQL\"| Q[\"Requete detournee\"]\n  Q --> L[\"Fuite : toutes les lignes exposees\"]\n  C -->|\"Oui : requete parametree\"| S[\"Entree traitee comme donnee\"]\n  S --> OK[\"Resultat correct et sur\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "sql-injection-check"
+        }
+      ]
+    },
+    {
+      "slug": "nosql-et-commandes",
+      "title": "Injections NoSQL et de commandes",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "L'injection ne se limite pas au SQL",
+          "body": "Le SQL n'est pas la seule cible. Toute fois qu'une entrée utilisateur se mélange à une instruction interprétée par un autre système, une injection est possible.\n\nDeux cas fréquents dans les API :\n- **Injection NoSQL** : avec des bases comme MongoDB, les requêtes sont des **objets**. Si on insère tel quel un objet JSON reçu du client, l'utilisateur peut y glisser des **opérateurs** (comme `$ne`, `$gt`) pour fausser la condition.\n- **Injection de commandes OS** : si l'API passe une entrée à un **shell** (pour lancer une commande système), l'utilisateur peut enchaîner sa propre commande avec des caractères comme `;` ou `&&`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Shell et bases NoSQL : partout où une entrée se mêle à une instruction, l'injection guette",
+          "body": "/images/lessons/nosql-et-commandes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Un exemple NoSQL concret",
+          "body": "Prenons une connexion qui cherche un utilisateur avec `{ nom: saisieNom, motDePasse: saisieMdp }`. Si le client envoie, au lieu d'une chaîne, l'objet `{ \"$ne\": null }` pour le mot de passe, la condition devient « mot de passe **différent de** null ». Elle est vraie pour presque tous les comptes : l'attaquant se connecte **sans connaître le mot de passe**.\n\nLa racine est la même qu'en SQL : on a fait **confiance à la forme** de l'entrée. On attendait une chaîne, on a reçu un objet porteur d'un opérateur, et on l'a inséré sans contrôle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un objet porteur d'un opérateur glissé dans le filtre suffit à fausser la condition",
+          "body": "/images/lessons/nosql-et-commandes-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "NoSQL dangereux, puis corrigé",
+          "codeLanguage": "javascript",
+          "body": "// VULNERABLE : les valeurs du corps sont inserees telles quelles\napp.post('/connexion', async (req, res) => {\n  // si motDePasse vaut { \"$ne\": null } la condition devient toujours vraie\n  const user = await users.findOne({\n    nom: req.body.nom,\n    motDePasse: req.body.motDePasse\n  })\n  res.json({ connecte: !!user })\n})\n\n// CORRIGE : on force le type attendu (des chaines)\napp.post('/connexion', async (req, res) => {\n  const nom = String(req.body.nom || '')\n  const motDePasse = String(req.body.motDePasse || '')\n  // un objet comme { $ne: null } devient alors la chaine '[object Object]'\n  const user = await users.findOne({ nom, motDePasse })\n  res.json({ connecte: !!user })\n})"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Les parades, NoSQL et commandes",
+          "body": "Pour les deux familles, les réflexes sont proches :\n- **Valider le type** de chaque entrée : exiger une chaîne là où on attend une chaîne, un nombre là où on attend un nombre, et refuser tout objet ou opérateur inattendu.\n- Pour les commandes système, **ne jamais construire une commande shell** en collant une entrée utilisateur. On préfère une **API sûre** qui reçoit les arguments séparément (par exemple `execFile('convert', [chemin])` plutôt que `exec('convert ' + chemin)`), exactement comme les requêtes paramétrées séparent code et données.\n- Appliquer le **moindre privilège** et une liste blanche de valeurs autorisées quand c'est possible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Forcer le type attendu et passer les arguments séparément protège code et données",
+          "body": "/images/lessons/nosql-et-commandes-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Voici une recherche MongoDB vulnérable, qui insère directement un filtre reçu du client :\n\n```javascript\napp.get('/produits', async (req, res) => {\n  // req.query.categorie peut etre un objet comme { \"$ne\": null }\n  const produits = await db.produits.find({ categorie: req.query.categorie })\n  res.json(produits)\n})\n```\n\nCorrige ce code pour qu'une catégorie soit toujours traitée comme une simple chaîne et qu'aucun opérateur NoSQL ne puisse être injecté.",
+          "solution": "On force le type de l'entrée en chaîne avant de l'utiliser dans le filtre. Ainsi, un objet comme `{ \"$ne\": null }` ne peut plus arriver jusqu'à la requête.\n\n```javascript\napp.get('/produits', async (req, res) => {\n  const categorie = String(req.query.categorie || '')\n  const produits = await db.produits.find({ categorie })\n  res.json(produits)\n})\n```\n\nEn renfort, on peut valider que la catégorie fait partie d'une liste blanche de valeurs connues (par exemple 'livres', 'jeux', 'audio') et répondre 400 sinon. L'essentiel : ne jamais insérer dans la requête un objet reçu du client, car il pourrait porter des opérateurs."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "nosql-et-commandes-check"
+        }
+      ]
+    }
+  ]
+}

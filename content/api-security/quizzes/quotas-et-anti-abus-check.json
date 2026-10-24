@@ -1,0 +1,43 @@
+{
+  "ref": "quotas-et-anti-abus-check",
+  "node": "rate-limiting",
+  "lesson": "quotas-et-anti-abus",
+  "title": "Quiz : Quotas et anti-abus",
+  "description": "Vérifie que tu distingues limite de débit et quota, et que tu sais protéger les endpoints sensibles.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre une limite de débit et un quota ?",
+      "justification": "La limite de débit plafonne les requêtes sur une petite fenêtre (ex. 100 par minute) pour lisser le trafic, alors que le quota plafonne la consommation totale sur une longue période (ex. par jour ou par mois).",
+      "position": 0,
+      "options": [
+        { "label": "La limite de débit vaut pour une petite fenêtre, le quota pour une longue période", "correct": true, "position": 0 },
+        { "label": "La limite de débit concerne le chiffrement, le quota la pagination", "correct": false, "position": 1 },
+        { "label": "Il n'y a aucune différence, ce sont deux mots pour la même chose", "correct": false, "position": 2 },
+        { "label": "Le quota s'applique seulement aux requêtes anonymes", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi appliquer un backoff progressif et un CAPTCHA sur l'endpoint de connexion ?",
+      "justification": "Allonger le délai après chaque échec et exiger un CAPTCHA ralentit fortement les robots qui tentent le bourrage d'identifiants ou la force brute, tout en gênant peu l'utilisateur légitime.",
+      "position": 1,
+      "options": [
+        { "label": "Pour ralentir les attaques automatisées sans trop gêner l'utilisateur normal", "correct": true, "position": 0 },
+        { "label": "Pour accélérer la connexion des utilisateurs fidèles", "correct": false, "position": 1 },
+        { "label": "Pour réduire la taille des réponses JSON", "correct": false, "position": 2 },
+        { "label": "Pour chiffrer le mot de passe côté client", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les endpoints sensibles comme la connexion doivent avoir des limites plus strictes que le reste de l'API.",
+      "justification": "Vrai : la connexion et le mot de passe oublié sont des cibles privilégiées (bourrage d'identifiants, force brute, énumération de comptes), ils méritent donc des limites plus serrées.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

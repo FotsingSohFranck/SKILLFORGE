@@ -1,0 +1,131 @@
+{
+  "node": "jwt-security",
+  "lessons": [
+    {
+      "slug": "anatomie-dun-jwt",
+      "title": "Anatomie d'un JWT",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Trois parties séparées par un point",
+          "body": "Un **JWT** (*JSON Web Token*, jeton web JSON) est une chaîne de caractères composée de trois parties collées par un point : `header.payload.signature`.\n\nChaque partie est un objet JSON encodé en **base64url**. Point crucial : base64url est un simple encodage, pas du chiffrement. N'importe qui peut décoder un JWT et lire son contenu en clair (essaie sur le site jwt.io). Un JWT est donc **lisible, pas secret**.\n\nRègle absolue qui en découle : **ne jamais mettre d'information sensible dans un JWT** (mot de passe, numéro de carte, secret). Le jeton ne cache rien, il prouve seulement qu'il n'a pas été falsifié."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois parties encodées en base64url et séparées par un point",
+          "body": "/images/lessons/anatomie-dun-jwt-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les claims standard du payload",
+          "body": "Le **payload** contient des **claims** (des affirmations sur l'utilisateur et le jeton). Certains sont normalisés par le standard et portent des noms courts :\n- **iss** (*issuer*) : qui a émis le jeton, par exemple ton serveur d'authentification.\n- **sub** (*subject*) : à qui se rapporte le jeton, en général l'identifiant de l'utilisateur.\n- **aud** (*audience*) : pour quel destinataire le jeton est prévu, par exemple ton API.\n- **exp** (*expiration*) : date au-delà de laquelle le jeton n'est plus valide, en secondes depuis 1970.\n- **iat** (*issued at*) : date d'émission, dans le même format.\n\nTu peux ajouter tes propres claims (un rôle, un nom), à condition de te rappeler qu'ils restent **publics et lisibles**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des claims lisibles par tous dans le payload",
+          "body": "/images/lessons/anatomie-dun-jwt-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La signature garantit l'intégrité",
+          "body": "La troisième partie, la **signature**, est ce qui rend le jeton digne de confiance. Elle est calculée sur le header et le payload avec une clé secrète connue du seul serveur. Si quelqu'un modifie ne serait-ce qu'un caractère du payload (par exemple pour passer `role: user` à `role: admin`), la signature ne correspond plus et le serveur rejette le jeton.\n\nDeux grandes familles d'algorithmes de signature existent :\n- **HMAC** (par exemple `HS256`) : une **même clé secrète** sert à signer et à vérifier. Simple, mais tous les services qui vérifient doivent connaître le secret.\n- **RSA ou EC** (par exemple `RS256`, `ES256`) : une **paire de clés**. La clé privée signe, la clé publique (partageable) vérifie. Idéal quand plusieurs services vérifient sans pouvoir émettre.\n\nLa signature garantit l'**intégrité** (le jeton n'a pas été altéré), pas la confidentialité (le contenu reste lisible)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La signature qui garantit l'intégrité du jeton",
+          "body": "/images/lessons/anatomie-dun-jwt-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Exemple de header et de payload",
+          "codeLanguage": "json",
+          "body": "// Partie 1 : le header. Il annonce l'algorithme de signature et le type.\n{\n  \"alg\": \"HS256\",\n  \"typ\": \"JWT\"\n}\n\n// Partie 2 : le payload et ses claims. Tout ceci est LISIBLE par tous.\n// Ne jamais y placer de mot de passe ou de donnee sensible.\n{\n  \"iss\": \"https://auth.skillforge.local\",\n  \"sub\": \"a3f1c7e2-9b4d-7a10-8c55-2e6f0b1d4a9c\",\n  \"aud\": \"skillforge-api\",\n  \"iat\": 1717500000,\n  \"exp\": 1717500900,\n  \"role\": \"apprenant\"\n}\n\n// Partie 3 : la signature, calculee sur les deux parties ci-dessus\n// avec la cle secrete. Elle n'est pas du JSON, c'est une empreinte."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Les trois parties du jeton",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  JWT[\"JWT complet : header.payload.signature\"] --> H[\"Header (base64url)\\nalg, typ\"]\n  JWT --> P[\"Payload (base64url)\\niss, sub, aud, exp, iat, role\"]\n  JWT --> S[\"Signature\\nempreinte du header + payload\\navec la cle secrete\"]\n  H --> L[\"Lisible par tous\"]\n  P --> L\n  S --> I[\"Garantit l'integrite,\\npas la confidentialite\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "anatomie-dun-jwt-check"
+        }
+      ]
+    },
+    {
+      "slug": "valider-un-jwt",
+      "title": "Valider un JWT sans se tromper",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ce qu'il faut toujours vérifier",
+          "body": "Recevoir un JWT ne suffit pas, il faut le **valider** à chaque requête. Une validation correcte contrôle, dans l'ordre :\n1. La **signature** : c'est le contrôle fondamental. Sans lui, n'importe qui peut fabriquer un jeton. On la vérifie avec le secret (HMAC) ou la clé publique (RSA/EC).\n2. L'**expiration** (`exp`) : un jeton périmé doit être refusé. On compare `exp` à l'heure courante.\n3. L'**audience** (`aud`) : le jeton doit être destiné à **ton** API, pas à un autre service.\n4. L'**émetteur** (`iss`) : le jeton doit venir d'un émetteur que tu reconnais.\n\nSi l'un de ces contrôles échoue, on rejette la requête avec un `401`, sans donner de détail à l'attaquant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Signature, expiration, audience et émetteur à contrôler",
+          "body": "/images/lessons/valider-un-jwt-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le piège de l'algorithme : none et la confusion",
+          "body": "Deux attaques classiques visent l'algorithme de signature.\n\n**L'algorithme `none`** : le standard prévoit une valeur `alg: none` qui signifie « pas de signature ». Une bibliothèque mal configurée peut accepter un jeton non signé et le croire valide. Un attaquant forge alors le payload qu'il veut.\n\n**La confusion d'algorithme** : si ton serveur vérifie avec une clé publique RSA mais accepte aussi `HS256`, un attaquant peut utiliser ta clé publique (qui est publique, donc connue) comme secret HMAC pour signer un faux jeton.\n\nLa parade est la même dans les deux cas : **ne jamais faire confiance au champ `alg` annoncé par le jeton**. Tu fixes côté serveur la liste des algorithmes autorisés (par exemple uniquement `HS256`, ou uniquement `RS256`), et tout le reste est refusé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les pièges de l'algorithme none et de la confusion",
+          "body": "/images/lessons/valider-un-jwt-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Durée de vie courte, refresh et révocation",
+          "body": "Un JWT est **autoporteur** : tant qu'il n'est pas expiré, il reste valide, même si tu as désactivé le compte entre-temps. On ne peut pas facilement « annuler » un jeton déjà émis. D'où trois bonnes pratiques :\n- **Expiration courte** pour l'access token (par exemple 15 minutes) : limite la fenêtre d'abus en cas de vol.\n- **Refresh token** : un second jeton, à durée de vie plus longue et stocké de façon sûre, qui permet d'obtenir un nouvel access token sans redemander le mot de passe.\n- **Révocation** : pour couper l'accès immédiatement (déconnexion, compte compromis), on tient côté serveur une liste des jetons ou des sessions révoqués, que l'on consulte à la validation. Le refresh token, lui, est révocable car on le suit en base."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Durée de vie courte, refresh et révocation côté serveur",
+          "body": "/images/lessons/valider-un-jwt-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Validation correcte avec une bibliothèque",
+          "codeLanguage": "javascript",
+          "body": "// On s'appuie sur une bibliotheque eprouvee, jamais sur du code maison.\nconst jwt = require('jsonwebtoken')\n\nfunction verifierJeton(token) {\n  // Les options ci-dessous imposent les controles de securite.\n  return jwt.verify(token, process.env.JWT_SECRET, {\n    // On FIXE l'algorithme attendu cote serveur.\n    // On ignore le champ alg du jeton : ni none, ni confusion possible.\n    algorithms: ['HS256'],\n    // Le jeton doit etre destine a notre API.\n    audience: 'skillforge-api',\n    // Le jeton doit venir de notre emetteur.\n    issuer: 'https://auth.skillforge.local'\n    // La signature et l'expiration (exp) sont verifiees automatiquement :\n    // verify leve une erreur si la signature est invalide ou le jeton expire.\n  })\n}\n\n// Middleware : on refuse proprement toute requete sans jeton valide.\nfunction requireAuth(req, res, next) {\n  const entete = req.headers.authorization || ''\n  const token = entete.startsWith('Bearer ') ? entete.slice(7) : null\n  if (!token) return res.status(401).json({ error: 'Authentification requise' })\n  try {\n    req.user = verifierJeton(token)\n    next()\n  } catch (e) {\n    // On ne renvoie pas le detail de l'erreur au client.\n    return res.status(401).json({ error: 'Jeton invalide' })\n  }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "Repère et corrige la faille",
+          "body": "Le code de validation suivant est dangereux. Trouve au moins deux problèmes de sécurité, explique-les, puis propose une version corrigée.\n\n```javascript\nconst jwt = require('jsonwebtoken')\n\nfunction verifierJeton(token) {\n  // On lit l'algorithme directement depuis le jeton recu\n  const header = JSON.parse(\n    Buffer.from(token.split('.')[0], 'base64').toString()\n  )\n  return jwt.verify(token, process.env.JWT_SECRET, {\n    algorithms: [header.alg]\n  })\n}\n```",
+          "solution": "**Problème 1, le plus grave : l'algorithme est pris dans le jeton lui-même.** La ligne `algorithms: [header.alg]` fait confiance au champ `alg` fourni par l'appelant. Un attaquant peut envoyer `alg: none` (jeton non signé accepté) ou provoquer une confusion d'algorithme en passant de `RS256` à `HS256` pour signer un faux jeton avec la clé publique. Il ne faut jamais déduire l'algorithme du jeton, il faut le **fixer côté serveur**.\n\n**Problème 2 : ni `audience` ni `issuer` ne sont vérifiés.** Un jeton valide émis pour un autre service, ou par un émetteur non reconnu, serait accepté par notre API.\n\n**Version corrigée :**\n```javascript\nconst jwt = require('jsonwebtoken')\n\nfunction verifierJeton(token) {\n  // L'algorithme est impose cote serveur, pas lu dans le jeton.\n  return jwt.verify(token, process.env.JWT_SECRET, {\n    algorithms: ['HS256'],\n    audience: 'skillforge-api',\n    issuer: 'https://auth.skillforge.local'\n  })\n}\n```\nLa signature et l'expiration restent vérifiées automatiquement par `verify`, qui lève une erreur à capturer pour répondre `401` sans fuite de détail."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "valider-un-jwt-check"
+        }
+      ]
+    }
+  ]
+}

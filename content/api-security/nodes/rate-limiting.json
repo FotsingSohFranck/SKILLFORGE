@@ -1,0 +1,119 @@
+{
+  "node": "rate-limiting",
+  "lessons": [
+    {
+      "slug": "limiter-le-debit",
+      "title": "Limiter le débit",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi limiter le débit",
+          "body": "**Limiter le débit** (*rate limiting* en anglais), c'est plafonner le nombre de requêtes qu'un même appelant peut envoyer à l'API pendant une durée donnée, par exemple 100 requêtes par minute.\n\nSans cette limite, trois dangers apparaissent :\n- **Le bourrage d'identifiants** (*credential stuffing*) : un attaquant essaie des milliers de couples identifiant/mot de passe volés ailleurs pour trouver ceux qui marchent. Sans plafond, il peut tester très vite.\n- **Le déni de service** (*denial of service*, DoS) : un flot de requêtes sature le serveur jusqu'à le rendre indisponible pour les vrais utilisateurs.\n- **Les boucles buggées** : un client mal écrit qui rappelle l'API en boucle peut, sans le vouloir, matraquer le service.\n\nLa limitation protège donc à la fois contre les abus volontaires et contre les accidents."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Plafonner le trafic d'un même appelant protège l'API contre les abus et les accidents",
+          "body": "/images/lessons/limiter-le-debit-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Trois algorithmes courants",
+          "body": "Pour compter les requêtes, on utilise surtout trois méthodes :\n\n- **Fenêtre fixe** (*fixed window*) : on découpe le temps en tranches fixes, par exemple chaque minute. On compte les requêtes dans la tranche courante et on remet le compteur à zéro à la tranche suivante. Simple, mais un pic juste à cheval sur deux tranches peut doubler le débit autorisé.\n- **Fenêtre glissante** (*sliding window*) : au lieu d'une tranche figée, on regarde toujours les 60 dernières secondes qui précèdent l'instant présent. Plus juste, un peu plus coûteux à calculer.\n- **Seau à jetons** (*token bucket*) : un seau contient des jetons et se remplit à vitesse constante (par exemple 2 jetons par seconde) jusqu'à un maximum. Chaque requête consomme un jeton ; s'il n'y en a plus, elle est refusée. Cela autorise de courtes rafales tant qu'il reste des jetons, puis lisse le débit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Seau à jetons, fenêtre fixe ou glissante : trois façons de compter et de lisser le débit",
+          "body": "/images/lessons/limiter-le-debit-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Par quoi limiter, et comment refuser",
+          "body": "Il faut décider **par quoi** on compte, c'est-à-dire quelle clé identifie l'appelant :\n- **Par adresse IP** : utile pour le trafic anonyme, mais imparfait car plusieurs personnes peuvent partager une IP (entreprise, réseau mobile).\n- **Par clé d'API** : chaque application cliente a sa clé, on limite donc par application.\n- **Par utilisateur** : une fois la personne authentifiée, on limite par compte, ce qui est le plus précis.\n\nQuand la limite est atteinte, l'API répond avec le code **HTTP 429** (*Too Many Requests*, soit trop de requêtes). On ajoute l'en-tête **Retry-After**, qui indique au client combien de secondes attendre avant de réessayer. Un client bien élevé respecte ce délai au lieu de réessayer immédiatement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quand la limite est franchie, l'API refuse avec un HTTP 429 et un en-tête Retry-After",
+          "body": "/images/lessons/limiter-le-debit-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Un middleware de limitation simple",
+          "codeLanguage": "javascript",
+          "body": "// Middleware de limitation par seau a jetons, en memoire, pour l'exemple.\n// En production on stocke les compteurs dans un cache partage (ex. Redis).\nconst seaux = new Map() // cle -> { jetons, dernierRemplissage }\n\nconst CAPACITE = 10        // 10 jetons maximum dans le seau\nconst DEBIT = 2            // 2 jetons ajoutes par seconde\n\nfunction limiterDebit(req, res, next) {\n  // On limite par utilisateur si connecte, sinon par adresse IP\n  const cle = req.user?.id ?? req.ip\n  const maintenant = Date.now()\n  const seau = seaux.get(cle) ?? { jetons: CAPACITE, dernierRemplissage: maintenant }\n\n  // On recharge le seau selon le temps ecoule\n  const secondesEcoulees = (maintenant - seau.dernierRemplissage) / 1000\n  seau.jetons = Math.min(CAPACITE, seau.jetons + secondesEcoulees * DEBIT)\n  seau.dernierRemplissage = maintenant\n\n  if (seau.jetons < 1) {\n    // Plus de jeton : on refuse avec 429 et on indique quand reessayer\n    res.set('Retry-After', '1')\n    return res.status(429).json({ error: 'Trop de requetes, reessayez plus tard' })\n  }\n\n  seau.jetons -= 1 // la requete consomme un jeton\n  seaux.set(cle, seau)\n  next()\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Le seau à jetons",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  H[\"Remplissage regulier : 2 jetons par seconde\"] --> S[\"Seau de jetons (max 10)\"]\n  Q[\"Requete entrante\"] --> D{\"Reste-t-il un jeton ?\"}\n  S --> D\n  D -->|\"Oui\"| C[\"Consomme 1 jeton, requete acceptee\"]\n  D -->|\"Non\"| R[\"HTTP 429 + en-tete Retry-After\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "limiter-le-debit-check"
+        }
+      ]
+    },
+    {
+      "slug": "quotas-et-anti-abus",
+      "title": "Quotas et anti-abus",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Limite de débit et quota : deux échelles de temps",
+          "body": "La **limite de débit** répond à la question « combien de requêtes par petite fenêtre ? », par exemple 100 par minute. Elle lisse le trafic instant par instant.\n\nLe **quota** répond à « combien au total sur une longue période ? », par exemple 10 000 requêtes par jour ou 300 000 par mois. Il encadre la consommation globale, souvent liée à une offre commerciale (plan gratuit, plan payant).\n\nLes deux se combinent : un client peut rester sous la limite par minute tout en épuisant son quota mensuel. On applique donc les deux en parallèle, chacune avec son code de réponse quand elle est dépassée, typiquement un **HTTP 429** accompagné d'en-têtes qui indiquent le quota restant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La limite de débit lisse l'instant, le quota encadre la consommation sur la durée",
+          "body": "/images/lessons/quotas-et-anti-abus-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Protéger les endpoints sensibles",
+          "body": "Certains points d'entrée (*endpoints*) méritent des limites bien plus strictes que le reste de l'API, car ce sont les cibles préférées des attaques :\n- La **connexion** (`/login`) : cible du bourrage d'identifiants et de la force brute.\n- Le **mot de passe oublié** (`/mot-de-passe-oublie`) : peut servir à harceler une boîte mail ou à deviner quels comptes existent.\n\nSur ces endpoints, on applique deux techniques :\n- Le **backoff** (recul progressif) : après chaque échec, on allonge le délai avant le prochain essai autorisé, par exemple 1 s, puis 2 s, puis 4 s. L'attaque devient vite trop lente pour être rentable.\n- Le **CAPTCHA** : un test qui distingue un humain d'un programme automatisé. On le déclenche après quelques échecs pour bloquer les robots sans gêner l'utilisateur normal.\n\nCes mesures se cumulent avec la limite de débit et le quota."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Backoff progressif et CAPTCHA verrouillent les endpoints sensibles comme la connexion",
+          "body": "/images/lessons/quotas-et-anti-abus-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Défense en couches sur la connexion",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  L[\"Requete POST /login\"] --> RL{\"Sous la limite de debit ?\"}\n  RL -->|\"Non\"| B429[\"HTTP 429 + Retry-After\"]\n  RL -->|\"Oui\"| EC{\"Trop d'echecs recents ?\"}\n  EC -->|\"Oui\"| CAP[\"Exiger un CAPTCHA + backoff\"]\n  EC -->|\"Non\"| AUTH[\"Verifier identifiant et mot de passe\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi : une politique pour /login",
+          "body": "Rédige une politique de limitation anti-abus pour l'endpoint de connexion `POST /login` d'une application. Précise : par quoi tu limites, la limite de débit à court terme, ce qui se passe en cas d'échecs répétés, et le code HTTP renvoyé quand la limite est atteinte. Justifie chaque choix en une phrase.",
+          "solution": "Exemple de politique acceptable :\n\n1. **Par quoi limiter** : on combine deux clés, l'adresse IP et l'identifiant (l'e-mail saisi). Limiter seulement par IP laisse passer les attaques réparties sur beaucoup d'IP ; limiter aussi par identifiant protège un compte précis visé.\n2. **Limite de débit** : 5 tentatives de connexion par minute et par IP. Un humain normal dépasse rarement ce seuil, alors qu'un robot le franchit aussitôt.\n3. **Échecs répétés** : après 5 échecs consécutifs sur un même identifiant, on applique un backoff (délai doublé à chaque nouvel échec, par exemple 2 s, 4 s, 8 s) et on exige un CAPTCHA. Cela rend le bourrage d'identifiants trop lent pour être rentable, sans bloquer définitivement l'utilisateur légitime.\n4. **Code HTTP** : quand la limite de débit est atteinte, on répond **429 Too Many Requests** avec un en-tête **Retry-After** indiquant le délai d'attente, pour que les clients corrects patientent au lieu de marteler le serveur.\n\nPoint bonus : ne jamais révéler si c'est l'identifiant ou le mot de passe qui est faux, pour ne pas confirmer l'existence d'un compte."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "quotas-et-anti-abus-check"
+        }
+      ]
+    }
+  ]
+}

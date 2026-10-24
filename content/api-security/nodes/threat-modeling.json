@@ -1,0 +1,112 @@
+{
+  "node": "threat-modeling",
+  "lessons": [
+    {
+      "slug": "penser-en-attaquant",
+      "title": "Penser en attaquant",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce que modéliser les menaces",
+          "body": "**Modéliser les menaces** (*threat modeling*), c'est se poser, **avant d'écrire du code**, quatre questions simples sur un système :\n- **Qu'est-ce qu'on protège ?** Ce sont les **actifs** : les choses de valeur (données personnelles des utilisateurs, mots de passe, factures, jetons d'accès, argent).\n- **Qui pourrait vouloir nous nuire ?** Ce sont les **acteurs malveillants** (un attaquant externe, un utilisateur curieux, un employé mécontent).\n- **Par où peuvent-ils entrer ?** Ce sont les **points d'entrée** : chaque endroit où une donnée venue de l'extérieur pénètre dans le système (une route d'API, un formulaire, un en-tête HTTP, un paramètre d'URL).\n- **Que peut-il mal se passer, et comment s'en protéger ?**\n\nL'idée clé : réfléchir aux attaques **tôt** coûte beaucoup moins cher que de corriger une faille en production. On ne cherche pas la perfection, on cherche à **voir les risques évidents avant qu'un attaquant ne les voie**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Modeliser les menaces, c'est anticiper les attaques avant d'ecrire le code",
+          "body": "/images/lessons/penser-en-attaquant-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "STRIDE : six familles de menaces",
+          "body": "Pour ne rien oublier, on s'appuie souvent sur **STRIDE**, un moyen mnémotechnique créé par Microsoft. Chaque lettre nomme une famille de menaces :\n- **S** - **Usurpation** (*Spoofing*) : se faire passer pour quelqu'un d'autre (voler une identité, un jeton).\n- **T** - **Falsification** (*Tampering*) : modifier des données qu'on ne devrait pas pouvoir modifier.\n- **R** - **Répudiation** (*Repudiation*) : nier avoir fait une action, faute de traces (logs).\n- **I** - **Divulgation d'information** (*Information disclosure*) : accéder à des données confidentielles.\n- **D** - **Déni de service** (*Denial of service*) : rendre le service indisponible (le saturer).\n- **E** - **Élévation de privilège** (*Elevation of privilege*) : obtenir plus de droits que prévu (un utilisateur normal qui devient administrateur).\n\nPour chaque point d'entrée, on se demande : laquelle de ces six menaces s'applique ici ?"
+        },
+        {
+          "type": "IMAGE",
+          "title": "STRIDE regroupe six familles de menaces pour n'en oublier aucune",
+          "body": "/images/lessons/penser-en-attaquant-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Flux de données et frontières de confiance",
+          "body": "Un outil très utile est le **diagramme de flux de données** (*Data Flow Diagram*, DFD) : un schéma qui montre comment l'information circule entre les acteurs, le code et le stockage.\n\nUn élément central de ce schéma est la **frontière de confiance** (*trust boundary*) : une ligne qui sépare une zone qu'on **ne contrôle pas** (le navigateur de l'utilisateur, Internet) d'une zone qu'on **contrôle** (notre serveur, notre base de données).\n\n**Toute donnée qui franchit une frontière de confiance doit être vérifiée.** C'est précisément sur ces lignes que naissent la plupart des failles : on a fait confiance à une donnée venue d'une zone non contrôlée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Toute donnee qui franchit une frontiere de confiance doit etre verifiee",
+          "body": "/images/lessons/penser-en-attaquant-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Flux de données avec frontière de confiance",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph NONFIABLE[\"Zone non controlee (Internet)\"]\n    U[\"Utilisateur / navigateur\"]\n  end\n  subgraph FIABLE[\"Zone controlee (notre serveur)\"]\n    API[\"API\"]\n    DB[(\"Base de donnees\")]\n  end\n  U -->|\"Requete HTTP (a verifier)\"| API\n  API -->|\"Reponse\"| U\n  API -->|\"Lecture / ecriture\"| DB\n  DB -->|\"Donnees\"| API"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "penser-en-attaquant-check"
+        }
+      ]
+    },
+    {
+      "slug": "prioriser-les-risques",
+      "title": "Prioriser les risques",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Évaluer un risque : impact x probabilité",
+          "body": "On ne peut pas tout corriger d'un coup. Il faut **prioriser**. La règle simple :\n\n**Risque = Impact x Probabilité**\n\n- L'**impact** : si la menace se réalise, c'est grave à quel point ? (fuite de tous les mots de passe = très grave ; un message d'erreur un peu trop bavard = faible).\n- La **probabilité** : quelle est la facilité ou la fréquence d'exploitation ? (une faille accessible sans authentification sur Internet = très probable ; une attaque qui exige un accès physique au serveur = peu probable).\n\nOn classe chaque facteur, par exemple en **faible / moyen / élevé**, puis on les combine. **On traite d'abord les risques à impact élevé ET probabilité élevée.** Un risque catastrophique mais quasi impossible passe après un risque moyen mais trivial à exploiter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On priorise chaque risque en croisant son impact et sa probabilite",
+          "body": "/images/lessons/prioriser-les-risques-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Surface d'attaque et documentation",
+          "body": "Deux notions guident la priorisation :\n- La **surface d'attaque** (*attack surface*) : l'ensemble des points d'entrée exposés à un attaquant. Plus il y a de routes, de paramètres et d'options exposés, plus la surface est grande, plus il y a de risques. **Réduire la surface d'attaque** (fermer ce qui est inutile) est l'une des meilleures protections.\n- La **frontière de confiance** (vue dans la leçon précédente) : les risques les plus prioritaires sont souvent ceux qui concernent des données franchissant cette frontière sans contrôle.\n\nEnfin, **documenter les décisions** est essentiel. Pour chaque risque identifié, on note : la menace, sa gravité, et la décision prise (corriger maintenant, corriger plus tard, ou **accepter le risque** en connaissance de cause). Cette trace évite de redécouvrir dix fois le même problème et montre qu'un choix a été fait sciemment, pas par oubli."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Reduire la surface d'attaque et documenter chaque decision guident la priorisation",
+          "body": "/images/lessons/prioriser-les-risques-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un tableau de priorisation",
+          "codeLanguage": "text",
+          "body": "# Registre des risques (exemple pour une API)\n# Score simple : eleve=3, moyen=2, faible=1 ; Priorite = Impact x Probabilite\n\nMenace                              | Impact | Proba | Priorite | Decision\n------------------------------------|--------|-------|----------|------------------------\nVol de jeton (pas d'expiration)     |   3    |   3   |    9     | Corriger maintenant\nBOLA sur /factures/:id              |   3    |   2   |    6     | Corriger maintenant\nPas de limite de debit (brute force)|   2    |   3   |    6     | Corriger ce sprint\nMessage d'erreur trop detaille      |   1    |   2   |    2     | Accepter pour l'instant\n\n# On traite de haut en bas : le score le plus eleve passe en premier."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi de prioriser",
+          "body": "Une API expose une route de connexion `POST /api/v1/connexion` qui reçoit un email et un mot de passe. Liste **trois menaces** réalistes sur cette route, estime pour chacune l'impact et la probabilité (faible / moyen / élevé), puis range-les de la plus prioritaire à la moins prioritaire. Explique brièvement ton classement.",
+          "solution": "Trois menaces plausibles :\n\n1. **Force brute / bourrage d'identifiants** (un attaquant teste des milliers de mots de passe ou de couples volés ailleurs). Impact : élevé (prise de compte). Probabilité : élevée (automatisable, la route est publique). Priorité la plus haute. Parade : limiter le débit (*rate limiting*), verrouiller après N échecs, ajouter un captcha ou une authentification à deux facteurs.\n\n2. **Énumération des comptes** (le message d'erreur diffère selon que l'email existe ou non, ce qui révèle les comptes valides). Impact : moyen (facilite les attaques suivantes). Probabilité : élevée. Priorité intermédiaire. Parade : renvoyer un message identique (« identifiants invalides ») dans tous les cas.\n\n3. **Transmission en clair des identifiants** (mot de passe interceptable si la connexion n'est pas chiffrée). Impact : élevé. Probabilité : faible si HTTPS est déjà imposé partout. Priorité plus basse ici car la probabilité est faible. Parade : forcer HTTPS (HSTS).\n\nClassement : 1 (élevé x élevé) > 2 (moyen x élevé) > 3 (élevé x faible). On traite d'abord la force brute car impact et probabilité sont tous deux élevés ; l'énumération suit ; la transmission en clair, déjà couverte par HTTPS, est la moins urgente."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "prioriser-les-risques-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "node": "oauth2-oidc",
+  "lessons": [
+    {
+      "slug": "oauth2-les-roles",
+      "title": "OAuth2 : les rôles et le flux",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème que résout OAuth2",
+          "body": "Imagine une application de retouche photo qui veut accéder à tes photos stockées chez un autre service. La mauvaise solution : lui donner ton mot de passe. Elle aurait alors un accès total, illimité, sans possibilité de révocation ciblée.\n\n**OAuth2** résout exactement ce problème : il permet de **déléguer un accès limité** à une application, **sans jamais lui révéler ton mot de passe**. Tu autorises l'application à faire une chose précise (lire tes photos, par exemple), pour une durée limitée, et tu peux révoquer cet accès à tout moment.\n\nPoint essentiel à retenir : OAuth2 est un protocole d'**autorisation déléguée**. Il répond à la question « cette application a-t-elle le droit de faire ceci ? ». Il ne répond pas, à lui seul, à la question « qui est l'utilisateur ? ». Cette nuance est au cœur de la leçon suivante sur OpenID Connect."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Déléguer un accès limité sans jamais livrer son mot de passe",
+          "body": "/images/lessons/oauth2-les-roles-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les quatre rôles",
+          "body": "OAuth2 fait intervenir quatre acteurs :\n\n- **Resource owner** (propriétaire de la ressource) : l'utilisateur, celui qui possède les données et qui donne son accord.\n- **Client** : l'application qui veut accéder aux données pour le compte de l'utilisateur (l'appli de retouche photo).\n- **Authorization server** (serveur d'autorisation) : le service qui authentifie l'utilisateur et délivre les jetons. C'est lui qui affiche l'écran de consentement.\n- **Resource server** (serveur de ressources) : l'API qui détient les données protégées et qui accepte ou refuse les requêtes selon le jeton présenté.\n\nLe serveur d'autorisation et le serveur de ressources peuvent être gérés par la même organisation, mais ce sont deux responsabilités distinctes : l'un délivre les jetons, l'autre les vérifie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quatre acteurs autour d'une même autorisation déléguée",
+          "body": "/images/lessons/oauth2-les-roles-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le flux Authorization Code (avec PKCE)",
+          "body": "Le flux recommandé aujourd'hui est l'**Authorization Code**. Son principe : le client ne reçoit jamais directement le jeton d'accès via le navigateur. Il reçoit d'abord un **code d'autorisation** temporaire, qu'il échange ensuite contre les jetons via un appel serveur à serveur. Cela évite d'exposer le jeton dans l'URL ou l'historique du navigateur.\n\nPour les applications **publiques** (applis mobiles, applications web monopage), qui ne peuvent pas garder un secret client confidentiel, on ajoute **PKCE** (*Proof Key for Code Exchange*, prononcé « pixy »). Le client génère au départ une valeur secrète aléatoire (*code verifier*), en envoie une empreinte (*code challenge*) lors de la demande, puis prouve à la fin qu'il détient bien le secret original. Ainsi, même si quelqu'un intercepte le code d'autorisation, il ne peut pas l'échanger sans le *code verifier*.\n\nAujourd'hui, PKCE est recommandé pour **tous** les clients, y compris confidentiels."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le flux Authorization Code protégé par PKCE",
+          "body": "/images/lessons/oauth2-les-roles-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Le flux Authorization Code pas à pas",
+          "diagramFormat": "MERMAID",
+          "body": "sequenceDiagram\n  participant U as Utilisateur\n  participant C as Client (appli)\n  participant AS as Serveur d'autorisation\n  participant RS as Serveur de ressources (API)\n  U->>C: Je veux connecter mon compte\n  C->>AS: Redirection, demande d'autorisation + code challenge (PKCE)\n  AS->>U: Écran de connexion et de consentement\n  U->>AS: Je m'authentifie et j'accepte\n  AS->>C: Redirection avec un code d'autorisation\n  C->>AS: Échange du code + code verifier (PKCE)\n  AS->>C: Access token (+ refresh token)\n  C->>RS: Requête API avec l'access token\n  RS->>C: Données protégées"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Access token, refresh token et scopes",
+          "body": "À la fin du flux, le client reçoit un **access token** (jeton d'accès) : c'est lui qu'on présente à l'API à chaque requête, dans l'en-tête `Authorization: Bearer <token>`. Il a une **durée de vie courte** (souvent quelques minutes à une heure) pour limiter les dégâts en cas de vol.\n\nLe serveur peut aussi délivrer un **refresh token** (jeton de rafraîchissement), à durée de vie plus longue. Quand l'access token expire, le client utilise le refresh token pour en obtenir un nouveau, **sans redemander à l'utilisateur de se reconnecter**. Le refresh token est sensible : il doit être stocké de façon sécurisée et n'est jamais envoyé à l'API de ressources.\n\nEnfin, les **scopes** (portées) définissent le périmètre exact de l'accès accordé : par exemple `photos:read` autorise la lecture mais pas la suppression. L'utilisateur voit ces scopes sur l'écran de consentement, et l'API les vérifie à chaque requête. Un scope, c'est le principe du moindre privilège appliqué à la délégation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Access token court, refresh token et scopes du moindre privilège",
+          "body": "/images/lessons/oauth2-les-roles-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "oauth2-les-roles-check"
+        }
+      ]
+    },
+    {
+      "slug": "oidc-identite",
+      "title": "OpenID Connect : l'identité",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "OIDC, une couche d'identité au-dessus d'OAuth2",
+          "body": "On l'a vu : OAuth2 gère l'autorisation déléguée, pas l'identité. Il te dit « ce client a le droit d'accéder à ces ressources », mais pas de façon fiable « voici qui est l'utilisateur connecté ».\n\n**OpenID Connect** (OIDC) comble ce manque. C'est une fine **couche d'identité** construite au-dessus d'OAuth2. Elle réutilise exactement le même flux Authorization Code, mais ajoute deux éléments : un jeton spécial décrivant l'utilisateur, l'**ID Token**, et un endpoint standardisé pour récupérer des informations sur lui, le **userinfo**.\n\nConcrètement, quand tu cliques sur « Se connecter avec... », c'est OIDC qui est à l'œuvre. OAuth2 seul ne suffirait pas, car il n'a pas été conçu pour transporter de façon sûre l'identité de l'utilisateur jusqu'au client."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une couche d'identité posée au-dessus d'OAuth2",
+          "body": "/images/lessons/oidc-identite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "L'ID Token : un JWT qui décrit l'utilisateur",
+          "body": "L'**ID Token** est le cœur d'OIDC. C'est un **JWT** (*JSON Web Token*) signé par le serveur d'autorisation, destiné au **client**. Sa raison d'être : prouver au client qui est l'utilisateur et quand il s'est authentifié.\n\nIl contient des **claims** (déclarations) standardisés, notamment :\n- `iss` (*issuer*) : qui a émis le jeton, c'est-à-dire le serveur d'autorisation.\n- `sub` (*subject*) : l'identifiant stable et unique de l'utilisateur.\n- `aud` (*audience*) : pour qui ce jeton est destiné, c'est-à-dire l'identifiant du client.\n- `exp` (*expiration*) : la date après laquelle le jeton n'est plus valable.\n\nLe client doit **vérifier la signature** de l'ID Token, ainsi que `iss`, `aud` et `exp`, avant de lui faire confiance. Si `aud` ne correspond pas à son propre identifiant, le jeton ne lui était pas destiné et doit être rejeté."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'ID Token, un JWT signé qui décrit l'utilisateur",
+          "body": "/images/lessons/oidc-identite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un ID Token décodé",
+          "codeLanguage": "javascript",
+          "body": "// Un JWT a trois parties separees par des points : en-tete.charge-utile.signature\n// Voici la charge utile (payload) d'un ID Token une fois decodee en JSON :\n{\n  \"iss\": \"https://auth.exemple.fr\",   // emetteur : le serveur d'autorisation\n  \"sub\": \"248289761001\",              // identifiant stable de l'utilisateur\n  \"aud\": \"client-web-skillforge\",     // destinataire : notre client\n  \"exp\": 1735689600,                   // expiration (timestamp Unix)\n  \"iat\": 1735686000,                   // date d'emission\n  \"email\": \"alice@exemple.fr\",\n  \"name\": \"Alice Martin\"\n}\n\n// Cote client, on NE fait confiance a ces claims QU'APRES avoir :\n//  1. verifie la signature cryptographique du jeton,\n//  2. verifie que \"aud\" correspond bien a notre identifiant de client,\n//  3. verifie que \"exp\" n'est pas depasse."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Access token contre ID token : ne pas les confondre",
+          "body": "C'est la confusion la plus fréquente, et c'est une vraie faille de sécurité quand on se trompe.\n\n- L'**access token** sert à **appeler une API**. Il est destiné au serveur de ressources. Le client ne devrait pas chercher à le lire ni à l'interpréter : pour lui, c'est juste une clé à présenter.\n- L'**ID token** sert à **connaître l'utilisateur** côté client. Il est destiné au client, qui le lit pour afficher « Bonjour Alice » et savoir qui est connecté.\n\nRègle d'or : **ne jamais utiliser un access token comme preuve d'identité**, et **ne jamais envoyer un ID token à une API** comme jeton d'accès. L'ID token a pour `aud` le client, pas l'API : une API qui accepterait un ID token accepterait un jeton qui ne lui était pas destiné.\n\nPour récupérer des informations fraîches sur l'utilisateur, le client peut aussi appeler l'endpoint **userinfo** du serveur d'autorisation, en présentant l'access token ; le serveur renvoie alors les claims de profil autorisés par les scopes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Access token pour l'API, ID token pour l'identité",
+          "body": "/images/lessons/oidc-identite-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "Le bon jeton pour le bon usage",
+          "body": "Ton application frontend a reçu, à l'issue du flux OIDC, deux jetons : un **ID token** et un **access token**. Elle doit maintenant appeler l'API protégée `GET /api/v1/profils/moi` pour récupérer les données du profil.\n\nQuel jeton doit-elle placer dans l'en-tête `Authorization: Bearer ...` de cette requête, et pourquoi l'autre ne convient-il pas ?",
+          "solution": "Il faut utiliser l'**access token**. C'est le seul jeton conçu pour être présenté à une API : son `aud` (audience) désigne le serveur de ressources, et l'API vérifie sa validité et ses scopes pour décider d'accepter la requête.\n\nL'**ID token** ne convient pas : son `aud` désigne le client, pas l'API. Il sert uniquement, côté frontend, à savoir qui est l'utilisateur connecté (afficher son nom, par exemple). L'envoyer à l'API reviendrait à présenter un jeton qui ne lui est pas destiné ; une API correctement configurée le rejetterait, et une API mal configurée qui l'accepterait ouvrirait une faille. Donc : access token pour appeler l'API, ID token pour l'identité côté client."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "oidc-identite-check"
+        }
+      ]
+    }
+  ]
+}

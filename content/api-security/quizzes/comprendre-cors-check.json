@@ -1,0 +1,43 @@
+{
+  "ref": "comprendre-cors-check",
+  "node": "cors-headers",
+  "lesson": "comprendre-cors",
+  "title": "Quiz : Comprendre le CORS",
+  "description": "Vérifie que tu as bien saisi ce que le CORS protège, et ce qu'il ne protège pas.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que protège réellement le CORS ?",
+      "justification": "Le CORS est appliqué par le navigateur : il empêche le JavaScript d'un site de lire les réponses d'une autre origine. Il ne protège pas l'API elle-même, car curl, Postman ou un script ignorent totalement les en-têtes CORS.",
+      "position": 0,
+      "options": [
+        { "label": "L'utilisateur dans son navigateur, en contrôlant quelles origines peuvent lire une réponse", "correct": true, "position": 0 },
+        { "label": "L'API côté serveur contre tout appel non autorisé, y compris via curl", "correct": false, "position": 1 },
+        { "label": "La base de données contre les injections SQL", "correct": false, "position": 2 },
+        { "label": "Le serveur contre les attaques par déni de service", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `Access-Control-Allow-Origin: *` avec `Access-Control-Allow-Credentials: true` pose-t-il problème ?",
+      "justification": "La spécification interdit cette combinaison et les navigateurs la rejettent : autoriser toutes les origines tout en permettant l'envoi de cookies ou jetons laisserait n'importe quel site lire des données authentifiées de la victime. Avec credentials, il faut une origine précise.",
+      "position": 1,
+      "options": [
+        { "label": "La combinaison est interdite par la spécification et exposerait des données authentifiées à n'importe quelle origine", "correct": true, "position": 0 },
+        { "label": "C'est la configuration recommandée pour les API publiques", "correct": false, "position": 1 },
+        { "label": "Elle ralentit les requêtes preflight", "correct": false, "position": 2 },
+        { "label": "Elle n'a aucun effet, le navigateur l'ignore silencieusement", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une requête `PUT` avec un en-tête `Authorization`, le navigateur envoie d'abord une requête preflight `OPTIONS`.",
+      "justification": "Vrai : une telle requête est « non simple », donc le navigateur envoie automatiquement une preflight OPTIONS pour vérifier que le serveur autorise l'opération avant d'envoyer la vraie requête.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

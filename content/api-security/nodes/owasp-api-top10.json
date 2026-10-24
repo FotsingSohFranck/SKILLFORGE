@@ -1,0 +1,100 @@
+{
+  "node": "owasp-api-top10",
+  "lessons": [
+    {
+      "slug": "comprendre-le-top-10",
+      "title": "Comprendre le Top 10",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce que l'OWASP API Security Top 10",
+          "body": "L'**OWASP** (une fondation à but non lucratif dédiée à la sécurité logicielle) publie des listes de référence des risques les plus répandus. L'**API Security Top 10** est la liste spécifique aux API : les dix familles de failles qu'on retrouve le plus souvent, classées par fréquence et par impact.\n\nCe n'est pas une checklist magique, mais un **langage commun** : quand une équipe dit « on a un risque de BOLA », tout le monde comprend de quoi il s'agit. L'apprendre, c'est savoir où regarder en priorité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'OWASP API Security Top 10 offre un langage commun pour nommer les risques les plus frequents",
+          "body": "/images/lessons/comprendre-le-top-10-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le risque numéro un : BOLA",
+          "body": "Le risque le plus courant est le **BOLA** (*Broken Object Level Authorization*, soit autorisation défaillante au niveau de l'objet). L'idée : l'API vérifie bien **qui** appelle (authentification), mais oublie de vérifier que cet appelant a le droit d'accéder à **cet objet précis**.\n\nExemple typique : `GET /factures/123` renvoie la facture 123 à n'importe quel utilisateur connecté, au lieu de vérifier qu'elle lui appartient. Un attaquant n'a plus qu'à changer le numéro pour lire les données des autres."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le BOLA, risque numero un, survient quand l'API oublie de verifier l'acces a chaque objet",
+          "body": "/images/lessons/comprendre-le-top-10-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Vulnérable, puis corrigé",
+          "codeLanguage": "javascript",
+          "body": "// VULNERABLE : aucune verification de proprietaire\napp.get('/factures/:id', requireAuth, async (req, res) => {\n  const facture = await db.factures.findById(req.params.id)\n  res.json(facture) // renvoie la facture de n'importe qui\n})\n\n// CORRIGE : on verifie que la facture appartient a l'appelant\napp.get('/factures/:id', requireAuth, async (req, res) => {\n  const facture = await db.factures.findById(req.params.id)\n  if (!facture || facture.ownerId !== req.user.id) {\n    return res.status(404).json({ error: 'Introuvable' }) // ni fuite, ni indice\n  }\n  res.json(facture)\n})"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "comprendre-le-top-10-check"
+        }
+      ]
+    },
+    {
+      "slug": "panorama-des-risques",
+      "title": "Panorama des risques",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les autres grandes familles",
+          "body": "Au-delà du BOLA, retiens ces familles fréquentes :\n- **Authentification défaillante** : jetons mal validés, pas d'expiration, force brute possible.\n- **Autorisation défaillante au niveau des propriétés** : l'API renvoie ou accepte des champs sensibles qu'elle ne devrait pas (par exemple un client qui se promeut `admin: true`).\n- **Consommation de ressources sans limite** : pas de quota ni de pagination, une requête peut épuiser le service.\n- **Exposition excessive de données** : l'API renvoie l'objet entier et laisse le client filtrer, au lieu de ne renvoyer que le nécessaire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Authentification faible, mass assignment ou surconsommation forment les grandes familles de risques",
+          "body": "/images/lessons/panorama-des-risques-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Un fil rouge : ne jamais faire confiance au client",
+          "body": "Presque tous ces risques partagent une racine commune : **faire confiance à l'appelant**. Faire confiance à l'identifiant qu'il envoie, aux champs qu'il transmet, au volume qu'il demande.\n\nLa parade est toujours la même logique : **vérifier côté serveur**, à chaque requête, l'identité, les droits sur l'objet visé, la forme des entrées et les limites de consommation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le fil rouge reste le meme, ne jamais faire confiance au client et tout verifier cote serveur",
+          "body": "/images/lessons/panorama-des-risques-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Où agissent les risques",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  R[\"Requete API\"] --> A{\"Qui appelle ?\"}\n  A -->|\"Authentification faible\"| F1[\"Risque : auth defaillante\"]\n  A --> B{\"A-t-il droit a CET objet ?\"}\n  B -->|\"Non verifie\"| F2[\"Risque : BOLA\"]\n  B --> C{\"Entrees et volume maitrises ?\"}\n  C -->|\"Non\"| F3[\"Risques : injection, surconsommation\"]\n  C -->|\"Oui\"| OK[\"Reponse minimale et sure\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Une API expose `PATCH /utilisateurs/:id` et applique directement le corps JSON reçu sur l'enregistrement en base. Quel risque du Top 10 cela pose-t-il, et comment corriger ?",
+          "solution": "C'est un risque d'autorisation défaillante au niveau des propriétés (parfois appelé *mass assignment*) : un client peut envoyer un champ sensible comme `role` ou `isAdmin` et se promouvoir. Correction : ne jamais appliquer le corps brut. On définit une liste blanche des champs modifiables (par exemple `nom`, `email`) et on ignore tout le reste, et on vérifie aussi que l'appelant a le droit de modifier cet utilisateur (sinon BOLA)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "panorama-des-risques-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "rest-surface-check",
+  "node": "api-surface",
+  "lesson": "rest-surface",
+  "title": "Quiz : La surface d'une API REST",
+  "description": "Vérifie que tu identifies les points de la surface d'attaque et comment la réduire.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Lequel de ces éléments ne fait PAS partie de la surface d'attaque d'une API REST ?",
+      "justification": "Endpoints, paramètres, en-têtes et versions d'API sont tous des points par lesquels on interagit avec l'API, donc des points de surface. La couleur du thème de l'interface d'administration n'a aucun rapport avec les entrées de l'API.",
+      "position": 0,
+      "options": [
+        { "label": "La couleur du thème de l'interface d'administration", "correct": true, "position": 0 },
+        { "label": "Les en-têtes HTTP envoyés avec la requête", "correct": false, "position": 1 },
+        { "label": "Les paramètres de chemin comme /factures/123", "correct": false, "position": 2 },
+        { "label": "Une ancienne version /api/v1 jamais retirée", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Désactiver les endpoints de debug et retirer les anciennes versions d'API réduit la surface d'attaque.",
+      "justification": "Vrai : tout ce qui est exposé doit être protégé. Supprimer les points inutiles (debug, versions obsolètes) diminue mécaniquement le nombre d'endroits vulnérables.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un endpoint de debug oublié en production est-il dangereux ?",
+      "justification": "Un endpoint oublié n'est surveillé par personne mais reste accessible : un attaquant peut le découvrir et l'exploiter. Il agrandit la surface d'attaque sans contrepartie utile.",
+      "position": 2,
+      "options": [
+        { "label": "Il est accessible et non surveillé, donc exploitable par un attaquant", "correct": true, "position": 0 },
+        { "label": "Il ralentit toujours le serveur de production", "correct": false, "position": 1 },
+        { "label": "Il empêche de versionner l'API correctement", "correct": false, "position": 2 },
+        { "label": "Il n'a aucun impact tant qu'il n'est pas documenté", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

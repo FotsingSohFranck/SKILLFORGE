@@ -5,22 +5,10 @@
   "kind": "TRACK",
   "position": 7,
   "phases": [
-    {
-      "title": "Fondamentaux",
-      "position": 0
-    },
-    {
-      "title": "Authentification & autorisation",
-      "position": 1
-    },
-    {
-      "title": "Menaces & protections",
-      "position": 2
-    },
-    {
-      "title": "Durcissement & secrets",
-      "position": 3
-    }
+    { "title": "Fondamentaux", "position": 0 },
+    { "title": "Authentification & autorisation", "position": 1 },
+    { "title": "Menaces & protections", "position": 2 },
+    { "title": "Durcissement & secrets", "position": 3 }
   ],
   "nodes": [
     {
@@ -42,6 +30,24 @@
       "position": 1
     },
     {
+      "slug": "threat-modeling",
+      "title": "Modélisation des menaces",
+      "summary": "Identifier ce qu'on protège et contre qui, avant de coder.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 2
+    },
+    {
+      "slug": "api-surface",
+      "title": "Surface d'attaque d'une API",
+      "summary": "REST et GraphQL : par où une API peut être attaquée.",
+      "phase": "Fondamentaux",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 3
+    },
+    {
       "slug": "authn",
       "title": "Authentification",
       "summary": "Mots de passe, JWT, OAuth : prouver qui appelle.",
@@ -58,6 +64,33 @@
       "importance": "CORE",
       "estimatedMinutes": 75,
       "position": 1
+    },
+    {
+      "slug": "oauth2-oidc",
+      "title": "OAuth2 & OpenID Connect",
+      "summary": "Déléguer l'accès et l'identité avec les standards du marché.",
+      "phase": "Authentification & autorisation",
+      "importance": "CORE",
+      "estimatedMinutes": 80,
+      "position": 2
+    },
+    {
+      "slug": "jwt-security",
+      "title": "Sécuriser les JWT",
+      "summary": "Signature, expiration, validation et pièges classiques des jetons.",
+      "phase": "Authentification & autorisation",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 3
+    },
+    {
+      "slug": "api-keys-mtls",
+      "title": "Clés d'API & mTLS",
+      "summary": "Authentifier des services entre eux : clés et TLS mutuel.",
+      "phase": "Authentification & autorisation",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 4
     },
     {
       "slug": "input-validation",
@@ -78,6 +111,42 @@
       "position": 1
     },
     {
+      "slug": "owasp-api-top10",
+      "title": "OWASP API Security Top 10",
+      "summary": "Les risques majeurs des API, expliqués et illustrés.",
+      "phase": "Menaces & protections",
+      "importance": "CORE",
+      "estimatedMinutes": 80,
+      "position": 2
+    },
+    {
+      "slug": "injection",
+      "title": "Injections : SQL, NoSQL, commandes",
+      "summary": "Comment naissent les injections et comment les couper à la racine.",
+      "phase": "Menaces & protections",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 3
+    },
+    {
+      "slug": "rate-limiting",
+      "title": "Limitation de débit & anti-abus",
+      "summary": "Throttling, quotas et protection contre le bourrage et le déni de service.",
+      "phase": "Menaces & protections",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 4
+    },
+    {
+      "slug": "cors-headers",
+      "title": "CORS & en-têtes de sécurité",
+      "summary": "Comprendre le CORS et poser les bons en-têtes de protection.",
+      "phase": "Menaces & protections",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 5
+    },
+    {
       "slug": "secrets",
       "title": "Gestion des secrets",
       "summary": "Clés, jetons, mots de passe : hors du code.",
@@ -87,50 +156,42 @@
       "position": 0
     },
     {
+      "slug": "logging-monitoring",
+      "title": "Journalisation & détection",
+      "summary": "Tracer sans fuite de données et repérer les comportements suspects.",
+      "phase": "Durcissement & secrets",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 1
+    },
+    {
       "slug": "hardening",
       "title": "Durcissement",
       "summary": "En-têtes, CORS, moindre privilège.",
       "phase": "Durcissement & secrets",
       "importance": "OPTIONAL",
       "estimatedMinutes": 60,
-      "position": 1
+      "position": 2
     }
   ],
   "edges": [
-    {
-      "source": "security-basics",
-      "target": "transport",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "transport",
-      "target": "authn",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "authn",
-      "target": "authz",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "security-basics",
-      "target": "input-validation",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "input-validation",
-      "target": "common-attacks",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "authz",
-      "target": "secrets",
-      "kind": "PREREQ"
-    },
-    {
-      "source": "common-attacks",
-      "target": "hardening",
-      "kind": "PREREQ"
-    }
+    { "source": "security-basics", "target": "transport", "kind": "PREREQ" },
+    { "source": "security-basics", "target": "threat-modeling", "kind": "PREREQ" },
+    { "source": "security-basics", "target": "api-surface", "kind": "PREREQ" },
+    { "source": "transport", "target": "authn", "kind": "PREREQ" },
+    { "source": "authn", "target": "authz", "kind": "PREREQ" },
+    { "source": "authn", "target": "oauth2-oidc", "kind": "PREREQ" },
+    { "source": "oauth2-oidc", "target": "jwt-security", "kind": "PREREQ" },
+    { "source": "authn", "target": "api-keys-mtls", "kind": "PREREQ" },
+    { "source": "security-basics", "target": "input-validation", "kind": "PREREQ" },
+    { "source": "input-validation", "target": "common-attacks", "kind": "PREREQ" },
+    { "source": "input-validation", "target": "owasp-api-top10", "kind": "PREREQ" },
+    { "source": "input-validation", "target": "injection", "kind": "PREREQ" },
+    { "source": "common-attacks", "target": "rate-limiting", "kind": "PREREQ" },
+    { "source": "transport", "target": "cors-headers", "kind": "PREREQ" },
+    { "source": "authz", "target": "secrets", "kind": "PREREQ" },
+    { "source": "secrets", "target": "logging-monitoring", "kind": "PREREQ" },
+    { "source": "logging-monitoring", "target": "hardening", "kind": "PREREQ" },
+    { "source": "common-attacks", "target": "hardening", "kind": "PREREQ" }
   ]
 }

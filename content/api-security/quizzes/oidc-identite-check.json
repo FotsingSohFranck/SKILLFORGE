@@ -1,0 +1,43 @@
+{
+  "ref": "oidc-identite-check",
+  "node": "oauth2-oidc",
+  "lesson": "oidc-identite",
+  "title": "Quiz : OpenID Connect, l'identité",
+  "description": "Vérifie que tu distingues bien l'ID token de l'access token et le rôle d'OIDC.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'ID token délivré par OpenID Connect ?",
+      "justification": "L'ID token est un JWT destiné au client, qui le lit pour savoir qui est l'utilisateur connecté (claims comme sub, email, name). Pour appeler une API, c'est l'access token qu'on utilise.",
+      "position": 0,
+      "options": [
+        { "label": "À permettre au client de savoir qui est l'utilisateur connecté", "correct": true, "position": 0 },
+        { "label": "À être présenté à l'API de ressources pour accéder aux données", "correct": false, "position": 1 },
+        { "label": "À remplacer le mot de passe de l'utilisateur", "correct": false, "position": 2 },
+        { "label": "À chiffrer les réponses du serveur de ressources", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour appeler une API protégée, quel jeton le client doit-il placer dans l'en-tête Authorization: Bearer ... ?",
+      "justification": "L'access token est le seul conçu pour être présenté à une API : son audience (aud) désigne le serveur de ressources. L'ID token a pour audience le client et ne doit pas être envoyé à l'API.",
+      "position": 1,
+      "options": [
+        { "label": "L'access token", "correct": true, "position": 0 },
+        { "label": "L'ID token", "correct": false, "position": 1 },
+        { "label": "Le mot de passe de l'utilisateur", "correct": false, "position": 2 },
+        { "label": "Le code d'autorisation", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un access token peut servir de preuve fiable de l'identité de l'utilisateur côté client.",
+      "justification": "Faux : l'access token sert à autoriser l'accès à une API, pas à prouver l'identité. Pour connaître l'utilisateur, le client utilise l'ID token (ou l'endpoint userinfo). Confondre les deux est une erreur de sécurité classique.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

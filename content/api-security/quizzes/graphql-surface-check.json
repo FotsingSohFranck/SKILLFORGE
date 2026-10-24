@@ -1,0 +1,43 @@
+{
+  "ref": "graphql-surface-check",
+  "node": "api-surface",
+  "lesson": "graphql-surface",
+  "title": "Quiz : Le cas de GraphQL",
+  "description": "Vérifie que tu comprends les risques propres à GraphQL et leurs parades.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi laisser l'introspection active en production pose-t-elle un problème de sécurité ?",
+      "justification": "L'introspection permet d'interroger le schéma complet de l'API. En production, elle offre à un attaquant la carte de tous les types, champs et relations, ce qui facilite la préparation d'attaques.",
+      "position": 0,
+      "options": [
+        { "label": "Elle révèle à un attaquant le schéma complet de l'API", "correct": true, "position": 0 },
+        { "label": "Elle ajoute automatiquement un nouvel endpoint public", "correct": false, "position": 1 },
+        { "label": "Elle désactive l'authentification des requêtes", "correct": false, "position": 2 },
+        { "label": "Elle oblige à passer de GraphQL à REST", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle parade limite le coût d'une requête GraphQL profondément imbriquée ?",
+      "justification": "Les limites de profondeur et de complexité bornent ce que le client peut demander et rejettent les requêtes trop coûteuses avant qu'elles ne saturent le service.",
+      "position": 1,
+      "options": [
+        { "label": "Fixer une limite de profondeur et de complexité des requêtes", "correct": true, "position": 0 },
+        { "label": "Renvoyer toujours l'objet entier au client", "correct": false, "position": 1 },
+        { "label": "Ajouter davantage de types au schéma", "correct": false, "position": 2 },
+        { "label": "Supprimer l'en-tête Authorization", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Comme GraphQL n'expose souvent qu'un seul endpoint, sa surface d'attaque est forcément plus petite que celle d'une API REST.",
+      "justification": "Faux : la surface de GraphQL ne se mesure pas au nombre d'endpoints mais à la richesse du schéma et au contenu des requêtes que le client compose. Elle peut être très large.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

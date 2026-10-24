@@ -1,0 +1,43 @@
+{
+  "ref": "valider-un-jwt-check",
+  "node": "jwt-security",
+  "lesson": "valider-un-jwt",
+  "title": "Quiz : Valider un JWT sans se tromper",
+  "description": "Vérifie que tu connais les contrôles indispensables et les pièges d'algorithme.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment choisir l'algorithme de signature accepté lors de la validation d'un JWT ?",
+      "justification": "On ne fait jamais confiance au champ alg du jeton : c'est la porte ouverte à l'algorithme none et à la confusion d'algorithme. On fixe la liste des algorithmes autorisés côté serveur.",
+      "position": 0,
+      "options": [
+        { "label": "On fixe la liste des algorithmes autorisés côté serveur", "correct": true, "position": 0 },
+        { "label": "On lit le champ alg annoncé par le jeton et on l'accepte", "correct": false, "position": 1 },
+        { "label": "On accepte tous les algorithmes pour rester compatible", "correct": false, "position": 2 },
+        { "label": "On laisse le client choisir à chaque requête", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi utiliser une expiration courte (par exemple 15 minutes) pour l'access token ?",
+      "justification": "Un JWT est autoporteur et difficile à annuler une fois émis. Une expiration courte limite la fenêtre pendant laquelle un jeton volé reste utilisable ; un refresh token permet d'en obtenir un nouveau sans gêner l'utilisateur.",
+      "position": 1,
+      "options": [
+        { "label": "Pour limiter la durée pendant laquelle un jeton volé reste utilisable", "correct": true, "position": 0 },
+        { "label": "Pour réduire la taille du jeton transmis", "correct": false, "position": 1 },
+        { "label": "Pour chiffrer automatiquement le payload", "correct": false, "position": 2 },
+        { "label": "Pour éviter de vérifier la signature", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Accepter un jeton dont le header indique `alg: none` est une pratique sûre.",
+      "justification": "Faux : alg none signifie « pas de signature ». Accepter un tel jeton permet à un attaquant de forger le payload de son choix. Il faut refuser none et n'autoriser que des algorithmes signés fixés côté serveur.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "tls-mutuel-check",
+  "node": "api-keys-mtls",
+  "lesson": "tls-mutuel",
+  "title": "Quiz : TLS mutuel (mTLS)",
+  "description": "Vérifie que tu as compris la différence entre TLS classique et mTLS.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'ajoute le mTLS par rapport au TLS classique ?",
+      "justification": "En TLS classique, seul le serveur présente un certificat. En mTLS, le client présente aussi le sien : les deux parties s'authentifient mutuellement pendant la poignée de main.",
+      "position": 0,
+      "options": [
+        { "label": "Le client présente aussi un certificat, les deux parties s'authentifient", "correct": true, "position": 0 },
+        { "label": "Les données ne sont plus chiffrées, pour aller plus vite", "correct": false, "position": 1 },
+        { "label": "Le serveur n'a plus besoin de certificat", "correct": false, "position": 2 },
+        { "label": "La clé d'API devient obligatoire dans l'URL", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'usage typique du mTLS ?",
+      "justification": "Le mTLS convient surtout à la communication entre services internes de confiance, où chacun doit être certain de l'identité de l'autre. L'imposer à chaque navigateur grand public serait trop lourd à gérer.",
+      "position": 1,
+      "options": [
+        { "label": "La communication entre services internes de confiance", "correct": true, "position": 0 },
+        { "label": "L'ouverture d'un site public à des millions de navigateurs", "correct": false, "position": 1 },
+        { "label": "Le stockage des mots de passe en base", "correct": false, "position": 2 },
+        { "label": "La pagination des réponses d'une API", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une autorité de certification (CA) sert de tiers de confiance qui signe les certificats vérifiés en mTLS.",
+      "justification": "Vrai. Les certificats du client et du serveur sont signés par une autorité de certification commune : chaque partie vérifie que le certificat de l'autre a bien été émis par une CA qu'elle reconnaît.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

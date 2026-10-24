@@ -1,0 +1,143 @@
+{
+  "node": "logging-monitoring",
+  "lessons": [
+    {
+      "slug": "journaliser-sans-fuite",
+      "title": "Journaliser sans fuite",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi journaliser",
+          "body": "**Journaliser** (en anglais *logging*), c'est écrire dans un fichier ou une base, au fil de l'eau, ce que fait l'API : qui s'est connecté, quelle action a été demandée, quel en a été le résultat. Chaque ligne écrite s'appelle un **log** (un journal, ou une entrée de journal).\n\nÀ quoi ça sert ? À deux choses principales.\n- L'**audit** : pouvoir répondre plus tard à la question « qui a fait quoi, et quand ? ».\n- L'**enquête après incident** : quand quelque chose tourne mal (un piratage, une fuite de données), les logs sont souvent la seule trace qui permet de comprendre ce qui s'est passé et d'évaluer les dégâts.\n\nSans logs, une attaque peut rester totalement invisible. Avec des logs, on peut la détecter, la comprendre et y réagir."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Journaliser trace qui a fait quoi et quand, pour l'audit et l'enquête après incident",
+          "body": "/images/lessons/journaliser-sans-fuite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Quoi journaliser : les événements de sécurité",
+          "body": "Tu ne journalises pas tout, sinon le bruit noie l'information utile. Concentre-toi sur les **événements de sécurité**, c'est-à-dire les faits qui comptent pour savoir si l'API est utilisée normalement ou attaquée :\n- les **connexions** réussies (qui s'est authentifié, depuis quelle adresse),\n- les **échecs d'autorisation** : un appelant connu qui tente une action qu'il n'a pas le droit de faire,\n- les **échecs d'authentification** : des tentatives de connexion qui échouent,\n- les **changements sensibles** : modification d'un mot de passe, d'un rôle, d'une permission, suppression de données.\n\nPour chaque événement, note le **quand** (horodatage), le **qui** (identifiant de l'utilisateur), le **quoi** (l'action) et le **résultat** (succès ou échec)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On cible les événements de sécurité : connexions, échecs d'accès, changements sensibles",
+          "body": "/images/lessons/journaliser-sans-fuite-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Ce qu'il ne faut JAMAIS journaliser",
+          "body": "Un log est une copie durable, souvent lue par beaucoup de monde et conservée longtemps. Y écrire une donnée secrète, c'est la recopier là où elle n'est pas protégée. Ne journalise **jamais** :\n- les **mots de passe** (même temporaires),\n- les **jetons** (en anglais *tokens*) : jeton d'accès, jeton de rafraîchissement, clé d'API. Un jeton copié dans un log peut être réutilisé par un attaquant pour se faire passer pour l'utilisateur,\n- les **données personnelles en clair** : nom complet, adresse, e-mail, numéro de téléphone, données de santé,\n- les **numéros de carte** bancaire et codes de sécurité.\n\nLa parade s'appelle le **masquage** (ou **rédaction**, de l'anglais *redaction*) : avant d'écrire la ligne, on remplace la valeur sensible par des étoiles ou on ne garde qu'un fragment, par exemple `****1234` pour une carte. Ainsi, le log reste utile sans trahir le secret."
+        },
+        {
+          "type": "IMAGE",
+          "title": "On ne journalise jamais mots de passe, jetons ni données personnelles en clair",
+          "body": "/images/lessons/journaliser-sans-fuite-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Logs structurés et identifiant de corrélation",
+          "body": "Un **log structuré** est une ligne au format machine, le plus souvent du **JSON** (un format texte en paires `clé : valeur`), plutôt qu'une phrase libre. Pourquoi ? Parce qu'on peut alors chercher, filtrer et compter automatiquement : « montre-moi tous les échecs d'autorisation de l'utilisateur X cette heure-ci ».\n\nOn y ajoute un **identifiant de corrélation** (en anglais *correlation id*, ou *request id*) : un code unique attribué à chaque requête entrante. Ce même code est recopié dans tous les logs produits en traitant cette requête. Résultat : pour reconstituer l'histoire complète d'un appel, il suffit de chercher toutes les lignes qui portent le même identifiant de corrélation, même si elles viennent de services différents."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les logs structurés en JSON et un identifiant de corrélation rendent les traces exploitables",
+          "body": "/images/lessons/journaliser-sans-fuite-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Un log structuré avec champs masqués",
+          "codeLanguage": "javascript",
+          "body": "// Petite fonction de masquage : ne garde que les 4 derniers caracteres\nfunction masquer(valeur) {\n  if (!valeur) return null\n  return '****' + String(valeur).slice(-4)\n}\n\n// On construit l'entree de log comme un objet, pas comme une phrase\nfunction journaliserConnexion(req, utilisateur, succes) {\n  const entree = {\n    horodatage: new Date().toISOString(), // le QUAND, au format standard\n    evenement: 'connexion',               // le type d'evenement de securite\n    correlationId: req.correlationId,     // identifiant de correlation de la requete\n    utilisateurId: utilisateur.id,        // le QUI (un identifiant, pas le nom en clair)\n    adresseIp: masquer(req.ip),           // masquee : donnee personnelle\n    resultat: succes ? 'succes' : 'echec',\n    // JAMAIS de mot de passe ni de jeton ici :\n    carte: masquer(utilisateur.numeroCarte) // on ne garde que ****1234\n  }\n  // console.log emet une ligne JSON, lisible par un collecteur de logs\n  console.log(JSON.stringify(entree))\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 9,
+          "title": "Le chemin d'un log",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  R[\"Requete API entrante\"] --> ID[\"On attribue un identifiant de correlation\"]\n  ID --> T[\"Traitement de la requete\"]\n  T --> M[\"Masquage des champs sensibles\"]\n  M --> L[\"Log structure (JSON)\"]\n  L --> C[\"Collecteur de logs\"]\n  C --> S[\"Recherche, filtres et alertes\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "journaliser-sans-fuite-check"
+        }
+      ]
+    },
+    {
+      "slug": "detecter-les-abus",
+      "title": "Détecter les abus",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des logs aux signaux",
+          "body": "Avoir des logs ne suffit pas : personne ne lit des millions de lignes à la main. Il faut en tirer des **signaux**, c'est-à-dire des indicateurs chiffrés qu'on surveille dans le temps et qui trahissent un comportement anormal.\n\nTrois signaux très parlants pour une API :\n- un **pic d'erreurs 401/403** : le code `401` signifie « non authentifié », le code `403` « non autorisé ». Beaucoup de `403` d'un coup, c'est souvent quelqu'un qui teste des accès interdits (une attaque sur les autorisations).\n- un **taux d'échec de connexion** élevé : de nombreuses tentatives de connexion qui échouent, surtout sur plusieurs comptes, évoquent une attaque par force brute (essais de mots de passe en masse).\n- une **volumétrie anormale** : un appelant qui passe soudain de 10 à 10 000 requêtes par minute, ou qui parcourt les identifiants un par un (`/factures/1`, `/factures/2`, `/factures/3`...)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des logs on extrait des signaux chiffrés qui trahissent un comportement anormal",
+          "body": "/images/lessons/detecter-les-abus-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Alertes et lien avec le rate limiting",
+          "body": "Une **alerte** est une notification automatique (e-mail, message, ticket) déclenchée quand un signal dépasse un seuil choisi. L'idée : passer d'une surveillance passive à une réaction rapide, sans avoir à regarder les écrans en permanence.\n\nLa surveillance travaille main dans la main avec le **rate limiting** (la limitation de débit : plafonner le nombre de requêtes autorisées par appelant et par unité de temps). La détection **repère** l'abus ; le rate limiting le **freine** en bloquant ou en ralentissant l'appelant fautif. L'un sans l'autre est incomplet : détecter sans pouvoir freiner laisse l'attaque continuer ; freiner sans détecter empêche de comprendre ce qui se passe."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une alerte prévient dès le dépassement d'un seuil, de pair avec le rate limiting",
+          "body": "/images/lessons/detecter-les-abus-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La journalisation insuffisante est elle-même un risque",
+          "body": "L'OWASP API Security Top 10 classe la **journalisation et la surveillance insuffisantes** comme un risque à part entière. Autrement dit, ne pas assez journaliser, ou ne surveiller aucun signal, est en soi une faille de sécurité.\n\nPourquoi ? Parce que sans logs ni alertes, une attaque peut durer des jours ou des mois sans être remarquée. Les études montrent que beaucoup d'intrusions ne sont détectées que longtemps après, souvent par un tiers extérieur. Une bonne journalisation (leçon précédente) couplée à une détection active (cette leçon) raccourcit radicalement ce délai : on voit l'abus pendant qu'il a lieu, pas des mois plus tard."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une journalisation insuffisante est elle-même un risque de sécurité reconnu",
+          "body": "/images/lessons/detecter-les-abus-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Compter un signal et déclencher une alerte",
+          "codeLanguage": "javascript",
+          "body": "// Compteur simple d'echecs d'autorisation (403) par utilisateur et par minute\nconst compteurs = new Map()\nconst SEUIL = 20 // au-dela de 20 refus en une minute, on alerte\n\nfunction surUnRefus403(utilisateurId) {\n  const cle = utilisateurId + ':' + minuteCourante()\n  const n = (compteurs.get(cle) || 0) + 1\n  compteurs.set(cle, n)\n\n  if (n === SEUIL) {\n    // On franchit le seuil : on emet une alerte (ici un log structure dedie)\n    console.log(JSON.stringify({\n      evenement: 'alerte',\n      signal: 'pic_403',\n      utilisateurId: utilisateurId,\n      valeur: n,\n      seuil: SEUIL,\n      horodatage: new Date().toISOString()\n    }))\n    // En vrai : notifier l'equipe et demander au rate limiting de freiner l'appelant\n  }\n}\n\nfunction minuteCourante() {\n  return Math.floor(Date.now() / 60000)\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi : définis ta surveillance",
+          "body": "Pour une API de gestion de factures, propose **trois signaux d'alerte** à surveiller. Pour chacun, indique : (1) ce qu'on mesure, (2) un seuil raisonnable, et (3) la **réaction** associée quand le seuil est franchi. Appuie-toi sur les notions de la leçon (erreurs 401/403, échecs de connexion, volumétrie, rate limiting).",
+          "solution": "Voici un exemple d'ensemble cohérent.\n\n**Signal 1, pic d'erreurs 403.** On mesure le nombre de réponses 403 (accès refusé) par utilisateur et par minute. Seuil : plus de 20 refus en une minute pour un même appelant. Réaction : émettre une alerte vers l'équipe et demander au rate limiting de ralentir cet appelant, car il teste probablement des accès interdits (tentative de BOLA).\n\n**Signal 2, taux d'échec de connexion.** On mesure le pourcentage de connexions échouées sur l'ensemble des tentatives, ou le nombre d'échecs par adresse IP. Seuil : plus de 10 échecs en cinq minutes depuis une même IP. Réaction : alerter, bloquer temporairement l'IP ou imposer un délai d'attente, car cela ressemble à une attaque par force brute.\n\n**Signal 3, volumétrie anormale.** On mesure le nombre de requêtes par appelant et par minute. Seuil : plus de dix fois la moyenne habituelle de l'appelant. Réaction : alerter et appliquer la limitation de débit (rate limiting) pour plafonner le débit, afin de protéger le service et de contrer un éventuel parcours systématique des identifiants.\n\nPoint clé : chaque signal associe une mesure, un seuil et une réaction concrète. Détecter sans réagir ne protège de rien."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "detecter-les-abus-check"
+        }
+      ]
+    }
+  ]
+}

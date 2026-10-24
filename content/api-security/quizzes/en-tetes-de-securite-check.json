@@ -1,0 +1,43 @@
+{
+  "ref": "en-tetes-de-securite-check",
+  "node": "cors-headers",
+  "lesson": "en-tetes-de-securite",
+  "title": "Quiz : Les en-têtes de sécurité",
+  "description": "Vérifie que tu relies chaque en-tête de sécurité à son rôle.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'en-tête `Strict-Transport-Security` (HSTS) ?",
+      "justification": "HSTS force le navigateur à n'utiliser que HTTPS pour le domaine, même si l'utilisateur tape http://, ce qui protège contre la rétrogradation vers une connexion non chiffrée.",
+      "position": 0,
+      "options": [
+        { "label": "À forcer le navigateur à n'utiliser que HTTPS pour le domaine", "correct": true, "position": 0 },
+        { "label": "À autoriser toutes les origines à lire les réponses", "correct": false, "position": 1 },
+        { "label": "À compresser les réponses JSON", "correct": false, "position": 2 },
+        { "label": "À chiffrer la base de données côté serveur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel en-tête empêche le navigateur de deviner le type d'un contenu et de l'exécuter contre votre intention ?",
+      "justification": "`X-Content-Type-Options: nosniff` désactive la devinette de type (MIME sniffing) : le navigateur respecte le Content-Type déclaré au lieu d'interpréter le contenu autrement.",
+      "position": 1,
+      "options": [
+        { "label": "X-Content-Type-Options: nosniff", "correct": true, "position": 0 },
+        { "label": "Referrer-Policy: no-referrer", "correct": false, "position": 1 },
+        { "label": "Access-Control-Allow-Origin: *", "correct": false, "position": 2 },
+        { "label": "Content-Length: 0", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ajouter des en-têtes de sécurité comme HSTS ou X-Frame-Options remplace la vérification des droits côté serveur.",
+      "justification": "Faux : ces en-têtes guident le navigateur et réduisent la surface d'attaque côté client, mais l'authentification et l'autorisation doivent toujours être vérifiées côté serveur.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

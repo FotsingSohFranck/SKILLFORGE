@@ -1,0 +1,43 @@
+{
+  "ref": "detecter-les-abus-check",
+  "node": "logging-monitoring",
+  "lesson": "detecter-les-abus",
+  "title": "Quiz : Détecter les abus",
+  "description": "Vérifie que tu sais quels signaux surveiller et pourquoi la surveillance est un enjeu de sécurité.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Un pic soudain d'erreurs 403 (accès refusé) pour un même appelant est souvent le signe de quoi ?",
+      "justification": "Le code 403 signifie « non autorisé ». Beaucoup de 403 d'un coup pour un même appelant trahissent souvent quelqu'un qui teste des accès interdits, par exemple une tentative d'exploitation d'une faille d'autorisation comme le BOLA.",
+      "position": 0,
+      "options": [
+        { "label": "Quelqu'un qui teste des accès qui lui sont interdits", "correct": true, "position": 0 },
+        { "label": "Une base de données bien configurée", "correct": false, "position": 1 },
+        { "label": "Un certificat TLS expiré", "correct": false, "position": 2 },
+        { "label": "Une documentation OpenAPI manquante", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le lien entre la détection d'abus et le rate limiting (limitation de débit) ?",
+      "justification": "La détection repère l'abus en surveillant des signaux, tandis que le rate limiting le freine en plafonnant ou bloquant l'appelant fautif. Les deux se complètent : repérer sans pouvoir freiner laisse l'attaque continuer.",
+      "position": 1,
+      "options": [
+        { "label": "La détection repère l'abus, le rate limiting le freine", "correct": true, "position": 0 },
+        { "label": "Ce sont deux noms pour exactement la même chose", "correct": false, "position": 1 },
+        { "label": "Le rate limiting remplace totalement la journalisation", "correct": false, "position": 2 },
+        { "label": "La détection sert à chiffrer les requêtes", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ne pas assez journaliser ni surveiller son API est considéré comme un risque de sécurité à part entière par l'OWASP API Security Top 10.",
+      "justification": "Vrai : la journalisation et la surveillance insuffisantes figurent dans le Top 10. Sans logs ni alertes, une attaque peut durer longtemps sans être détectée.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

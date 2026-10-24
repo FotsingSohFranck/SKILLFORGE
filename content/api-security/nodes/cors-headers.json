@@ -1,0 +1,119 @@
+{
+  "node": "cors-headers",
+  "lessons": [
+    {
+      "slug": "comprendre-cors",
+      "title": "Comprendre le CORS",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La Same-Origin Policy, le point de départ",
+          "body": "Par défaut, un navigateur applique la **Same-Origin Policy** (politique de même origine). Une **origine** est le triplet **schéma + domaine + port** : `https://app.exemple.fr:443`. Deux URL ont la même origine seulement si ces trois éléments sont identiques. Ainsi `https://app.exemple.fr` et `https://api.exemple.fr` sont des origines **différentes** (le sous-domaine change), tout comme `http://...` et `https://...` (le schéma change).\n\nLa règle : du code JavaScript chargé sur une origine peut envoyer une requête vers une autre origine, mais le navigateur **empêche le JavaScript de lire la réponse** si le serveur ne l'autorise pas explicitement. C'est une protection contre le vol de données entre sites."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La Same-Origin Policy est la règle par défaut du navigateur face à deux origines distinctes",
+          "body": "/images/lessons/comprendre-cors-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ce qu'est le CORS",
+          "body": "Le **CORS** (*Cross-Origin Resource Sharing*, partage de ressources entre origines) est le mécanisme qui permet à un serveur d'**assouplir** la Same-Origin Policy. Le serveur ajoute des en-têtes de réponse pour dire au navigateur : « j'autorise cette origine à lire ma réponse ».\n\nLes en-têtes clés, envoyés par le **serveur** dans sa réponse :\n- **`Access-Control-Allow-Origin`** : l'origine autorisée (une seule valeur précise, ou `*` pour toutes).\n- **`Access-Control-Allow-Methods`** : les méthodes HTTP permises (GET, POST, etc.).\n- **`Access-Control-Allow-Headers`** : les en-têtes de requête permis (par exemple `Authorization`).\n- **`Access-Control-Allow-Credentials`** : `true` si les cookies ou en-têtes d'authentification peuvent accompagner la requête.\n\nRetiens bien : c'est le **serveur** qui décide, et c'est le **navigateur** qui applique la décision."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le CORS laisse le serveur assouplir cette règle via des en-têtes d'autorisation",
+          "body": "/images/lessons/comprendre-cors-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La requête preflight OPTIONS",
+          "body": "Pour certaines requêtes dites « non simples » (méthode `PUT` ou `DELETE`, en-tête `Authorization` ou `Content-Type: application/json`, etc.), le navigateur envoie d'abord une **requête preflight** : une requête `OPTIONS` automatique, avant la vraie requête.\n\nCette preflight demande au serveur : « est-ce que tu autorises une requête `PUT` avec l'en-tête `Authorization` depuis l'origine `https://app.exemple.fr` ? » Le serveur répond avec les en-têtes `Access-Control-Allow-*`. Si la réponse autorise bien l'opération, le navigateur envoie **ensuite** la vraie requête. Sinon, il la bloque et le JavaScript reçoit une erreur CORS.\n\nL'en-tête **`Access-Control-Max-Age`** permet au navigateur de mettre ce résultat en cache pour ne pas refaire la preflight à chaque appel."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La requête preflight OPTIONS demande au serveur si l'opération est permise",
+          "body": "/images/lessons/comprendre-cors-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "L'idée clé : le CORS protège le navigateur, pas l'API",
+          "body": "C'est le point le plus souvent mal compris. Le CORS n'est **pas** une protection de votre API côté serveur. Il protège l'**utilisateur dans son navigateur** : il empêche un site malveillant de lire, depuis le navigateur de la victime, les réponses d'une autre API.\n\nUn attaquant qui utilise `curl`, un script Python ou Postman **ignore totalement le CORS** : ces outils ne sont pas des navigateurs, ils ne vérifient aucun en-tête `Access-Control-*` et appellent votre API directement. Donc une API publique sans authentification reste accessible à tous, peu importe la configuration CORS.\n\nConséquence : la sécurité réelle de l'API repose sur l'**authentification** et l'**autorisation** côté serveur, jamais sur le CORS.\n\nPiège classique : `Access-Control-Allow-Origin: *` **combiné** à `Access-Control-Allow-Credentials: true`. Cette combinaison est interdite par la spécification, et les navigateurs la refusent. Autoriser à la fois toutes les origines et l'envoi de cookies reviendrait à laisser n'importe quel site lire des données authentifiées de la victime. Quand on a besoin des credentials, il faut donc renvoyer une origine **précise** (jamais `*`), idéalement issue d'une liste blanche."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le CORS protège l'utilisateur dans son navigateur, jamais l'API côté serveur",
+          "body": "/images/lessons/comprendre-cors-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Une preflight et sa réponse CORS",
+          "codeLanguage": "http",
+          "body": "# 1) Requete preflight envoyee AUTOMATIQUEMENT par le navigateur\n# (methode OPTIONS, avant la vraie requete PUT)\nOPTIONS /api/v1/profils/42 HTTP/1.1\nHost: api.exemple.fr\nOrigin: https://app.exemple.fr\nAccess-Control-Request-Method: PUT\nAccess-Control-Request-Headers: Authorization, Content-Type\n\n# 2) Reponse du serveur : il autorise cette origine et cette operation\nHTTP/1.1 204 No Content\nAccess-Control-Allow-Origin: https://app.exemple.fr\nAccess-Control-Allow-Methods: GET, POST, PUT, DELETE\nAccess-Control-Allow-Headers: Authorization, Content-Type\nAccess-Control-Allow-Credentials: true\nAccess-Control-Max-Age: 600\n\n# 3) Le navigateur envoie alors la VRAIE requete\nPUT /api/v1/profils/42 HTTP/1.1\nHost: api.exemple.fr\nOrigin: https://app.exemple.fr\nAuthorization: Bearer eyJhbGciOi...\nContent-Type: application/json\n\n{ \"pseudo\": \"ana\" }\n\n# Note : l'origine renvoyee est PRECISE (pas *), car on autorise les credentials."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 9,
+          "title": "Le déroulé preflight puis requête réelle",
+          "diagramFormat": "MERMAID",
+          "body": "sequenceDiagram\n  participant N as Navigateur\n  participant S as Serveur API\n  Note over N: JavaScript demande PUT /profils/42 vers une AUTRE origine\n  N->>S: 1. Preflight OPTIONS (Origin, Access-Control-Request-Method)\n  S-->>N: 2. 204 + Access-Control-Allow-Origin, -Methods, -Headers\n  Note over N: Le navigateur verifie que l'operation est autorisee\n  alt Autorisee\n    N->>S: 3. Vraie requete PUT /profils/42 (Authorization)\n    S-->>N: 4. 200 + donnees\n    Note over N: JavaScript peut LIRE la reponse\n  else Refusee\n    Note over N: Requete bloquee, erreur CORS cote JavaScript\n  end"
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "comprendre-cors-check"
+        }
+      ]
+    },
+    {
+      "slug": "en-tetes-de-securite",
+      "title": "Les en-têtes de sécurité",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Des en-têtes de réponse qui durcissent le navigateur",
+          "body": "En plus du CORS, le serveur peut ajouter des **en-têtes de sécurité** dans ses réponses. Comme le CORS, ils donnent des instructions au navigateur : ils ne remplacent pas la sécurité côté serveur, mais réduisent la surface d'attaque côté client. Les principaux, en une ligne chacun :\n\n- **`Strict-Transport-Security`** (HSTS) : force le navigateur à n'utiliser que **HTTPS** pour ce domaine, même si l'utilisateur tape `http://`.\n- **`Content-Security-Policy`** (CSP) : déclare quelles sources de scripts, styles et images sont autorisées, ce qui limite fortement les attaques **XSS** (injection de JavaScript).\n- **`X-Content-Type-Options: nosniff`** : empêche le navigateur de « deviner » le type d'un fichier et de l'exécuter contre votre intention.\n- **`X-Frame-Options`** (ou la directive CSP `frame-ancestors`) : empêche d'inclure vos pages dans une `iframe` d'un autre site, parade contre le **clickjacking**.\n- **`Referrer-Policy`** : contrôle quelle partie de l'URL d'origine est transmise lors d'un clic sortant, pour éviter de fuiter des informations sensibles dans l'URL.\n\nPour une API qui ne renvoie que du JSON, les plus utiles sont **HSTS** et **`nosniff`** ; CSP et `X-Frame-Options` concernent surtout les réponses HTML."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des en-têtes de réponse qui durcissent le navigateur et réduisent la surface d'attaque",
+          "body": "/images/lessons/en-tetes-de-securite-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Configurer ces en-têtes",
+          "codeLanguage": "http",
+          "body": "# Jeu d'en-tetes de securite recommande sur les reponses\n\n# Force HTTPS pendant 1 an, sous-domaines compris\nStrict-Transport-Security: max-age=31536000; includeSubDomains\n\n# N'autorise que les ressources du meme site, aucun script en ligne\nContent-Security-Policy: default-src 'self'; frame-ancestors 'none'\n\n# Interdit la devinette de type de contenu\nX-Content-Type-Options: nosniff\n\n# Empeche l'inclusion dans une iframe (anti-clickjacking)\nX-Frame-Options: DENY\n\n# Ne transmet l'URL d'origine qu'en HTTPS -> HTTPS, et sans le chemin\nReferrer-Policy: strict-origin-when-cross-origin\n\n# Rappel : ces en-tetes guident le NAVIGATEUR.\n# La verification des droits reste a faire cote serveur."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi : durcir une API",
+          "body": "Une API en production renvoie ses réponses JSON **sans aucun en-tête de sécurité**, et sa configuration CORS contient ces deux lignes :\n\n```\nAccess-Control-Allow-Origin: *\nAccess-Control-Allow-Credentials: true\n```\n\nL'application frontale est servie uniquement depuis `https://app.exemple.fr` et envoie un jeton dans l'en-tête `Authorization`.\n\n1. Explique pourquoi cette politique CORS est à la fois trop permissive et incorrecte.\n2. Propose une configuration CORS corrigée.\n3. Ajoute au moins trois en-têtes de sécurité pertinents, avec en une phrase le rôle de chacun.",
+          "solution": "1. Pourquoi c'est faux et dangereux : la spécification interdit de combiner `Access-Control-Allow-Origin: *` avec `Access-Control-Allow-Credentials: true`, donc les navigateurs rejettent la réponse et l'application ne fonctionnera pas avec credentials. Sur le fond, autoriser **toutes** les origines tout en acceptant les credentials reviendrait à laisser n'importe quel site lire des données authentifiées de l'utilisateur : c'est exactement ce qu'il faut éviter. De plus, `*` est trop large alors qu'une seule origine légitime existe.\n\n2. Configuration CORS corrigée (origine précise issue d'une liste blanche, jamais `*` avec credentials) :\n```\nAccess-Control-Allow-Origin: https://app.exemple.fr\nAccess-Control-Allow-Credentials: true\nAccess-Control-Allow-Methods: GET, POST, PUT, DELETE\nAccess-Control-Allow-Headers: Authorization, Content-Type\nVary: Origin\n```\nL'en-tête `Vary: Origin` est important quand on renvoie une origine dynamique selon une liste blanche, pour éviter qu'un cache serve la mauvaise valeur.\n\n3. En-têtes de sécurité à ajouter :\n- `Strict-Transport-Security: max-age=31536000; includeSubDomains` : force le navigateur à n'utiliser que HTTPS pour ce domaine.\n- `X-Content-Type-Options: nosniff` : empêche le navigateur de deviner le type de contenu et d'exécuter du JSON comme autre chose.\n- `X-Frame-Options: DENY` : interdit d'inclure les réponses dans une iframe, parade contre le clickjacking.\n(On peut aussi ajouter `Referrer-Policy: strict-origin-when-cross-origin` pour limiter la fuite d'URL.)\n\nRappel transverse : corriger le CORS et ajouter ces en-têtes protège le navigateur de l'utilisateur, mais ne remplace pas l'authentification et la vérification des droits côté serveur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "en-tetes-de-securite-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "anatomie-dun-jwt-check",
+  "node": "jwt-security",
+  "lesson": "anatomie-dun-jwt",
+  "title": "Quiz : Anatomie d'un JWT",
+  "description": "Vérifie que tu comprends la structure d'un JWT et le rôle de la signature.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "De quelles trois parties un JWT est-il composé, dans l'ordre ?",
+      "justification": "Un JWT s'écrit header.payload.signature, trois parties séparées par un point. Le header annonce l'algorithme, le payload porte les claims, la signature garantit l'intégrité.",
+      "position": 0,
+      "options": [
+        { "label": "header, payload, signature", "correct": true, "position": 0 },
+        { "label": "clé, valeur, empreinte", "correct": false, "position": 1 },
+        { "label": "utilisateur, mot de passe, jeton", "correct": false, "position": 2 },
+        { "label": "requête, réponse, cookie", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le contenu d'un JWT étant encodé en base64url, on peut y stocker un mot de passe sans risque.",
+      "justification": "Faux : base64url est un simple encodage, pas du chiffrement. N'importe qui peut décoder et lire le payload. Il ne faut jamais y mettre de donnée sensible.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que garantit la signature d'un JWT ?",
+      "justification": "La signature garantit l'intégrité : si le header ou le payload est modifié, elle ne correspond plus et le jeton est rejeté. Elle ne rend pas le contenu confidentiel, qui reste lisible.",
+      "position": 2,
+      "options": [
+        { "label": "Que le payload n'a pas été modifié depuis l'émission", "correct": true, "position": 0 },
+        { "label": "Que le contenu du jeton est chiffré et illisible", "correct": false, "position": 1 },
+        { "label": "Que le jeton ne peut jamais expirer", "correct": false, "position": 2 },
+        { "label": "Que l'utilisateur a bien saisi son mot de passe", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

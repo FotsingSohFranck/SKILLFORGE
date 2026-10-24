@@ -1,0 +1,119 @@
+{
+  "node": "api-keys-mtls",
+  "lessons": [
+    {
+      "slug": "les-cles-dapi",
+      "title": "Les clés d'API",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "À quoi sert une clé d'API",
+          "body": "Une **clé d'API** est une chaîne de caractères secrète qu'une application présente pour s'identifier auprès d'une autre API. Point important : elle identifie **l'application appelante** (par exemple un service météo, un script de facturation), pas une personne.\n\nIl ne faut donc pas la confondre avec la connexion d'un utilisateur. Quand ton application mobile se connecte au nom d'un humain, c'est de l'authentification d'utilisateur (souvent via un jeton). La clé d'API, elle, répond à la question « quelle application me parle ? ». Les deux peuvent coexister : l'application s'identifie avec sa clé, et l'utilisateur avec son propre jeton."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une clé secrète qui identifie l'application appelante",
+          "body": "/images/lessons/les-cles-dapi-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Bonnes pratiques",
+          "body": "Une clé d'API n'est utile que si elle reste maîtrisée. Les règles de base :\n- **Transmise dans un en-tête HTTP**, jamais dans l'URL. Une URL finit dans les journaux des serveurs, dans l'historique du navigateur et dans les référents : y mettre une clé revient à la laisser traîner en clair.\n- **Secrète** : stockée dans une variable d'environnement ou un coffre à secrets, jamais écrite en dur dans le code ni publiée sur un dépôt.\n- **Rotation possible** : on peut en générer une nouvelle et révoquer l'ancienne sans tout casser, utile en cas de fuite.\n- **Portée limitée** : une clé n'ouvre que les ressources dont l'application a réellement besoin (lecture seule, un seul service), pas tout le système.\n- **Quota par clé** : chaque clé a une limite de requêtes, ce qui évite qu'une application emballée sature l'API et permet de repérer un usage anormal."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En-tête HTTP, coffre à secrets, rotation et portée limitée",
+          "body": "/images/lessons/les-cles-dapi-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Transmettre la clé dans un en-tête",
+          "codeLanguage": "http",
+          "body": "# Recommande : la cle voyage dans un en-tete, hors de l'URL\nGET /api/v1/meteo?ville=Lyon HTTP/1.1\nHost: api.exemple.fr\nAuthorization: Bearer sk_live_8fK2p9Qz7...\n\n# Variante frequente : un en-tete dedie X-API-Key\nGET /api/v1/meteo?ville=Lyon HTTP/1.1\nHost: api.exemple.fr\nX-API-Key: sk_live_8fK2p9Qz7...\n\n# A EVITER : la cle dans l'URL, elle finit dans les journaux\nGET /api/v1/meteo?ville=Lyon&api_key=sk_live_8fK2p9Qz7... HTTP/1.1\nHost: api.exemple.fr"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le parcours d'une requête avec clé",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  S[\"Service appelant\"] -->|\"Requete + cle d'API dans l'en-tete\"| G{\"Cle valide ?\"}\n  G -->|\"Non\"| R1[\"401 : refus\"]\n  G -->|\"Oui\"| P{\"Portee autorise la ressource ?\"}\n  P -->|\"Non\"| R2[\"403 : interdit\"]\n  P -->|\"Oui\"| Q{\"Quota de la cle restant ?\"}\n  Q -->|\"Non\"| R3[\"429 : trop de requetes\"]\n  Q -->|\"Oui\"| OK[\"Reponse de l'API\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Les limites d'une clé d'API",
+          "body": "Une clé d'API reste un **secret partagé** : quiconque la possède peut se faire passer pour l'application. Ce n'est donc **pas de l'authentification forte d'utilisateur**.\n\nElle ne prouve pas qui est l'humain derrière l'appel, elle n'a pas de second facteur, et si elle fuite, l'attaquant hérite de tous ses droits jusqu'à la rotation. Pour authentifier des personnes, on utilise d'autres mécanismes (jetons, OpenID Connect). Pour authentifier fortement un service de confiance, on verra le mTLS dans la leçon suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un secret partagé, pas une authentification forte d'utilisateur",
+          "body": "/images/lessons/les-cles-dapi-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "les-cles-dapi-check"
+        }
+      ]
+    },
+    {
+      "slug": "tls-mutuel",
+      "title": "TLS mutuel (mTLS)",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "TLS classique : une seule partie se prouve",
+          "body": "**TLS** (*Transport Layer Security*) est le protocole qui chiffre les échanges sur Internet, c'est le « s » de HTTPS. En TLS classique, **seul le serveur prouve son identité** : il présente un **certificat** (une pièce d'identité numérique) que le client vérifie. C'est ce qui te garantit que tu parles bien à `banque.fr` et non à un imposteur.\n\nEn revanche, le serveur ne sait pas, par TLS, qui est le client. Côté serveur, l'identité de l'appelant doit alors être établie autrement, par exemple avec une clé d'API ou un jeton."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En TLS classique, seul le serveur prouve son identité",
+          "body": "/images/lessons/tls-mutuel-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "mTLS : les deux parties s'authentifient",
+          "body": "Le **TLS mutuel** (mTLS, pour *mutual TLS*) ajoute une étape : **le client présente lui aussi un certificat**. Les deux parties se prouvent donc leur identité pendant la poignée de main, avant tout échange de données.\n\nPour que ces certificats soient dignes de confiance, ils sont émis et signés par une **autorité de certification** (*Certificate Authority*, ou CA) : un tiers de confiance commun. Chaque partie vérifie que le certificat de l'autre a bien été signé par une CA qu'elle reconnaît.\n\nUsage typique : la **communication entre services internes de confiance** (par exemple deux microservices du même système). On n'impose généralement pas de certificat client à un navigateur grand public, car distribuer et gérer un certificat par utilisateur est lourd."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En mTLS, les deux parties présentent leur certificat",
+          "body": "/images/lessons/tls-mutuel-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Appeler une API en mTLS avec curl",
+          "codeLanguage": "bash",
+          "body": "# TLS classique : on verifie seulement le serveur\ncurl https://service-interne.exemple.fr/api/v1/comptes\n\n# mTLS : on presente AUSSI notre certificat client\n#   --cert : le certificat public du client\n#   --key  : la cle privee associee (a garder secrete)\n#   --cacert : la CA qui permet de verifier le certificat du serveur\ncurl https://service-interne.exemple.fr/api/v1/comptes \\\n  --cert ./client.crt \\\n  --key ./client.key \\\n  --cacert ./ca.crt\n\n# Si le client ne presente pas de certificat valide,\n# le serveur en mTLS coupe la connexion : aucune donnee n'est echangee."
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "Clé d'API ou mTLS ?",
+          "body": "Pour chacun des deux cas, choisis entre **clé d'API** et **mTLS**, et justifie en une phrase.\n\n1. Un développeur externe veut tester ton API publique depuis son script personnel, en quelques minutes, sans infrastructure particulière.\n\n2. Deux microservices internes, dans ton propre réseau, doivent communiquer et tu veux que chacun soit certain de l'identité de l'autre, sans secret partagé réutilisable.",
+          "solution": "1. **Clé d'API**. C'est simple à distribuer et à mettre en place : le développeur copie la clé et la place dans un en-tête. Pour un usage externe rapide et à faible enjeu, l'authentification forte des deux parties n'est pas nécessaire, et un quota par clé suffit à encadrer l'usage.\n\n2. **mTLS**. On veut une authentification mutuelle forte entre services de confiance : chaque microservice présente un certificat signé par la CA commune, les deux identités sont donc prouvées. Contrairement à une clé d'API (un secret partagé qui, s'il fuite, est réutilisable), le certificat client s'appuie sur une clé privée qui ne quitte pas le service, et il peut être révoqué via la CA."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "tls-mutuel-check"
+        }
+      ]
+    }
+  ]
+}

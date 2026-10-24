@@ -1,0 +1,43 @@
+{
+  "ref": "sql-injection-check",
+  "node": "injection",
+  "lesson": "sql-injection",
+  "title": "Quiz : L'injection SQL",
+  "description": "Vérifie que tu sais d'où vient une injection SQL et comment l'empêcher.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la cause première d'une injection SQL ?",
+      "justification": "L'injection naît quand une entrée utilisateur est concaténée dans le texte de la requête : le moteur ne distingue plus le code de la donnée.",
+      "position": 0,
+      "options": [
+        { "label": "Concaténer une entrée utilisateur directement dans le texte de la requête", "correct": true, "position": 0 },
+        { "label": "Utiliser une base de données trop ancienne", "correct": false, "position": 1 },
+        { "label": "Renvoyer les résultats au format JSON", "correct": false, "position": 2 },
+        { "label": "Chiffrer la connexion à la base", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la parade principale contre l'injection SQL ?",
+      "justification": "La requête paramétrée passe les valeurs séparément du texte SQL, si bien que l'entrée est toujours traitée comme une donnée, jamais comme du code.",
+      "position": 1,
+      "options": [
+        { "label": "Utiliser des requêtes paramétrées et ne jamais concaténer l'entrée", "correct": true, "position": 0 },
+        { "label": "Masquer les messages d'erreur de la base", "correct": false, "position": 1 },
+        { "label": "Renommer les tables sensibles", "correct": false, "position": 2 },
+        { "label": "Augmenter la mémoire du serveur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Donner à l'utilisateur de base de données de l'API uniquement les droits nécessaires limite les dégâts en cas d'injection.",
+      "justification": "Vrai : c'est le principe de moindre privilège. Si la connexion n'a pas le droit de supprimer ou modifier, une injection fait moins de dégâts.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}
