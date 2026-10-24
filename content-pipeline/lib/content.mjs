@@ -17,6 +17,7 @@ const validators = {
   quiz: ajv.compile(loadSchema('quiz.schema.json')),
   challenge: ajv.compile(loadSchema('challenge.schema.json')),
   exam: ajv.compile(loadSchema('exam.schema.json')),
+  practical: ajv.compile(loadSchema('practical.schema.json')),
 }
 
 export function readJson(file) {
@@ -48,7 +49,8 @@ export function loadParcoursDocs(dir) {
   const quizzes = listJson(join(dir, 'quizzes')).map((file) => ({ file, data: readJson(file) }))
   const challenges = listJson(join(dir, 'challenges')).map((file) => ({ file, data: readJson(file) }))
   const exams = listJson(join(dir, 'exams')).map((file) => ({ file, data: readJson(file) }))
-  return { slug: basename(dir), roadmap, contents, quizzes, challenges, exams }
+  const practicals = listJson(join(dir, 'practical')).map((file) => ({ file, data: readJson(file) }))
+  return { slug: basename(dir), roadmap, contents, quizzes, challenges, exams, practicals }
 }
 
 /** Valide un parcours (structure ajv + cohérence inter-fichiers). Renvoie la liste d'erreurs. */
@@ -165,6 +167,15 @@ export function validateParcoursDir(dir) {
       }
     }
   }
+
+  const practicalNodes = []
+  for (const file of listJson(join(dir, 'practical'))) {
+    const practical = readOr(file)
+    if (!practical || !structural(file, practical, validators.practical)) continue
+    practicalNodes.push(practical.node)
+    if (!nodeSlugs.has(practical.node)) fail(file, `nœud inconnu « ${practical.node} »`)
+  }
+  for (const n of dup(practicalNodes)) fail(dir, `plusieurs épreuves pratiques pour le nœud « ${n} »`)
 
   return errors
 }

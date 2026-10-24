@@ -102,7 +102,7 @@ async function ingestParcours(opts, dir, token, state) {
   if (errs.length) {
     throw new Error(`validation échouée (${errs.length}) :\n    ${errs.join('\n    ')}`)
   }
-  const { roadmap, contents, quizzes, challenges, exams } = loadParcoursDocs(dir)
+  const { roadmap, contents, quizzes, challenges, exams, practicals } = loadParcoursDocs(dir)
   const base = opts.api
 
   const step = async (key, payload, fn) => {
@@ -252,6 +252,24 @@ async function ingestParcours(opts, dir, token, state) {
       }
       await step(`exam:${basename(file)}`, body, () => api(base, 'POST', '/api/v1/exams/import', { token, body }))
     }
+  }
+
+  // 7. Épreuves pratiques (lab, SF-91). Upsert par nœud + politique de validation.
+  for (const { file, data } of practicals ?? []) {
+    const nodeId = nodeIdBySlug.get(data.node)
+    if (!nodeId) throw new Error(`épreuve pratique ${basename(file)} : nœud « ${data.node} » absent du graphe`)
+    const body = {
+      title: data.title,
+      image: data.image,
+      instructions: data.instructions,
+      workspaceSeed: data.workspaceSeed ?? null,
+      validationRef: data.validationRef,
+      timeoutSeconds: data.timeoutSeconds ?? null,
+      requiresPractical: data.requiresPractical ?? false,
+    }
+    await step(`practical:${data.node}`, body, () =>
+      api(base, 'POST', `/api/v1/lab/nodes/${nodeId}/practical/import`, { token, body }),
+    )
   }
 }
 

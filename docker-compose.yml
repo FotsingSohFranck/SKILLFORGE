@@ -35,6 +35,8 @@ services:
   backend:
     build:
       context: .
+      # Image par défaut : JRE seul, sans client Docker (le lab s'active via docker-compose.lab.yml).
+      target: runtime
     depends_on:
       postgres:
         condition: service_healthy

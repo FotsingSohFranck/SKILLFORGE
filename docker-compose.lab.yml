@@ -1,0 +1,26 @@
+# Surcouche OPT-IN : active l'évaluation pratique par conteneur (lab, SF-91 / ADR-0008).
+#
+# Sans cette surcouche, `docker compose up` ne monte aucun socket Docker et le lab reste
+# inerte (toute soumission échoue proprement). On ne l'ajoute qu'en local, jamais en prod.
+#
+# Prérequis : construire les images de lab une fois :
+#   docker build -t skillforge-lab-backend:pilot lab-images/backend
+#
+# Lancement avec le lab activé :
+#   docker compose -f docker-compose.yml -f docker-compose.lab.yml up --build
+#
+# ⚠ Sécurité : monter le socket Docker donne au backend un accès équivalent à root sur
+# l'hôte. L'isolement des conteneurs d'épreuve est assuré par SandboxPolicy (réseau none,
+# quotas, cap-drop ALL, no-new-privileges, user non-root, racine en lecture seule).
+services:
+  backend:
+    build:
+      # Variante de l'image backend incluant le client Docker (cf. Dockerfile, stage runtime-lab).
+      target: runtime-lab
+    volumes:
+      # Accès au démon Docker de l'hôte pour orchestrer les conteneurs d'épreuve (siblings).
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Binaire client et délai max d'une commande docker (démarrage + exec de validation).
+      SKILLFORGE_LAB_DOCKER_BIN: docker
+      SKILLFORGE_LAB_COMMAND_TIMEOUT_SECONDS: "180"

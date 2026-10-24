@@ -61,9 +61,9 @@ public final class SandboxPolicy {
         // Système de fichiers : racine en lecture seule + zone de travail inscriptible en tmpfs.
         a.add("--read-only");
         a.add("--tmpfs");
-        a.add(LabRuntimeSpec.WORKDIR + ":rw,nosuid,nodev,size=64m");
+        a.add(LabRuntimeSpec.WORKDIR + ":rw,nosuid,nodev,size=64m,mode=1777");
         a.add("--tmpfs");
-        a.add("/tmp:rw,nosuid,nodev,size=32m");
+        a.add("/tmp:rw,nosuid,nodev,size=32m,mode=1777");
         a.add("--workdir");
         a.add(LabRuntimeSpec.WORKDIR);
 

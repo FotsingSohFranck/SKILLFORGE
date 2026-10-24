@@ -40,6 +40,11 @@ class SandboxPolicyTest {
         assertTrue(args.contains("--read-only"));
         assertTrue(args.stream().anyMatch(a -> a.startsWith(LabRuntimeSpec.WORKDIR + ":rw")),
                 "tmpfs du workspace manquant");
+        // Le tmpfs doit être inscriptible par l'utilisateur non-root (mode 1777) tout en restant
+        // durci (nosuid), sinon le dépôt des fichiers de l'apprenant échoue en « permission denied ».
+        assertTrue(args.stream().anyMatch(a -> a.startsWith(LabRuntimeSpec.WORKDIR + ":")
+                        && a.contains("mode=1777") && a.contains("nosuid")),
+                "tmpfs du workspace doit être en mode=1777,nosuid");
         assertEquals(LabRuntimeSpec.WORKDIR, valueAfter(args, "--workdir"));
         // Détaché + label + image + keep-alive
         assertTrue(args.contains("--detach"));

@@ -71,6 +71,23 @@ Le backend (`lab`) lit le **code de sortie** (0 = `passed`) et renvoie la sortie
 (sans divulguer le contenu des tests cachés, seulement le verdict et d'éventuels messages
 d'échec filtrés).
 
+## Pilote implémenté (SF-91g)
+
+- **Image** : `lab-images/backend/` → `skillforge-lab-backend:pilot`
+  (`maven:3.9-eclipse-temurin-21`, dépôt `.m2` préchauffé, grader générique `/grader/grade.sh`).
+- **Validation** : variante 1 (tests JUnit cachés, `mvn -o test`, `exit 0` ⟺ tous verts).
+- **3 nœuds seedés** via `content/backend/practical/*.json` (requis pour valider le nœud) :
+  `java-language` (collections), `caching` (cache LRU), `design-principles` (règles de remise).
+- **Activation locale** (opt-in, socket Docker exposé au backend) :
+
+  ```bash
+  docker build -t skillforge-lab-backend:pilot lab-images/backend
+  docker compose -f docker-compose.yml -f docker-compose.lab.yml up -d --build
+  node content-pipeline/ingest.mjs content --only backend   # seed des épreuves
+  ```
+
+  Sans la surcouche `docker-compose.lab.yml`, le lab reste inerte (aucun socket monté).
+
 ## Spécificités / pièges
 
 - **Démarrage à froid Maven** : préchauffer le cache `.m2` dans l'image (build d'un projet

@@ -2,8 +2,10 @@ package dev.skillforge.lab.config;
 
 import dev.skillforge.lab.adapter.out.runtime.DockerCliLabRuntime;
 import dev.skillforge.lab.application.GetPracticalService;
+import dev.skillforge.lab.application.ImportPracticalTaskService;
 import dev.skillforge.lab.application.SubmitPracticalService;
 import dev.skillforge.lab.domain.port.in.GetPracticalUseCase;
+import dev.skillforge.lab.domain.port.in.ImportPracticalTaskUseCase;
 import dev.skillforge.lab.domain.port.in.SubmitPracticalUseCase;
 import dev.skillforge.lab.domain.port.out.LabCatalogPort;
 import dev.skillforge.lab.domain.port.out.LabEventPublisher;
@@ -48,5 +50,11 @@ public class LabConfig {
                                                    PracticalAttemptStore attempts,
                                                    LabCatalogPort catalog) {
         return new GetPracticalService(tasks, attempts, catalog);
+    }
+
+    @Bean
+    public ImportPracticalTaskUseCase importPracticalTaskUseCase(PracticalTaskStore tasks,
+                                                                 LabCatalogPort catalog) {
+        return new ImportPracticalTaskService(tasks, catalog);
     }
 }

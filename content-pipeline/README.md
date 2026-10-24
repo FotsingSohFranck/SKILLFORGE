@@ -20,6 +20,7 @@ content/
     quizzes/<ref>.json          # quiz (référencé par une section QUIZ via quizRef)
     challenges/<name>.json      # défi de code rattaché à un nœud
     exams/<name>.json           # examen blanc (certifications uniquement)
+    practical/<node-slug>.json  # épreuve pratique exécutable d'un nœud (lab, SF-91)
 ```
 
 Le **format authoré** utilise des **clés naturelles** (slugs, titres de phase, noms de domaine)
@@ -36,6 +37,7 @@ clés en identifiants réels à l'import (le nœud est créé par la roadmap ; s
 | `quiz.schema.json` | `quizzes/*.json` | `POST /api/v1/quizzes/import` |
 | `challenge.schema.json` | `challenges/*.json` | `POST /api/v1/challenges/import` |
 | `exam.schema.json` | `exams/*.json` | `POST /api/v1/exams/import` |
+| `practical.schema.json` | `practical/*.json` | `POST /api/v1/lab/nodes/{id}/practical/import` |
 
 ## Ce que le validateur vérifie
 

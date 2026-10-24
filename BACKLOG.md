@@ -1575,9 +1575,26 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
         l'essayer visuellement de bout en bout, il faut SF-91g (tâche seedée) + activation Docker.
     - ⬜ **SF-91f — Terminal navigateur (optionnel pilote)** : xterm.js ↔ websocket ↔ shell
       du conteneur, pour une vraie manipulation interactive. CA : terminal fonctionnel et borné.
-    - ⬜ **SF-91g — Contenu pilote** : tâches pratiques + scripts de validation pour quelques
-      nœuds `backend` ; support dans `content-pipeline` (nouveau fichier de tâche + schéma).
-      CA : au moins 3 nœuds backend validables par la pratique, seedés.
+    - ✅ **SF-91g — Contenu pilote** — **TERMINÉ**
+      - **Image lab** `lab-images/backend/` → `skillforge-lab-backend:pilot`
+        (`maven:3.9-eclipse-temurin-21`, dépôt `.m2` préchauffé pour tourner hors-ligne, grader
+        générique `/grader/grade.sh <task-id>` : squelette + tests JUnit **cachés** imposés,
+        `mvn -o test`, `exit 0` ⟺ vert). 3 tâches : `collections-grouping`, `caching-lru`,
+        `design-strategy`.
+      - **Activation Docker opt-in** : stage `runtime-lab` (Dockerfile, client docker ajouté) +
+        **`docker-compose.lab.yml`** (monte le socket) ; le `docker compose up` par défaut reste
+        **sans socket** (cible `runtime`) → lab inerte sans la surcouche. Correctif sécurité :
+        tmpfs `/workspace` en `mode=1777,nosuid` dans `SandboxPolicy` (dépôt des fichiers en
+        non-root), couvert par test.
+      - **Import + pipeline** : endpoint admin **POST `/api/v1/lab/nodes/{id}/practical/import`**
+        (upsert `practical_tasks` + politique du nœud), schéma `practical.schema.json` + support
+        `validate.mjs`/`ingest.mjs` + docs `content/backend/practical/*.json` (3 nœuds :
+        `java-language`, `caching`, `design-principles`, **requis** pour valider).
+      - **Vérifs E2E** (stack `-f docker-compose.lab.yml`) : backend `runtime-lab` démarre (client
+        docker 29.9 ↔ démon hôte 27.0), ingestion des 3 épreuves OK ; soumission **correcte →
+        `passed:true` / `PRATIQUE_OK`** (~12 s), **fausse → `passed:false`** + feedback filtré ;
+        `latestPassed` persisté ; `PracticalPassedEvent` propagé (`node_progress.practical_passed=t`) ;
+        **aucun conteneur de lab résiduel** (stop après chaque correction). `lab`+`iam` **32 tests**.
     - 🧊 **SF-91h — Phase 3 (hors pilote)** : bacs à sable infra (k3d/dind) pour docker,
       kubernetes, terraform, cka, ckad (terminal complet, clusters jetables). ADR dédié au
       durcissement du mode privilégié avant de commencer.
@@ -1603,3 +1620,10 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
 - [ ] Env de dev : un PostgreSQL natif occupe le port 5432 → pour les runs locaux, utiliser un
       port dédié (ex. 55432) via `SF_R2DBC_URL`/`SF_JDBC_URL` (documenté dans `README.md`).
       Sans impact en Docker Compose (SF-41, réseau interne, hôte `postgres`).
+- [ ] **Lab (SF-91g)** : basculer un nœud en `LESSONS_AND_PRACTICAL` via l'import ne **recalcule
+      pas** les progressions déjà `COMPLETED` (elles restent terminées sous l'ancienne politique).
+      Acceptable (on ne révoque pas une complétion), mais prévoir un recalcul optionnel si la
+      politique devient modifiable après coup à grande échelle.
+- [ ] **Lab (SF-91g)** : images de lab lourdes (Maven/JDK ~560 Mo) et ~12 s par correction ;
+      si plus de tâches/concurrence, préchauffer davantage et/ou limiter le nombre de corrections
+      simultanées (file d'attente). Les autres familles (infra) = SF-91h.

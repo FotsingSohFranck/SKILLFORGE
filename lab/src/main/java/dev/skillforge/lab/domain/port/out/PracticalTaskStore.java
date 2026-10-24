@@ -13,4 +13,10 @@ public interface PracticalTaskStore {
     Mono<PracticalTask> findByNode(UUID nodeId);
 
     Mono<PracticalTask> findById(PracticalTaskId id);
+
+    /**
+     * Crée ou met à jour l'épreuve pratique d'un nœud (une seule par nœud : clé unique
+     * {@code node_id}). Utilisé par l'import de contenu ; idempotent.
+     */
+    Mono<Void> upsert(PracticalTask task);
 }

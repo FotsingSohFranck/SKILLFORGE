@@ -25,4 +25,13 @@ public class LabCatalogAdapter implements LabCatalogPort {
                 .one()
                 .defaultIfEmpty(false);
     }
+
+    @Override
+    public Mono<Void> setCompletionPolicy(UUID nodeId, boolean requiresPractical) {
+        String policy = requiresPractical ? "LESSONS_AND_PRACTICAL" : "LESSONS_ONLY";
+        return db.sql("UPDATE nodes SET completion_policy = :p WHERE id = :nid")
+                .bind("p", policy)
+                .bind("nid", nodeId)
+                .fetch().rowsUpdated().then();
+    }
 }

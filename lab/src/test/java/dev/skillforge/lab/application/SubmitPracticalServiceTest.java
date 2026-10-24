@@ -88,6 +88,7 @@ class SubmitPracticalServiceTest {
         FakeTasks(PracticalTask task) { this.task = task; }
         public Mono<PracticalTask> findByNode(UUID nodeId) { return task == null ? Mono.empty() : Mono.just(task); }
         public Mono<PracticalTask> findById(PracticalTaskId id) { return Mono.justOrEmpty(task); }
+        public Mono<Void> upsert(PracticalTask t) { return Mono.empty(); }
     }
 
     private static final class FakeAttempts implements PracticalAttemptStore {

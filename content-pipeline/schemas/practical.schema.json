@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://skillforge.dev/schemas/practical.schema.json",
+  "title": "Épreuve pratique d'un nœud (lab, SF-91)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["node", "title", "image", "instructions", "validationRef"],
+  "properties": {
+    "node": {
+      "type": "string",
+      "description": "Slug du nœud auquel l'épreuve est rattachée."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "image": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Image de lab (par famille de parcours), ex. skillforge-lab-backend:pilot."
+    },
+    "instructions": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Énoncé affiché à l'apprenant (markdown simple)."
+    },
+    "validationRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Commande de validation exécutée dans le conteneur (exit 0 = réussi)."
+    },
+    "workspaceSeed": {
+      "type": "string",
+      "description": "Contenu initial éventuel du workspace (optionnel)."
+    },
+    "timeoutSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600,
+      "description": "TTL de la session (défaut serveur : 900)."
+    },
+    "requiresPractical": {
+      "type": "boolean",
+      "description": "Vrai si l'épreuve est requise pour valider le nœud (politique LESSONS_AND_PRACTICAL)."
+    }
+  }
+}

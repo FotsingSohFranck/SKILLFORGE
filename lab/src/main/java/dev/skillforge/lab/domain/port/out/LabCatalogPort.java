@@ -14,4 +14,10 @@ public interface LabCatalogPort {
 
     /** Vrai si la politique du nœud est {@code LESSONS_AND_PRACTICAL}. */
     Mono<Boolean> requiresPractical(UUID nodeId);
+
+    /**
+     * Fixe la politique de validation du nœud : {@code LESSONS_AND_PRACTICAL} si l'épreuve
+     * pratique est requise pour valider, sinon {@code LESSONS_ONLY}. Utilisé par l'import.
+     */
+    Mono<Void> setCompletionPolicy(UUID nodeId, boolean requiresPractical);
 }

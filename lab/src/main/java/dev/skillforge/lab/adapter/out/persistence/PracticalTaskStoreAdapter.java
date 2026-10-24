@@ -39,6 +39,34 @@ public class PracticalTaskStoreAdapter implements PracticalTaskStore {
                 .one();
     }
 
+    @Override
+    public Mono<Void> upsert(PracticalTask task) {
+        DatabaseClient.GenericExecuteSpec spec = db.sql("""
+                        INSERT INTO practical_tasks
+                            (id, node_id, title, image, instructions, workspace_seed, validation_ref, timeout_seconds)
+                        VALUES (:id, :node, :title, :image, :instructions, :seed, :ref, :timeout)
+                        ON CONFLICT (node_id) DO UPDATE SET
+                            title = EXCLUDED.title,
+                            image = EXCLUDED.image,
+                            instructions = EXCLUDED.instructions,
+                            workspace_seed = EXCLUDED.workspace_seed,
+                            validation_ref = EXCLUDED.validation_ref,
+                            timeout_seconds = EXCLUDED.timeout_seconds,
+                            updated_at = now()
+                        """)
+                .bind("id", task.id().value())
+                .bind("node", task.nodeId())
+                .bind("title", task.title())
+                .bind("image", task.image())
+                .bind("instructions", task.instructions())
+                .bind("ref", task.validationRef())
+                .bind("timeout", task.timeoutSeconds());
+        spec = task.workspaceSeed() == null
+                ? spec.bindNull("seed", String.class)
+                : spec.bind("seed", task.workspaceSeed());
+        return spec.fetch().rowsUpdated().then();
+    }
+
     private static PracticalTask map(Readable row) {
         return new PracticalTask(
                 PracticalTaskId.of(row.get("id", UUID.class)),
