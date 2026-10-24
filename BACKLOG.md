@@ -1500,6 +1500,57 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
 
 ---
 
+## Lot 5 — Lab exécutable : évaluation pratique par conteneur
+
+> Comble le trou identifié par le PO : à la fin d'un nœud, une **vraie épreuve pratique**
+> (pas un QCM) dans un **environnement exécutable**, dont la **réussite valide le nœud**.
+> Conception figée dans **`docs/adr/0008-lab-executable-evaluation-pratique.md`**.
+> Contrainte : 100% local (Docker Compose). **Sécurité = cœur du chantier** (socket Docker).
+> WIP = 1, **pilote = parcours `backend`**. Chaque story respecte la DoD de `CLAUDE.md` §5.
+
+- ⬜ **SF-91 — Épic : évaluation pratique par conteneur pour valider un nœud** (ADR-0008)
+  - **Objectif** : nouveau contexte `lab` ; un nœud peut porter une **tâche pratique**
+    (image, workspace, énoncé, **script de validation** code-sortie 0 = réussi) ; politique
+    de validation de nœud **configurable** (`LESSONS_ONLY` défaut = aucune régression,
+    `LESSONS_AND_PRACTICAL`) ; la réussite émet `PracticalPassedEvent` consommé par
+    `apprentissage`.
+  - **Découpage proposé (à prendre dans l'ordre, WIP = 1) :**
+    - ⬜ **SF-91a — Modèle & migration `lab`** : entités `practical_task` (par nœud) +
+      `practical_attempt` (session, statut, résultat) ; champ `completion_policy` sur le nœud
+      (catalogue) ; migration Flyway (V12). Domaine pur + ports, pas d'orchestration encore.
+      CA : schéma validé, défaut `LESSONS_ONLY` partout (aucune régression de progression).
+    - ⬜ **SF-91b — Port d'exécution + orchestrateur Docker durci** : `LabRuntimePort`
+      (start/exec/stop) ; adapter Docker (socket) avec **sandbox** : `--network none`,
+      limites CPU/mémoire/pids, `--no-new-privileges`, seccomp, cap-drop ALL, non-root,
+      racine read-only, **TTL + reaper**. Image pilote **backend** (JDK/maven).
+      CA : un conteneur jetable démarre/exécute/meurt sous quotas ; tests d'isolation.
+    - ⬜ **SF-91c — Soumission & correction** : endpoint « valider la pratique » → exécute
+      le **script de validation** dans le conteneur → `passed` + sortie ; persiste la
+      tentative ; émet `PracticalPassedEvent`. Pas encore de terminal (soumission de
+      fichiers/code). CA : une tâche backend réussie/échouée renvoie un verdict fiable.
+    - ⬜ **SF-91d — Lien progression** : listener dans `apprentissage` ; `ProgressRecalculator`
+      tient compte de la politique `LESSONS_AND_PRACTICAL` (nœud COMPLETED ⟺ leçons + pratique).
+      CA : un nœud à politique pratique ne se valide **que** si la pratique est réussie.
+    - ⬜ **SF-91e — UI pratique (front)** : page/section « Passer la pratique » (éditeur de
+      code + bouton Valider + verdict), gating de la validation du nœud, état « pratique
+      réussie » persistant. CA : parcours backend jouable de bout en bout dans l'UI.
+    - ⬜ **SF-91f — Terminal navigateur (optionnel pilote)** : xterm.js ↔ websocket ↔ shell
+      du conteneur, pour une vraie manipulation interactive. CA : terminal fonctionnel et borné.
+    - ⬜ **SF-91g — Contenu pilote** : tâches pratiques + scripts de validation pour quelques
+      nœuds `backend` ; support dans `content-pipeline` (nouveau fichier de tâche + schéma).
+      CA : au moins 3 nœuds backend validables par la pratique, seedés.
+    - 🧊 **SF-91h — Phase 3 (hors pilote)** : bacs à sable infra (k3d/dind) pour docker,
+      kubernetes, terraform, cka, ckad (terminal complet, clusters jetables). ADR dédié au
+      durcissement du mode privilégié avant de commencer.
+  - **Risques connus** (cf. ADR) : surface de sécurité (socket Docker) ; coût mémoire sur
+    machine locale déjà tendue → **quotas stricts + faible concurrence** ; maintenance des
+    images et scripts de validation.
+
+**Revue de lot 5 (à faire en fin de lot) :** un apprenant valide un nœud backend par une
+épreuve pratique réellement exécutée, sans régression des parcours existants.
+
+---
+
 ## Dette & items découverts en cours de route
 
 > À alimenter au fil de l'eau (cf. `CLAUDE.md` §4/§5 : tout reste non fait est noté ici).
