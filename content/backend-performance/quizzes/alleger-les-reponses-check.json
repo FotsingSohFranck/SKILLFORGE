@@ -1,0 +1,43 @@
+{
+  "ref": "alleger-les-reponses-check",
+  "node": "serialization",
+  "lesson": "alleger-les-reponses",
+  "title": "Quiz : Alléger les réponses",
+  "description": "Vérifie que tu sais réduire la charge utile d'une réponse d'API.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est un bon moyen d'alléger une réponse de liste d'API ?",
+      "justification": "Un DTO ciblé avec projection ne renvoie que les champs utiles à l'affichage, et la pagination limite le volume, ce qui réduit le coût de sérialisation et la taille réseau.",
+      "position": 0,
+      "options": [
+        { "label": "Renvoyer un DTO ciblé avec seulement les champs utiles et paginer la liste", "correct": true, "position": 0 },
+        { "label": "Renvoyer toujours l'objet métier complet avec toutes ses relations", "correct": false, "position": 1 },
+        { "label": "Supprimer la pagination pour tout envoyer d'un coup", "correct": false, "position": 2 },
+        { "label": "Ajouter le mot de passe haché dans chaque réponse", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quand passer à un format binaire compact comme Protobuf est-il justifié ?",
+      "justification": "Protobuf se justifie quand le volume et la fréquence des échanges le demandent ; sur une petite API peu sollicitée, c'est de la sur-ingénierie qui ajoute de la complexité pour un gain nul.",
+      "position": 1,
+      "options": [
+        { "label": "Quand le volume et la fréquence des échanges le justifient vraiment", "correct": true, "position": 0 },
+        { "label": "Toujours, même sur une petite API peu sollicitée", "correct": false, "position": 1 },
+        { "label": "Jamais, car Protobuf est plus lourd que le JSON texte", "correct": false, "position": 2 },
+        { "label": "Uniquement pour éviter d'écrire des DTO", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour une liste, remplacer la liste complète des commentaires par un simple compteur réduit la charge utile.",
+      "justification": "Vrai : exposer un nombre de commentaires plutôt que l'objet entier évite de sérialiser une relation complète, ce qui allège fortement la réponse.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

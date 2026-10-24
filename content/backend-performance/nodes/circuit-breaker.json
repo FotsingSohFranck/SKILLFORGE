@@ -1,0 +1,126 @@
+{
+  "node": "circuit-breaker",
+  "lessons": [
+    {
+      "slug": "timeouts-et-retries",
+      "title": "Timeouts et retries",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi un appel distant doit toujours avoir un timeout",
+          "body": "Un **appel distant** est un appel que ton service fait vers un autre service par le réseau (une API, une base, un service de paiement). Le réseau peut être lent ou muet : si tu n'imposes pas de limite de temps, ton code attend la réponse **indéfiniment**.\n\nUn **timeout** est cette limite : \"si je n'ai rien reçu au bout de N millisecondes, j'abandonne cet appel\". Sans timeout, chaque appel bloqué garde occupé une ressource (un thread, une connexion). Quand le service distant ralentit, tous tes appels s'empilent, toutes tes ressources sont prises, et ton propre service ne répond plus à personne. C'est pour cela que le timeout est la première règle : on pose toujours un timeout sur un appel distant."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sans limite de temps, un appel distant peut bloquer une ressource indéfiniment : le timeout coupe l'attente.",
+          "body": "/images/lessons/timeouts-et-retries-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Retry, backoff et jitter",
+          "body": "Un **retry** (nouvelle tentative) consiste à refaire un appel qui a échoué, dans l'espoir que l'erreur était passagère (un pic réseau, un redémarrage court).\n\nMais retenter tout de suite, en boucle, est dangereux. On utilise donc un **backoff exponentiel** : on attend de plus en plus longtemps entre chaque tentative (par exemple 100 ms, puis 200 ms, puis 400 ms). Cela laisse le temps au service distant de se remettre.\n\nOn ajoute aussi du **jitter** : un petit délai aléatoire en plus. Sans jitter, si cent clients échouent en même temps, ils retentent tous exactement au même instant et frappent le service ensemble. Le jitter étale ces tentatives dans le temps.\n\nDernier point : on limite le **nombre** de tentatives (par exemple 3). On ne retente pas à l'infini."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Backoff exponentiel et jitter espacent et étalent les nouvelles tentatives au lieu de frapper le service en rafale.",
+          "body": "/images/lessons/timeouts-et-retries-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Tempête de retries et idempotence",
+          "body": "Attention au piège : les retries peuvent **amplifier** une panne. Si un service est déjà saturé, lui renvoyer trois fois chaque appel triple la charge et l'achève. On appelle cela une **tempête de retries** (retry storm). Le backoff, le jitter et la limite de tentatives servent justement à éviter cela.\n\nAutre condition indispensable : l'**idempotence**. Une opération est idempotente si l'exécuter plusieurs fois donne le même résultat qu'une seule fois (lire une donnée, par exemple). Retenter une opération idempotente est sans risque. Mais retenter \"débiter 50 euros\" pourrait débiter deux fois si le premier appel avait en fait réussi sans qu'on reçoive la réponse. Donc : on ne retente automatiquement que des opérations idempotentes, ou on ajoute une **clé d'idempotence** (un identifiant unique) pour que le service distant reconnaisse et ignore un doublon."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Retenter en masse un service déjà saturé l'achève : la tempête de retries exige backoff, limites et idempotence.",
+          "body": "/images/lessons/timeouts-et-retries-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Un appel avec timeout et retry à backoff exponentiel",
+          "codeLanguage": "java",
+          "body": "// Appel reactif (Mono) vers un service distant.\n// On pose un timeout, puis des retries avec backoff et jitter.\n\nMono<Reponse> appel = clientHttp\n    .appelerServicePaiement(commande)\n    // 1) Timeout : on abandonne si pas de reponse en 2 secondes\n    .timeout(Duration.ofSeconds(2))\n    // 2) Retry : jusqu'a 3 tentatives, delai de base 100 ms\n    //    qui double a chaque fois (backoff exponentiel)\n    //    + jitter de 50 % pour etaler les tentatives\n    .retryWhen(\n        Retry.backoff(3, Duration.ofMillis(100))\n             .jitter(0.5)\n    );\n\n// Remarque : on ne retente ainsi QUE des appels idempotents.\n// Pour une operation sensible, on envoie une cle d'idempotence\n// pour que le service ignore un eventuel doublon."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Déroulé d'un appel avec timeout et retries",
+          "diagramFormat": "MERMAID",
+          "body": "sequenceDiagram\n  participant C as Client\n  participant S as Service distant\n  C->>S: Appel (timeout 100 ms)\n  Note over C,S: Pas de reponse a temps\n  C->>C: Timeout, on attend 100 ms (+ jitter)\n  C->>S: Retry 1 (timeout 100 ms)\n  Note over C,S: Toujours rien\n  C->>C: Echec, on attend 200 ms (+ jitter)\n  C->>S: Retry 2 (timeout 100 ms)\n  S-->>C: Reponse OK\n  Note over C,S: Delai croissant entre chaque tentative"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "timeouts-et-retries-check"
+        }
+      ]
+    },
+    {
+      "slug": "le-disjoncteur",
+      "title": "Le disjoncteur (circuit breaker)",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le patron circuit breaker",
+          "body": "Le **circuit breaker** (disjoncteur) est un patron inspiré de l'électricité : un disjoncteur coupe le courant pour protéger l'installation. Ici, il coupe les appels vers une dépendance en panne pour protéger ton service.\n\nL'idée : si un service distant échoue sans arrêt, continuer à l'appeler ne sert à rien, cela ne fait qu'épuiser tes ressources et ralentir tout le monde. Le disjoncteur surveille les appels et, quand trop échouent, il \"saute\" et arrête de laisser passer les appels pendant un moment.\n\nIl possède trois états :\n- **Fermé** (closed) : tout va bien, les appels passent normalement. Le disjoncteur compte les échecs.\n- **Ouvert** (open) : trop d'échecs ont été constatés. Les appels sont refusés immédiatement, sans même tenter le réseau.\n- **Demi-ouvert** (half-open) : après un délai, le disjoncteur laisse passer quelques appels d'essai pour voir si le service distant est revenu. Si oui, il se referme ; si non, il se rouvre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Comme un disjoncteur électrique coupe le courant, le circuit breaker coupe les appels vers une dépendance en panne.",
+          "body": "/images/lessons/le-disjoncteur-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Fail fast, fallback et backpressure",
+          "body": "Quand le disjoncteur est **ouvert**, il applique le principe **fail fast** : échouer vite plutôt que d'attendre un timeout à chaque appel. Refuser immédiatement un appel voué à l'échec libère tes ressources pour que le reste de l'application continue de répondre.\n\nMais échouer n'est pas forcément planter. On prévoit souvent un **fallback** (repli) : une réponse de secours quand l'appel ne peut pas aboutir. Par exemple, renvoyer une valeur par défaut, une donnée en cache, ou un message \"service momentanément indisponible\" au lieu d'une erreur brutale.\n\nTout cela rejoint le **backpressure** (contre-pression) : la capacité d'un système à dire \"je suis saturé, ralentis\" plutôt que d'accepter plus de travail qu'il ne peut en traiter. Le disjoncteur est une forme de contre-pression : en coupant les appels vers une dépendance malade, il empêche la panne de se propager à tout le système."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ouvert, le disjoncteur échoue vite et renvoie un repli : une forme de contre-pression qui protège le reste du système.",
+          "body": "/images/lessons/le-disjoncteur-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Les trois états du disjoncteur",
+          "diagramFormat": "MERMAID",
+          "body": "stateDiagram-v2\n  [*] --> Ferme\n  Ferme --> Ouvert : seuil d'echecs depasse\n  Ouvert --> DemiOuvert : apres le delai d'attente\n  DemiOuvert --> Ferme : les appels d'essai reussissent\n  DemiOuvert --> Ouvert : un appel d'essai echoue\n  note right of Ferme : Les appels passent,\\n on compte les echecs\n  note right of Ouvert : Appels refuses vite\\n (fail fast), fallback\n  note right of DemiOuvert : Quelques appels\\n d'essai"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Un appel protégé par un disjoncteur avec repli",
+          "codeLanguage": "java",
+          "body": "// On protege l'appel distant par un disjoncteur configure :\n// - il s'ouvre si 50 % des appels echouent\n// - il reste ouvert 10 secondes avant de tester a nouveau\n// Si le disjoncteur est ouvert, on renvoie un fallback.\n\nMono<Prix> prix = clientHttp\n    .appelerServiceTarifs(produit)\n    .timeout(Duration.ofSeconds(2))\n    // Le disjoncteur surveille les echecs de ce flux\n    .transformDeferred(CircuitBreakerOperator.of(disjoncteurTarifs))\n    // Repli : si l'appel echoue ou si le disjoncteur est ouvert,\n    // on renvoie un prix par defaut au lieu de planter\n    .onErrorResume(erreur -> Mono.just(Prix.parDefaut(produit)));\n\n// Configuration type du disjoncteur :\n//   failureRateThreshold = 50   (seuil d'ouverture en %)\n//   waitDurationInOpenState = 10s (temps avant demi-ouvert)"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "À toi",
+          "body": "Ton service d'inscription appelle un service tiers de vérification d'adresse e-mail. Ce service tiers est parfois lent (jusqu'à 5 secondes) et tombe régulièrement en panne plusieurs minutes. La vérification est utile mais non bloquante : une inscription peut aboutir même si l'adresse n'a pas pu être vérifiée.\n\nPropose : (1) un timeout raisonnable pour l'appel, (2) un seuil d'ouverture du disjoncteur, (3) un fallback. Justifie chaque choix en une phrase.",
+          "solution": "Une configuration raisonnable :\n\n1. **Timeout court, par exemple 1 seconde.** La vérification n'est pas bloquante, donc inutile d'attendre les 5 secondes du pire cas : on préfère abandonner vite pour ne pas bloquer l'inscription ni occuper une ressource trop longtemps.\n\n2. **Seuil d'ouverture, par exemple 50 % d'échecs sur une fenêtre de 20 appels, puis rester ouvert 30 secondes.** Comme le service tombe pour plusieurs minutes, dès qu'on détecte une vague d'échecs on coupe les appels (fail fast) au lieu de subir un timeout à chaque inscription. Le délai de 30 secondes laisse le temps au service tiers de revenir avant de retenter en demi-ouvert.\n\n3. **Fallback : marquer l'e-mail comme \"non vérifié\" et laisser l'inscription réussir.** Puisque la vérification est non bloquante, le repli consiste à ne pas vérifier pour l'instant (quitte à relancer la vérification plus tard, en tâche de fond) plutôt qu'à faire échouer l'inscription.\n\nEn résumé : timeout 1 s, disjoncteur à 50 % / 30 s d'ouverture, fallback \"e-mail non vérifié, inscription acceptée\"."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "le-disjoncteur-check"
+        }
+      ]
+    }
+  ]
+}

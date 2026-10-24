@@ -1,0 +1,31 @@
+{
+  "ref": "reecrire-une-requete-lente-check",
+  "node": "query-optimization",
+  "lesson": "reecrire-une-requete-lente",
+  "title": "Quiz : Réécrire une requête lente",
+  "description": "Vérifie les réflexes d'optimisation de requête.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi `WHERE lower(email) = 'x'` empêche-t-il souvent l'usage d'un index sur email ?",
+      "justification": "Appliquer une fonction à la colonne filtrée oblige la base à la calculer sur chaque ligne, l'index sur la colonne brute ne peut pas servir (sauf index fonctionnel dédié).",
+      "position": 0,
+      "options": [
+        { "label": "La fonction sur la colonne empêche d'utiliser l'index de la colonne brute", "correct": true, "position": 0 },
+        { "label": "lower() est une commande interdite en SQL", "correct": false, "position": 1 },
+        { "label": "Les index ne fonctionnent jamais sur du texte", "correct": false, "position": 2 },
+        { "label": "La requête doit toujours utiliser SELECT *", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Ne sélectionner que les colonnes nécessaires plutôt que SELECT * peut améliorer la performance.",
+      "justification": "Vrai : lire et transférer moins de colonnes réduit le travail de la base et le volume transmis, et permet parfois des index couvrants.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

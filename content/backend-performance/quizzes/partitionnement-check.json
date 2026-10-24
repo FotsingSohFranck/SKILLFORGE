@@ -1,0 +1,43 @@
+{
+  "ref": "partitionnement-check",
+  "node": "db-scaling",
+  "lesson": "partitionnement",
+  "title": "Quiz : Partitionnement et sharding",
+  "description": "Vérifie la distinction partitionnement/sharding et le bon moment pour y recourir.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence principale entre le partitionnement et le sharding ?",
+      "justification": "Le partitionnement découpe une table en morceaux sur un même serveur, alors que le sharding répartit les données sur plusieurs bases physiquement séparées.",
+      "position": 0,
+      "options": [
+        { "label": "Le partitionnement découpe la table sur un même serveur ; le sharding répartit les données sur plusieurs bases distinctes", "correct": true, "position": 0 },
+        { "label": "Le partitionnement supprime les index ; le sharding les double", "correct": false, "position": 1 },
+        { "label": "Le partitionnement ne concerne que les lectures ; le sharding que les écritures", "correct": false, "position": 2 },
+        { "label": "Il n'y a aucune différence, ce sont deux mots pour la même chose", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi considère-t-on souvent le sharding comme un dernier recours ?",
+      "justification": "Le sharding introduit des coûts lourds (requêtes inter-shards, rééquilibrage, transactions et jointures difficiles), donc on épuise d'abord index, optimisation, cache et réplicas.",
+      "position": 1,
+      "options": [
+        { "label": "Il ajoute des coûts lourds comme les requêtes inter-shards et le rééquilibrage", "correct": true, "position": 0 },
+        { "label": "Il est interdit par la plupart des bases de données", "correct": false, "position": 1 },
+        { "label": "Il ralentit toujours chaque requête individuelle", "correct": false, "position": 2 },
+        { "label": "Il efface les données au-delà d'un certain volume", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avant de recourir au sharding, on devrait d'abord essayer les index, l'optimisation des requêtes, le cache et les réplicas de lecture.",
+      "justification": "Vrai : ces solutions moins complexes résolvent la plupart des problèmes de performance ; le sharding ne se justifie que lorsqu'une seule base ne suffit vraiment plus.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

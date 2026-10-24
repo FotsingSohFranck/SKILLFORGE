@@ -1,0 +1,43 @@
+{
+  "ref": "paginer-les-resultats-check",
+  "node": "pagination-batching",
+  "lesson": "paginer-les-resultats",
+  "title": "Quiz : Paginer les résultats",
+  "description": "Vérifie que tu sais choisir entre OFFSET et pagination par curseur.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi la pagination par OFFSET devient-elle lente sur de grands décalages ?",
+      "justification": "Avec un grand OFFSET, la base doit parcourir puis jeter toutes les lignes précédentes avant de renvoyer la page voulue, ce qui coûte de plus en plus cher.",
+      "position": 0,
+      "options": [
+        { "label": "La base doit parcourir et jeter toutes les lignes avant le décalage demandé", "correct": true, "position": 0 },
+        { "label": "OFFSET désactive tous les index de la table", "correct": false, "position": 1 },
+        { "label": "OFFSET renvoie toujours la table entière", "correct": false, "position": 2 },
+        { "label": "LIMIT devient ignoré au-delà de 100 lignes", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la forme typique d'une pagination par curseur (keyset) sur une colonne id croissante ?",
+      "justification": "Le curseur retient le dernier id vu et demande les lignes juste après, ce qui laisse l'index positionner directement au bon endroit à coût constant.",
+      "position": 1,
+      "options": [
+        { "label": "WHERE id > dernier_id ORDER BY id LIMIT n", "correct": true, "position": 0 },
+        { "label": "ORDER BY id LIMIT n OFFSET grand_nombre", "correct": false, "position": 1 },
+        { "label": "WHERE id = n sans ORDER BY", "correct": false, "position": 2 },
+        { "label": "SELECT * sans LIMIT puis filtrage côté client", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La pagination par curseur est plus stable que l'OFFSET lorsque des lignes sont insérées ou supprimées entre deux pages.",
+      "justification": "Vrai : le curseur s'ancre sur une valeur réelle (le dernier élément vu), donc les insertions ou suppressions ailleurs ne décalent pas la page, contrairement à l'OFFSET.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

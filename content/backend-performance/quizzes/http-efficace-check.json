@@ -1,0 +1,43 @@
+{
+  "ref": "http-efficace-check",
+  "node": "compression-http",
+  "lesson": "http-efficace",
+  "title": "Quiz : Un HTTP efficace",
+  "description": "Vérifie la compréhension du keep-alive, du multiplexage HTTP/2 et du cache HTTP.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que signale une réponse `304 Not Modified` au client ?",
+      "justification": "Le `304` indique que la ressource n'a pas changé depuis la version que possède le client : le serveur renvoie un corps vide et le client réutilise sa copie en cache, ce qui évite de retransmettre les données.",
+      "position": 0,
+      "options": [
+        { "label": "Rien n'a changé, réutilise ta copie en cache ; aucun corps n'est renvoyé", "correct": true, "position": 0 },
+        { "label": "La ressource a été supprimée définitivement", "correct": false, "position": 1 },
+        { "label": "Le serveur est en panne", "correct": false, "position": 2 },
+        { "label": "Le client n'a pas le droit d'accéder à la ressource", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'apporte principalement le multiplexage de HTTP/2 ?",
+      "justification": "Le multiplexage fait circuler plusieurs requêtes et réponses en parallèle sur une seule connexion, ce qui évite le blocage en tête de file de HTTP/1.1 et réduit le nombre de connexions ouvertes.",
+      "position": 1,
+      "options": [
+        { "label": "Plusieurs requêtes et réponses en parallèle sur une seule connexion", "correct": true, "position": 0 },
+        { "label": "Le chiffrement automatique de toutes les données", "correct": false, "position": 1 },
+        { "label": "La suppression du besoin de serveur", "correct": false, "position": 2 },
+        { "label": "La compression des images", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le keep-alive permet de réutiliser une même connexion pour plusieurs requêtes au lieu d'en ouvrir une nouvelle à chaque fois.",
+      "justification": "Vrai : garder la connexion ouverte évite de repayer le coût d'établissement (et la poignée de main HTTPS) à chaque ressource, ce qui réduit la latence.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

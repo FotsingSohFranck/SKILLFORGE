@@ -1,0 +1,43 @@
+{
+  "ref": "applications-sans-etat-check",
+  "node": "horizontal-scaling",
+  "lesson": "applications-sans-etat",
+  "title": "Quiz : Des applications sans état",
+  "description": "Vérifie que tu comprends pourquoi une application doit être sans état pour scaler horizontalement.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi une application derrière un load balancer avec plusieurs instances doit-elle être sans état ?",
+      "justification": "Le load balancer peut envoyer deux requêtes du même utilisateur sur des instances différentes. Si l'état est gardé en mémoire locale d'une instance, l'autre instance ne le connaît pas.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que deux requêtes d'un même utilisateur peuvent atterrir sur des instances différentes, qui ne partagent pas la mémoire locale", "correct": true, "position": 0 },
+        { "label": "Parce que le sans état rend les requêtes plus rapides à calculer", "correct": false, "position": 1 },
+        { "label": "Parce que le load balancer interdit toute base de données", "correct": false, "position": 2 },
+        { "label": "Parce qu'une seule instance peut tourner à la fois", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où déporter une session pour que toutes les instances puissent la lire ?",
+      "justification": "Un store partagé comme Redis ou la base de données est accessible de façon identique par toutes les instances, contrairement à la mémoire locale d'une instance.",
+      "position": 1,
+      "options": [
+        { "label": "Dans un store partagé comme Redis ou la base de données", "correct": true, "position": 0 },
+        { "label": "Dans une variable en mémoire locale de chaque instance", "correct": false, "position": 1 },
+        { "label": "Dans le load balancer lui-même", "correct": false, "position": 2 },
+        { "label": "Dans le localStorage du navigateur, qui fait foi côté serveur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les sticky sessions sont la meilleure solution de fond pour une application qui scale horizontalement.",
+      "justification": "Faux : les sticky sessions sont un pis-aller fragile (perte de session si l'instance tombe, répartition de charge inégale). La vraie solution est de déporter l'état dans un store partagé.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

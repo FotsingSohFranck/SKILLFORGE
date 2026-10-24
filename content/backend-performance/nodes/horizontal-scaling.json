@@ -1,0 +1,107 @@
+{
+  "node": "horizontal-scaling",
+  "lessons": [
+    {
+      "slug": "applications-sans-etat",
+      "title": "Des applications sans état",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi le sans état change tout",
+          "body": "La **mise à l'échelle horizontale** consiste à faire tourner plusieurs copies (instances) de la même application, derrière un **load balancer** (répartiteur de charge) qui envoie chaque requête vers l'une des instances.\n\nPour que cela fonctionne, l'application doit être **sans état** (en anglais *stateless*) : elle ne doit **rien garder en mémoire locale** qui soit propre à un utilisateur entre deux requêtes. La raison est simple : deux requêtes du même utilisateur peuvent atterrir sur deux instances différentes. Si l'instance A a stocké la session en mémoire et que la requête suivante part sur l'instance B, B ne connaît pas cet utilisateur.\n\nUne application **avec état** (*stateful*) garde des données en mémoire locale (session, panier, compteur). Une application sans état délègue cet état à un **store partagé** accessible par toutes les instances."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Derrière un load balancer, deux requêtes d'un même utilisateur peuvent atterrir sur des instances différentes : l'application doit rester sans état.",
+          "body": "/images/lessons/applications-sans-etat-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Où mettre l'état alors ?",
+          "body": "L'état ne disparaît pas : on le **déporte** hors de l'instance, dans un stockage que toutes les instances partagent.\n\n- **Session partagée** : au lieu de garder la session en mémoire, on la range dans un store commun (par exemple **Redis**, un cache en mémoire externe très rapide) ou en base de données.\n- **Cache externe** : les données calculées et réutilisables vont dans un cache partagé plutôt que dans chaque instance.\n- **Base de données** : la source de vérité durable reste la base, commune à toutes les instances.\n\nUn pis-aller existe, les **sticky sessions** (sessions collantes) : le load balancer renvoie toujours un même utilisateur vers la même instance. Cela évite de réécrire l'application tout de suite, mais c'est fragile : si l'instance tombe, la session est perdue, et la charge se répartit mal. À réserver au dépannage, pas comme solution de fond."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'état ne disparaît pas : on le déporte vers un store partagé (Redis, base) accessible de façon identique par toutes les instances.",
+          "body": "/images/lessons/applications-sans-etat-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Session en mémoire locale contre état externalisé",
+          "codeLanguage": "javascript",
+          "body": "// PROBLEMATIQUE : la session vit dans la memoire de CETTE instance.\n// Une autre instance ne verra jamais ce panier.\nconst paniers = {}; // objet en memoire locale\n\napp.post(\"/panier/ajouter\", (req, res) => {\n  const user = req.userId;\n  paniers[user] = paniers[user] || [];\n  paniers[user].push(req.body.article);\n  res.json({ ok: true });\n});\n\n// SANS ETAT : le panier est range dans un store partage (Redis),\n// accessible de facon identique par toutes les instances.\nimport { redis } from \"./redis.js\";\n\napp.post(\"/panier/ajouter\", async (req, res) => {\n  const user = req.userId;\n  // on ajoute l'article a la liste stockee dans Redis sous une cle par utilisateur\n  await redis.rpush(`panier:${user}`, req.body.article);\n  res.json({ ok: true });\n});"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le load balancer et le store partagé",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  C[\"Clients\"] --> LB[\"Load balancer\"]\n  LB --> I1[\"Instance 1 (sans etat)\"]\n  LB --> I2[\"Instance 2 (sans etat)\"]\n  LB --> I3[\"Instance 3 (sans etat)\"]\n  I1 --> S[(\"Store partage : Redis / base\")]\n  I2 --> S\n  I3 --> S"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "applications-sans-etat-check"
+        }
+      ]
+    },
+    {
+      "slug": "scaler-horizontalement",
+      "title": "Scaler horizontalement",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Horizontal contre vertical",
+          "body": "Il y a deux façons d'encaisser plus de charge.\n\n- **Mise à l'échelle verticale** (*scale up*) : donner plus de puissance à une seule machine (plus de processeurs, plus de mémoire). C'est simple, mais il y a un plafond physique et le coût grimpe vite ; et si cette machine tombe, tout tombe.\n- **Mise à l'échelle horizontale** (*scale out*) : ajouter d'autres machines/instances qui se partagent la charge derrière un load balancer. Pas de plafond dur, et si une instance tombe les autres continuent.\n\nL'horizontal suppose une application **sans état** (vu dans la leçon précédente). C'est la voie privilégiée pour tenir la montée en charge et rester disponible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Scaler horizontalement ajoute des instances qui se partagent la charge : pas de plafond dur et une panne n'emporte pas tout.",
+          "body": "/images/lessons/scaler-horizontalement-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Autoscaling, limites et coûts",
+          "body": "L'**autoscaling** (mise à l'échelle automatique) ajoute ou retire des instances tout seul en fonction d'une **métrique** : usage processeur (par exemple au-dessus de 70 pour cent), nombre de **requêtes en attente**, ou latence. La charge monte : on ajoute des instances ; elle redescend : on en retire pour ne pas payer pour rien.\n\nTrois réalités à garder en tête :\n- **Le goulot se déplace** : plus d'instances applicatives veut dire plus de connexions vers la base. Souvent, le nouveau point de blocage devient la **base de données**, qui elle ne se duplique pas aussi facilement.\n- **Coûts** : chaque instance coûte de l'argent. L'autoscaling aide à ne payer que le nécessaire, mais mal réglé il peut osciller (ajouter puis retirer sans cesse).\n- **Démarrage** : une nouvelle instance met du temps à être prête ; prévoir une marge avant le pic."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'autoscaling ajuste le nombre d'instances selon une métrique, mais le goulot se déplace souvent vers la base de données.",
+          "body": "/images/lessons/scaler-horizontalement-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une règle d'autoscaling simple",
+          "codeLanguage": "yaml",
+          "body": "# Regle d'autoscaling : entre 2 et 10 instances,\n# on vise 70 % d'usage processeur en moyenne.\nautoscaling:\n  minInstances: 2        # toujours au moins 2 pour la disponibilite\n  maxInstances: 10       # plafond pour maitriser les couts\n  metrique: cpuMoyen\n  cibleCpuPourcent: 70   # au-dessus, on ajoute ; en dessous, on retire\n  refroidissementSecondes: 120  # attendre avant de rescaler, pour eviter les oscillations"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Une API de réservation garde en mémoire locale, dans chaque instance, une table `verrous` des sièges temporairement bloqués pendant qu'un client paie, et une session utilisateur en mémoire. L'équipe veut passer de 1 à 4 instances derrière un load balancer, mais constate que des clients voient leur panier vidé et que deux personnes réservent parfois le même siège.\n\nIdentifie ce qui empêche la mise à l'échelle horizontale, puis propose comment rendre cette application scalable horizontalement.",
+          "solution": "Le problème : l'application est **avec état**. La session et la table `verrous` vivent dans la mémoire locale de chaque instance. Avec le load balancer, les requêtes d'un même client partent sur des instances différentes : celle qui reçoit la requête suivante ne voit ni la session (panier vidé) ni les verrous posés ailleurs (double réservation du même siège).\n\nRendre l'application sans état en **déportant l'état** vers un store partagé :\n\n1. **Session** : la ranger dans un store commun (Redis ou base) plutôt qu'en mémoire locale, pour que toutes les instances la voient.\n2. **Verrous de sièges** : les gérer dans un store partagé, par exemple une clé Redis avec expiration automatique (`SET siege:123 client:42 NX EX 300`) ou une ligne en base avec contrainte d'unicité. Le `NX` garantit qu'un seul gagne le verrou, ce qui empêche la double réservation quelle que soit l'instance.\n3. Une fois l'état sorti des instances, elles deviennent interchangeables : on peut passer à 4 instances (ou activer l'autoscaling) sans perte de panier ni conflit.\n\nEn dépannage seulement, des **sticky sessions** masqueraient le problème de session, mais pas les verrous partagés et resteraient fragiles en cas de panne d'instance. La vraie solution est de déporter l'état."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "scaler-horizontalement-check"
+        }
+      ]
+    }
+  ]
+}

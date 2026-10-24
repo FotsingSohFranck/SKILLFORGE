@@ -1,0 +1,43 @@
+{
+  "ref": "les-pieges-check",
+  "node": "benchmarking",
+  "lesson": "les-pieges",
+  "title": "Quiz : Les pièges courants",
+  "description": "Vérifie que tu sais repérer les pièges d'un benchmark.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi faut-il consommer le résultat d'un calcul dans un benchmark ?",
+      "justification": "Si le résultat n'est jamais utilisé, le compilateur JIT peut éliminer le calcul (code mort) et l'on finit par mesurer une boucle vide.",
+      "position": 0,
+      "options": [
+        { "label": "Pour empêcher le JIT d'éliminer le calcul comme code mort", "correct": true, "position": 0 },
+        { "label": "Pour accélérer artificiellement la boucle", "correct": false, "position": 1 },
+        { "label": "Parce que Java interdit d'ignorer une valeur de retour", "correct": false, "position": 2 },
+        { "label": "Pour remplir la mémoire et déclencher le garbage collector", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour décrire les requêtes les plus lentes subies par les utilisateurs, quel indicateur regarder ?",
+      "justification": "La moyenne cache la variabilité. Les percentiles élevés comme le p95 ou le p99 décrivent les requêtes les plus lentes, qui affectent vraiment une partie des utilisateurs.",
+      "position": 1,
+      "options": [
+        { "label": "Les percentiles élevés (p95, p99)", "correct": true, "position": 0 },
+        { "label": "La moyenne seule", "correct": false, "position": 1 },
+        { "label": "Le temps de la toute première exécution", "correct": false, "position": 2 },
+        { "label": "Le nombre total d'itérations", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Pour comparer deux implémentations équitablement, il faut ne changer qu'une seule variable à la fois, avec les mêmes données et la même machine.",
+      "justification": "Vrai : comparer toutes choses égales par ailleurs est la seule façon d'attribuer une différence de temps à l'implémentation et non à l'environnement.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "allocations-et-gc-check",
+  "node": "memory-gc",
+  "lesson": "allocations-et-gc",
+  "title": "Quiz : Allocations et garbage collector",
+  "description": "Vérifie que tu comprends le coût du garbage collector et les allocations.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi créer beaucoup d'objets dans une boucle chaude peut-il nuire à la performance ?",
+      "justification": "Chaque objet créé remplit le tas ; plus on alloue, plus le GC se déclenche souvent, ce qui multiplie les pauses et augmente la latence.",
+      "position": 0,
+      "options": [
+        { "label": "Cela augmente la pression GC, donc les pauses et la latence", "correct": true, "position": 0 },
+        { "label": "Cela rend le code impossible à compiler", "correct": false, "position": 1 },
+        { "label": "Cela supprime les variables locales de la pile", "correct": false, "position": 2 },
+        { "label": "Cela désactive le garbage collector", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où vivent les objets créés avec new, et quelle zone le garbage collector surveille-t-il ?",
+      "justification": "Les objets sont alloués dans le tas (heap), et c'est justement le tas que le GC surveille et nettoie ; la pile se libère seule à la fin de chaque méthode.",
+      "position": 1,
+      "options": [
+        { "label": "Dans le tas (heap), que le GC surveille", "correct": true, "position": 0 },
+        { "label": "Dans la pile (stack), que le GC surveille", "correct": false, "position": 1 },
+        { "label": "Dans la pile, et le GC ne surveille rien", "correct": false, "position": 2 },
+        { "label": "Nulle part, ils sont recalculés à chaque usage", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une pause GC peut arrêter brièvement le programme pendant que le ramasse-miettes fait son travail.",
+      "justification": "Vrai : certaines phases du GC mettent le programme en pause (stop the world), ce qui ajoute de la latence, surtout sur les requêtes les plus lentes.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

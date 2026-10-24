@@ -1,0 +1,107 @@
+{
+  "node": "memory-gc",
+  "lessons": [
+    {
+      "slug": "allocations-et-gc",
+      "title": "Allocations et garbage collector",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le ramasse-miettes, pratique mais pas gratuit",
+          "body": "Dans un langage comme Java, tu n'as pas à libérer la mémoire à la main. Un mécanisme appelé **garbage collector** (GC, ou ramasse-miettes) repère les objets dont plus personne ne se sert et récupère la mémoire qu'ils occupaient. C'est confortable : tu crées des objets, le GC fait le ménage.\n\nMais ce ménage a un **coût**. Pour faire son travail proprement, le GC doit parfois **mettre ton programme en pause** un court instant (on parle de *pause GC*, ou *stop the world*). Plus tu crées d'objets, plus le GC doit travailler souvent, et plus ces pauses se multiplient. Résultat : des requêtes qui ralentissent sans raison apparente.\n\nL'idée clé pour la performance : le GC n'est pas ton ennemi, mais lui donner **moins de travail** (créer moins d'objets inutiles) réduit les pauses et la latence."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le ramasse-miettes récupère automatiquement la mémoire des objets inutilisés, mais ce ménage a un coût.",
+          "body": "/images/lessons/allocations-et-gc-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Tas et pile, deux zones de mémoire",
+          "body": "La mémoire d'un programme se range dans deux grandes zones :\n\n- La **pile** (*stack*) : une zone rapide, propre à chaque appel de méthode. Elle contient les variables locales simples et les références. Quand la méthode se termine, sa partie de pile disparaît automatiquement, sans intervention du GC.\n- Le **tas** (*heap*) : la grande zone partagée où vivent les **objets** que tu crées (avec `new` en Java). C'est le tas que le garbage collector surveille et nettoie.\n\nAutrement dit : créer beaucoup d'objets, c'est remplir le tas, donc donner du travail au GC. Une variable locale `int` sur la pile, elle, ne coûte quasiment rien et n'implique pas le GC. Comprendre cette distinction aide à voir d'où vient la *pression GC* (la quantité d'allocations que le GC doit gérer)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les objets créés vivent dans le tas, la zone de mémoire que le garbage collector surveille et nettoie.",
+          "body": "/images/lessons/allocations-et-gc-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Le cycle d'une allocation",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Le code cree un objet (new)\"] --> B[\"Objet place dans le tas (heap)\"]\n  B --> C{\"Tas presque plein ?\"}\n  C -->|\"Non\"| A\n  C -->|\"Oui\"| D[\"Le GC se declenche\"]\n  D --> E[\"Pause : le programme s'arrete un instant\"]\n  E --> F[\"Objets inutilises liberes, memoire recuperee\"]\n  F --> A"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Boucle chaude : allouer ou réutiliser",
+          "codeLanguage": "java",
+          "body": "// LENT : on cree un nouvel objet a chaque tour de boucle.\n// Dans une boucle appelee des millions de fois (une \"boucle chaude\"),\n// cela remplit le tas et declenche le GC tres souvent.\nString resultat = \"\";\nfor (int i = 0; i < 1_000_000; i++) {\n    resultat = resultat + i; // chaque + cree une nouvelle String\n}\n\n// RAPIDE : on reutilise un seul tampon au lieu d'allouer sans cesse.\n// Beaucoup moins d'objets crees, donc beaucoup moins de pression GC.\nStringBuilder tampon = new StringBuilder();\nfor (int i = 0; i < 1_000_000; i++) {\n    tampon.append(i);\n}\nString resultat2 = tampon.toString();"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "allocations-et-gc-check"
+        }
+      ]
+    },
+    {
+      "slug": "fuites-et-pauses",
+      "title": "Fuites et pauses",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce qu'une fuite mémoire ?",
+          "body": "Le garbage collector ne libère un objet que si **plus personne ne le référence**. Une **fuite mémoire** (*memory leak*) survient quand ton programme garde, sans le vouloir, une référence vers des objets dont il n'a plus besoin. Le GC les voit encore comme utilisés, donc il ne les libère jamais, et la mémoire consommée **monte sans jamais redescendre**.\n\nLes causes classiques côté serveur :\n- Un **cache sans limite** : on ajoute des entrées en permanence mais on n'en retire jamais, il grossit à l'infini.\n- Une **collection qui grossit** (une `List` ou une `Map` statique où l'on ne fait qu'ajouter).\n- Des **écouteurs ou abonnements** jamais désinscrits.\n\nUne fuite n'est pas une erreur immédiate : le programme marche, puis au bout de quelques heures ou jours, la mémoire est saturée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une fuite mémoire : des objets restent référencés sans raison, et la mémoire monte sans jamais redescendre.",
+          "body": "/images/lessons/fuites-et-pauses-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Symptômes et conséquences sur la latence",
+          "body": "Deux symptômes doivent t'alerter :\n\n- La **mémoire utilisée monte en escalier** et ne revient jamais à son niveau de départ, même quand le trafic baisse. À la fin, tu obtiens une erreur `OutOfMemoryError` : le tas est plein, le programme ne peut plus rien allouer et il s'arrête.\n- Les **pauses GC s'allongent**. Plus le tas est encombré d'objets vivants, plus le GC met de temps à faire son tri, donc plus chaque pause est longue.\n\nCes pauses plombent surtout le **p99**, c'est-à-dire le temps de réponse des 1 % de requêtes les plus lentes (une mesure clé de l'expérience réelle). La requête moyenne reste correcte, mais celle qui tombe pendant une longue pause GC attend bien plus longtemps.\n\nPistes de traitement : **limiter la taille des caches** (politique d'éviction, par exemple garder au plus N entrées), **profiler la mémoire** avec un outil (*heap dump*, profileur) pour trouver ce qui s'accumule, et vérifier qu'on retire bien ce qu'on a ajouté."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Surveiller la mémoire et les pauses GC révèle les fuites et leur impact sur les requêtes les plus lentes.",
+          "body": "/images/lessons/fuites-et-pauses-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un cache qui fuit, et sa correction",
+          "codeLanguage": "java",
+          "body": "// FUITE : cette Map statique ne fait que grandir.\n// Rien ne retire jamais d'entree, donc le GC ne peut rien liberer.\nstatic final Map<String, Utilisateur> cache = new HashMap<>();\n\nUtilisateur charger(String id) {\n    return cache.computeIfAbsent(id, cle -> lireEnBase(cle));\n}\n\n// CORRIGE : un cache borne qui evince les entrees les plus anciennes.\n// Ici au plus 10 000 entrees ; au-dela, les plus vieilles sont retirees,\n// donc le GC peut liberer leur memoire.\nstatic final Map<String, Utilisateur> cache = new LinkedHashMap<>(16, 0.75f, true) {\n    @Override\n    protected boolean removeEldestEntry(Map.Entry<String, Utilisateur> plusAncienne) {\n        return size() > 10_000;\n    }\n};"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Un service tourne bien au démarrage, puis sa consommation mémoire monte régulièrement toute la journée sans jamais redescendre, même la nuit quand presque personne ne l'utilise. Au bout de deux jours, il plante avec une `OutOfMemoryError`. En relisant le code, tu trouves une `List<Evenement>` statique dans laquelle chaque requête fait un `.add(...)`, mais tu ne trouves nulle part un `.remove(...)` ni de vidage. Quelle est la cause, et que proposes-tu ?",
+          "solution": "La cause est une **fuite mémoire** : la `List<Evenement>` statique ne fait que croître (un `.add` par requête, jamais de retrait). Comme elle est statique, elle reste référencée tant que l'application vit, donc le GC ne libère aucun de ses éléments. La mémoire monte sans redescendre, même la nuit (les événements de la journée restent stockés), jusqu'à l'`OutOfMemoryError`.\n\nPistes de correction :\n- Se demander si cette liste doit vraiment tout garder en mémoire. Souvent, non : les événements devraient partir vers un journal (*log*) ou une base, pas s'empiler indéfiniment dans le tas.\n- Si un historique récent suffit, **borner** la collection (par exemple ne garder que les N derniers, ou purger les entrées plus vieilles qu'une durée donnée).\n- Confirmer avec un **profileur mémoire** ou un *heap dump* que cette liste est bien ce qui grossit, avant et après correction.\n\nLe principe : tout ce qu'on ajoute à une structure qui vit longtemps doit avoir une règle qui le retire, sinon c'est une fuite."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "fuites-et-pauses-check"
+        }
+      ]
+    }
+  ]
+}

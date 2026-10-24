@@ -1,0 +1,43 @@
+{
+  "ref": "timeouts-et-retries-check",
+  "node": "circuit-breaker",
+  "lesson": "timeouts-et-retries",
+  "title": "Quiz : Timeouts et retries",
+  "description": "Vérifie la compréhension des timeouts, du backoff et des retries.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi faut-il toujours poser un timeout sur un appel distant ?",
+      "justification": "Sans timeout, un appel dont la réponse n'arrive jamais attend indéfiniment et garde occupée une ressource (thread, connexion) ; en cas de ralentissement du service distant, toutes les ressources finissent prises et le service ne répond plus.",
+      "position": 0,
+      "options": [
+        { "label": "Pour éviter d'attendre indéfiniment et d'épuiser les ressources (threads, connexions)", "correct": true, "position": 0 },
+        { "label": "Parce que le réseau est interdit sans timeout", "correct": false, "position": 1 },
+        { "label": "Pour chiffrer la réponse du service distant", "correct": false, "position": 2 },
+        { "label": "Parce qu'un timeout accélère toujours le service distant", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que combine-t-on pour retenter un appel sans aggraver la panne ?",
+      "justification": "Le backoff exponentiel espace les tentatives, le jitter les étale pour éviter que tous les clients retentent au même instant, et limiter le nombre de tentatives empêche une tempête de retries.",
+      "position": 1,
+      "options": [
+        { "label": "Un backoff exponentiel, du jitter et un nombre de tentatives limité", "correct": true, "position": 0 },
+        { "label": "Des retries immédiats et illimités", "correct": false, "position": 1 },
+        { "label": "La suppression de tout timeout", "correct": false, "position": 2 },
+        { "label": "Un seul essai, jamais de nouvelle tentative", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut retenter automatiquement et sans précaution n'importe quelle opération, même un paiement.",
+      "justification": "Faux : seules les opérations idempotentes peuvent être retentées sans risque. Pour une opération sensible comme un paiement, il faut une clé d'idempotence, sinon un retry pourrait débiter deux fois.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

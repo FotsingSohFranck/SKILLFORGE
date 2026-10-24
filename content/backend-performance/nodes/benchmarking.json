@@ -1,0 +1,95 @@
+{
+  "node": "benchmarking",
+  "lessons": [
+    {
+      "slug": "mesurer-juste",
+      "title": "Mesurer juste",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Micro-benchmark ou benchmark de bout en bout",
+          "body": "Un **benchmark** est une mesure répétée et contrôlée de la performance d'un morceau de code. On distingue deux familles :\n- Le **micro-benchmark** mesure une toute petite portion isolée (une méthode, un algorithme de tri). Il est utile pour comparer deux implémentations, mais il ne dit rien du comportement réel de l'application complète.\n- Le **benchmark de bout en bout** (end to end) mesure un vrai scénario, par exemple une requête HTTP qui traverse le contrôleur, le service et la base de données. Il est plus représentatif mais plus difficile à isoler.\n\nChoisis la bonne échelle selon ta question : « quelle version de cette fonction est la plus rapide ? » appelle un micro-benchmark ; « mon endpoint tient-il la charge ? » appelle un test de bout en bout."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Micro-benchmark ou mesure de bout en bout, choisir la bonne échelle",
+          "body": "/images/lessons/mesurer-juste-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Préchauffage, répétition et conditions réalistes",
+          "body": "Trois principes rendent une mesure fiable :\n- Le **préchauffage** (warmup) : sur la machine virtuelle Java (JVM), le code est d'abord interprété puis **compilé à la volée** par le **JIT** (Just In Time compiler) une fois qu'il a tourné assez souvent. Les premières exécutions sont donc beaucoup plus lentes. On lance des itérations de chauffe **dont on jette les résultats** avant de mesurer.\n- La **répétition** : une seule mesure ne vaut rien. On répète des centaines ou des milliers de fois, puis on agrège (médiane, percentiles).\n- Les **conditions réalistes** : mesurer avec des volumes de données, un cache et une configuration proches de la production. Un benchmark sur 10 lignes ne prédit pas le comportement sur 10 millions.\n\nDernier réflexe : **ne mesure rien pendant qu'une autre charge tourne** sur la machine (build, antivirus, autre service). Une machine occupée fausse tout."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Préchauffage et répétitions, la clé d'une mesure fiable sur la JVM",
+          "body": "/images/lessons/mesurer-juste-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Structure d'un benchmark avec warmup et répétitions",
+          "codeLanguage": "java",
+          "body": "// Benchmark fait main : illustre warmup + repetitions.\n// En vrai, prefere l'outil JMH (Java Microbenchmark Harness), concu pour la JVM.\nint warmup = 10_000;      // iterations de chauffe, resultats jetes\nint mesures = 100_000;    // iterations reellement mesurees\n\n// Phase de chauffe : on laisse le JIT compiler le code chaud\nfor (int i = 0; i < warmup; i++) {\n    resultat = codeAMesurer();\n}\n\n// Phase de mesure : on enregistre chaque duree\nlong[] durees = new long[mesures];\nfor (int i = 0; i < mesures; i++) {\n    long debut = System.nanoTime();\n    resultat = codeAMesurer();\n    durees[i] = System.nanoTime() - debut;\n}\n\n// On agrege ensuite : mediane et percentiles, pas seulement la moyenne"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Les phases d'un benchmark",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Demarrage de la JVM\"] --> B[\"Warmup : le JIT compile le code chaud\"]\n  B --> C[\"Mesures repetees : on enregistre chaque duree\"]\n  C --> D[\"Agregation : mediane et percentiles\"]\n  D --> E[\"Verdict chiffre\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "mesurer-juste-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-pieges",
+      "title": "Les pièges courants",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Quand la mesure ment",
+          "body": "Un benchmark naïf donne souvent des chiffres faux. Les pièges les plus fréquents :\n- **L'élimination du code mort** : si le résultat calculé n'est jamais utilisé, le compilateur (JIT) a le droit de supprimer carrément le calcul. Tu mesures alors une boucle vide et obtiens des temps irréalistement bas. La parade : **consommer le résultat**, par exemple en l'accumulant ou en le confiant à un puits (un `Blackhole` en JMH).\n- **Regarder la moyenne** : la moyenne cache la variabilité. Deux systèmes peuvent avoir la même moyenne alors que l'un a des pics terribles. On regarde les **percentiles** : le **p50** (médiane) décrit le cas courant, le **p95** et le **p99** décrivent les requêtes les plus lentes, celles que subissent vraiment certains utilisateurs.\n- **L'environnement** : une **machine partagée**, un **cache chaud** (données déjà en mémoire après un premier passage) ou une mise à l'échelle dynamique du processeur changent les résultats d'une fois sur l'autre.\n- **Comparer toutes choses égales par ailleurs** : pour comparer A et B, ne change **qu'une seule variable** à la fois, mêmes données, même machine, même configuration."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un benchmark naïf ment, le code mort et les moyennes trompent",
+          "body": "/images/lessons/les-pieges-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Le piège du code mort",
+          "codeLanguage": "java",
+          "body": "// MAUVAIS : le resultat n'est jamais utilise.\n// Le JIT peut supprimer l'appel entier -> temps proche de zero, faux.\nfor (int i = 0; i < mesures; i++) {\n    calculerHash(donnees); // valeur ignoree\n}\n\n// BON : on consomme le resultat pour empecher l'elimination.\nlong somme = 0;\nfor (int i = 0; i < mesures; i++) {\n    somme += calculerHash(donnees); // la valeur sert, le calcul reste\n}\nSystem.out.println(somme); // on l'utilise vraiment a la fin"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi : critiquer et corriger",
+          "body": "Un collègue affirme que sa nouvelle fonction est « 50 fois plus rapide ». Voici son benchmark :\n\n```java\nlong debut = System.nanoTime();\nfor (int i = 0; i < 1_000_000; i++) {\n    maFonction(i); // resultat ignore\n}\nlong duree = System.nanoTime() - debut;\nSystem.out.println(\"Moyenne : \" + (duree / 1_000_000) + \" ns\");\n```\n\nIl l'a lancé une seule fois, juste après le démarrage de l'application, pendant que son build Maven tournait. Liste au moins quatre problèmes et explique comment corriger chacun.",
+          "solution": "Quatre problèmes majeurs :\n\n1. **Pas de warmup** : la boucle commence juste après le démarrage, donc le code est interprété puis compilé par le JIT pendant la mesure. Correction : lancer des itérations de chauffe (par exemple 10 000) dont on jette les résultats avant de mesurer.\n2. **Code mort probable** : le résultat de `maFonction(i)` est ignoré, le JIT peut supprimer l'appel et mesurer une boucle vide. Correction : consommer le résultat (accumuler dans une variable utilisée ensuite, ou un `Blackhole` JMH).\n3. **Une seule exécution et seulement la moyenne** : aucune idée de la variabilité. Correction : répéter la mesure plusieurs fois et rapporter des percentiles (p50, p95, p99), pas uniquement la moyenne.\n4. **Machine occupée** : le build Maven consomme le processeur en parallèle, les temps sont faussés. Correction : mesurer sur une machine au repos, sans autre charge.\n\nBonus : comparer « toutes choses égales par ailleurs » (mêmes données, même machine, même configuration que l'ancienne fonction) et, idéalement, utiliser JMH qui gère warmup, répétitions et protection contre le code mort. Le chiffre « 50 fois plus rapide » est donc, en l'état, non fiable."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "les-pieges-check"
+        }
+      ]
+    }
+  ]
+}

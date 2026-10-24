@@ -1,0 +1,43 @@
+{
+  "ref": "fuites-et-pauses-check",
+  "node": "memory-gc",
+  "lesson": "fuites-et-pauses",
+  "title": "Quiz : Fuites et pauses",
+  "description": "Vérifie que tu sais reconnaître une fuite mémoire et ses effets.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce qui caractérise une fuite mémoire ?",
+      "justification": "Une fuite survient quand des objets inutiles restent référencés : le GC ne peut pas les libérer, donc la mémoire monte sans jamais redescendre, jusqu'à l'OutOfMemoryError.",
+      "position": 0,
+      "options": [
+        { "label": "Des objets inutiles restent référencés, donc jamais libérés", "correct": true, "position": 0 },
+        { "label": "Le GC libère des objets encore utilisés par erreur", "correct": false, "position": 1 },
+        { "label": "La pile se vide trop vite à la fin des méthodes", "correct": false, "position": 2 },
+        { "label": "Le disque dur se remplit de fichiers temporaires", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle piste aide à éviter qu'un cache provoque une fuite mémoire ?",
+      "justification": "Un cache non borné grossit à l'infini ; lui donner une limite de taille (politique d'éviction) permet de retirer les entrées en trop pour que le GC libère leur mémoire.",
+      "position": 1,
+      "options": [
+        { "label": "Borner sa taille avec une politique d'éviction", "correct": true, "position": 0 },
+        { "label": "Ajouter toujours plus d'entrées sans jamais en retirer", "correct": false, "position": 1 },
+        { "label": "Le rendre statique pour qu'il vive plus longtemps", "correct": false, "position": 2 },
+        { "label": "Désactiver le garbage collector", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Des pauses GC longues dégradent surtout le p99, le temps de réponse des requêtes les plus lentes.",
+      "justification": "Vrai : la requête qui tombe pendant une longue pause attend beaucoup plus longtemps, ce qui se voit d'abord sur le p99 même si la moyenne reste correcte.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

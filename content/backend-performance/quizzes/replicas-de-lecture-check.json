@@ -1,0 +1,43 @@
+{
+  "ref": "replicas-de-lecture-check",
+  "node": "db-scaling",
+  "lesson": "replicas-de-lecture",
+  "title": "Quiz : Réplicas de lecture",
+  "description": "Vérifie la compréhension de la réplication primaire/réplicas et de la cohérence à terme.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans une réplication primaire/réplicas classique, quel serveur accepte les écritures (INSERT, UPDATE, DELETE) ?",
+      "justification": "Le primaire est le seul à accepter les écritures ; les réplicas reçoivent une copie des changements et servent les lectures.",
+      "position": 0,
+      "options": [
+        { "label": "Uniquement le serveur primaire", "correct": true, "position": 0 },
+        { "label": "N'importe quel réplica au choix", "correct": false, "position": 1 },
+        { "label": "Tous les serveurs en même temps", "correct": false, "position": 2 },
+        { "label": "Aucun, les écritures passent par le cache", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Qu'est-ce que le lag de réplication peut provoquer juste après une écriture ?",
+      "justification": "La copie vers les réplicas n'est pas instantanée : un réplica en retard peut encore montrer l'ancienne valeur, d'où le piège de lire sa propre écriture.",
+      "position": 1,
+      "options": [
+        { "label": "Un réplica peut encore renvoyer l'ancienne valeur, donnant l'impression que la modification a été perdue", "correct": true, "position": 0 },
+        { "label": "Le primaire refuse définitivement toute nouvelle lecture", "correct": false, "position": 1 },
+        { "label": "Les données sont supprimées de tous les serveurs", "correct": false, "position": 2 },
+        { "label": "La requête est automatiquement convertie en écriture", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La scalabilité horizontale consiste à ajouter plusieurs machines plutôt qu'à remplacer la machine existante par une plus grosse.",
+      "justification": "Vrai : la scalabilité horizontale (scale out) multiplie les machines, alors que la scalabilité verticale (scale up) agrandit une seule machine.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

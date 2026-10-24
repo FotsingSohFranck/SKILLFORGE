@@ -1,0 +1,43 @@
+{
+  "ref": "le-disjoncteur-check",
+  "node": "circuit-breaker",
+  "lesson": "le-disjoncteur",
+  "title": "Quiz : Le disjoncteur (circuit breaker)",
+  "description": "Vérifie la compréhension des états du disjoncteur, du fail fast et du fallback.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels sont les trois états d'un circuit breaker ?",
+      "justification": "Le disjoncteur passe de fermé (appels normaux) à ouvert (appels refusés vite) quand trop d'échecs surviennent, puis à demi-ouvert pour tester si le service distant est revenu avant de se refermer.",
+      "position": 0,
+      "options": [
+        { "label": "Fermé, ouvert, demi-ouvert", "correct": true, "position": 0 },
+        { "label": "Démarré, arrêté, en pause", "correct": false, "position": 1 },
+        { "label": "Lent, rapide, moyen", "correct": false, "position": 2 },
+        { "label": "Vert, orange, rouge", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait le disjoncteur quand il est ouvert ?",
+      "justification": "À l'état ouvert, le disjoncteur refuse immédiatement les appels (fail fast) sans tenter le réseau, ce qui libère les ressources ; on renvoie souvent un fallback plutôt qu'une erreur brutale.",
+      "position": 1,
+      "options": [
+        { "label": "Il refuse les appels immédiatement (fail fast), souvent avec un fallback", "correct": true, "position": 0 },
+        { "label": "Il laisse passer tous les appels sans limite", "correct": false, "position": 1 },
+        { "label": "Il augmente le timeout de chaque appel", "correct": false, "position": 2 },
+        { "label": "Il supprime le service distant", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un fallback permet de renvoyer une réponse de secours (valeur par défaut, donnée en cache) quand l'appel ne peut pas aboutir.",
+      "justification": "Vrai : le fallback est le repli qui évite une erreur brutale en fournissant une réponse de secours, par exemple une valeur par défaut ou une donnée en cache.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

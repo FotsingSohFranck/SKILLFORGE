@@ -1,0 +1,119 @@
+{
+  "node": "latency-throughput",
+  "lessons": [
+    {
+      "slug": "latence-et-debit",
+      "title": "Latence et débit",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux mesures différentes, souvent confondues",
+          "body": "La **latence** est le temps que met **une** requête à recevoir sa réponse. On la mesure en millisecondes (ms). Exemple : une page qui répond en 120 ms a une latence de 120 ms.\n\nLe **débit** (en anglais *throughput*) est le **nombre de requêtes traitées par seconde** (souvent noté req/s ou RPS, pour *requests per second*). Exemple : un service qui sert 500 requêtes chaque seconde a un débit de 500 req/s.\n\nCe sont deux choses distinctes : la latence parle d'une requête isolée (\"vite ?\"), le débit parle du volume total (\"combien à la fois ?\"). Un service peut avoir une latence faible et un débit faible, ou l'inverse."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La latence mesure une requête, le débit en compte beaucoup",
+          "body": "/images/lessons/latence-et-debit-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi la moyenne de latence ment",
+          "body": "On est tenté de résumer la latence par sa **moyenne** (additionner tous les temps, diviser par le nombre de requêtes). C'est trompeur : la moyenne est écrasée par la masse des requêtes rapides et cache les lentes.\n\nImagine 100 requêtes à 50 ms et 5 requêtes à 3000 ms. La moyenne reste basse (environ 190 ms), mais 5 utilisateurs ont attendu 3 secondes. La moyenne dit \"tout va bien\" alors que certains vivent une mauvaise expérience.\n\nPour voir ces cas, on utilise les **percentiles**. Un percentile p95 de 400 ms veut dire : 95 pour cent des requêtes répondent en 400 ms ou moins, et 5 pour cent sont plus lentes. De même, p50 (la **médiane**) est le temps que la moitié des requêtes ne dépasse pas, et p99 celui que 99 pour cent ne dépassent pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La moyenne cache les requêtes lentes, les percentiles les révèlent",
+          "body": "/images/lessons/latence-et-debit-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Pourquoi le p99 compte",
+          "body": "Le **p99** décrit les requêtes les plus lentes (le 1 pour cent du haut). Il paraît marginal, mais il pèse lourd sur l'expérience réelle.\n\nUn utilisateur fait rarement une seule requête : charger une page peut déclencher 20 appels. Si chaque appel a 1 pour cent de chance d'être lent, la probabilité qu'au moins un des 20 soit lent monte vite (environ 18 pour cent). Autrement dit, beaucoup d'utilisateurs tombent au moins une fois sur une requête \"p99\".\n\nC'est pourquoi on fixe des objectifs sur le p95 et le p99, pas seulement sur la moyenne : on veut que même les cas lents restent acceptables."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le p99 décrit les cas les plus lents que subissent vraiment les utilisateurs",
+          "body": "/images/lessons/latence-et-debit-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Moyenne contre p99 sur un échantillon",
+          "codeLanguage": "text",
+          "body": "Échantillon de 10 latences mesurées (en ms), triées :\n  48, 52, 55, 60, 63, 70, 75, 90, 110, 1200\n\n// Moyenne = somme / nombre\n// (48+52+55+60+63+70+75+90+110+1200) / 10 = 1823 / 10 = 182,3 ms\n\n// Médiane (p50) = valeur au milieu de la liste triée\n//   ici entre la 5e (63) et la 6e (70) valeur -> environ 66 ms\n\n// p90 = valeur en dessous de laquelle se trouvent 90 pour cent des mesures\n//   9 mesures sur 10 sont a 110 ms ou moins -> p90 environ 110 ms\n\n// La 10e requete a pris 1200 ms (un pic lent).\n// La moyenne (182 ms) est gonflee par ce seul pic.\n// Le p50 (66 ms) montre l'experience typique.\n// Seul le haut de distribution (p90, p99) revele le pic a 1200 ms."
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Une distribution de latences avec p50 et p99",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  A[\"Beaucoup de requetes rapides\\n~60 ms\"] --> B[\"p50 (mediane)\\nmoitie des requetes sous ce seuil\"]\n  A --> C[\"Quelques requetes lentes\\n(queue a droite)\"]\n  C --> D[\"p99\\n1 pour cent des requetes au-dessus\"]\n  B --> E[\"Moyenne tiree vers le haut\\npar la queue lente\"]\n  D --> E"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "latence-et-debit-check"
+        }
+      ]
+    },
+    {
+      "slug": "loi-de-little",
+      "title": "La loi de Little",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une formule simple et puissante",
+          "body": "La **loi de Little** relie trois grandeurs d'un système qui traite des requêtes. Elle s'énonce ainsi :\n\n**L = λ x W**\n\nOù :\n- **L** est le nombre moyen de requêtes **en cours** dans le système (en attente plus en traitement). On l'appelle aussi la *concurrence*.\n- **λ** (lambda) est le **débit** : le nombre de requêtes qui entrent par seconde (req/s).\n- **W** est la **latence moyenne** : le temps moyen qu'une requête passe dans le système (en secondes).\n\nEn mots : le nombre de requêtes présentes à un instant donné égale le débit multiplié par le temps que chaque requête reste. La loi est valable sur une période stable, quelle que soit la façon dont les requêtes arrivent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La loi de Little relie concurrence, débit et latence en une formule",
+          "body": "/images/lessons/loi-de-little-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ce que la loi implique",
+          "body": "Lis la formule dans les deux sens, c'est là qu'elle devient utile.\n\n**Si la latence W augmente à débit λ constant, alors L augmente.** Chaque requête reste plus longtemps, donc il y en a davantage en même temps dans le système : la **file d'attente se remplit**. Si L dépasse la capacité (nombre de connexions, de threads, de place en mémoire), le système sature et commence à rejeter ou à ralentir encore plus.\n\n**À l'inverse, pour servir un débit λ élevé avec une latence W donnée, il faut pouvoir tenir L requêtes en parallèle.** La loi sert donc à **dimensionner** : combien de workers, de connexions ou d'instances prévoir. C'est le lien direct entre latence, débit et files d'attente : on ne peut pas améliorer l'un en ignorant les autres."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Quand la latence monte, la file se remplit et le système sature",
+          "body": "/images/lessons/loi-de-little-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Appliquer la formule dans les deux sens",
+          "codeLanguage": "text",
+          "body": "// Rappel : L = lambda x W\n//   L      = requetes en cours (concurrence)\n//   lambda = debit en requetes par seconde\n//   W      = latence moyenne en SECONDES\n\n// Cas 1 : combien de requetes en cours ?\n//   debit = 200 req/s, latence moyenne = 0,050 s (50 ms)\n//   L = 200 x 0,050 = 10 requetes en cours en moyenne\n//   -> 10 connexions simultanees suffisent en theorie\n\n// Cas 2 : la latence double (incident), debit inchange\n//   debit = 200 req/s, latence = 0,100 s (100 ms)\n//   L = 200 x 0,100 = 20 requetes en cours\n//   -> il faut 2 fois plus de place, sinon la file deborde\n\n// Cas 3 : quel debit maximum avec 50 connexions ?\n//   L max = 50, latence = 0,050 s\n//   lambda = L / W = 50 / 0,050 = 1000 req/s"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi de dimensionner",
+          "body": "Ton service reçoit un débit de **300 requêtes par seconde**. Chaque requête passe en moyenne **80 ms** dans le service. Ton pool de connexions à la base est configuré avec **20 connexions** au maximum.\n\n1. Combien de requêtes sont en cours en moyenne (valeur de L) ?\n2. Le pool de 20 connexions est-il suffisant ?\n3. Si la latence moyenne monte à 150 ms (base plus lente) à débit constant, que se passe-t-il ?",
+          "solution": "1. On convertit la latence en secondes : 80 ms = 0,080 s. Loi de Little : L = λ x W = 300 x 0,080 = **24 requêtes en cours** en moyenne.\n\n2. Non. Il y a en moyenne 24 requêtes en cours mais seulement 20 connexions. En moyenne, 4 requêtes attendent déjà une connexion libre, ce qui ajoute du temps d'attente et peut faire grimper la latence réelle. Il faudrait au moins 24 connexions (avec une marge de sécurité, par exemple 30).\n\n3. Avec W = 0,150 s : L = 300 x 0,150 = **45 requêtes en cours**. Le pool de 20 connexions est très largement dépassé : la file d'attente se remplit, les requêtes attendent de plus en plus longtemps, la latence observée explose et le service finit par saturer. C'est l'effet boule de neige décrit par la loi de Little : une hausse de latence à débit constant gonfle directement le nombre de requêtes en cours."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "loi-de-little-check"
+        }
+      ]
+    }
+  ]
+}

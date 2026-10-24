@@ -1,0 +1,83 @@
+{
+  "node": "serialization",
+  "lessons": [
+    {
+      "slug": "cout-de-la-serialisation",
+      "title": "Le coût de la sérialisation",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Sérialiser et désérialiser, c'est du travail",
+          "body": "La **sérialisation** consiste à transformer un objet présent en mémoire (par exemple un objet Java ou JavaScript) en une suite d'octets transmissible, le plus souvent du texte **JSON** (un format d'échange de données lisible). La **désérialisation** fait l'inverse : elle reconstruit un objet à partir des octets reçus.\n\nCe travail n'est pas gratuit. À chaque réponse d'API, le serveur parcourt l'objet, convertit chaque champ en texte et assemble la chaîne : cela consomme du **CPU** (temps de calcul) et de la **mémoire** (pour construire la chaîne). Plus l'objet est gros, plus il y a de champs, et plus le volume de requêtes est élevé, plus ce coût devient visible.\n\nEn parallèle, la **charge utile** (en anglais payload, c'est-à-dire les données réellement transportées dans la réponse) occupe de la place sur le **réseau** : une réponse de 2 mégaoctets met plus de temps à voyager qu'une réponse de 20 kilooctets, surtout sur une connexion lente ou mobile.\n\nRègle de base : **mesurer avant d'optimiser**. On regarde le temps passé à sérialiser et la taille réelle des réponses avant de conclure que c'est le goulot d'étranglement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Transformer un objet en octets puis le reconstruire coûte du CPU et du réseau.",
+          "body": "/images/lessons/cout-de-la-serialisation-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Réponse volumineuse contre réponse allégée",
+          "codeLanguage": "json",
+          "body": "// Reponse VOLUMINEUSE : on renvoie tout l'objet, y compris des champs inutiles\n// au client (mot de passe hache, historique complet, objets imbriques).\n// Plus d'octets a serialiser, a transporter et a deserialiser.\n{\n  \"id\": \"018f...\",\n  \"nom\": \"Ada\",\n  \"motDePasseHache\": \"$2b$12$...\",\n  \"historiqueConnexions\": [\n    { \"date\": \"2026-01-01T08:00:00Z\", \"ip\": \"10.0.0.1\" }\n  ],\n  \"preferences\": { \"theme\": \"sombre\", \"langue\": \"fr\" }\n}\n\n// Reponse ALLEGEE : seulement les champs dont le client a besoin ici.\n// Moins de CPU pour serialiser, moins d'octets sur le reseau.\n{\n  \"id\": \"018f...\",\n  \"nom\": \"Ada\"\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Le trajet d'un objet jusqu'au client",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  A[\"Objet en memoire (serveur)\"] --> B[\"Serialisation : objet vers JSON (cout CPU)\"]\n  B --> C[\"Octets envoyes sur le reseau (cout taille)\"]\n  C --> D[\"Deserialisation : JSON vers objet (cout CPU, cote client)\"]\n  D --> E[\"Objet utilisable (client)\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "cout-de-la-serialisation-check"
+        }
+      ]
+    },
+    {
+      "slug": "alleger-les-reponses",
+      "title": "Alléger les réponses",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Renvoyer juste ce qu'il faut",
+          "body": "Pour réduire le coût vu dans la leçon précédente, on diminue la quantité de données renvoyée. Quelques leviers concrets :\n\n- **Projection** : ne sélectionner que les colonnes utiles en base, et ne renvoyer que les champs attendus par le client. Un **DTO** (Data Transfer Object, un petit objet dédié au transport qui expose uniquement les champs voulus) aide à ne pas exposer tout l'objet métier.\n- **Éviter de sérialiser des relations entières** : ne pas joindre et renvoyer la liste complète des commandes d'un client quand seul son nom est demandé. On expose plutôt un identifiant ou un lien, et le client demande le détail s'il en a besoin.\n- **Pagination** : découper une longue liste en pages (par exemple 20 éléments) au lieu de tout envoyer d'un coup.\n- **Formats binaires compacts** : quand le volume et la fréquence le justifient, un format binaire comme **Protobuf** (Protocol Buffers, un format de sérialisation binaire plus petit et plus rapide à produire que le JSON texte) réduit la taille et le temps de traitement.\n\nAttention à la **sur-ingénierie** : passer à un format binaire ou multiplier les variantes de DTO sur une petite API peu sollicitée ajoute de la complexité pour un gain nul. On optimise là où la mesure a montré un vrai problème."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Ne transporter que les champs vraiment utiles au client.",
+          "body": "/images/lessons/alleger-les-reponses-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un DTO ciblé plutôt que l'objet complet",
+          "codeLanguage": "java",
+          "body": "// Objet metier complet : beaucoup de champs, certains sensibles ou inutiles au client\npublic record Utilisateur(\n    UUID id,\n    String nom,\n    String email,\n    String motDePasseHache,\n    List<Commande> commandes\n) {}\n\n// DTO cible : on expose seulement ce que la liste d'utilisateurs a besoin d'afficher.\n// La serialisation produit un JSON court, sans champ sensible ni relation entiere.\npublic record UtilisateurResumeDto(\n    UUID id,\n    String nom\n) {\n    public static UtilisateurResumeDto depuis(Utilisateur u) {\n        return new UtilisateurResumeDto(u.id(), u.nom());\n    }\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 3,
+          "title": "À toi d'alléger",
+          "body": "Une API expose `GET /api/v1/articles` pour afficher une liste d'articles de blog. Chaque réponse renvoie, pour chaque article : l'identifiant, le titre, le **contenu HTML complet** (plusieurs milliers de caractères), l'objet auteur entier (avec son email et son mot de passe haché) et la **liste complète des commentaires**. La liste contient 200 articles et la page met plusieurs secondes à charger.\n\nProblème : identifie pourquoi cette réponse est trop lourde, puis propose une réponse allégée adaptée à un affichage de liste.",
+          "solution": "La réponse est lourde parce qu'elle sérialise, pour 200 articles d'un coup, des données inutiles à une liste : le contenu HTML complet, l'auteur entier (avec des champs sensibles qui ne devraient jamais sortir) et tous les commentaires. Cela gonfle le CPU de sérialisation et la taille réseau.\n\nPistes :\n1. **Projection et DTO de liste** : ne renvoyer que ce qu'une liste affiche (identifiant, titre, nom de l'auteur, date, nombre de commentaires).\n2. **Ne pas sérialiser les relations entières** : remplacer la liste des commentaires par un simple compteur, et exposer l'auteur par son nom plutôt que l'objet complet. Ne jamais exposer email ni mot de passe.\n3. **Pagination** : renvoyer 20 articles par page au lieu de 200.\n4. Le contenu complet et les commentaires sont chargés plus tard, via `GET /api/v1/articles/{id}`, seulement quand l'utilisateur ouvre un article.\n\nExemple de charge utile allégée :\n\n```json\n{\n  \"donnees\": [\n    {\n      \"id\": \"018f...\",\n      \"titre\": \"Bien debuter en SQL\",\n      \"auteur\": \"Ada\",\n      \"nombreCommentaires\": 12,\n      \"publieLe\": \"2026-03-04\"\n    }\n  ],\n  \"pagination\": { \"page\": 1, \"taille\": 20, \"total\": 200 }\n}\n```\n\nCe JSON est beaucoup plus court, plus rapide à produire et à transférer. On évite la sur-ingénierie : pas besoin de Protobuf ici, une projection et une pagination suffisent."
+        },
+        {
+          "type": "QUIZ",
+          "position": 4,
+          "title": "Vérifions",
+          "quizRef": "alleger-les-reponses-check"
+        }
+      ]
+    }
+  ]
+}

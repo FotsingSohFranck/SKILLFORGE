@@ -1,0 +1,43 @@
+{
+  "ref": "compresser-les-reponses-check",
+  "node": "compression-http",
+  "lesson": "compresser-les-reponses",
+  "title": "Quiz : Compresser les réponses",
+  "description": "Vérifie la compréhension de la compression HTTP et de ses compromis.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel en-tête le navigateur envoie-t-il pour annoncer les compressions qu'il sait décompresser ?",
+      "justification": "Le client annonce ses capacités avec l'en-tête de requête `Accept-Encoding` (par exemple `gzip, br`) ; le serveur répond avec `Content-Encoding` pour indiquer le format utilisé.",
+      "position": 0,
+      "options": [
+        { "label": "Accept-Encoding", "correct": true, "position": 0 },
+        { "label": "Content-Type", "correct": false, "position": 1 },
+        { "label": "Cache-Control", "correct": false, "position": 2 },
+        { "label": "Authorization", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de contenu NE faut-il généralement PAS compresser avec gzip ou brotli ?",
+      "justification": "Les images JPEG ou PNG sont déjà compressées : les repasser dans gzip dépense du CPU pour un gain nul. On comprime surtout le texte (HTML, CSS, JS, JSON, SVG).",
+      "position": 1,
+      "options": [
+        { "label": "Une image JPEG, déjà compressée", "correct": true, "position": 0 },
+        { "label": "Une grosse réponse JSON", "correct": false, "position": 1 },
+        { "label": "Un fichier CSS", "correct": false, "position": 2 },
+        { "label": "Une page HTML", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La compression échange du temps processeur (CPU) contre une économie de bande passante.",
+      "justification": "Vrai : comprimer et décompresser coûte du CPU, mais on transmet beaucoup moins d'octets. Le compromis est gagnant sur le texte volumineux, pas sur les petites réponses ni le binaire déjà compressé.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

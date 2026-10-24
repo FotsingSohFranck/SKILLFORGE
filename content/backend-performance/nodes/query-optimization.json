@@ -1,0 +1,95 @@
+{
+  "node": "query-optimization",
+  "lessons": [
+    {
+      "slug": "lire-un-plan-explain",
+      "title": "Lire un plan EXPLAIN",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le plan d'exécution, la vérité de la base",
+          "body": "Quand tu envoies une requête SQL, la base ne l'exécute pas littéralement : son **planificateur** choisit une stratégie (quels index utiliser, dans quel ordre joindre les tables). Le résultat de ce choix s'appelle le **plan d'exécution**.\n\nLa commande `EXPLAIN` affiche ce plan sans exécuter la requête ; `EXPLAIN ANALYZE` l'exécute vraiment et mesure les temps réels. C'est l'outil numéro un pour comprendre **pourquoi** une requête est lente, au lieu de deviner."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le plan d'exécution révèle la stratégie réelle choisie par la base",
+          "body": "/images/lessons/lire-un-plan-explain-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Repérer un parcours complet de table",
+          "codeLanguage": "sql",
+          "body": "EXPLAIN ANALYZE\nSELECT * FROM commandes WHERE client_id = 42;\n\n-- Seq Scan on commandes  (cost=0.00..18334.00 rows=120 ...)\n--   Filter: (client_id = 42)\n-- Le \"Seq Scan\" lit TOUTE la table pour ne garder que 120 lignes :\n-- signe qu'un index sur client_id manque."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Les signaux à repérer",
+          "body": "Dans un plan, surveille :\n- **Seq Scan** (parcours séquentiel) sur une grosse table alors que tu filtres : souvent un index manquant.\n- **rows** très différent entre l'estimation et le réel : statistiques périmées (penser à `ANALYZE`).\n- Les **tris** (`Sort`) et **jointures** coûteuses (`Nested Loop` sur beaucoup de lignes).\n\nUn **Index Scan** à la place d'un Seq Scan est généralement le but visé quand on filtre sur peu de lignes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Repérer un Seq Scan trahit souvent un index manquant",
+          "body": "/images/lessons/lire-un-plan-explain-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "lire-un-plan-explain-check"
+        }
+      ]
+    },
+    {
+      "slug": "reecrire-une-requete-lente",
+      "title": "Réécrire une requête lente",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Demander moins, et plus précisément",
+          "body": "La requête la plus rapide est celle qui lit le moins de données. Trois réflexes :\n- **Sélectionner seulement les colonnes utiles** au lieu de `SELECT *`.\n- **Filtrer tôt** et sur des colonnes indexées, éviter les fonctions sur la colonne filtrée (`WHERE lower(email) = ...` casse l'usage de l'index sauf index dédié).\n- **Limiter** le volume ramené (pagination), et éviter de trier de gros ensembles sans index de tri."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Lire moins de données, voilà la requête la plus rapide",
+          "body": "/images/lessons/reecrire-une-requete-lente-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Avant / après",
+          "codeLanguage": "sql",
+          "body": "-- LENT : fonction sur la colonne filtree, l'index sur email n'est pas utilise\nSELECT * FROM utilisateurs WHERE lower(email) = 'ada@dev.io';\n\n-- RAPIDE : on normalise a l'ecriture et on filtre sur la colonne indexee\n-- (email stocke deja en minuscules), et on ne lit que les colonnes utiles\nSELECT id, nom FROM utilisateurs WHERE email = 'ada@dev.io';"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "La démarche d'optimisation",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Requete lente mesuree\"] --> B[\"EXPLAIN ANALYZE\"]\n  B --> C{\"Seq Scan sur gros volume ?\"}\n  C -->|\"Oui\"| D[\"Ajouter un index adapte\"]\n  C -->|\"Non\"| E{\"Trop de lignes lues ?\"}\n  E -->|\"Oui\"| F[\"Filtrer tot, paginer, moins de colonnes\"]\n  D --> G[\"Re-mesurer\"]\n  F --> G\n  G --> C"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi",
+          "body": "Une requête `SELECT * FROM factures WHERE EXTRACT(YEAR FROM date_emission) = 2026` est lente et fait un Seq Scan malgré un index sur `date_emission`. Pourquoi l'index n'est-il pas utilisé, et comment réécrire la requête ?",
+          "solution": "La fonction `EXTRACT(YEAR FROM date_emission)` est appliquée à la colonne, donc l'index sur `date_emission` brut ne peut pas servir : la base doit calculer la fonction sur chaque ligne (Seq Scan). On réécrit avec une plage de dates, qui laisse l'index travailler :\n\n```sql\nSELECT id, montant FROM factures\nWHERE date_emission >= '2026-01-01' AND date_emission < '2027-01-01';\n```\n\nBonus : ne sélectionner que les colonnes utiles plutôt que `*`. Si le filtre par année est fréquent, un index fonctionnel sur `EXTRACT(YEAR ...)` est aussi une option."
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "reecrire-une-requete-lente-check"
+        }
+      ]
+    }
+  ]
+}

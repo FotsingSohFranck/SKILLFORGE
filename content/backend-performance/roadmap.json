@@ -30,6 +30,24 @@
       "position": 1
     },
     {
+      "slug": "benchmarking",
+      "title": "Benchmarks fiables",
+      "summary": "Mesurer juste : préchauffage, répétitions et pièges des microbenchmarks.",
+      "phase": "Mesurer",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 2
+    },
+    {
+      "slug": "latency-throughput",
+      "title": "Latence, débit & percentiles",
+      "summary": "Comprendre p50, p99, le débit et la loi de Little.",
+      "phase": "Mesurer",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 3
+    },
+    {
       "slug": "db-indexes",
       "title": "Index & plans d'exécution",
       "summary": "Le premier levier, presque toujours.",
@@ -46,6 +64,33 @@
       "importance": "CORE",
       "estimatedMinutes": 60,
       "position": 1
+    },
+    {
+      "slug": "query-optimization",
+      "title": "Optimiser les requêtes",
+      "summary": "Lire un plan EXPLAIN et réécrire une requête lente.",
+      "phase": "Base de données",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 2
+    },
+    {
+      "slug": "pagination-batching",
+      "title": "Pagination & traitement par lots",
+      "summary": "Ne jamais tout charger : paginer et grouper les accès.",
+      "phase": "Base de données",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 3
+    },
+    {
+      "slug": "db-scaling",
+      "title": "Mise à l'échelle de la base",
+      "summary": "Réplicas de lecture, partitionnement et séparation lecture/écriture.",
+      "phase": "Base de données",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 60,
+      "position": 4
     },
     {
       "slug": "caching-perf",
@@ -66,6 +111,33 @@
       "position": 1
     },
     {
+      "slug": "serialization",
+      "title": "Sérialisation & charge utile",
+      "summary": "Le coût caché du JSON, et comment alléger les réponses.",
+      "phase": "Application & I/O",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 2
+    },
+    {
+      "slug": "compression-http",
+      "title": "Compression & HTTP efficace",
+      "summary": "gzip, keep-alive, HTTP/2 et cache HTTP pour réduire le trafic.",
+      "phase": "Application & I/O",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 3
+    },
+    {
+      "slug": "memory-gc",
+      "title": "Mémoire & garbage collector",
+      "summary": "Allocations, fuites et pauses GC qui plombent la latence.",
+      "phase": "Application & I/O",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 60,
+      "position": 4
+    },
+    {
       "slug": "pooling",
       "title": "Pools de connexions & threads",
       "summary": "Réutiliser au lieu de recréer.",
@@ -75,22 +147,50 @@
       "position": 0
     },
     {
+      "slug": "circuit-breaker",
+      "title": "Timeouts, retries & circuit breaker",
+      "summary": "Empêcher qu'une dépendance lente fasse tomber tout le système.",
+      "phase": "Charge & résilience",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 1
+    },
+    {
+      "slug": "horizontal-scaling",
+      "title": "Mise à l'échelle horizontale",
+      "summary": "Ajouter des instances sans état pour encaisser la charge.",
+      "phase": "Charge & résilience",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 2
+    },
+    {
       "slug": "load-resilience",
       "title": "Charge & résilience",
       "summary": "Timeouts, backpressure, tests de charge.",
       "phase": "Charge & résilience",
       "importance": "OPTIONAL",
       "estimatedMinutes": 60,
-      "position": 1
+      "position": 3
     }
   ],
   "edges": [
     { "source": "measure-first", "target": "profiling", "kind": "PREREQ" },
+    { "source": "measure-first", "target": "benchmarking", "kind": "PREREQ" },
+    { "source": "profiling", "target": "latency-throughput", "kind": "PREREQ" },
     { "source": "measure-first", "target": "db-indexes", "kind": "PREREQ" },
     { "source": "db-indexes", "target": "n-plus-one", "kind": "PREREQ" },
+    { "source": "db-indexes", "target": "query-optimization", "kind": "PREREQ" },
+    { "source": "n-plus-one", "target": "pagination-batching", "kind": "PREREQ" },
+    { "source": "db-indexes", "target": "db-scaling", "kind": "PREREQ" },
     { "source": "n-plus-one", "target": "caching-perf", "kind": "PREREQ" },
     { "source": "measure-first", "target": "async-reactive", "kind": "PREREQ" },
+    { "source": "caching-perf", "target": "serialization", "kind": "PREREQ" },
+    { "source": "async-reactive", "target": "compression-http", "kind": "PREREQ" },
+    { "source": "profiling", "target": "memory-gc", "kind": "PREREQ" },
     { "source": "async-reactive", "target": "pooling", "kind": "PREREQ" },
-    { "source": "pooling", "target": "load-resilience", "kind": "PREREQ" }
+    { "source": "pooling", "target": "circuit-breaker", "kind": "PREREQ" },
+    { "source": "pooling", "target": "horizontal-scaling", "kind": "PREREQ" },
+    { "source": "circuit-breaker", "target": "load-resilience", "kind": "PREREQ" }
   ]
 }

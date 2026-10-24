@@ -1,0 +1,43 @@
+{
+  "ref": "traiter-par-lots-check",
+  "node": "pagination-batching",
+  "lesson": "traiter-par-lots",
+  "title": "Quiz : Traiter par lots",
+  "description": "Vérifie que tu sais remplacer des appels unitaires par un traitement par lots.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le principal gain du traitement par lots face à N appels unitaires à la base ?",
+      "justification": "Chaque appel unitaire paie un aller-retour réseau ; regrouper les opérations réduit fortement le nombre d'aller-retours, ce qui accélère le traitement.",
+      "position": 0,
+      "options": [
+        { "label": "Réduire le nombre d'aller-retours vers la base", "correct": true, "position": 0 },
+        { "label": "Supprimer la nécessité d'index sur la table", "correct": false, "position": 1 },
+        { "label": "Garantir que chaque ligne a sa propre transaction", "correct": false, "position": 2 },
+        { "label": "Augmenter le nombre de requêtes envoyées", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi choisit-on une taille de lot intermédiaire plutôt que le plus gros lot possible ?",
+      "justification": "Un lot trop gros consomme beaucoup de mémoire, tient des verrous longtemps et peut dépasser les limites de la base ; une taille intermédiaire équilibre gain et coût.",
+      "position": 1,
+      "options": [
+        { "label": "Un lot trop gros consomme trop de mémoire et tient des verrous trop longtemps", "correct": true, "position": 0 },
+        { "label": "Un gros lot est toujours rejeté par la base", "correct": false, "position": 1 },
+        { "label": "La taille de lot n'a aucun effet sur la performance", "correct": false, "position": 2 },
+        { "label": "Un gros lot empêche d'utiliser ON CONFLICT", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une opération idempotente peut être rejouée sans créer d'effet en double, ce qui est utile si un lot échoue au milieu et doit être relancé.",
+      "justification": "Vrai : l'idempotence (par exemple via ON CONFLICT DO NOTHING ou une clé d'unicité) garantit qu'un rejeu ne crée pas de doublons après un échec partiel.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

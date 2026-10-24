@@ -1,0 +1,131 @@
+{
+  "node": "db-scaling",
+  "lessons": [
+    {
+      "slug": "replicas-de-lecture",
+      "title": "Réplicas de lecture",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Grossir la machine ou multiplier les machines",
+          "body": "Quand une base de données reçoit trop de requêtes, deux voies existent.\n\nLa **scalabilité verticale** (en anglais *scale up*) consiste à mettre une plus grosse machine : plus de processeurs, plus de mémoire, un disque plus rapide. C'est simple, mais ça bute vite sur une limite physique et sur un coût qui explose.\n\nLa **scalabilité horizontale** (en anglais *scale out*) consiste à ajouter **plusieurs machines** qui se partagent le travail. C'est plus souple et presque sans plafond, mais ça demande d'organiser la répartition. Pour une base, la première étape horizontale la plus courante est la **réplication** : on duplique la base sur plusieurs serveurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Grossir une seule machine ou en ajouter plusieurs qui se partagent la charge.",
+          "body": "/images/lessons/replicas-de-lecture-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Primaire et réplicas",
+          "body": "Dans une réplication classique, un serveur joue le rôle de **primaire** (en anglais *primary*, parfois appelé *leader*) : c'est le seul qui accepte les **écritures** (INSERT, UPDATE, DELETE). Les autres serveurs sont des **réplicas** (parfois appelés *replica* ou *follower*) : ils reçoivent en continu une copie des changements du primaire et servent les **lectures** (SELECT).\n\nL'idée clé : la plupart des applications lisent bien plus souvent qu'elles n'écrivent. En envoyant toutes les lectures vers plusieurs réplicas, on soulage le primaire et on encaisse beaucoup plus de trafic. C'est ce qu'on appelle **router les requêtes** : les écritures vont au primaire, les lectures se répartissent sur les réplicas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le primaire encaisse les écritures, les réplicas servent les lectures.",
+          "body": "/images/lessons/replicas-de-lecture-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Routage des écritures et des lectures",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  App[\"Application\"] -->|\"Ecritures (INSERT, UPDATE, DELETE)\"| P[\"Base primaire\"]\n  App -->|\"Lectures (SELECT)\"| R1[\"Replica 1\"]\n  App -->|\"Lectures (SELECT)\"| R2[\"Replica 2\"]\n  App -->|\"Lectures (SELECT)\"| R3[\"Replica 3\"]\n  P -->|\"Replication (copie des changements)\"| R1\n  P -->|\"Replication (copie des changements)\"| R2\n  P -->|\"Replication (copie des changements)\"| R3"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Router deux connexions distinctes",
+          "codeLanguage": "yaml",
+          "body": "# Configuration de deux sources de donnees : une pour ecrire, une pour lire.\n# L'application choisit la bonne selon le type de requete.\ndatasources:\n  primary:            # cible unique des ecritures\n    url: \"r2dbc:postgresql://db-primary:5432/skillforge\"\n    role: write\n  replica:            # pool de lecture, reparti sur les replicas\n    url: \"r2dbc:postgresql://db-replica:5432/skillforge\"\n    role: read\n\n# Regle simple cote application :\n#   - une commande qui modifie des donnees  -> datasource \"primary\"\n#   - une simple lecture (SELECT)            -> datasource \"replica\""
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le lag de réplication et le piège de sa propre écriture",
+          "body": "La copie vers les réplicas n'est pas instantanée : il y a un petit délai, souvent de quelques millisecondes mais parfois davantage. On parle de **lag de réplication** (retard de réplication).\n\nPendant ce délai, un réplica peut encore montrer l'ancienne valeur. On dit que le système est en **cohérence à terme** (en anglais *eventual consistency*) : tous les serveurs finissent par s'accorder, mais pas tout de suite.\n\nLe piège le plus courant s'appelle **lire sa propre écriture** (*read-your-own-writes*) : un utilisateur modifie son profil (écriture sur le primaire), puis recharge la page (lecture sur un réplica encore en retard) et croit que sa modification a été perdue. Parade usuelle : router sur le primaire les lectures qui suivent immédiatement une écriture du même utilisateur, ou attendre que le réplica soit à jour."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La copie vers les réplicas prend un délai : le lag de réplication.",
+          "body": "/images/lessons/replicas-de-lecture-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "replicas-de-lecture-check"
+        }
+      ]
+    },
+    {
+      "slug": "partitionnement",
+      "title": "Partitionnement et sharding",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Découper une table trop grande",
+          "body": "Les réplicas aident pour la charge de lecture, mais pas pour une table devenue **énorme** : si une table pèse des centaines de millions de lignes, chaque serveur en garde quand même une copie complète.\n\nLe **partitionnement** (en anglais *partitioning*) découpe une grande table en morceaux plus petits appelés **partitions**, sur un même serveur. Deux approches fréquentes :\n- **par plage** (*range*) : on découpe selon un intervalle, par exemple une partition par mois de `created_at`.\n- **par hachage** (*hash*) : on applique une fonction de hachage à une colonne (par exemple `user_id`) pour répartir les lignes de façon équilibrée entre les partitions.\n\nChaque partition est plus petite, donc plus rapide à parcourir et à indexer. Pour l'application, la table reste une seule table logique."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Découper une table énorme en partitions plus petites et plus rapides.",
+          "body": "/images/lessons/partitionnement-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le sharding, répartir sur plusieurs bases",
+          "body": "Le **sharding** (découpage en fragments) pousse l'idée plus loin : au lieu de garder les morceaux sur un seul serveur, on répartit les données sur **plusieurs bases différentes**, chacune sur sa machine. Chaque fragment s'appelle un **shard**.\n\nOn choisit une **clé de sharding** (en anglais *shard key*), par exemple `user_id` : tous les enregistrements d'un même utilisateur vont sur le même shard. C'est de la scalabilité horizontale appliquée aux écritures et au stockage, pas seulement aux lectures.\n\nAttention à ne pas confondre : le partitionnement reste sur un serveur (ou un groupe primaire/réplicas), alors que le sharding étale les données sur des bases physiquement séparées."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le sharding répartit les données sur plusieurs bases séparées.",
+          "body": "/images/lessons/partitionnement-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déclarer un partitionnement par plage",
+          "codeLanguage": "sql",
+          "body": "-- Table partitionnee par plage de dates : une partition par trimestre.\nCREATE TABLE evenements (\n  id          uuid DEFAULT uuidv7(),\n  survenu_le  timestamptz NOT NULL,\n  donnees     jsonb\n) PARTITION BY RANGE (survenu_le);\n\n-- Chaque partition ne contient que les lignes de son intervalle.\nCREATE TABLE evenements_2026_t1 PARTITION OF evenements\n  FOR VALUES FROM ('2026-01-01') TO ('2026-04-01');\n\nCREATE TABLE evenements_2026_t2 PARTITION OF evenements\n  FOR VALUES FROM ('2026-04-01') TO ('2026-07-01');\n\n-- Une requete filtrant sur survenu_le ne lit que la ou les partitions utiles,\n-- au lieu de parcourir toute la table : c'est l'elagage de partitions."
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Avantages, coûts, et quand y venir",
+          "body": "Avantages : des morceaux plus petits et plus rapides, et, avec le sharding, la possibilité de dépasser la capacité d'une seule machine en écriture comme en stockage.\n\nCoûts à connaître :\n- **Requêtes inter-shards** : une requête qui doit lire plusieurs shards (par exemple un classement global) devient compliquée et lente, car il faut interroger chaque shard puis fusionner les résultats.\n- **Rééquilibrage** (*rebalancing*) : si un shard devient trop gros, il faut déplacer des données vers un autre shard, opération délicate et risquée.\n- Les **transactions** et les **jointures** entre shards sont difficiles, parfois impossibles simplement.\n\nConclusion de bon sens : le sharding est un **dernier recours**. On épuise d'abord les index, l'optimisation des requêtes, le cache et les réplicas de lecture. On ne shard que quand une seule base ne suffit vraiment plus."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Requêtes inter-shards et rééquilibrage : le sharding reste un dernier recours.",
+          "body": "/images/lessons/partitionnement-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Une application de blog a une base PostgreSQL unique. Elle reçoit beaucoup de lectures d'articles (pages publiques très consultées) mais assez peu d'écritures (quelques articles publiés par jour). La base commence à saturer aux heures de pointe, mais sa taille sur le disque reste modeste. Quelle stratégie de montée en charge choisis-tu en premier, et pourquoi pas directement le sharding ?",
+          "solution": "La bonne première étape est d'ajouter des **réplicas de lecture** et de router les lectures vers eux, en gardant les écritures sur le primaire.\n\nRaisonnement : le problème est une **charge de lecture**, pas un volume de données (le disque reste modeste) ni une charge d'écriture (peu d'écritures). Les réplicas répondent exactement à ce cas : ils multiplient la capacité de lecture à faible coût de complexité. Le petit lag de réplication est acceptable pour des articles de blog, où lire une version vieille de quelques millisecondes ne pose pas de problème.\n\nLe **sharding** serait surdimensionné ici : il vise les cas où une seule base ne tient plus en écriture ou en stockage. Il apporte des coûts lourds (requêtes inter-shards, rééquilibrage, transactions difficiles) sans résoudre le vrai goulot. On le réserve au dernier recours. Avant lui, on peut aussi ajouter un cache sur les articles les plus lus."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "partitionnement-check"
+        }
+      ]
+    }
+  ]
+}

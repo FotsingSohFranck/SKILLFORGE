@@ -1,0 +1,138 @@
+{
+  "node": "compression-http",
+  "lessons": [
+    {
+      "slug": "compresser-les-reponses",
+      "title": "Compresser les réponses",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Compresser, c'est envoyer moins d'octets",
+          "body": "La **compression** réduit la taille d'une réponse avant de l'envoyer sur le réseau. Le serveur comprime, le navigateur décompresse : le contenu reçu est identique, mais il a voyagé plus léger.\n\nÇa marche très bien sur le **texte** : HTML, CSS, JavaScript, JSON, SVG, car ces formats sont pleins de répétitions. Une réponse JSON de 100 Ko peut tomber à 15 ou 20 Ko. Moins d'octets transmis, c'est une page qui s'affiche plus vite, surtout sur une connexion lente ou mobile.\n\nLes deux algorithmes courants aujourd'hui :\n- **gzip** : disponible partout, le choix par défaut historique.\n- **brotli** (noté `br`) : plus récent, compresse souvent un peu mieux le texte, supporté par tous les navigateurs modernes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Compresser une réponse, c'est faire voyager les mêmes données avec beaucoup moins d'octets sur le réseau.",
+          "body": "/images/lessons/compresser-les-reponses-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La négociation : Accept-Encoding et Content-Encoding",
+          "body": "Le client et le serveur se mettent d'accord sur la compression via deux en-têtes HTTP (des lignes d'information envoyées avec chaque requête et chaque réponse).\n\n1. Le navigateur annonce ce qu'il sait décompresser avec l'en-tête de requête **`Accept-Encoding`**, par exemple `Accept-Encoding: gzip, br`.\n2. Le serveur comprime avec l'un de ces formats et le signale dans l'en-tête de réponse **`Content-Encoding`**, par exemple `Content-Encoding: br`.\n\nSi le client n'annonce rien, le serveur renvoie la réponse non compressée : la compression est donc toujours optionnelle et sûre.\n\nAttention aussi aux **caches partagés** (proxys) : l'en-tête `Vary: Accept-Encoding` indique que la réponse change selon la compression demandée, pour ne pas servir une version brotli à un client qui ne comprend que gzip."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Client et serveur se mettent d'accord sur le format de compression via les en-têtes de la requête et de la réponse.",
+          "body": "/images/lessons/compresser-les-reponses-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le compromis : CPU contre bande passante",
+          "body": "Compresser n'est pas gratuit : le serveur dépense du **temps processeur (CPU)** pour réduire la taille, et le client en dépense pour décompresser. En échange, on économise de la **bande passante** (le débit du réseau) et du temps de transfert.\n\nDeux règles simples pour que l'échange soit toujours gagnant :\n- **Ne pas compresser ce qui l'est déjà.** Les images (JPEG, PNG, WebP), les vidéos, les archives ZIP sont des formats déjà compressés. Les repasser dans gzip gaspille du CPU pour un gain nul, voire les alourdit légèrement.\n- **Ne pas compresser les toutes petites réponses** (quelques dizaines d'octets) : le coût fixe de l'algorithme dépasse le gain. Les serveurs fixent souvent un seuil minimal, par exemple 1 Ko.\n\nEn résumé : on comprime le texte volumineux, on laisse tranquille le binaire déjà compressé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La compression échange du temps processeur contre de la bande passante économisée : un compromis à doser.",
+          "body": "/images/lessons/compresser-les-reponses-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "La négociation vue sur le fil HTTP",
+          "codeLanguage": "http",
+          "body": "# Le navigateur demande une page et annonce ce qu'il sait decompresser\nGET /api/v1/parcours HTTP/1.1\nHost: skillforge.local\nAccept-Encoding: gzip, br\n\n# Le serveur repond en brotli et le signale\nHTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nContent-Encoding: br\nVary: Accept-Encoding\n\n# Le corps est ici des octets compresses (illisibles tels quels) ;\n# le navigateur les decompresse automatiquement grace a Content-Encoding."
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Activer gzip et brotli dans Nginx",
+          "codeLanguage": "nginx",
+          "body": "# Configuration d'un serveur Nginx qui sert les reponses du backend\nhttp {\n    # Active la compression gzip\n    gzip on;\n\n    # Ne compresse pas les reponses plus petites que 1 Ko (gain trop faible)\n    gzip_min_length 1024;\n\n    # Ne compresse QUE les types texte ; les images/videos sont deja compressees\n    gzip_types text/plain text/css application/json application/javascript image/svg+xml;\n\n    # Indique aux caches que la reponse varie selon Accept-Encoding\n    gzip_vary on;\n\n    # Brotli (si le module est installe) : souvent meilleur sur le texte\n    brotli on;\n    brotli_min_length 1024;\n    brotli_types text/plain text/css application/json application/javascript image/svg+xml;\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Le trajet d'une réponse compressée",
+          "diagramFormat": "MERMAID",
+          "body": "sequenceDiagram\n  participant N as Navigateur\n  participant S as Serveur\n  N->>S: GET /api/v1/parcours (Accept-Encoding: gzip, br)\n  Note over S: Choisit br, compresse le JSON\n  S-->>N: 200 OK (Content-Encoding: br, corps compresse)\n  Note over N: Decompresse, puis affiche le contenu"
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "compresser-les-reponses-check"
+        }
+      ]
+    },
+    {
+      "slug": "http-efficace",
+      "title": "Un HTTP efficace",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Réutiliser la connexion : keep-alive",
+          "body": "Ouvrir une connexion réseau a un coût : il faut un aller-retour pour établir le lien (et plusieurs de plus si c'est du HTTPS chiffré). Si on refermait la connexion après chaque fichier, une page avec 30 ressources paierait ce coût 30 fois.\n\nLe **keep-alive** (maintien de connexion) garde la connexion ouverte pour y faire passer plusieurs requêtes à la suite. C'est le comportement par défaut en HTTP/1.1 : une seule poignée de main, puis plein de requêtes réutilisent le même tuyau. Résultat : moins de latence (le temps d'attente avant la première donnée)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le keep-alive garde la connexion ouverte pour y faire passer plusieurs requêtes sans tout rouvrir à chaque fois.",
+          "body": "/images/lessons/http-efficace-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Le multiplexage de HTTP/2",
+          "body": "En HTTP/1.1, même avec keep-alive, les requêtes passent surtout les unes après les autres sur une connexion : si une réponse est lente, elle bloque la file (le fameux blocage en tête de file, ou head-of-line blocking).\n\n**HTTP/2** apporte le **multiplexage** : plusieurs requêtes et réponses circulent **en parallèle** sur une seule connexion, découpées en petits morceaux (des trames) entrelacés. Le navigateur peut demander 20 ressources d'un coup sans attendre que chacune finisse. On ouvre donc moins de connexions, et on remplit mieux le réseau. HTTP/2 compresse aussi les en-têtes, souvent répétitifs d'une requête à l'autre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le multiplexage de HTTP/2 fait circuler de nombreuses requêtes en parallèle sur une seule connexion.",
+          "body": "/images/lessons/http-efficace-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Le cache HTTP : ne pas renvoyer l'inchangé",
+          "body": "La réponse la plus rapide est celle qu'on n'envoie pas. Le **cache HTTP** permet au client de réutiliser une réponse déjà reçue au lieu de la retélécharger.\n\nTrois outils travaillent ensemble :\n- **`Cache-Control`** : l'en-tête où le serveur dit combien de temps une réponse reste fraîche, par exemple `Cache-Control: max-age=60` (réutilisable pendant 60 secondes sans redemander).\n- **`ETag`** : une étiquette (souvent une empreinte du contenu) qui identifie une version précise de la ressource. Si le contenu change, l'ETag change.\n- **`304 Not Modified`** : quand le client a déjà une version et veut vérifier, il renvoie l'ETag via `If-None-Match`. Si rien n'a changé, le serveur répond **304** avec un corps vide, au lieu de renvoyer toutes les données. Le client réutilise sa copie.\n\nUn `304` coûte presque rien : quelques en-têtes, pas de corps. C'est idéal pour des données qui changent peu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le cache HTTP évite de retélécharger ce qui n'a pas changé : la réponse la plus rapide est celle qu'on n'envoie pas.",
+          "body": "/images/lessons/http-efficace-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "ETag et réponse 304 sur le fil",
+          "codeLanguage": "http",
+          "body": "# 1) Premiere requete : le serveur renvoie les donnees avec un ETag et une duree de fraicheur\nGET /api/v1/parcours/42 HTTP/1.1\nHost: skillforge.local\n\nHTTP/1.1 200 OK\nContent-Type: application/json\nCache-Control: max-age=60\nETag: \"v7-abc123\"\n\n{\"id\":42,\"titre\":\"Backend Performance\"}\n\n# 2) Plus tard, le client revalide en presentant l'ETag qu'il possede\nGET /api/v1/parcours/42 HTTP/1.1\nHost: skillforge.local\nIf-None-Match: \"v7-abc123\"\n\n# 3) Rien n'a change : le serveur renvoie 304 SANS corps, le client reutilise sa copie\nHTTP/1.1 304 Not Modified\nETag: \"v7-abc123\""
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Le endpoint `GET /api/v1/parcours` (la liste des parcours) est appelé à chaque chargement de page par des milliers d'utilisateurs, mais son contenu ne change que quelques fois par semaine. Chaque appel renvoie aujourd'hui tout le JSON complet. Propose une stratégie HTTP pour réduire fortement le trafic de cet endpoint, sans jamais servir de données périmées au point que ce soit gênant.",
+          "solution": "On combine cache de fraîcheur et revalidation :\n\n1. **`Cache-Control: max-age=300`** : pendant 5 minutes, le navigateur réutilise sa copie sans même contacter le serveur. Comme le contenu change rarement, servir une liste vieille de quelques minutes est acceptable.\n2. **`ETag`** calculé sur le contenu de la liste (par exemple une empreinte, ou un numéro de version incrémenté à chaque modification). Passé le délai de fraîcheur, le client revalide avec `If-None-Match`.\n3. Côté serveur, si l'ETag reçu correspond toujours, renvoyer **`304 Not Modified`** avec un corps vide au lieu de tout le JSON.\n\nRésultat : la grande majorité des appels sont soit évités (dans la fenêtre max-age), soit résolus par un `304` quasi gratuit. Le JSON complet n'est renvoyé que lorsque la liste a réellement changé.\n\n```http\nHTTP/1.1 200 OK\nCache-Control: max-age=300\nETag: \"parcours-list-v18\"\n```\n\nOn peut aussi activer la compression gzip ou brotli sur cet endpoint JSON pour alléger encore les réponses qui, elles, partent vraiment."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "http-efficace-check"
+        }
+      ]
+    }
+  ]
+}

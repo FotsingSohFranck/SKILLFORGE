@@ -1,0 +1,119 @@
+{
+  "node": "pagination-batching",
+  "lessons": [
+    {
+      "slug": "paginer-les-resultats",
+      "title": "Paginer les résultats",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ne jamais tout charger d'un coup",
+          "body": "Quand une table contient des milliers ou des millions de lignes, renvoyer tout le résultat d'un seul `SELECT` est une mauvaise idée : la base lit beaucoup de données, le réseau transporte un gros paquet, et le client sature sa mémoire. La **pagination** consiste à ne renvoyer qu'une **page** à la fois, par exemple 20 lignes, puis la page suivante à la demande.\n\nDeux grandes familles existent. La pagination **par OFFSET** (décalage) dit à la base : saute les N premières lignes, puis donne les n suivantes. La pagination **par curseur** (aussi appelée *keyset*) dit : donne les n lignes situées **après** le dernier élément déjà vu. Nous allons voir pourquoi la seconde est souvent préférable."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Servir les données page par page plutôt que tout d'un seul coup.",
+          "body": "/images/lessons/paginer-les-resultats-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "OFFSET/LIMIT et sa limite sur les grands décalages",
+          "body": "`LIMIT` fixe la taille de la page (le nombre de lignes renvoyées). `OFFSET` dit combien de lignes sauter avant de commencer.\n\nLe piège : pour servir la page 5000 avec `OFFSET 100000`, la base doit quand même **parcourir et jeter** les 100000 premières lignes avant de renvoyer la page voulue. Plus le décalage grandit, plus c'est lent. Autre défaut : si une ligne est insérée ou supprimée entre deux pages, le décalage **glisse** et l'utilisateur peut voir un doublon ou rater une ligne.\n\nOFFSET reste acceptable pour de petits volumes ou les premières pages ; il devient coûteux et instable sur de grands décalages."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Avec OFFSET, plus le décalage grandit, plus la base saute de lignes inutiles.",
+          "body": "/images/lessons/paginer-les-resultats-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La pagination par curseur (keyset)",
+          "body": "La pagination par **curseur** s'appuie sur une colonne triée et unique, par exemple un `id` croissant. Au lieu de compter combien de lignes sauter, on retient la valeur du **dernier élément vu** (le curseur) et on demande les lignes **juste après** : `WHERE id > dernier_id ORDER BY id LIMIT n`.\n\nAvantages : la base utilise l'index sur `id` pour aller directement au bon endroit, sans parcourir les lignes précédentes, donc le coût reste **constant** quelle que soit la profondeur. Et comme on s'ancre sur une valeur réelle, les insertions ou suppressions ailleurs ne décalent pas la page : la navigation est **stable**.\n\nContrepartie : on ne peut pas sauter directement à la page 500 (pas de numéro de page), on avance de proche en proche. Pour un défilement infini ou un flux, c'est exactement ce qu'il faut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le curseur repart du dernier élément vu pour un coût constant et stable.",
+          "body": "/images/lessons/paginer-les-resultats-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "OFFSET lent contre curseur rapide",
+          "codeLanguage": "sql",
+          "body": "-- PAGINATION PAR OFFSET : pour la page profonde, la base saute 100000 lignes\n-- avant de renvoyer les 20 voulues. Lent quand le decalage grandit.\nSELECT id, titre, cree_le\nFROM articles\nORDER BY id\nLIMIT 20 OFFSET 100000;\n\n-- PAGINATION PAR CURSEUR (keyset) : on repart du dernier id deja vu.\n-- L'index sur id positionne directement au bon endroit, cout constant.\n-- Ici le client avait recu jusqu'a l'id 100000 sur la page precedente.\nSELECT id, titre, cree_le\nFROM articles\nWHERE id > 100000\nORDER BY id\nLIMIT 20;"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Avancer page par page avec un curseur",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Premiere page : WHERE id > 0 LIMIT 20\"] --> B[\"La base renvoie 20 lignes\"]\n  B --> C[\"Retenir l'id de la derniere ligne : le curseur\"]\n  C --> D[\"Page suivante : WHERE id > curseur LIMIT 20\"]\n  D --> E{\"Moins de 20 lignes renvoyees ?\"}\n  E -->|\"Non\"| C\n  E -->|\"Oui\"| F[\"Derniere page atteinte, fin\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "paginer-les-resultats-check"
+        }
+      ]
+    },
+    {
+      "slug": "traiter-par-lots",
+      "title": "Traiter par lots",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Regrouper les accès au lieu de les multiplier",
+          "body": "Un **lot** (en anglais *batch*) est un groupe d'éléments traités ensemble en une seule opération, au lieu d'un par un. Faire N appels unitaires à la base, une requête par ligne, coûte cher : chaque appel paie le prix du réseau (l'aller-retour) et du traitement, même si chaque requête est minuscule. Ce gaspillage est le cœur du problème **N+1**, où une requête initiale déclenche N requêtes supplémentaires, une par résultat.\n\nLe remède est le **traitement par lots** : rassembler ces N opérations en un petit nombre de requêtes groupées. On passe de 1000 aller-retours à un seul, ce qui est spectaculairement plus rapide."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Regrouper les opérations en lots au lieu de multiplier les aller-retours.",
+          "body": "/images/lessons/traiter-par-lots-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Taille de lot et idempotence",
+          "body": "Deux points de vigilance quand on regroupe.\n\n**Taille de lot raisonnable** : un lot trop petit perd l'avantage du regroupement ; un lot trop gros consomme beaucoup de mémoire, tient des verrous longtemps et peut dépasser les limites de la base. On choisit une taille intermédiaire, par exemple 500 à 1000 lignes par lot, et on découpe le travail en tranches de cette taille.\n\n**Idempotence** : une opération est idempotente si la rejouer donne le même résultat sans effet en double. C'est essentiel pour les lots, car un traitement peut échouer au milieu et être relancé. On rend un lot idempotent avec, par exemple, un `INSERT ... ON CONFLICT DO NOTHING` (ne rien faire si la ligne existe déjà) ou une clé d'unicité, pour qu'un rejeu ne crée pas de doublons."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Choisir une taille de lot raisonnable et rendre le traitement rejouable sans doublon.",
+          "body": "/images/lessons/traiter-par-lots-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Boucle unitaire contre insertion groupée",
+          "codeLanguage": "sql",
+          "body": "-- LENT : une requete par ligne, N aller-retours vers la base (probleme N+1).\nINSERT INTO abonnes (email) VALUES ('ada@dev.io');\nINSERT INTO abonnes (email) VALUES ('alan@dev.io');\nINSERT INTO abonnes (email) VALUES ('grace@dev.io');\n-- ... repete pour chaque abonne, un par un\n\n-- RAPIDE : une seule requete groupee pour tout le lot, un seul aller-retour.\n-- ON CONFLICT rend l'operation idempotente : un rejeu ne cree pas de doublon.\nINSERT INTO abonnes (email) VALUES\n  ('ada@dev.io'),\n  ('alan@dev.io'),\n  ('grace@dev.io')\nON CONFLICT (email) DO NOTHING;"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Le pseudo-code ci-dessous met à jour un statut ligne par ligne, avec une requête par identifiant dans une boucle. Il y a 5000 identifiants, donc 5000 aller-retours vers la base. Réécris-le en traitement par lots, avec une taille de lot raisonnable, pour réduire fortement le nombre de requêtes.\n\n```javascript\n// Version lente : une requete par identifiant\nfor (const id of ids) { // ids contient 5000 elements\n  await db.query(\"UPDATE commandes SET statut = 'expediee' WHERE id = $1\", [id]);\n}\n```",
+          "solution": "On découpe la liste en tranches (ici 1000) et on met à jour chaque tranche en une seule requête, avec l'opérateur `IN` (ou `= ANY`). On passe de 5000 requêtes à 5 :\n\n```javascript\n// Version par lots : une requete par tranche de 1000\nconst tailleLot = 1000;\nfor (let i = 0; i < ids.length; i += tailleLot) {\n  const lot = ids.slice(i, i + tailleLot); // tranche de 1000 identifiants\n  // = ANY($1) applique la mise a jour a tout le lot en une seule requete\n  await db.query(\n    \"UPDATE commandes SET statut = 'expediee' WHERE id = ANY($1)\",\n    [lot]\n  );\n}\n```\n\nCette mise à jour est naturellement idempotente : rejouer un lot remet simplement le même statut, sans effet en double. Si le volume était énorme, on garderait une taille de lot modérée pour ne pas tenir de verrous trop longtemps."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "traiter-par-lots-check"
+        }
+      ]
+    }
+  ]
+}

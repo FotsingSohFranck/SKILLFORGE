@@ -1,0 +1,43 @@
+{
+  "ref": "mesurer-juste-check",
+  "node": "benchmarking",
+  "lesson": "mesurer-juste",
+  "title": "Quiz : Mesurer juste",
+  "description": "Vérifie que tu sais construire une mesure fiable.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi fait-on un préchauffage (warmup) avant de mesurer sur la JVM ?",
+      "justification": "Sur la JVM, le code est d'abord interprété puis compilé à la volée par le JIT une fois qu'il a tourné assez souvent. Sans warmup, on mesure cette phase lente et non représentative.",
+      "position": 0,
+      "options": [
+        { "label": "Parce que le JIT compile le code chaud, et les premières exécutions sont bien plus lentes", "correct": true, "position": 0 },
+        { "label": "Pour vider la base de données avant la mesure", "correct": false, "position": 1 },
+        { "label": "Parce que la JVM a besoin de chauffer physiquement le processeur", "correct": false, "position": 2 },
+        { "label": "Pour que les résultats soient automatiquement moyennés", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle différence entre un micro-benchmark et un benchmark de bout en bout ?",
+      "justification": "Le micro-benchmark isole une petite portion de code, le benchmark de bout en bout mesure un scénario réel traversant toute l'application.",
+      "position": 1,
+      "options": [
+        { "label": "Le micro-benchmark isole une petite portion de code ; le bout en bout mesure un scénario réel complet", "correct": true, "position": 0 },
+        { "label": "Le micro-benchmark mesure la mémoire, le bout en bout mesure le temps", "correct": false, "position": 1 },
+        { "label": "Il n'y a aucune différence, les deux termes sont synonymes", "correct": false, "position": 2 },
+        { "label": "Le bout en bout ne nécessite jamais de warmup", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il est recommandé de lancer un benchmark pendant qu'un build ou un autre service tourne sur la même machine.",
+      "justification": "Faux : une machine occupée par une autre charge fausse les temps mesurés. Il faut mesurer sur une machine au repos.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}
