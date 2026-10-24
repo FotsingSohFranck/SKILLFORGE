@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { getNode, listNodeLessons, listRoadmaps } from '../api/catalogue'
 import { listNodeChallenges } from '../api/evaluation'
+import { getPractical, type LabPractical } from '../api/lab'
 import { getNodeLessonProgress, listBookmarks, toggleBookmark } from '../api/learning'
 import { ApiError, type ChallengeSummary, type Lesson, type RoadmapNode } from '../api/types'
 import { AsyncSection } from '../components/AsyncSection'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { PracticalPanel } from '../components/PracticalPanel'
 import { TrackCover } from '../components/TrackCover'
 import { IconBolt, IconCheckCircle, IconCircle, IconStar, IconStarOutline } from '../components/icons'
 import { Progress } from '../components/Progress'
@@ -20,8 +22,18 @@ interface NodeData {
   lessons: Lesson[]
   completedIds: string[]
   challenges: ChallengeSummary[]
+  practical: LabPractical
   bookmarked: boolean
   roadmapSlug: string | null
+}
+
+const PRACTICAL_ABSENT: LabPractical = {
+  exists: false,
+  required: false,
+  title: null,
+  instructions: null,
+  latestStatus: null,
+  latestPassed: false,
 }
 
 const IMPORTANCE_LABEL: Record<string, string> = {
@@ -31,12 +43,13 @@ const IMPORTANCE_LABEL: Record<string, string> = {
 }
 
 async function loadNode(id: string): Promise<NodeData> {
-  const [node, lessons, progress, challenges, roadmaps] = await Promise.all([
+  const [node, lessons, progress, challenges, roadmaps, practical] = await Promise.all([
     getNode(id),
     listNodeLessons(id),
     getNodeLessonProgress(id),
     listNodeChallenges(id),
     listRoadmaps().catch(() => []),
+    getPractical(id).catch(() => PRACTICAL_ABSENT),
   ])
   let bookmarked = false
   try {
@@ -45,7 +58,7 @@ async function loadNode(id: string): Promise<NodeData> {
     // favoris secondaires
   }
   const roadmapSlug = roadmaps.find((r) => r.id === node.roadmapId)?.slug ?? null
-  return { node, lessons, completedIds: progress.completedLessonIds, challenges, bookmarked, roadmapSlug }
+  return { node, lessons, completedIds: progress.completedLessonIds, challenges, practical, bookmarked, roadmapSlug }
 }
 
 export function NodePage() {
@@ -74,7 +87,7 @@ export function NodePage() {
   return (
     <div className={styles.page}>
       <AsyncSection state={state}>
-        {({ node, lessons, completedIds, challenges, roadmapSlug }) => {
+        {({ node, lessons, completedIds, challenges, practical, roadmapSlug }) => {
           const completed = new Set(completedIds)
           const ordered = [...lessons].sort((a, b) => a.position - b.position)
           const percent = ordered.length === 0 ? 0 : (completed.size / ordered.length) * 100
@@ -175,6 +188,8 @@ export function NodePage() {
                   </ul>
                 </section>
               )}
+
+              {practical.exists && <PracticalPanel nodeId={node.id} practical={practical} />}
             </>
           )
         }}

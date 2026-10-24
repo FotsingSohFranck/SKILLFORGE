@@ -1563,9 +1563,16 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       - Vérifs : `apprentissage` **18/18** (dont `PracticalGatingTest` 5 et IT Testcontainers 7),
         schéma d'IT complété, backend **rebuild OK** + Flyway **V13** appliquée. Défaut
         `LESSONS_ONLY` partout → **0 régression** (les nœuds existants se valident comme avant).
-    - ⬜ **SF-91e — UI pratique (front)** : page/section « Passer la pratique » (éditeur de
-      code + bouton Valider + verdict), gating de la validation du nœud, état « pratique
-      réussie » persistant. CA : parcours backend jouable de bout en bout dans l'UI.
+    - ✅ **SF-91e — UI pratique (front)** — **TERMINÉ**
+      - Backend : endpoint **GET `/api/v1/lab/nodes/{id}/practical`** (use case `GetPracticalUseCase`
+        + `GetPracticalService` + `LabCatalogPort`/adapter lisant `completion_policy`) renvoyant
+        existence, caractère requis, consigne et statut de la dernière tentative.
+      - Front : `api/lab.ts` (getPractical/submitPractical), composant **`PracticalPanel`**
+        (consigne + éditeur de code + « Valider la pratique » + verdict réussi/échoué + sortie),
+        intégré dans `NodePage` (affiché seulement si le nœud a une épreuve), badge « Requise pour
+        valider » / « Réussie », erreur propre si l'environnement est indisponible.
+      - Vérifs : module `lab` compile + tests ; **`npm run build` (tsc + vite) OK**. Pour
+        l'essayer visuellement de bout en bout, il faut SF-91g (tâche seedée) + activation Docker.
     - ⬜ **SF-91f — Terminal navigateur (optionnel pilote)** : xterm.js ↔ websocket ↔ shell
       du conteneur, pour une vraie manipulation interactive. CA : terminal fonctionnel et borné.
     - ⬜ **SF-91g — Contenu pilote** : tâches pratiques + scripts de validation pour quelques
