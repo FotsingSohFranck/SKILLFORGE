@@ -1,0 +1,43 @@
+{
+  "ref": "string-contre-str-check",
+  "node": "slices-chaines",
+  "lesson": "string-contre-str",
+  "title": "Quiz : String contre str",
+  "description": "Vérifie que tu distingues une String possédée d'un &str emprunté.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le type d'un littéral de chaîne comme `\"bonjour\"` ?",
+      "justification": "Un littéral est inscrit dans le programme compilé : son type est `&'static str`, un emprunt de texte valide pendant toute l'exécution. Ce n'est donc pas une `String` possédée.",
+      "position": 0,
+      "options": [
+        { "label": "`&'static str`", "correct": true, "position": 0 },
+        { "label": "`String`", "correct": false, "position": 1 },
+        { "label": "`&mut str`", "correct": false, "position": 2 },
+        { "label": "`char`", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une fonction qui doit seulement **lire** du texte, quel type de paramètre est le plus idiomatique ?",
+      "justification": "`&str` accepte un littéral, l'emprunt d'une `String` et une slice, et évite de prendre la propriété ou de cloner. On ne demande une `String` que si la fonction doit posséder le texte.",
+      "position": 1,
+      "options": [
+        { "label": "`&str`, car il accepte le plus de sources sans prendre la propriété", "correct": true, "position": 0 },
+        { "label": "`String`, car c'est toujours plus rapide", "correct": false, "position": 1 },
+        { "label": "`&mut String`, car la lecture exige un emprunt mutable", "correct": false, "position": 2 },
+        { "label": "`char`, car le texte est une suite de caractères", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une `String` est redimensionnable et possède son contenu sur le tas.",
+      "justification": "Vrai : contrairement à `&str` qui est une vue immuable empruntée, une `String` détient ses données sur le tas et peut grandir ou rétrécir.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

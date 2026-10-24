@@ -1,0 +1,43 @@
+{
+  "ref": "annoter-les-lifetimes-check",
+  "node": "lifetimes",
+  "lesson": "annoter-les-lifetimes",
+  "title": "Quiz : Annoter les durées de vie",
+  "description": "Vérifie que tu comprends ce que signifie une annotation de durée de vie et ce qu'elle ne fait pas.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans `fn plus_long<'a>(x: &'a str, y: &'a str) -> &'a str`, que signifie l'annotation `'a` ?",
+      "justification": "L'annotation exprime une relation : la référence renvoyée reste valide tant que x et y le sont tous les deux, soit la plus courte de leurs durées de vie. Ce n'est pas une durée concrète.",
+      "position": 0,
+      "options": [
+        { "label": "La référence renvoyée reste valide tant que x et y le sont tous les deux", "correct": true, "position": 0 },
+        { "label": "La référence renvoyée vit exactement 10 lignes de code", "correct": false, "position": 1 },
+        { "label": "x et y vivront désormais plus longtemps grâce à l'annotation", "correct": false, "position": 2 },
+        { "label": "La fonction s'exécute plus vite à cause de `'a`", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Annoter une référence avec une durée de vie `'a` prolonge la vie de la valeur qu'elle désigne.",
+      "justification": "Faux : les annotations de durée de vie ne changent rien à l'exécution et n'allongent jamais la vie des valeurs. Elles décrivent seulement des relations que le compilateur vérifie.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pour une fonction qui prend une seule référence en entrée et renvoie une référence, que se passe-t-il le plus souvent ?",
+      "justification": "Avec une seule référence en entrée, les règles d'élision suffisent : le compilateur déduit que la sortie partage la durée de vie de l'entrée, aucune annotation explicite n'est nécessaire.",
+      "position": 2,
+      "options": [
+        { "label": "Les règles d'élision suffisent, aucune annotation explicite n'est nécessaire", "correct": true, "position": 0 },
+        { "label": "Il faut toujours au moins deux annotations différentes", "correct": false, "position": 1 },
+        { "label": "Le code ne peut jamais compiler sans `unsafe`", "correct": false, "position": 2 },
+        { "label": "La référence renvoyée devient obligatoirement pendante", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

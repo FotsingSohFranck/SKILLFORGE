@@ -1,0 +1,138 @@
+{
+  "node": "lifetimes",
+  "lessons": [
+    {
+      "slug": "pourquoi-les-lifetimes",
+      "title": "Pourquoi les durées de vie",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La référence pendante, le danger à éviter",
+          "body": "Une **référence** (notée `&`) pointe vers une donnée sans en être propriétaire. Mais que se passe-t-il si la donnée disparaît alors que la référence existe encore ? On obtient une **référence pendante** (en anglais *dangling reference*) : un pointeur qui désigne un emplacement mémoire désormais vide ou réutilisé. Dans beaucoup de langages, lire une telle référence provoque un plantage ou un bug silencieux.\n\nRègle fondamentale en Rust : **une référence ne doit jamais survivre à la donnée qu'elle désigne**. La référence doit toujours cesser d'exister avant (ou au plus tard en même temps que) sa donnée.\n\nPour garantir cela, le compilateur associe à chaque référence une **durée de vie** (en anglais *lifetime*) : la portion de code pendant laquelle cette référence est valide. Il vérifie, à la compilation, que la durée de vie de chaque référence tient bien à l'intérieur de celle de la donnée pointée. Si ce n'est pas le cas, le programme ne compile pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un maillon de chaîne rompu illustre la référence pendante, ce pointeur qui désigne une donnée désormais disparue.",
+          "body": "/images/lessons/pourquoi-les-lifetimes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Portée (scope) et fin de vie d'une valeur",
+          "body": "En Rust, une valeur vit jusqu'à la fin de son **bloc** (le `scope`, délimité par `{` et `}`). Quand on sort du bloc, la valeur est détruite (on dit qu'elle est *droppée*) et sa mémoire est libérée.\n\nLe problème de la référence pendante apparaît quand on tente de garder une référence vers une valeur dont le bloc s'est déjà refermé : la référence pointerait vers une valeur détruite. Le compilateur repère exactement ce cas en comparant les durées de vie."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une horloge arrêtée évoque la fin de vie d'une valeur quand son bloc se referme et que sa mémoire est libérée.",
+          "body": "/images/lessons/pourquoi-les-lifetimes-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un code refusé : la donnée meurt avant la référence",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let reference;                 // on déclare une référence, pas encore remplie\n    {\n        let donnee = String::from(\"coucou\");\n        reference = &donnee;       // on vise `donnee`\n    } // ICI `donnee` sort du bloc : elle est détruite\n\n    println!(\"{reference}\");        // ERREUR : `reference` viserait une valeur morte\n}\n// error[E0597]: `donnee` does not live long enough\n// La durée de vie de `donnee` s'arrête au `}`, mais `reference`\n// est utilisée après : le compilateur refuse de compiler."
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "La version correcte : la donnée vit assez longtemps",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let donnee = String::from(\"coucou\"); // `donnee` vit jusqu'à la fin de main\n    let reference = &donnee;              // la référence vise une donnée bien vivante\n\n    println!(\"{reference}\");              // OK : `donnee` existe encore ici\n} // `reference` puis `donnee` sont détruites en fin de bloc, dans le bon ordre"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "La plupart du temps, c'est automatique : l'élision",
+          "body": "Bonne nouvelle : tu n'as presque jamais besoin d'écrire toi-même les durées de vie. Le compilateur les **infère**, c'est-à-dire qu'il les déduit tout seul à partir du code. Ce mécanisme s'appelle l'**élision des durées de vie** (en anglais *lifetime elision*) : des règles simples permettent au compilateur de remplir les durées de vie évidentes sans que tu aies à les noter.\n\nAutrement dit, les durées de vie sont toujours présentes et toujours vérifiées, mais la plupart du temps elles restent invisibles dans ton code. Tu ne dois les écrire explicitement que dans les cas ambigus, par exemple certaines fonctions qui renvoient une référence. C'est l'objet de la leçon suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un mécanisme d'engrenages automatiques figure l'élision, le compilateur qui déduit seul les durées de vie évidentes.",
+          "body": "/images/lessons/pourquoi-les-lifetimes-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "pourquoi-les-lifetimes-check"
+        }
+      ]
+    },
+    {
+      "slug": "annoter-les-lifetimes",
+      "title": "Annoter les durées de vie",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La syntaxe d'une durée de vie",
+          "body": "Une durée de vie s'écrit avec une apostrophe suivie d'un nom court, le plus souvent `'a` (qui se lit « tick a »). C'est un **paramètre générique**, au même titre qu'un type générique, mais pour la durée de vie plutôt que pour le type.\n\nOn la déclare entre chevrons après le nom de la fonction, puis on l'attache à des références dans la signature :\n\n- `&'a str` se lit « une référence vers un `str`, valide pendant la durée de vie `'a` ».\n- `<'a>` après le nom de la fonction déclare ce paramètre `'a`.\n\nUne annotation ne change jamais le comportement du programme à l'exécution. Elle sert uniquement à **informer le compilateur** des relations entre les durées de vie des références."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un sablier symbolise la durée de vie, cette annotation générique notée avec une apostrophe comme tick a.",
+          "body": "/images/lessons/annoter-les-lifetimes-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Pourquoi certaines fonctions ont besoin d'une annotation",
+          "body": "Prenons une fonction qui reçoit deux références et en renvoie une. Le compilateur doit savoir : la référence renvoyée est-elle liée à la durée de vie de la première entrée, de la seconde, ou des deux ? Sans cette information, il ne peut pas garantir que la référence renvoyée ne deviendra pas pendante.\n\nQuand il y a plusieurs références en entrée et une référence en sortie, les règles d'élision ne suffisent plus à trancher : le compilateur réclame alors une annotation explicite. C'est le cas typique de la fonction qui renvoie la plus longue de deux chaînes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un plan technique rappelle qu'avec plusieurs références en entrée le compilateur réclame une annotation explicite.",
+          "body": "/images/lessons/annoter-les-lifetimes-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Annoter une fonction qui renvoie une référence",
+          "codeLanguage": "rust",
+          "body": "// `<'a>` déclare la durée de vie. Les deux entrées et la sortie\n// partagent la MÊME durée de vie `'a`.\nfn plus_long<'a>(x: &'a str, y: &'a str) -> &'a str {\n    if x.len() > y.len() {\n        x\n    } else {\n        y\n    }\n}\n\nfn main() {\n    let phrase1 = String::from(\"la plus longue phrase\");\n    let phrase2 = String::from(\"courte\");\n    let resultat = plus_long(&phrase1, &phrase2);\n    println!(\"La plus longue : {resultat}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Ce que l'annotation signifie vraiment",
+          "body": "Dans `fn plus_long<'a>(x: &'a str, y: &'a str) -> &'a str`, l'annotation dit au compilateur : « la référence renvoyée sera valide tant que `x` ET `y` le sont tous les deux ». Concrètement, la durée de vie du résultat est la **plus courte** des durées de vie de `x` et `y`.\n\nPoint essentiel à retenir : une annotation **exprime une relation** entre des durées de vie, ce n'est pas une durée concrète en secondes ni un nombre de lignes. Elle ne dit pas « cette référence vit 10 lignes », elle dit « cette référence ne vit pas plus longtemps que telle autre ».\n\nAutre point crucial : **les durées de vie n'allongent jamais la vie des valeurs**. Annoter `'a` ne fait pas vivre une donnée plus longtemps. L'annotation ne fait que décrire des contraintes que le compilateur vérifie ; si une donnée est détruite trop tôt, aucune annotation ne la ressuscitera, le code sera simplement refusé."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un mécanisme engrené illustre l'annotation qui exprime une relation entre durées de vie sans jamais prolonger les valeurs.",
+          "body": "/images/lessons/annoter-les-lifetimes-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "La référence doit tenir dans la vie de sa donnée",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  D[\"Durée de vie de la DONNÉE\"] --> R{\"La référence tient-elle à l'intérieur ?\"}\n  R -->|\"La référence commence et finit pendant la vie de la donnée\"| OK[\"Valide : le compilateur accepte\"]\n  R -->|\"La référence survit à la donnée\"| KO[\"Référence pendante : refusé à la compilation\"]\n  OK --> N[\"Une annotation 'a décrit cette relation, elle ne prolonge rien\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 8,
+          "title": "À toi d'annoter",
+          "body": "La fonction suivante doit renvoyer une référence vers la première tranche d'un texte, mais elle ne compile pas car le compilateur ne connaît pas la durée de vie de la référence renvoyée. Ajoute l'annotation de durée de vie nécessaire pour qu'elle compile, et explique brièvement ce que tu as écrit.\n\n```rust\nfn premier_mot(phrase: &str) -> &str {\n    let octets = phrase.as_bytes();\n    for (i, &c) in octets.iter().enumerate() {\n        if c == b' ' {\n            return &phrase[0..i];\n        }\n    }\n    &phrase[..]\n}\n```\n\nIndice : ici il n'y a qu'une seule référence en entrée. Que disent les règles d'élision dans ce cas précis ?",
+          "solution": "Cas particulier important : avec **une seule référence en entrée**, les règles d'élision suffisent, le compilateur déduit tout seul que la sortie partage la durée de vie de l'entrée. Donc ce code **compile déjà tel quel**, sans annotation.\n\nSi l'on veut rendre la relation explicite (c'est ce que l'élision écrit implicitement), on annote ainsi :\n\n```rust\nfn premier_mot<'a>(phrase: &'a str) -> &'a str {\n    let octets = phrase.as_bytes();\n    for (i, &c) in octets.iter().enumerate() {\n        if c == b' ' {\n            return &phrase[0..i];\n        }\n    }\n    &phrase[..]\n}\n```\n\nL'annotation `<'a>` déclare la durée de vie, `&'a str` l'attache à l'entrée et à la sortie : la tranche renvoyée ne vit pas plus longtemps que la chaîne `phrase` d'où elle est extraite. L'annotation ne prolonge pas `phrase`, elle décrit seulement que le résultat en dépend."
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "annoter-les-lifetimes-check"
+        }
+      ]
+    }
+  ]
+}

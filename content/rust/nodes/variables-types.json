@@ -1,0 +1,190 @@
+{
+  "node": "variables-types",
+  "lessons": [
+    {
+      "slug": "declarer-des-variables",
+      "title": "Déclarer des variables",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "let et l'immuabilité par défaut",
+          "body": "En Rust, on crée une variable avec le mot-clé **`let`**. Une variable est un nom qui désigne une valeur rangée en mémoire.\n\nLa grande particularité de Rust : par défaut, une variable est **immuable** (en anglais *immutable*). Immuable veut dire que, une fois la valeur donnée, tu ne peux plus la changer. Ce n'est pas une contrainte gratuite : cela rend le code plus sûr, car le compilateur garantit qu'une valeur que tu croyais fixe ne bougera pas dans ton dos.\n\nSi tu tentes de réassigner une variable immuable, le compilateur refuse avec l'erreur `cannot assign twice to immutable variable`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "De la glace figee, image de l'immuabilite par defaut : une fois la valeur donnee, elle ne bouge plus.",
+          "body": "/images/lessons/declarer-des-variables-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une variable immuable",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let age = 30;        // `age` est immuable par défaut\n    println!(\"{age}\");   // affiche : 30\n\n    // age = 31;         // ERREUR : cannot assign twice to immutable variable\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Rendre une variable mutable avec let mut",
+          "body": "Quand tu as besoin de modifier une variable après sa création, tu l'annonces explicitement avec **`let mut`**. Le mot-clé `mut` signifie *mutable*, c'est-à-dire modifiable.\n\nC'est volontaire : en Rust, la mutabilité se demande, elle ne se subit pas. Le lecteur du code voit tout de suite quelles variables sont susceptibles de changer, ce qui facilite la relecture et évite des surprises."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un changement de vitesses, image de la mutabilite demandee avec let mut quand on veut pouvoir modifier la valeur.",
+          "body": "/images/lessons/declarer-des-variables-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Une variable mutable",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let mut compteur = 0; // `mut` autorise la modification\n    compteur = compteur + 1;\n    compteur += 1;        // `+=` ajoute en place\n    println!(\"{compteur}\"); // affiche : 2\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le shadowing : redéclarer avec let",
+          "body": "Le **shadowing** (ombrage) consiste à redéclarer une variable qui porte déjà ce nom, en réutilisant `let`. La nouvelle déclaration **masque** l'ancienne : à partir de cette ligne, le nom désigne la nouvelle valeur.\n\nLe shadowing n'est pas la même chose que `mut` :\n\n- Avec `mut`, on change la valeur d'une variable, mais le **type reste le même**.\n- Avec le shadowing, on crée une **nouvelle variable** (on peut donc changer de type), tout en gardant le même nom.\n\nC'est pratique pour transformer une donnée par étapes sans inventer trois noms différents, par exemple passer d'un texte saisi à un nombre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une ombre projetee sur un mur, image du shadowing qui masque l'ancienne variable en reutilisant le meme nom.",
+          "body": "/images/lessons/declarer-des-variables-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Shadowing en action",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let saisie = \"42\";              // ici `saisie` est un texte (&str)\n    let saisie: i32 = saisie.trim().parse().unwrap(); // nouveau `saisie`, de type i32\n    let saisie = saisie * 2;        // encore un nouveau `saisie` : 84\n    println!(\"{saisie}\");           // affiche : 84\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Les constantes avec const",
+          "body": "Une **constante** se déclare avec **`const`**. Elle ressemble à une variable immuable, avec des différences importantes :\n\n- Le **type est obligatoire** (par exemple `const MAX: u32`).\n- Sa valeur doit être connue **à la compilation** : pas de calcul qui dépend de l'exécution.\n- Par convention, on la nomme en **MAJUSCULES_AVEC_UNDERSCORES**.\n- On ne peut jamais la rendre mutable, `const mut` n'existe pas.\n\nLes constantes servent aux valeurs fixes et universelles de ton programme, comme une limite ou un facteur de conversion."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un monument de pierre grave, image de la constante const : une valeur fixe, connue a la compilation et jamais modifiable.",
+          "body": "/images/lessons/declarer-des-variables-4.jpg",
+          "position": 10
+        },
+        {
+          "type": "CODE",
+          "position": 11,
+          "title": "Déclarer une constante",
+          "codeLanguage": "rust",
+          "body": "const SECONDES_PAR_HEURE: u32 = 60 * 60; // type obligatoire, calcul connu à la compilation\n\nfn main() {\n    println!(\"Une heure vaut {SECONDES_PAR_HEURE} secondes\"); // affiche : 3600\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 12,
+          "title": "Vérifions",
+          "quizRef": "declarer-des-variables-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-types-scalaires",
+      "title": "Les types scalaires",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce qu'un type scalaire",
+          "body": "Un **type scalaire** représente une **valeur unique**, par opposition aux types composés qui regroupent plusieurs valeurs. Rust possède quatre familles de types scalaires :\n\n- les **entiers** (nombres sans virgule),\n- les **flottants** (nombres à virgule),\n- les **booléens** (vrai ou faux),\n- les **caractères** (`char`).\n\nRust est un langage **statiquement typé** : le type de chaque valeur est connu à la compilation. Souvent le compilateur le **déduit** tout seul (c'est l'inférence de type), mais tu peux aussi l'écrire explicitement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une equation mathematique abstraite, image du type scalaire qui represente une valeur unique connue a la compilation.",
+          "body": "/images/lessons/les-types-scalaires-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les entiers, signés et non signés",
+          "body": "Un entier est un nombre sans partie décimale. En Rust, son type précise deux choses : le **signe** et la **taille en bits**.\n\n- **Signé** (lettre `i`, pour *integer*) : peut être négatif ou positif. Exemples : `i8`, `i16`, `i32`, `i64`, `i128`.\n- **Non signé** (lettre `u`, pour *unsigned*) : seulement zéro ou positif. Exemples : `u8`, `u16`, `u32`, `u64`, `u128`.\n\nLe nombre indique les bits. Un `u8` va de 0 à 255. Un `i32` va d'environ moins deux milliards à plus deux milliards. Il existe aussi `isize` et `usize`, dont la taille dépend de la machine (souvent 64 bits), utilisés surtout pour indexer.\n\nLe type **par défaut**, si tu n'écris rien et que rien ne force un autre choix, est **`i32`**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une suite de chiffres alignes, image des entiers signes et non signes definis par leur signe et leur taille en bits.",
+          "body": "/images/lessons/les-types-scalaires-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Des entiers de plusieurs types",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let petit: u8 = 255;       // non signé 8 bits : 0 à 255\n    let temperature: i32 = -7; // signé : accepte le négatif\n    let grand: u64 = 10_000_000_000; // `_` sert juste à la lisibilité\n    println!(\"{petit} {temperature} {grand}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Flottants, booléens et caractères",
+          "body": "**Les flottants** servent aux nombres à virgule. Deux types existent : `f32` et `f64`. Le type par défaut est **`f64`** (double précision), plus précis et recommandé dans la plupart des cas.\n\n**Le booléen** `bool` ne prend que deux valeurs : `true` (vrai) ou `false` (faux). Il est le résultat des comparaisons et pilote les conditions.\n\n**Le caractère** `char` représente **un seul caractère Unicode**, entre apostrophes simples : `'a'`, `'é'`, `'9'`, voire un emoji. Attention : les apostrophes simples `'...'` sont pour un `char`, tandis que les guillemets doubles `\"...\"` sont pour une chaîne de texte. Un `char` occupe 4 octets, car Unicode va bien au-delà de l'alphabet latin."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Du code binaire, image des flottants, booleens et caracteres encodes au plus pres de la machine.",
+          "body": "/images/lessons/les-types-scalaires-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Flottant, booléen, caractère",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let pi = 3.14159;        // inféré en f64 (flottant par défaut)\n    let majeur: bool = true; // un booléen\n    let initiale = 'A';      // un char (apostrophes simples)\n    let symbole = '€';       // char Unicode, pas seulement ASCII\n    println!(\"{pi} {majeur} {initiale} {symbole}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 8,
+          "title": "Inférence et annotation explicite",
+          "body": "L'**inférence de type** est la capacité du compilateur à deviner le type d'une valeur d'après le contexte. Si tu écris `let x = 5;`, Rust comprend qu'il s'agit d'un `i32`.\n\nParfois le compilateur ne peut pas deviner, ou tu veux un type précis différent du défaut. Tu l'écris alors avec deux-points après le nom : c'est l'**annotation de type**, par exemple `let x: i64 = 5;`.\n\nL'annotation est obligatoire dans certains cas, notamment quand une méthode comme `parse` pourrait produire plusieurs types : il faut alors préciser lequel tu attends."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une loupe qui cherche des indices, image de l'inference de type que l'on precise parfois par une annotation explicite.",
+          "body": "/images/lessons/les-types-scalaires-4.jpg",
+          "position": 9
+        },
+        {
+          "type": "CODE",
+          "position": 10,
+          "title": "Deviner ou préciser le type",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let devine = 5;          // inféré : i32\n    let precis: i64 = 5;     // annotation explicite : i64\n    let grand = 5i64;        // autre façon : suffixe de type collé au nombre\n\n    // Ici l'annotation est nécessaire pour que `parse` sache quoi produire :\n    let nombre: u32 = \"10\".parse().unwrap();\n    println!(\"{devine} {precis} {grand} {nombre}\");\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 11,
+          "title": "Les familles de types scalaires",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  S[\"Types scalaires\"] --> E[\"Entiers\"]\n  S --> F[\"Flottants\"]\n  S --> B[\"Booléen bool\"]\n  S --> C[\"Caractère char Unicode\"]\n  E --> ES[\"Signés : i8, i16, i32, i64, i128, isize\"]\n  E --> EU[\"Non signés : u8, u16, u32, u64, u128, usize\"]\n  F --> F32[\"f32 simple précision\"]\n  F --> F64[\"f64 double précision (défaut)\"]\n  B --> BV[\"true ou false\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 12,
+          "title": "Choisir le bon type",
+          "body": "Pour chacune des données suivantes, choisis le type scalaire le plus adapté et déclare la variable correspondante en Rust :\n\n- l'âge d'une personne en années (jamais négatif, toujours petit),\n- la température extérieure en degrés, qui peut être négative et avoir des décimales,\n- l'information \"l'utilisateur a validé les conditions\",\n- la première lettre d'un prénom.\n\nÉcris les quatre déclarations avec une annotation de type explicite quand c'est pertinent.",
+          "solution": "Un âge est petit et jamais négatif, donc un entier non signé comme `u8` (0 à 255) suffit. Une température avec décimales et signe possible demande un flottant `f64`. Une information vrai/faux est un `bool`. Une lettre unique est un `char`.\n\n```rust\nfn main() {\n    let age: u8 = 30;              // non signé, petit\n    let temperature: f64 = -3.5;   // flottant, négatif possible\n    let conditions_validees: bool = true; // booléen\n    let initiale: char = 'C';      // un seul caractère Unicode\n    println!(\"{age} {temperature} {conditions_validees} {initiale}\");\n}\n```"
+        },
+        {
+          "type": "QUIZ",
+          "position": 13,
+          "title": "Vérifions",
+          "quizRef": "les-types-scalaires-check"
+        }
+      ]
+    }
+  ]
+}

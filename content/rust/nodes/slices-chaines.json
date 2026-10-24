@@ -1,0 +1,126 @@
+{
+  "node": "slices-chaines",
+  "lessons": [
+    {
+      "slug": "string-contre-str",
+      "title": "String contre str",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux façons de parler de texte",
+          "body": "En Rust, le texte se présente sous deux types qu'il faut bien distinguer.\n\n`String` est une chaîne **possédée** : elle détient son contenu, il vit sur le **tas** (la zone de mémoire pour les données de taille variable), et elle est **redimensionnable** (on peut lui ajouter ou retirer des caractères). Comme toute valeur possédée, elle est libérée quand son propriétaire disparaît.\n\n`&str` (prononcé *string slice*) est un **emprunt** : c'est une **vue immuable** sur du texte qui existe déjà ailleurs, une **tranche** (slice) de caractères. Un `&str` ne possède rien, ne peut pas être modifié, et ne libère rien quand il disparaît.\n\nL'image à retenir : `String` est le carnet dans lequel on écrit ; `&str` est une fenêtre par laquelle on lit une portion du carnet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des caractères typographiques évoquant les deux visages du texte en Rust, la chaîne possédée String et la vue empruntée str.",
+          "body": "/images/lessons/string-contre-str-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les littéraux sont des &str",
+          "body": "Quand tu écris un texte entre guillemets dans ton code, comme `\"bonjour\"`, tu obtiens un **littéral de chaîne**. Son type est `&'static str`.\n\nLe `str` dit que c'est une tranche de texte. Le `&` dit que c'est un emprunt. Le `'static` est une **durée de vie** (lifetime) : il signifie que ce texte est inscrit directement dans le programme compilé et reste valide pendant toute l'exécution. Tu n'as rien à libérer, il est là du début à la fin.\n\nRetiens simplement : un littéral `\"...\"` n'est pas une `String`, c'est un `&str`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des guillemets mis en avant rappellent qu'un littéral entre guillemets est toujours un emprunt de type str.",
+          "body": "/images/lessons/string-contre-str-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Créer et convertir",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    // Un littéral : son type est &'static str\n    let salutation: &str = \"bonjour\";\n\n    // Passer d'un &str à une String possédée\n    let possedee: String = salutation.to_string();\n    // Autre écriture équivalente :\n    let aussi: String = String::from(\"bonjour\");\n\n    // Passer d'une String à un &str : on emprunte la totalité\n    let vue: &str = &possedee[..]; // `&possedee` seul fonctionne aussi\n\n    println!(\"{salutation} / {possedee} / {aussi} / {vue}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Pourquoi prendre &str en paramètre",
+          "body": "Règle idiomatique : quand une fonction a juste besoin de **lire** du texte, elle devrait prendre un `&str`, pas une `String`.\n\nLa raison est pratique. Une fonction qui attend `&str` accepte tout : un littéral, l'emprunt d'une `String`, ou une slice. Grâce à une conversion automatique, on peut même lui passer `&ma_string` directement, car `&String` se transforme en `&str`. À l'inverse, une fonction qui exige `String` obligerait l'appelant à lui donner la propriété ou à cloner, ce qui est plus lourd.\n\nEn résumé : `&str` en entrée pour la lecture (le plus souple), et on ne demande une `String` que si la fonction a réellement besoin de posséder ou de stocker le texte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une lecture tranquille illustre une fonction qui se contente de lire du texte et prend donc un str en paramètre.",
+          "body": "/images/lessons/string-contre-str-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Un paramètre &str qui accepte tout",
+          "codeLanguage": "rust",
+          "body": "// On lit seulement, donc on prend un &str\nfn longueur(texte: &str) -> usize {\n    texte.len() // longueur en octets (bytes)\n}\n\nfn main() {\n    let litteral = \"abc\";\n    let possedee = String::from(\"abcdef\");\n\n    // Les deux appels fonctionnent avec la MÊME fonction\n    println!(\"{}\", longueur(litteral));   // 3\n    println!(\"{}\", longueur(&possedee));  // 6 : &String devient &str\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "string-contre-str-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-slices",
+      "title": "Les slices",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une vue sur une portion, sans copie",
+          "body": "Une **slice** (tranche) est une **vue empruntée sur une portion contiguë** d'une collection. Elle se note `&[T]` pour une portion d'un tableau ou d'un vecteur de valeurs de type `T`, et `&str` pour une portion de texte.\n\nLe mot important est **sans copie** : une slice ne duplique pas les données. Elle se contente de retenir où commence la portion et combien d'éléments elle couvre. La vraie donnée reste chez son propriétaire d'origine. Comme c'est un emprunt, la slice doit respecter les règles vues précédemment et ne peut pas survivre à la valeur qu'elle observe.\n\nCela sert à **passer une partie** d'un tableau ou d'une chaîne à du code, sans avoir à recopier ni à donner la totalité."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une fenêtre ouverte sur un paysage figure la slice, une vue sur une portion de données qui ne recopie rien.",
+          "body": "/images/lessons/les-slices-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La syntaxe des indices",
+          "body": "On crée une slice avec l'opérateur `&` suivi d'un **intervalle** (range) entre crochets : `&v[debut..fin]`.\n\nL'indice `debut` est **inclus**, l'indice `fin` est **exclu**. Donc `&v[1..3]` prend les éléments aux positions 1 et 2 (pas la position 3). Les indices commencent à 0.\n\nDeux raccourcis courants :\n\n- `&v[..3]` part du début jusqu'à l'indice 3 exclu.\n- `&v[2..]` part de l'indice 2 jusqu'à la fin.\n- `&v[..]` prend la totalité sous forme de slice.\n\nPour une slice de texte `&str`, les indices sont comptés en **octets** (bytes), pas en caractères. Avec du texte purement ASCII (lettres non accentuées, chiffres) un octet égale un caractère, mais sur un caractère accentué comme `é` qui occupe plusieurs octets, couper au mauvais endroit provoque une erreur à l'exécution."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une règle graduée évoque les indices de début et de fin qui délimitent une tranche entre crochets.",
+          "body": "/images/lessons/les-slices-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Trancher un tableau et une chaîne",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let nombres = [10, 20, 30, 40, 50];\n    let milieu: &[i32] = &nombres[1..3]; // positions 1 et 2\n    println!(\"{milieu:?}\"); // affiche : [20, 30]\n\n    let phrase = String::from(\"bonjour le monde\");\n    let mot: &str = &phrase[0..7]; // octets 0 à 6\n    println!(\"{mot}\"); // affiche : bonjour\n\n    // Raccourcis d'intervalle\n    let debut = &nombres[..2];  // [10, 20]\n    let fin = &nombres[3..];    // [40, 50]\n    println!(\"{debut:?} {fin:?}\");\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Une slice est un pointeur plus une longueur",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph Tampon[\"Tampon en mémoire : [10, 20, 30, 40, 50]\"]\n    E0[\"10\"]\n    E1[\"20\"]\n    E2[\"30\"]\n    E3[\"40\"]\n    E4[\"50\"]\n  end\n  subgraph Slice[\"Slice &nombres[1..3]\"]\n    P[\"pointeur vers le début\"]\n    L[\"longueur = 2\"]\n  end\n  P --> E1\n  L -.couvre.-> E2"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "Le premier mot",
+          "body": "Écris une fonction `premier_mot` qui prend un `&str` et renvoie un `&str` : la portion allant du début jusqu'au premier espace. S'il n'y a pas d'espace, elle renvoie la chaîne entière.\n\nContraintes : la fonction ne doit **rien copier** ni allouer, elle doit seulement renvoyer une **slice** de l'entrée. Indice : `texte.as_bytes()` donne les octets, et tu peux parcourir avec `for (i, &octet) in texte.as_bytes().iter().enumerate()` en comparant à `b' '` (l'octet de l'espace).\n\nMontre aussi un `main` qui appelle la fonction sur `\"bonjour le monde\"` et sur `\"solo\"`.",
+          "solution": "On cherche l'indice du premier espace, puis on renvoie la slice `&texte[0..i]`. Si aucun espace n'est trouvé, on renvoie `&texte[..]`, c'est à dire toute la chaîne.\n\n```rust\nfn premier_mot(texte: &str) -> &str {\n    let octets = texte.as_bytes();\n    for (i, &octet) in octets.iter().enumerate() {\n        if octet == b' ' {\n            return &texte[0..i]; // slice jusqu'avant l'espace\n        }\n    }\n    &texte[..] // aucun espace : on renvoie tout\n}\n\nfn main() {\n    println!(\"{}\", premier_mot(\"bonjour le monde\")); // bonjour\n    println!(\"{}\", premier_mot(\"solo\"));             // solo\n}\n```\n\nLa fonction ne fait qu'emprunter une portion de l'entrée : aucune allocation, aucune copie. Le type de retour `&str` emprunte la même mémoire que le paramètre."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "les-slices-check"
+        }
+      ]
+    }
+  ]
+}

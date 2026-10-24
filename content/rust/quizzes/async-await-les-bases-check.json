@@ -1,0 +1,43 @@
+{
+  "ref": "async-await-les-bases-check",
+  "node": "async",
+  "lesson": "async-await-les-bases",
+  "title": "Quiz : Les bases de async/await",
+  "description": "Vérifie que tu as compris les Futures, async et await.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que se passe-t-il quand on appelle une async fn en Rust ?",
+      "justification": "Une async fn renvoie un Future paresseux : rien ne s'exécute tant qu'on ne l'attend pas avec .await.",
+      "position": 0,
+      "options": [
+        { "label": "Elle renvoie un Future et n'exécute rien tant qu'on ne l'attend pas", "correct": true, "position": 0 },
+        { "label": "Elle exécute immédiatement tout son corps, comme une fonction normale", "correct": false, "position": 1 },
+        { "label": "Elle démarre automatiquement un runtime pour s'exécuter", "correct": false, "position": 2 },
+        { "label": "Elle bloque le thread jusqu'à la fin du calcul", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait .await sur un Future ?",
+      "justification": "`.await` suspend la tâche courante en attendant le résultat, sans bloquer le thread, qui reste libre pour d'autres tâches.",
+      "position": 1,
+      "options": [
+        { "label": "Il suspend la tâche courante sans bloquer le thread", "correct": true, "position": 0 },
+        { "label": "Il bloque le thread entier jusqu'au résultat", "correct": false, "position": 1 },
+        { "label": "Il transforme le Future en une fonction synchrone", "correct": false, "position": 2 },
+        { "label": "Il annule le Future et renvoie une valeur vide", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Rust fournit un runtime asynchrone par défaut, donc async/await fonctionne sans aucune dépendance.",
+      "justification": "Faux : Rust définit async et await, mais ne fournit pas de runtime. Il faut en ajouter un, comme Tokio, pour exécuter les Futures.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

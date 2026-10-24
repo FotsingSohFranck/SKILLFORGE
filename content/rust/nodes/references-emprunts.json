@@ -1,0 +1,102 @@
+{
+  "node": "references-emprunts",
+  "lessons": [
+    {
+      "slug": "emprunter-sans-posseder",
+      "title": "Emprunter sans posséder",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi emprunter",
+          "body": "On a vu que passer une valeur à une fonction la **déplace** (move) : le propriétaire change, et l'ancienne variable n'est plus utilisable. C'est vite pénible si on veut juste **lire** une donnée sans s'en déposséder.\n\nLa solution est l'**emprunt** (en anglais *borrow*). Au lieu de donner la valeur, on en prête une **référence**, notée `&`. La référence pointe vers la valeur sans en devenir propriétaire : quand elle disparaît, la valeur d'origine, elle, reste bien vivante chez son propriétaire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des mains qui se prêtent un objet, image de l'emprunt : on partage l'accès a la valeur sans en transferer la propriete.",
+          "body": "/images/lessons/emprunter-sans-posseder-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un emprunt en lecture",
+          "codeLanguage": "rust",
+          "body": "fn afficher(nom: &String) {   // `&String` : on emprunte, on ne prend pas possession\n    println!(\"Bonjour {nom}\");\n}\n\nfn main() {\n    let nom = String::from(\"Ada\");\n    afficher(&nom);           // on prête une référence avec `&`\n    println!(\"{nom} est toujours là\"); // `nom` reste utilisable\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Lecture seule par défaut, mutable avec &mut",
+          "body": "Un emprunt `&` est en **lecture seule** : on peut consulter la valeur, pas la modifier. Pour autoriser la modification, on emprunte en écriture avec `&mut`, et la variable d'origine doit elle-même être déclarée `mut`.\n\nRetiens la distinction : `&T` est un emprunt partagé (lecture), `&mut T` est un emprunt exclusif (écriture)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un cadenas sur un document, image de l'emprunt partage en lecture seule, que &mut vient deverrouiller pour autoriser l'ecriture.",
+          "body": "/images/lessons/emprunter-sans-posseder-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Un emprunt en écriture",
+          "codeLanguage": "rust",
+          "body": "fn ajouter_point(phrase: &mut String) {\n    phrase.push('.');          // on modifie la valeur empruntée\n}\n\nfn main() {\n    let mut phrase = String::from(\"Fin\");\n    ajouter_point(&mut phrase); // on prête un emprunt mutable\n    println!(\"{phrase}\");       // affiche : Fin.\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "references-emprunts-emprunter-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-regles-du-borrow-checker",
+      "title": "Les règles du borrow checker",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "La règle d'or des emprunts",
+          "body": "Le compilateur applique une règle simple et stricte, vérifiée à la compilation : à un instant donné, pour une même valeur, tu peux avoir **soit plusieurs emprunts en lecture** (`&`), **soit un seul emprunt en écriture** (`&mut`), **jamais les deux en même temps**.\n\nCette règle, c'est le cœur du *borrow checker*. Elle interdit qu'un bout de code lise une donnée pendant qu'un autre la modifie, ce qui élimine toute une classe de bugs (les courses de données) avant même d'exécuter le programme."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des panneaux de signalisation qui regulent le trafic, image de la regle stricte du borrow checker verifiee des la compilation.",
+          "body": "/images/lessons/les-regles-du-borrow-checker-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Ce que le compilateur refuse",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let mut v = String::from(\"données\");\n    let lecture = &v;        // emprunt partagé (lecture)\n    let ecriture = &mut v;   // ERREUR : emprunt mutable alors qu'un &v existe\n    println!(\"{lecture} {ecriture}\");\n}\n// error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 3,
+          "title": "Lecture partagée ou écriture exclusive",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  V[\"Une valeur\"] --> Q{\"Quel accès au même instant ?\"}\n  Q -->|\"Plusieurs &T (lecture)\"| OK1[\"Autorisé\"]\n  Q -->|\"Un seul &mut T (écriture)\"| OK2[\"Autorisé\"]\n  Q -->|\"&T et &mut T ensemble\"| KO[\"Refusé à la compilation\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 4,
+          "title": "À toi de corriger",
+          "body": "Le code suivant ne compile pas car il garde un emprunt en lecture `premier` actif pendant qu'il tente de modifier le vecteur. Explique pourquoi, puis propose une correction simple.\n\n```rust\nlet mut nombres = vec![1, 2, 3];\nlet premier = &nombres[0];\nnombres.push(4);          // modification pendant un emprunt en lecture\nprintln!(\"{premier}\");\n```",
+          "solution": "`push` a besoin d'un emprunt mutable du vecteur, mais `premier` détient encore un emprunt en lecture utilisé plus bas par le `println!` : lecture et écriture coexistent, le borrow checker refuse. On corrige en terminant l'usage de la lecture avant la modification, par exemple en lisant la valeur avant le push :\n\n```rust\nlet mut nombres = vec![1, 2, 3];\nlet premier = nombres[0];   // on copie la valeur (i32 est Copy)\nnombres.push(4);            // plus aucun emprunt en lecture actif\nprintln!(\"{premier}\");\n```"
+        },
+        {
+          "type": "QUIZ",
+          "position": 5,
+          "title": "Vérifions",
+          "quizRef": "references-emprunts-regles-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "node": "controle-flux",
+  "lessons": [
+    {
+      "slug": "ecrire-des-fonctions",
+      "title": "Écrire des fonctions",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Déclarer une fonction avec fn",
+          "body": "Une **fonction** est un bloc de code nommé que l'on peut appeler autant de fois qu'on veut. En Rust, on la déclare avec le mot-clé `fn`, suivi du nom de la fonction, d'une paire de parenthèses et d'un bloc entre accolades.\n\nQuelques conventions à retenir :\n\n- Le nom d'une fonction s'écrit en **snake_case** (minuscules séparées par des `_`), par exemple `calculer_total`.\n- Rust ne se soucie pas de l'ordre de déclaration : une fonction peut appeler une fonction définie plus bas dans le fichier.\n- Une fonction peut recevoir des **paramètres** (des données en entrée) et renvoyer un **résultat** (une donnée en sortie)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une machine d'usine, image de la fonction : un bloc de code nomme que l'on reutilise autant de fois qu'on veut.",
+          "body": "/images/lessons/ecrire-des-fonctions-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une première fonction",
+          "codeLanguage": "rust",
+          "body": "// Une fonction sans paramètre ni valeur de retour\nfn dire_bonjour() {\n    println!(\"Bonjour !\");\n}\n\nfn main() {\n    dire_bonjour(); // on appelle la fonction par son nom\n    dire_bonjour(); // on peut l'appeler autant de fois qu'on veut\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Paramètres typés et type de retour",
+          "body": "Chaque **paramètre** d'une fonction doit indiquer son **type** : Rust ne devine jamais le type des paramètres. On écrit `nom: Type`, par exemple `age: i32`.\n\nPour renvoyer une valeur, on indique le type de retour après une flèche `->`. Par exemple `-> i32` signifie que la fonction renvoie un entier.\n\n- `fn carre(x: i32) -> i32` prend un entier et renvoie un entier.\n- Une fonction qui ne renvoie rien n'a pas de `->` : elle renvoie implicitement le type `()`, appelé le **type unité** (prononcé *unit*), qui veut dire concrètement \"aucune valeur utile\"."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une conduite qui achemine un flux, image des parametres en entree et du type de retour en sortie d'une fonction.",
+          "body": "/images/lessons/ecrire-des-fonctions-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Paramètres et valeur de retour",
+          "codeLanguage": "rust",
+          "body": "// Deux paramètres typés, un type de retour i32\nfn additionner(a: i32, b: i32) -> i32 {\n    a + b // dernière expression sans point-virgule : c'est la valeur renvoyée\n}\n\nfn main() {\n    let somme = additionner(3, 4); // somme vaut 7\n    println!(\"La somme vaut {somme}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Expression ou instruction : la différence clé",
+          "body": "Rust distingue deux choses :\n\n- Une **instruction** (en anglais *statement*) exécute une action mais ne produit **pas** de valeur. Par exemple `let x = 5;` est une instruction : elle se termine par un point-virgule.\n- Une **expression** (en anglais *expression*) **produit une valeur**. Par exemple `5 + 3`, ou l'appel `additionner(3, 4)`, ou encore un bloc `{ ... }`.\n\nLa règle à bien comprendre : **la dernière expression d'un bloc, écrite SANS point-virgule final, devient la valeur du bloc** (et donc la valeur renvoyée par la fonction). Si tu ajoutes un `;`, tu transformes l'expression en instruction, elle ne renvoie plus rien, et la fonction renvoie alors `()`.\n\nAinsi, `a + b` renvoie la somme, alors que `a + b;` ne renvoie rien. C'est une source d'erreur classique au début : un point-virgule de trop et le compilateur se plaint du type de retour."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une equation en train d'etre ecrite, image de la difference entre une expression qui produit une valeur et une instruction qui n'en produit pas.",
+          "body": "/images/lessons/ecrire-des-fonctions-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Le point-virgule change tout",
+          "codeLanguage": "rust",
+          "body": "fn doubler(x: i32) -> i32 {\n    x * 2 // expression finale, PAS de point-virgule : la valeur est renvoyée\n}\n\n// Un bloc est lui-même une expression : sa dernière ligne sans `;` est sa valeur\nfn main() {\n    let y = {\n        let base = 5;\n        base + 1 // pas de point-virgule : le bloc vaut 6\n    };\n    println!(\"{y}\");           // affiche : 6\n    println!(\"{}\", doubler(y)); // affiche : 12\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "La fonction main, point d'entrée",
+          "body": "Tout programme exécutable en Rust possède une fonction spéciale : **`main`**. C'est le **point d'entrée**, la première fonction appelée quand le programme démarre.\n\n- Elle s'écrit `fn main() { ... }`.\n- Dans sa forme la plus simple, elle ne prend aucun paramètre et ne renvoie rien.\n- C'est depuis `main` que l'on appelle les autres fonctions du programme.\n\nSans fonction `main`, un programme Rust binaire ne peut pas se lancer : le compilateur te le signalera."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une porte d'entree, image de la fonction main, point d'entree appele au demarrage du programme.",
+          "body": "/images/lessons/ecrire-des-fonctions-4.jpg",
+          "position": 10
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Vérifions",
+          "quizRef": "ecrire-des-fonctions-check"
+        }
+      ]
+    },
+    {
+      "slug": "les-structures-de-controle",
+      "title": "Les structures de contrôle",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Prendre des décisions avec if / else",
+          "body": "Une **structure de contrôle** permet de choisir quel code exécuter selon une condition, ou de répéter du code. La plus courante est `if` / `else` : si la condition est vraie, on exécute un bloc, sinon un autre.\n\nEn Rust, deux points importants :\n\n- La condition doit être un **booléen** (`true` ou `false`). Contrairement à d'autres langages, Rust n'accepte pas un nombre à la place : on écrit `if n != 0`, jamais `if n`.\n- Les parenthèses autour de la condition ne sont **pas** nécessaires, mais les accolades `{ }` autour des blocs sont obligatoires."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un carrefour de routes, image de la decision prise avec if et else selon une condition booleenne.",
+          "body": "/images/lessons/les-structures-de-controle-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un if / else classique",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let note = 12;\n    if note >= 10 {\n        println!(\"Reçu\");\n    } else {\n        println!(\"Ajourné\");\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "if est une expression",
+          "body": "En Rust, `if` n'est pas qu'une instruction : c'est une **expression**, donc il **produit une valeur**. On peut ainsi affecter directement le résultat d'un `if` à une variable avec `let`.\n\n- Chaque branche doit renvoyer une valeur du **même type**, sinon le compilateur refuse.\n- La valeur de chaque branche est sa dernière expression sans point-virgule (comme pour les fonctions).\n\nCela remplace l'opérateur ternaire (`condition ? a : b`) qu'on trouve ailleurs : en Rust, on écrit simplement `let x = if condition { a } else { b };`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une balance a plateaux, image du if expression dont chaque branche renvoie une valeur du meme type.",
+          "body": "/images/lessons/les-structures-de-controle-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Affecter le résultat d'un if",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let age = 20;\n    // Les deux branches renvoient un &str : types compatibles\n    let statut = if age >= 18 { \"majeur\" } else { \"mineur\" };\n    println!(\"Statut : {statut}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Trois façons de répéter : loop, while, for",
+          "body": "Pour répéter du code, Rust propose trois boucles :\n\n- **`loop`** répète indéfiniment, jusqu'à ce qu'on l'arrête avec `break`. Particularité utile : `break valeur;` permet à la boucle de **renvoyer une valeur**, donc `loop` peut lui aussi être une expression affectée à une variable.\n- **`while condition`** répète **tant que** la condition reste vraie. Elle vérifie la condition avant chaque tour.\n- **`for element in iterable`** parcourt chaque élément d'une collection ou d'une **plage** (en anglais *range*). La plage `0..n` va de `0` inclus à `n` exclu ; `0..=n` inclut `n`.\n\nEn pratique, `for` est la boucle la plus utilisée car c'est la plus sûre : on ne risque pas d'oublier d'incrémenter un compteur ni de sortir des limites."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un escalier en spirale, image des boucles loop, while et for qui repetent du code tour apres tour.",
+          "body": "/images/lessons/les-structures-de-controle-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Les trois boucles en action",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    // loop : on répète jusqu'à break, qui peut renvoyer une valeur\n    let mut compteur = 0;\n    let resultat = loop {\n        compteur += 1;\n        if compteur == 5 {\n            break compteur * 2; // la boucle renvoie 10\n        }\n    };\n    println!(\"loop renvoie {resultat}\"); // affiche : 10\n\n    // while : tant que la condition est vraie\n    let mut n = 3;\n    while n > 0 {\n        println!(\"décompte : {n}\");\n        n -= 1;\n    }\n\n    // for : parcourt la plage 0..3 (0, 1, 2 ; 3 est exclu)\n    for i in 0..3 {\n        println!(\"tour numéro {i}\");\n    }\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 9,
+          "title": "Quelle boucle choisir ?",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  START[\"Je veux répéter du code\"] --> Q{\"Est-ce que je connais\\nles éléments à parcourir ?\"}\n  Q -->|\"Oui : une collection ou une plage 0..n\"| FOR[\"for element in iterable\\nle plus sûr et le plus courant\"]\n  Q -->|\"Non, mais j'ai une condition d'arrêt\"| W{\"Je veux renvoyer\\nune valeur en sortant ?\"}\n  W -->|\"Non : tant que la condition est vraie\"| WHILE[\"while condition\"]\n  W -->|\"Oui : break valeur\"| LOOP[\"loop { ... break valeur; }\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 10,
+          "title": "FizzBuzz, le grand classique",
+          "body": "Écris une fonction `fizzbuzz()` qui parcourt les nombres de `1` à `15` inclus et, pour chacun, affiche :\n\n- `\"FizzBuzz\"` si le nombre est divisible à la fois par 3 et par 5,\n- `\"Fizz\"` s'il est seulement divisible par 3,\n- `\"Buzz\"` s'il est seulement divisible par 5,\n- sinon le nombre lui-même.\n\nUtilise une boucle `for` sur la plage `1..=15` et l'opérateur modulo `%` (le reste d'une division : `n % 3 == 0` signifie \"divisible par 3\"). Appelle `fizzbuzz()` depuis `main`.",
+          "solution": "On teste d'abord le cas combiné (divisible par 3 ET par 5), car il doit avoir la priorité :\n\n```rust\nfn fizzbuzz() {\n    for n in 1..=15 {               // 1 inclus jusqu'à 15 inclus\n        if n % 3 == 0 && n % 5 == 0 {\n            println!(\"FizzBuzz\");   // on teste ce cas en premier\n        } else if n % 3 == 0 {\n            println!(\"Fizz\");\n        } else if n % 5 == 0 {\n            println!(\"Buzz\");\n        } else {\n            println!(\"{n}\");        // ni l'un ni l'autre : on affiche le nombre\n        }\n    }\n}\n\nfn main() {\n    fizzbuzz();\n}\n```\n\nPoint clé : l'ordre des tests compte. Si on testait `n % 3 == 0` avant le cas combiné, `15` afficherait `\"Fizz\"` au lieu de `\"FizzBuzz\"`."
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Vérifions",
+          "quizRef": "les-structures-de-controle-check"
+        }
+      ]
+    }
+  ]
+}

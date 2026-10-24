@@ -1,0 +1,195 @@
+{
+  "node": "modules-crates",
+  "lessons": [
+    {
+      "slug": "organiser-avec-les-modules",
+      "title": "Organiser avec les modules",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce qu'un module",
+          "body": "Au fur et à mesure qu'un programme grandit, tout mettre dans un seul fichier devient illisible. Rust propose les **modules** pour regrouper du code qui va ensemble (par exemple toutes les fonctions liées aux comptes utilisateurs).\n\nUn module se déclare avec le mot-clé `mod`, suivi d'un nom et d'un bloc `{ ... }`. Tout ce qui est écrit à l'intérieur appartient au module. On peut même imbriquer un module dans un autre pour créer une hiérarchie, un peu comme des dossiers rangés les uns dans les autres."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des dossiers rangés sur des étagères, image des modules qui regroupent le code qui va ensemble.",
+          "body": "/images/lessons/organiser-avec-les-modules-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Déclarer un module",
+          "codeLanguage": "rust",
+          "body": "mod jardin {              // un module nommé `jardin`\n    mod legumes {         // un module imbriqué dans `jardin`\n        fn planter() {\n            println!(\"On plante une carotte\");\n        }\n    }\n}\n\nfn main() {\n    // On verra juste après comment appeler `planter` depuis ici.\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Privé par défaut, public avec pub",
+          "body": "Point crucial en Rust : **tout est privé par défaut**. Une fonction, un module ou un champ déclaré sans rien de spécial n'est visible que depuis son propre module (et les modules enfants).\n\nPour rendre un élément accessible depuis l'extérieur, on le préfixe avec le mot-clé `pub` (pour *public*). Il faut souvent rendre `pub` à la fois le module **et** l'élément à l'intérieur : exposer la porte ne sert à rien si la pièce derrière reste fermée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une porte fermée à clé, évoquant le code privé par défaut que l'on rend accessible avec pub.",
+          "body": "/images/lessons/organiser-avec-les-modules-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Exposer avec pub",
+          "codeLanguage": "rust",
+          "body": "mod jardin {\n    pub mod legumes {          // module rendu public\n        pub fn planter() {     // fonction rendue publique\n            println!(\"On plante une carotte\");\n        }\n    }\n}\n\nfn main() {\n    // `crate` désigne la racine du paquet courant.\n    crate::jardin::legumes::planter();\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Les chemins : crate, self, super",
+          "body": "Pour désigner un élément à travers les modules, on écrit un **chemin**, avec `::` comme séparateur (l'équivalent du `/` entre des dossiers).\n\nTrois points de départ utiles :\n\n- `crate::` part de la **racine** du paquet courant (un chemin absolu).\n- `self::` part du **module courant** (un chemin relatif à l'endroit où l'on est).\n- `super::` remonte au **module parent** (comme `..` qui remonte d'un dossier).\n\nExemple : depuis un sous-module, `super::fonction()` appelle une fonction définie juste au-dessus."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un poteau indicateur pointant plusieurs directions, illustration des chemins crate, self et super entre modules.",
+          "body": "/images/lessons/organiser-avec-les-modules-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "self et super en action",
+          "codeLanguage": "rust",
+          "body": "mod cuisine {\n    pub fn servir() {\n        preparer();          // chemin implicite : même module\n        self::preparer();    // identique, mais explicite avec `self`\n    }\n\n    fn preparer() {\n        println!(\"On prépare le plat\");\n    }\n\n    pub mod salle {\n        pub fn annoncer() {\n            super::servir();  // `super` remonte au module `cuisine`\n        }\n    }\n}\n\nfn main() {\n    cuisine::salle::annoncer();\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 9,
+          "title": "Le raccourci use",
+          "body": "Réécrire un long chemin comme `crate::jardin::legumes::planter` à chaque appel est fastidieux. Le mot-clé `use` crée un **raccourci** : il importe un nom dans la portée courante, et on peut ensuite l'utiliser directement.\n\nPar convention idiomatique, on importe souvent le **module parent** d'une fonction (`use crate::jardin::legumes;` puis `legumes::planter()`) pour garder visible d'où vient la fonction. En revanche, pour les types (structs, enums), on importe généralement le type lui-même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une flèche de raccourci tracée vers une destination, image du mot-clé use qui abrège un long chemin.",
+          "body": "/images/lessons/organiser-avec-les-modules-4.jpg",
+          "position": 10
+        },
+        {
+          "type": "CODE",
+          "position": 11,
+          "title": "Importer avec use",
+          "codeLanguage": "rust",
+          "body": "mod jardin {\n    pub mod legumes {\n        pub fn planter() {\n            println!(\"On plante une carotte\");\n        }\n    }\n}\n\nuse crate::jardin::legumes;   // raccourci vers le module `legumes`\n\nfn main() {\n    legumes::planter();        // plus court et on voit d'où vient `planter`\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 12,
+          "title": "Vérifions",
+          "quizRef": "organiser-avec-les-modules-check"
+        }
+      ]
+    },
+    {
+      "slug": "dependances-et-crates",
+      "title": "Dépendances et crates",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Crate binaire ou crate bibliothèque",
+          "body": "Une **crate** est l'unité de compilation de Rust : c'est l'ensemble de code que le compilateur traite d'un seul tenant. Il en existe deux sortes.\n\nUne **crate binaire** produit un programme exécutable : elle a un point d'entrée `fn main` et son fichier racine est typiquement `src/main.rs`.\n\nUne **crate bibliothèque** (en anglais *library*) ne s'exécute pas seule : elle fournit du code (fonctions, types) destiné à être réutilisé par d'autres crates. Elle n'a pas de `main`, et son fichier racine est `src/lib.rs`.\n\nUn **paquet** (*package*), géré par l'outil Cargo, regroupe une ou plusieurs crates avec un fichier de configuration `Cargo.toml`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des livres alignés sur des rayonnages, évoquant la crate bibliothèque faite pour être réutilisée.",
+          "body": "/images/lessons/dependances-et-crates-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "crates.io, le registre public",
+          "body": "La force de Rust tient aussi à son écosystème. **crates.io** est le registre public officiel : des milliers de crates bibliothèques y sont publiées et prêtes à être réutilisées, un peu comme npm pour JavaScript ou PyPI pour Python.\n\nUne crate externe que l'on ajoute à son projet s'appelle une **dépendance** (*dependency*). Cargo sait la télécharger depuis crates.io, la compiler et la relier à notre code, sans qu'on ait à gérer cela à la main."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un entrepôt aux étagères remplies de stock, image du registre public crates.io et de ses milliers de crates.",
+          "body": "/images/lessons/dependances-et-crates-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Ajouter une dépendance",
+          "body": "Les dépendances d'un paquet sont listées dans la section `[dependencies]` du fichier `Cargo.toml`. On peut les ajouter de deux façons.\n\nLa plus simple est la commande `cargo add <nom>` : elle écrit automatiquement la bonne ligne dans `Cargo.toml` avec la dernière version compatible.\n\nSinon, on édite `Cargo.toml` à la main en ajoutant une ligne `nom = \"version\"`. À la compilation suivante, Cargo télécharge et compile la dépendance."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des briques que l'on assemble les unes aux autres, illustration de l'ajout d'une dépendance au projet.",
+          "body": "/images/lessons/dependances-et-crates-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "La section [dependencies] du Cargo.toml",
+          "codeLanguage": "toml",
+          "body": "[package]\nname = \"mon_projet\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\n# Ajoutée par `cargo add rand`, ou écrite à la main :\nrand = \"0.8.5\"   # la crate `rand` pour tirer des nombres aléatoires"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Importer et utiliser une crate externe",
+          "body": "Une fois la dépendance déclarée, son nom devient utilisable dans le code exactement comme un module : on y accède avec un chemin et le séparateur `::`, et on peut raccourcir avec `use`.\n\nBeaucoup de crates proposent un **prélude** (*prelude*), un module qui regroupe les éléments les plus courants à importer d'un coup. Pour la crate `rand`, on écrit souvent `use rand::Rng;` afin de disposer des méthodes de tirage aléatoire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un conteneur de transport que l'on importe, évoquant une crate externe reliée au code par un chemin.",
+          "body": "/images/lessons/dependances-et-crates-4.jpg",
+          "position": 8
+        },
+        {
+          "type": "CODE",
+          "position": 9,
+          "title": "Tirer un nombre aléatoire avec rand",
+          "codeLanguage": "rust",
+          "body": "use rand::Rng;   // importe le trait `Rng` fourni par la crate `rand`\n\nfn main() {\n    let mut generateur = rand::thread_rng();\n    // tire un entier entre 1 et 6 inclus (comme un dé)\n    let de: u8 = generateur.gen_range(1..=6);\n    println!(\"Le dé affiche : {de}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 10,
+          "title": "Les versions et le semver",
+          "body": "Les numéros de version suivent le **semver** (*semantic versioning*, versionnage sémantique) : trois nombres `MAJEUR.MINEUR.CORRECTIF`, par exemple `0.8.5`.\n\nLa règle : on incrémente le **correctif** pour une correction de bug sans changement visible, le **mineur** pour un ajout compatible, et le **majeur** pour un changement qui casse la compatibilité.\n\nQuand on écrit `rand = \"0.8.5\"`, Cargo l'interprète comme « cette version ou toute version compatible ultérieure » : il accepte `0.8.6`, `0.8.9`, etc., mais pas `0.9.0` qui pourrait casser le code. Cargo enregistre la version exacte réellement utilisée dans un fichier `Cargo.lock`, pour que le projet se recompile à l'identique sur une autre machine."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des étiquettes numérotées, image des numéros de version qui suivent le versionnage sémantique.",
+          "body": "/images/lessons/dependances-et-crates-5.jpg",
+          "position": 11
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 12,
+          "title": "Un paquet, ses modules et ses crates externes",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  P[\"Paquet : mon_projet (Cargo.toml)\"] --> C[\"Crate binaire : src/main.rs\"]\n  C --> M1[\"Module jardin\"]\n  C --> M2[\"Module cuisine\"]\n  C -->|\"[dependencies]\"| D1[\"Crate externe : rand\"]\n  C -->|\"[dependencies]\"| D2[\"Crate externe : serde\"]\n  D1 -.->|\"téléchargée depuis\"| R[\"crates.io\"]\n  D2 -.->|\"téléchargée depuis\"| R"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 13,
+          "title": "À toi d'ajouter une dépendance",
+          "body": "On veut utiliser la crate `rand` dans un nouveau projet pour tirer un nombre aléatoire entre 1 et 100.\n\n1. Indique la commande Cargo qui ajoute `rand` comme dépendance.\n2. Montre la ligne qui apparaît alors dans la section `[dependencies]` du `Cargo.toml` (avec une version compatible `0.8`).\n3. Écris une fonction `main` qui tire et affiche un entier entre 1 et 100 inclus.",
+          "solution": "1. La commande est :\n\n```bash\ncargo add rand\n```\n\n2. Dans `Cargo.toml`, la section ressemble à :\n\n```toml\n[dependencies]\nrand = \"0.8.5\"\n```\n\n3. Le code :\n\n```rust\nuse rand::Rng;\n\nfn main() {\n    let mut generateur = rand::thread_rng();\n    let tirage: u32 = generateur.gen_range(1..=100); // 1 à 100 inclus\n    println!(\"Nombre tiré : {tirage}\");\n}\n```\n\nLe `use rand::Rng;` est indispensable : sans ce trait importé, la méthode `gen_range` n'est pas disponible sur le générateur."
+        },
+        {
+          "type": "QUIZ",
+          "position": 14,
+          "title": "Vérifions",
+          "quizRef": "dependances-et-crates-check"
+        }
+      ]
+    }
+  ]
+}

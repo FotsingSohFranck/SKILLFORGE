@@ -1,0 +1,43 @@
+{
+  "ref": "tester-le-projet-check",
+  "node": "projet-cli",
+  "lesson": "tester-le-projet",
+  "title": "Quiz : Tester le projet",
+  "description": "Vérifie que tu sais écrire et lancer un test unitaire en Rust.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle annotation place-t-on au-dessus d'une fonction pour qu'elle soit exécutée comme test par `cargo test` ?",
+      "justification": "`#[test]` marque une fonction comme test ; `cargo test` compile le code en mode test et exécute chaque fonction ainsi annotée.",
+      "position": 0,
+      "options": [
+        { "label": "`#[test]`", "correct": true, "position": 0 },
+        { "label": "`#[main]`", "correct": false, "position": 1 },
+        { "label": "`#[run]`", "correct": false, "position": 2 },
+        { "label": "`#[assert]`", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait la macro `assert_eq!(attendu, obtenu)` dans un test ?",
+      "justification": "`assert_eq!` compare les deux valeurs : si elles diffèrent, elle panique et fait échouer le test en affichant la valeur attendue et la valeur obtenue.",
+      "position": 1,
+      "options": [
+        { "label": "Elle fait échouer le test si les deux valeurs ne sont pas égales", "correct": true, "position": 0 },
+        { "label": "Elle affiche les valeurs sans jamais faire échouer le test", "correct": false, "position": 1 },
+        { "label": "Elle convertit la première valeur en seconde", "correct": false, "position": 2 },
+        { "label": "Elle lance uniquement le test nommé `attendu`", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le module de tests annoté `#[cfg(test)]` n'est compilé que lorsqu'on lance les tests, pas dans le binaire final.",
+      "justification": "Vrai : `#[cfg(test)]` indique au compilateur de n'inclure ce module que pendant `cargo test`, ce qui n'alourdit pas le programme livré.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

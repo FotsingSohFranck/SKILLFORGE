@@ -1,0 +1,43 @@
+{
+  "ref": "des-methodes-avec-impl-check",
+  "node": "structs",
+  "lesson": "des-methodes-avec-impl",
+  "title": "Quiz : Des méthodes avec impl",
+  "description": "Vérifie que tu distingues méthodes et fonctions associées, et les formes de self.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel premier paramètre déclare une méthode qui modifie l'instance ?",
+      "justification": "`&mut self` est un emprunt exclusif de l'instance, ce qui autorise la modification de ses champs ; `&self` ne permet que la lecture.",
+      "position": 0,
+      "options": [
+        { "label": "&mut self", "correct": true, "position": 0 },
+        { "label": "&self", "correct": false, "position": 1 },
+        { "label": "self: Copy", "correct": false, "position": 2 },
+        { "label": "mut", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment appelle-t-on la fonction associée `new` du type `Compteur` ?",
+      "justification": "Une fonction associée n'a pas de `self` ; on l'appelle sur le type avec `::`, donc `Compteur::new()`.",
+      "position": 1,
+      "options": [
+        { "label": "Compteur::new()", "correct": true, "position": 0 },
+        { "label": "compteur.new()", "correct": false, "position": 1 },
+        { "label": "new(Compteur)", "correct": false, "position": 2 },
+        { "label": "Compteur.new()", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une méthode avec `&self` peut modifier les champs de l'instance.",
+      "justification": "Faux : `&self` est un emprunt en lecture seule ; il faut `&mut self` pour modifier l'instance.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

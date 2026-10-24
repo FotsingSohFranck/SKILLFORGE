@@ -1,0 +1,159 @@
+{
+  "node": "collections",
+  "lessons": [
+    {
+      "slug": "le-vecteur-vec",
+      "title": "Le vecteur Vec",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une liste qui grandit",
+          "body": "Un tableau classique en Rust a une taille fixée à la compilation. Souvent, on ne connaît pas à l'avance le nombre d'éléments : on veut une liste capable de **grandir** au fil du programme. C'est le rôle du **vecteur**, noté `Vec<T>`.\n\n`Vec<T>` est une collection **redimensionnable** stockée sur le tas (la zone mémoire gérée dynamiquement). Le `<T>` est un paramètre de type : il précise ce que contient le vecteur. Un `Vec<i32>` contient des entiers, un `Vec<String>` contient des chaînes. Tous les éléments d'un même vecteur ont le même type."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des boîtes empilées qui s'ajoutent les unes aux autres, image d'une liste capable de grandir au fil du programme.",
+          "body": "/images/lessons/le-vecteur-vec-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Créer et remplir un vecteur",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    // Deux façons de créer un vecteur vide, équivalentes :\n    let mut scores: Vec<i32> = Vec::new();\n    scores.push(10);              // on ajoute un élément à la fin\n    scores.push(20);\n    scores.push(30);\n\n    // La macro `vec!` crée un vecteur déjà rempli :\n    let notes = vec![12, 15, 9]; // Rust devine le type : Vec<i32>\n\n    println!(\"{:?}\", scores);     // affiche : [10, 20, 30]\n    println!(\"{:?}\", notes);      // affiche : [12, 15, 9]\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Accéder à un élément : index direct ou .get()",
+          "body": "Il y a deux manières d'accéder à un élément par sa position (l'index commence à 0).\n\nLa première, `v[0]`, renvoie directement l'élément. Mais si l'index dépasse les bornes du vecteur, le programme **panique** : il s'arrête brutalement à l'exécution. La panique est l'arrêt contrôlé de Rust face à une erreur qu'il juge irrécupérable.\n\nLa seconde, `v.get(0)`, ne panique jamais : elle renvoie un `Option`. Rappel : `Option<T>` vaut `Some(valeur)` si l'élément existe, ou `None` s'il n'existe pas. C'est la voie sûre quand l'index peut être hors bornes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une rangée de casiers numérotés, évoquant l'accès à un élément par sa position à partir de l'index zéro.",
+          "body": "/images/lessons/le-vecteur-vec-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Index direct contre accès sûr",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let notes = vec![12, 15, 9];\n\n    // Accès direct : pratique, mais panique si l'index est hors bornes\n    let premiere = notes[0];\n    println!(\"Premiere note : {premiere}\"); // 12\n\n    // Accès sûr avec .get() : renvoie une Option\n    match notes.get(10) {\n        Some(valeur) => println!(\"Trouvee : {valeur}\"),\n        None => println!(\"Aucune note a cet index\"), // ce cas s'affiche\n    }\n\n    // notes[10] ici ferait paniquer le programme :\n    // thread 'main' panicked ... index out of bounds\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Parcourir un vecteur et l'ownership",
+          "body": "Pour parcourir un vecteur, on utilise une boucle `for`. Écrire `for x in v` **déplacerait** (move) le vecteur dans la boucle, qui deviendrait alors inutilisable après. La plupart du temps, on veut seulement **lire** les éléments : on emprunte donc le vecteur avec `for x in &v`.\n\nIci `&v` est un emprunt partagé, en lecture seule : chaque `x` est une référence vers un élément, et `v` reste utilisable après la boucle. Si l'on veut modifier chaque élément en place, on écrit `for x in &mut v` (emprunt mutable), à condition que `v` soit `mut`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une file de conteneurs alignés que l'on parcourt un par un, comme une boucle sur chaque élément du vecteur.",
+          "body": "/images/lessons/le-vecteur-vec-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Parcours en lecture puis en écriture",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let mut notes = vec![12, 15, 9];\n\n    // Lecture : on emprunte avec &notes, le vecteur reste disponible\n    for n in &notes {\n        println!(\"note = {n}\");\n    }\n\n    // Écriture : on emprunte avec &mut pour modifier chaque élément\n    for n in &mut notes {\n        *n += 1;          // `*n` accède à la valeur derrière la référence\n    }\n\n    println!(\"{:?}\", notes); // affiche : [13, 16, 10]\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "le-vecteur-vec-check"
+        }
+      ]
+    },
+    {
+      "slug": "hashmap-et-chaines",
+      "title": "HashMap et chaînes",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Associer une clé à une valeur",
+          "body": "Un `Vec<T>` indexe ses éléments par **position** : 0, 1, 2. Mais parfois on veut retrouver une valeur par une **clé** parlante, par exemple le score associé à un nom de joueur. C'est le rôle de la `HashMap<K, V>` : une table qui associe chaque clé de type `K` à une valeur de type `V`.\n\nLa `HashMap` n'est pas dans le préambule chargé automatiquement : il faut l'importer avec `use std::collections::HashMap`. L'ordre des éléments n'y est pas garanti : on y accède par clé, pas par position."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une clé accompagnée d'une étiquette, illustration de l'association entre une clé et sa valeur dans une table.",
+          "body": "/images/lessons/hashmap-et-chaines-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Insérer et lire dans une HashMap",
+          "codeLanguage": "rust",
+          "body": "use std::collections::HashMap; // import obligatoire\n\nfn main() {\n    let mut scores: HashMap<String, i32> = HashMap::new();\n\n    scores.insert(String::from(\"Ada\"), 10);   // associe la cle a la valeur\n    scores.insert(String::from(\"Linus\"), 7);\n\n    // .get() renvoie une Option : Some(&valeur) si la cle existe, sinon None\n    match scores.get(\"Ada\") {\n        Some(points) => println!(\"Ada : {points}\"), // Ada : 10\n        None => println!(\"Joueur inconnu\"),\n    }\n\n    // .get() d'une cle absente donne None, pas de panique :\n    println!(\"{:?}\", scores.get(\"Bob\")); // affiche : None\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "entry().or_insert() : lire ou créer d'un coup",
+          "body": "Un besoin très fréquent : « donne-moi la valeur de cette clé, et si elle n'existe pas encore, crée-la avec une valeur par défaut ». Écrire cela à la main (vérifier, puis insérer) est verbeux. La méthode `entry(cle).or_insert(defaut)` le fait en une ligne.\n\n`entry` représente l'emplacement de la clé dans la table. `or_insert(defaut)` insère `defaut` si la clé est absente, puis renvoie dans tous les cas une **référence mutable** (`&mut V`) vers la valeur. On peut donc la modifier aussitôt, par exemple l'incrémenter : c'est l'idiome classique pour compter des occurrences."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des marques de comptage tracées une à une, image de l'incrément d'un compteur à chaque occurrence rencontrée.",
+          "body": "/images/lessons/hashmap-et-chaines-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Compter avec entry().or_insert()",
+          "codeLanguage": "rust",
+          "body": "use std::collections::HashMap;\n\nfn main() {\n    let texte = \"le chat le chien le chat\";\n    let mut comptes: HashMap<&str, i32> = HashMap::new();\n\n    for mot in texte.split_whitespace() {\n        // or_insert(0) cree l'entree a 0 si absente, et renvoie &mut vers la valeur\n        let compte = comptes.entry(mot).or_insert(0);\n        *compte += 1; // on incremente via la reference mutable\n    }\n\n    // {:#?} affiche joliment, sur plusieurs lignes\n    println!(\"{:#?}\", comptes); // le -> 3, chat -> 2, chien -> 1\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Vec indexé par position, HashMap indexée par clé",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph VEC[\"Vec&lt;T&gt; : indexe par POSITION\"]\n    direction TB\n    I0[\"index 0\"] --> E0[\"'chat'\"]\n    I1[\"index 1\"] --> E1[\"'chien'\"]\n    I2[\"index 2\"] --> E2[\"'chat'\"]\n  end\n  subgraph MAP[\"HashMap&lt;K,V&gt; : indexe par CLE\"]\n    direction TB\n    K0[\"cle 'chat'\"] --> V0[\"valeur 2\"]\n    K1[\"cle 'chien'\"] --> V1[\"valeur 1\"]\n  end\n  VEC -.->|\"on compte les occurrences\"| MAP"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 7,
+          "title": "Construire une String : push_str et format!",
+          "body": "Une `String` est une chaîne de texte redimensionnable (contrairement à `&str`, qui est une vue figée). On la fait grandir morceau par morceau avec `push_str`, qui ajoute un fragment de texte à la fin, ou `push`, qui ajoute un seul caractère.\n\nPour assembler plusieurs valeurs d'un coup, la macro `format!` est plus lisible : elle fonctionne comme `println!` mais, au lieu d'afficher, elle **renvoie** une nouvelle `String`. On s'en sert dès qu'on veut composer une phrase à partir de variables."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des lettres frappées à la machine, évoquant la construction d'un texte assemblé morceau par morceau.",
+          "body": "/images/lessons/hashmap-et-chaines-3.jpg",
+          "position": 8
+        },
+        {
+          "type": "CODE",
+          "position": 9,
+          "title": "Assembler du texte",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    // Construction par ajouts successifs\n    let mut phrase = String::from(\"Bonjour\");\n    phrase.push_str(\", monde\"); // ajoute un fragment a la fin\n    phrase.push('!');            // ajoute un seul caractere\n    println!(\"{phrase}\");        // Bonjour, monde!\n\n    // Construction directe avec format! (renvoie une String)\n    let nom = \"Ada\";\n    let age = 36;\n    let carte = format!(\"{nom} a {age} ans\");\n    println!(\"{carte}\");         // Ada a 36 ans\n}"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 10,
+          "title": "Compter les mots d'une phrase",
+          "body": "Écris une fonction `compter_mots(texte: &str) -> HashMap<String, i32>` qui renvoie, pour chaque mot de `texte`, son nombre d'occurrences. Sépare les mots sur les espaces avec `split_whitespace()`. Utilise l'idiome `entry(...).or_insert(0)` pour compter.\n\nTeste-la avec la phrase `\"rouge vert rouge bleu vert rouge\"` : tu dois obtenir rouge = 3, vert = 2, bleu = 1.",
+          "solution": "On insère chaque mot dans la `HashMap` et on incrémente son compteur via la référence mutable renvoyée par `or_insert`. On transforme chaque `&str` en `String` avec `.to_string()` pour que la table possède ses propres clés.\n\n```rust\nuse std::collections::HashMap;\n\nfn compter_mots(texte: &str) -> HashMap<String, i32> {\n    let mut comptes: HashMap<String, i32> = HashMap::new();\n    for mot in texte.split_whitespace() {\n        // or_insert(0) cree l'entree si absente, puis renvoie &mut vers la valeur\n        let compte = comptes.entry(mot.to_string()).or_insert(0);\n        *compte += 1;\n    }\n    comptes\n}\n\nfn main() {\n    let resultat = compter_mots(\"rouge vert rouge bleu vert rouge\");\n    println!(\"{:#?}\", resultat); // rouge -> 3, vert -> 2, bleu -> 1\n}\n```"
+        },
+        {
+          "type": "QUIZ",
+          "position": 11,
+          "title": "Vérifions",
+          "quizRef": "hashmap-et-chaines-check"
+        }
+      ]
+    }
+  ]
+}

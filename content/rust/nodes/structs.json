@@ -1,0 +1,133 @@
+{
+  "node": "structs",
+  "lessons": [
+    {
+      "slug": "definir-une-struct",
+      "title": "Définir une struct",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce qu'une struct",
+          "body": "Une **struct** (structure) est un type que tu définis toi-même pour regrouper plusieurs valeurs qui vont ensemble. Au lieu de trimbaler trois variables séparées `largeur`, `hauteur` et `couleur`, tu les ranges dans une seule struct `Rectangle` qui porte un sens clair.\n\nLa forme la plus courante est la **struct à champs nommés** : chaque donnée a un nom (un *champ*) et un type. On déclare la struct une fois, puis on crée autant d'**instances** (des exemplaires concrets) que l'on veut."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des boîtes de rangement bien organisées évoquent la struct qui regroupe plusieurs valeurs liées sous un seul type.",
+          "body": "/images/lessons/definir-une-struct-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Déclarer et instancier",
+          "codeLanguage": "rust",
+          "body": "// Déclaration du type : une struct à champs nommés\nstruct Utilisateur {\n    nom: String,\n    age: u32,\n    actif: bool,\n}\n\nfn main() {\n    // Instanciation : on fournit une valeur pour chaque champ\n    let alice = Utilisateur {\n        nom: String::from(\"Alice\"),\n        age: 30,\n        actif: true,\n    };\n\n    // Accès aux champs avec le point\n    println!(\"{} a {} ans\", alice.nom, alice.age);\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Modifier une instance avec let mut",
+          "body": "Par défaut, une instance est **immuable** : une fois créée, tu ne peux pas changer ses champs. Pour pouvoir les modifier, déclare l'instance avec `let mut`.\n\nAttention : la mutabilité porte sur l'instance entière, pas champ par champ. Si l'instance est `mut`, tous ses champs deviennent modifiables ; si elle ne l'est pas, aucun ne l'est."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des outils prêts à l'emploi illustrent l'instance déclarée avec let mut dont tous les champs deviennent modifiables.",
+          "body": "/images/lessons/definir-une-struct-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Instance mutable et raccourci d'initialisation",
+          "codeLanguage": "rust",
+          "body": "struct Utilisateur {\n    nom: String,\n    age: u32,\n    actif: bool,\n}\n\n// Le raccourci d'initialisation : quand les paramètres portent le\n// même nom que les champs, on écrit juste `nom` au lieu de `nom: nom`.\nfn creer(nom: String, age: u32) -> Utilisateur {\n    Utilisateur {\n        nom,          // raccourci pour `nom: nom`\n        age,          // raccourci pour `age: age`\n        actif: true,\n    }\n}\n\nfn main() {\n    let mut bob = creer(String::from(\"Bob\"), 25);\n    bob.age = 26;     // possible car `bob` est `mut`\n    bob.actif = false;\n    println!(\"{} a maintenant {} ans\", bob.nom, bob.age);\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Struct tuple, struct unité et affichage avec Debug",
+          "body": "Il existe deux variantes plus discrètes. La **struct tuple** regroupe des valeurs par position, sans les nommer : utile pour envelopper quelques champs quand les noms seraient superflus, par exemple `struct Point(i32, i32);`. La **struct unité** n'a aucun champ : `struct Marqueur;`. Elle sert surtout quand on veut un type sans donnée, souvent pour y attacher un comportement plus tard.\n\nEnfin, pour afficher une struct avec `{:?}` (le format de débogage, pratique pour inspecter une valeur), il faut la rendre affichable. On ajoute l'attribut `#[derive(Debug)]` juste au-dessus de la déclaration : le compilateur génère l'affichage pour toi. Sans cela, `{:?}` ne compile pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des blocs de construction figurent les variantes struct tuple et struct unité ainsi que l'affichage de débogage.",
+          "body": "/images/lessons/definir-une-struct-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Les variantes et Debug en action",
+          "codeLanguage": "rust",
+          "body": "// `derive(Debug)` génère l'affichage pour `{:?}`\n#[derive(Debug)]\nstruct Point(i32, i32);   // struct tuple : champs par position\n\n#[derive(Debug)]\nstruct Marqueur;          // struct unité : aucun champ\n\nfn main() {\n    let origine = Point(0, 0);\n    println!(\"x vaut {}\", origine.0);   // accès par position : .0, .1\n    println!(\"{:?}\", origine);          // affiche : Point(0, 0)\n\n    let m = Marqueur;\n    println!(\"{:?}\", m);                // affiche : Marqueur\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "definir-une-struct-check"
+        }
+      ]
+    },
+    {
+      "slug": "des-methodes-avec-impl",
+      "title": "Des méthodes avec impl",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Attacher du comportement avec impl",
+          "body": "Une struct décrit des **données**. Pour lui donner un **comportement**, on écrit un bloc `impl` (implémentation) associé à ce type. Tout ce qui est défini dans ce bloc appartient logiquement à la struct.\n\nUne **méthode** est une fonction définie dans un `impl` dont le premier paramètre est `self`, c'est-à-dire l'instance sur laquelle on l'appelle. On distingue trois formes :\n\n- `&self` : la méthode **lit** l'instance sans la modifier (emprunt partagé).\n- `&mut self` : la méthode **modifie** l'instance (emprunt exclusif) ; l'instance doit être `mut`.\n- sans `self` : une **fonction associée**, rattachée au type mais pas à une instance. L'usage le plus courant est `new`, qui joue le rôle de constructeur et renvoie une nouvelle instance."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un bras robotisé en action illustre le bloc impl qui attache du comportement aux données d'une struct.",
+          "body": "/images/lessons/des-methodes-avec-impl-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Les trois formes de méthodes",
+          "codeLanguage": "rust",
+          "body": "#[derive(Debug)]\nstruct Compteur {\n    valeur: u32,\n}\n\nimpl Compteur {\n    // Fonction associée (pas de self) : sert de constructeur\n    fn new() -> Compteur {\n        Compteur { valeur: 0 }\n    }\n\n    // Méthode en lecture : `&self` emprunte sans modifier\n    fn valeur(&self) -> u32 {\n        self.valeur\n    }\n\n    // Méthode en écriture : `&mut self` modifie l'instance\n    fn incrementer(&mut self) {\n        self.valeur += 1;\n    }\n}\n\nfn main() {\n    // On appelle une fonction associée avec `::`\n    let mut c = Compteur::new();\n    c.incrementer();              // appel de méthode avec `.`\n    c.incrementer();\n    println!(\"valeur = {}\", c.valeur());   // affiche : valeur = 2\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Appeler une méthode : point et double deux-points",
+          "body": "Deux syntaxes cohabitent et il ne faut pas les confondre.\n\nUne **méthode** (avec `self`) s'appelle sur une instance avec le point : `instance.methode()`. Rust passe automatiquement l'instance comme `self`, tu n'as rien à écrire pour cela.\n\nUne **fonction associée** (sans `self`) s'appelle sur le type avec le double deux-points : `Type::fonction()`. C'est pourquoi on écrit `Compteur::new()` et non `compteur.new()`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un plan dessiné rappelle les deux syntaxes d'appel, le point sur une instance et le double deux-points sur le type.",
+          "body": "/images/lessons/des-methodes-avec-impl-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Une struct et son bloc impl",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  subgraph Type[\"Type Compteur\"]\n    D[\"Données (struct) : champ valeur: u32\"]\n    subgraph Impl[\"Comportements (impl Compteur)\"]\n      N[\"new() : fonction associée, construit une instance\"]\n      L[\"valeur(&self) : lecture\"]\n      E[\"incrementer(&mut self) : écriture\"]\n    end\n  end\n  D -.-> L\n  D -.-> E\n  N --> D"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "Un Rectangle qui calcule son aire",
+          "body": "Écris une struct `Rectangle` avec deux champs `largeur: u32` et `hauteur: u32`. Dans un bloc `impl`, ajoute :\n\n1. une fonction associée `new(largeur, hauteur)` qui construit un `Rectangle` ;\n2. une méthode `aire(&self)` qui renvoie l'aire (largeur multipliée par hauteur) sans modifier l'instance.\n\nDans `main`, crée un rectangle 3 par 4 et affiche son aire (attendu : 12).",
+          "solution": "#[derive(Debug)]\nstruct Rectangle {\n    largeur: u32,\n    hauteur: u32,\n}\n\nimpl Rectangle {\n    // Fonction associée : le constructeur\n    fn new(largeur: u32, hauteur: u32) -> Rectangle {\n        Rectangle { largeur, hauteur }   // raccourci d'initialisation\n    }\n\n    // Méthode en lecture : `&self`, elle ne modifie rien\n    fn aire(&self) -> u32 {\n        self.largeur * self.hauteur\n    }\n}\n\nfn main() {\n    let r = Rectangle::new(3, 4);\n    println!(\"aire = {}\", r.aire());   // affiche : aire = 12\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "des-methodes-avec-impl-check"
+        }
+      ]
+    }
+  ]
+}

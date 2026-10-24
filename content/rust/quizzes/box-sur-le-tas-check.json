@@ -1,0 +1,43 @@
+{
+  "ref": "box-sur-le-tas-check",
+  "node": "smart-pointers",
+  "lesson": "box-sur-le-tas",
+  "title": "Quiz : Box, allouer sur le tas",
+  "description": "Vérifie que tu comprends le rôle de Box et son usage pour les types récursifs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `Box::new(valeur)` ?",
+      "justification": "`Box<T>` alloue la valeur sur le tas et en garde la propriété ; seul un pointeur de taille fixe reste sur la pile, et la mémoire du tas est libérée quand la Box sort du scope.",
+      "position": 0,
+      "options": [
+        { "label": "Elle place la valeur sur le tas et garde la propriété via un pointeur", "correct": true, "position": 0 },
+        { "label": "Elle copie la valeur dans une autre pile", "correct": false, "position": 1 },
+        { "label": "Elle crée une référence empruntée sans propriétaire", "correct": false, "position": 2 },
+        { "label": "Elle active un ramasse-miettes pour cette valeur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi un type récursif comme une liste chaînée a-t-il besoin d'une `Box` ?",
+      "justification": "Sans indirection, un type qui se contient lui-même aurait une taille infinie non calculable ; la Box introduit un pointeur de taille fixe, ce qui rend la taille du type calculable à la compilation.",
+      "position": 1,
+      "options": [
+        { "label": "Parce que la Box rend la taille du type finie et calculable grâce à l'indirection", "correct": true, "position": 0 },
+        { "label": "Parce que la Box rend le type automatiquement mutable", "correct": false, "position": 1 },
+        { "label": "Parce que la Box autorise plusieurs propriétaires", "correct": false, "position": 2 },
+        { "label": "Parce que la Box accélère toujours le programme", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "On peut déréférencer une `Box<T>` avec l'opérateur `*` pour accéder à la valeur pointée.",
+      "justification": "Vrai : `*b` donne accès à la valeur contenue, et Rust effectue souvent ce déréférencement automatiquement.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

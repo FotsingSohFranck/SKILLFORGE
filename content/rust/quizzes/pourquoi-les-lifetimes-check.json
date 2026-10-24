@@ -1,0 +1,43 @@
+{
+  "ref": "pourquoi-les-lifetimes-check",
+  "node": "lifetimes",
+  "lesson": "pourquoi-les-lifetimes",
+  "title": "Quiz : Pourquoi les durées de vie",
+  "description": "Vérifie que tu as compris le rôle des durées de vie et le danger de la référence pendante.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une durée de vie (lifetime) suivie par le compilateur Rust ?",
+      "justification": "Le compilateur associe à chaque référence une durée de vie afin de garantir qu'une référence ne survit jamais à la donnée qu'elle désigne, ce qui empêche les références pendantes à la compilation.",
+      "position": 0,
+      "options": [
+        { "label": "Garantir qu'une référence ne survive jamais à la donnée qu'elle désigne", "correct": true, "position": 0 },
+        { "label": "Mesurer le temps d'exécution du programme en secondes", "correct": false, "position": 1 },
+        { "label": "Allouer plus de mémoire aux grosses valeurs", "correct": false, "position": 2 },
+        { "label": "Accélérer la compilation en ignorant les références", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La plupart du temps, les durées de vie sont déduites automatiquement par le compilateur (élision), sans qu'on ait à les écrire.",
+      "justification": "Vrai : grâce à l'élision des durées de vie, le compilateur remplit seul les cas évidents. On ne doit les annoter explicitement que dans les situations ambiguës.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi ce code est-il refusé ?\n\nlet reference;\n{\n    let donnee = String::from(\"coucou\");\n    reference = &donnee;\n}\nprintln!(\"{reference}\");",
+      "justification": "`donnee` est détruite à la fermeture de son bloc interne. `reference` est utilisée après, elle viserait donc une valeur morte : c'est une référence pendante, interdite à la compilation.",
+      "position": 2,
+      "options": [
+        { "label": "`donnee` est détruite en sortant de son bloc, mais `reference` est utilisée après", "correct": true, "position": 0 },
+        { "label": "Il manque un point-virgule après println", "correct": false, "position": 1 },
+        { "label": "On ne peut pas déclarer une référence sans la remplir", "correct": false, "position": 2 },
+        { "label": "`String::from` renvoie une valeur invalide", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

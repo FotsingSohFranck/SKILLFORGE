@@ -1,0 +1,138 @@
+{
+  "node": "async",
+  "lessons": [
+    {
+      "slug": "async-await-les-bases",
+      "title": "Les bases de async/await",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Une async fn renvoie un Future",
+          "body": "Jusqu'ici, une fonction s'exécutait immédiatement quand on l'appelait. Avec le mot-clé `async`, c'est différent : appeler une `async fn` ne lance aucun calcul. La fonction renvoie un **Future**, c'est à dire une valeur qui représente un résultat **à venir**.\n\nUn Future est **paresseux** : tant que personne ne l'attend, il ne fait rien du tout. C'est une promesse de travail, pas le travail lui même. Retiens cette idée : en Rust, `async` décrit un calcul, il ne le déclenche pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un sablier qui coule, image d'un Future représentant un résultat encore à venir et paresseux.",
+          "body": "/images/lessons/async-await-les-bases-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "await suspend sans bloquer le thread",
+          "body": "Pour obtenir le résultat d'un Future, on écrit `.await`. Ce mot-clé **suspend** la tâche courante : elle met son travail en pause en attendant que le résultat soit prêt.\n\nLe point clé, c'est que `.await` ne **bloque pas** le thread. Pendant que la tâche attend (par exemple une réponse réseau), le thread reste libre pour faire avancer d'autres tâches. C'est tout l'intérêt de l'asynchrone : au lieu d'immobiliser un thread à ne rien faire, on l'occupe ailleurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un bouton pause symbolisant une tâche suspendue par await sans que le thread soit bloqué.",
+          "body": "/images/lessons/async-await-les-bases-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déclarer et attendre un Future",
+          "codeLanguage": "rust",
+          "body": "// `async fn` : appeler cette fonction renvoie un Future, rien ne s'exécute encore\nasync fn saluer(nom: &str) -> String {\n    format!(\"Bonjour {nom}\")\n}\n\nasync fn exemple() {\n    // `.await` attend le résultat sans bloquer le thread\n    let message = saluer(\"Ada\").await;\n    println!(\"{message}\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Pourquoi c'est utile, et pourquoi il faut un runtime",
+          "body": "L'asynchrone brille pour les tâches d'**entrées/sorties** : appels réseau, lecture de fichiers, requêtes vers une base de données. Ces opérations passent l'essentiel de leur temps à **attendre**. Pendant cette attente, un seul thread peut faire progresser des centaines de tâches, au lieu d'en bloquer un par opération.\n\nAttention : Rust **ne fournit pas** de runtime asynchrone par défaut. Le langage définit `async` et `.await`, mais quelque chose doit effectivement **exécuter** les Futures (les faire avancer, les réveiller quand leur résultat arrive). Ce rôle revient à un **runtime** externe, comme Tokio, que l'on verra dans la leçon suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des serveurs réseau rappelant les opérations d'entrées sorties qui passent leur temps à attendre.",
+          "body": "/images/lessons/async-await-les-bases-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "async-await-les-bases-check"
+        }
+      ]
+    },
+    {
+      "slug": "executer-avec-tokio",
+      "title": "Exécuter avec Tokio",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Tokio, le runtime qui exécute les Futures",
+          "body": "Puisque Rust ne fournit pas de runtime, on en ajoute un. **Tokio** est le runtime asynchrone le plus répandu de l'écosystème. Son rôle : prendre tes Futures et les faire réellement avancer, les suspendre sur un `.await`, puis les reprendre quand le résultat est prêt.\n\nConcrètement, Tokio gère un **ordonnanceur** et un **pool de threads**. Il répartit les tâches sur ces threads et bascule de l'une à l'autre dès qu'une tâche attend, pour qu'aucun thread ne reste inactif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des lignes parallèles évoquant l'ordonnanceur et le pool de threads du runtime Tokio.",
+          "body": "/images/lessons/executer-avec-tokio-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Démarrer le runtime avec #[tokio::main]",
+          "body": "La fonction `main` ordinaire ne peut pas faire d'`.await`, car il faut d'abord un runtime. L'attribut `#[tokio::main]` résout cela : placé au dessus de `main`, il transforme ta fonction en un petit programme qui démarre le runtime Tokio, puis exécute ton code asynchrone à l'intérieur.\n\nEn pratique, tu écris `async fn main()` avec cet attribut, et tu peux dès lors utiliser `.await` dans le corps de `main`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un démarrage de moteur illustrant l'attribut tokio::main qui lance le runtime avant main.",
+          "body": "/images/lessons/executer-avec-tokio-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Un main asynchrone",
+          "codeLanguage": "rust",
+          "body": "// L'attribut démarre le runtime Tokio avant d'exécuter main\n#[tokio::main]\nasync fn main() {\n    let message = saluer(\"Ada\").await; // autorisé : on est dans le runtime\n    println!(\"{message}\");\n}\n\nasync fn saluer(nom: &str) -> String {\n    format!(\"Bonjour {nom}\")\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Lancer des tâches concurrentes avec tokio::spawn",
+          "body": "Pour faire tourner plusieurs tâches **en même temps**, on utilise `tokio::spawn`. Cette fonction confie un Future au runtime comme une tâche indépendante, qui progresse en parallèle des autres. `spawn` renvoie un **handle** que l'on peut `.await` pour récupérer le résultat de la tâche.\n\nPour attendre plusieurs tâches à la fois, une option simple est d'attendre chaque handle l'un après l'autre. Comme les tâches avancent déjà en concurrence pendant ce temps, on récupère tous les résultats sans les exécuter en série."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Plusieurs activités menées de front, image des tâches concurrentes confiées au runtime par spawn.",
+          "body": "/images/lessons/executer-avec-tokio-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Deux tâches en concurrence",
+          "codeLanguage": "rust",
+          "body": "#[tokio::main]\nasync fn main() {\n    // Chaque spawn confie une tâche au runtime, qui la fait avancer en concurrence\n    let tache_a = tokio::spawn(async { calcul(2).await });\n    let tache_b = tokio::spawn(async { calcul(3).await });\n\n    // On attend les deux handles ; `.unwrap()` récupère le résultat de la tâche\n    let a = tache_a.await.unwrap();\n    let b = tache_b.await.unwrap();\n    println!(\"total : {}\", a + b); // affiche : total : 5\n}\n\nasync fn calcul(n: u32) -> u32 {\n    n // un vrai cas ferait ici une E/S, par exemple un appel réseau\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Le runtime ordonnance les tâches",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  M[\"main avec #[tokio::main]\"] --> R[\"Runtime Tokio : ordonnanceur\"]\n  R --> T1[\"Tâche A (spawn)\"]\n  R --> T2[\"Tâche B (spawn)\"]\n  R --> T3[\"Tâche C (spawn)\"]\n  T1 --> P[\"Pool de threads\"]\n  T2 --> P\n  T3 --> P\n  P --> N[\"Une tâche sur un .await libère le thread pour une autre\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À toi de jouer",
+          "body": "Complète ce programme pour qu'il lance **deux** tâches concurrentes avec `tokio::spawn`. La première doit renvoyer `10`, la seconde `20`. Attends ensuite les deux et affiche leur somme (`30`).\n\n```rust\n#[tokio::main]\nasync fn main() {\n    // 1. lance la première tâche (renvoie 10)\n    // 2. lance la seconde tâche (renvoie 20)\n    // 3. attends les deux handles\n    // 4. affiche la somme\n}\n```",
+          "solution": "On confie chaque Future au runtime avec `tokio::spawn`, puis on attend chaque handle avec `.await`. Le handle renvoie un `Result`, d'où le `.unwrap()`.\n\n```rust\n#[tokio::main]\nasync fn main() {\n    let t1 = tokio::spawn(async { 10 });\n    let t2 = tokio::spawn(async { 20 });\n\n    let a = t1.await.unwrap();\n    let b = t2.await.unwrap();\n    println!(\"{}\", a + b); // affiche : 30\n}\n```\n\nLes deux tâches avancent en concurrence sur le runtime ; on les attend ensuite pour récupérer leurs résultats."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "executer-avec-tokio-check"
+        }
+      ]
+    }
+  ]
+}

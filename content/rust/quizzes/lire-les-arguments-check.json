@@ -1,0 +1,43 @@
+{
+  "ref": "lire-les-arguments-check",
+  "node": "projet-cli",
+  "lesson": "lire-les-arguments",
+  "title": "Quiz : Lire les arguments",
+  "description": "Vérifie que tu sais récupérer les arguments de la ligne de commande avec std::env::args.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que contient le premier élément (indice 0) du vecteur renvoyé par `env::args().collect()` ?",
+      "justification": "L'indice 0 est toujours le nom du programme lui-même ; les arguments utiles commencent donc à l'indice 1.",
+      "position": 0,
+      "options": [
+        { "label": "Le nom du programme", "correct": true, "position": 0 },
+        { "label": "Le premier argument utile (le motif)", "correct": false, "position": 1 },
+        { "label": "Le chemin du fichier à lire", "correct": false, "position": 2 },
+        { "label": "Toujours une chaîne vide", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi afficher le message d'usage avec `eprintln!` plutôt que `println!` ?",
+      "justification": "`eprintln!` écrit sur la sortie d'erreur standard (stderr), ce qui sépare les messages d'aide des vrais résultats écrits sur stdout.",
+      "position": 1,
+      "options": [
+        { "label": "Parce que `eprintln!` écrit sur la sortie d'erreur (stderr), réservée aux messages d'alerte", "correct": true, "position": 0 },
+        { "label": "Parce que `println!` ne peut pas afficher de texte", "correct": false, "position": 1 },
+        { "label": "Parce que `eprintln!` est plus rapide à l'exécution", "correct": false, "position": 2 },
+        { "label": "Parce que `println!` arrête le programme", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Il faut vérifier le nombre d'arguments reçus avant d'y accéder par indice, sinon le programme peut paniquer si un argument manque.",
+      "justification": "Vrai : accéder à `args[2]` alors que l'utilisateur n'a pas fourni assez d'arguments provoque une panique ; on teste donc `args.len()` d'abord.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "node": "smart-pointers",
+  "lessons": [
+    {
+      "slug": "box-sur-le-tas",
+      "title": "Box, allouer sur le tas",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pile, tas et pointeur intelligent",
+          "body": "Par défaut, une valeur Rust vit sur la **pile** (stack) : rapide, mais sa taille doit être connue à la compilation. Parfois on veut plutôt placer la valeur sur le **tas** (heap), une zone mémoire gérée dynamiquement, et ne garder sur la pile qu'un **pointeur** vers elle.\n\n`Box<T>` est le pointeur intelligent le plus simple : il alloue une valeur de type `T` sur le tas et en garde la **propriété**. Quand la `Box` sort du périmètre (scope), Rust libère automatiquement la mémoire du tas. C'est toujours la propriété et le Drop automatique, sans ramasse-miettes : rien de nouveau côté règles, juste un emplacement mémoire différent."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des barrettes de mémoire qui évoquent l'allocation d'une valeur sur le tas, le pointeur restant sur la pile.",
+          "body": "/images/lessons/box-sur-le-tas-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Créer une Box et la déréférencer",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    // `valeur` est allouée sur le tas, `b` est un pointeur sur la pile\n    let b = Box::new(5);\n\n    // `*b` déréférence la Box pour atteindre la valeur pointée\n    println!(\"b vaut {}\", *b); // affiche : b vaut 5\n\n    // On peut souvent omettre le `*` : Rust déréférence automatiquement\n    let somme = *b + 10;\n    println!(\"somme = {somme}\"); // affiche : somme = 15\n} // ici `b` sort du scope : la mémoire du tas est libérée automatiquement"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Pourquoi une Box : types récursifs et grandes valeurs",
+          "body": "Deux usages classiques justifient la `Box`.\n\n**1. Les types récursifs.** Un type qui se contient lui-même aurait une taille **infinie** si tout était en ligne sur la pile. Imagine une liste chaînée : un maillon contient une valeur, puis un autre maillon, qui contient encore un maillon, et ainsi de suite. Le compilateur ne saurait pas calculer sa taille. En plaçant le maillon suivant derrière une `Box`, on introduit une **indirection** : le maillon ne contient plus la suite directement, mais un pointeur de taille fixe vers elle. La taille devient calculable.\n\n**2. Les grandes valeurs.** Transférer la propriété d'une très grande structure copie des octets sur la pile. Derrière une `Box`, seul le pointeur (quelques octets) est déplacé, la donnée reste en place sur le tas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une chaîne de maillons reliés illustrant l'indirection d'une liste chaînée construite avec des Box.",
+          "body": "/images/lessons/box-sur-le-tas-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Une liste chaînée grâce à Box",
+          "codeLanguage": "rust",
+          "body": "// Chaque maillon contient une valeur et, éventuellement, la suite.\n// Sans `Box`, `List` se contiendrait elle-même : taille infinie, refus du compilateur.\nenum List {\n    Cons(i32, Box<List>), // la suite est derrière un pointeur de taille fixe\n    Nil,                  // fin de la liste\n}\n\nuse List::{Cons, Nil};\n\nfn main() {\n    // Construit la liste 1 -> 2 -> 3 -> Nil\n    let liste = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));\n\n    // Parcours en suivant les pointeurs\n    let mut courant = &liste;\n    while let Cons(valeur, suite) = courant {\n        println!(\"valeur = {valeur}\");\n        courant = suite; // on avance sur le maillon suivant\n    }\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "box-sur-le-tas-check"
+        }
+      ]
+    },
+    {
+      "slug": "rc-et-refcell",
+      "title": "Rc et RefCell",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Rc : plusieurs propriétaires d'une même donnée",
+          "body": "La règle de propriété dit qu'une valeur a **un seul** propriétaire. Mais parfois une donnée doit être partagée par plusieurs endroits, sans qu'aucun ne soit « le » propriétaire unique. C'est le rôle de `Rc<T>`, le **compteur de références** (en anglais *reference counted*).\n\n`Rc<T>` autorise **plusieurs propriétaires** en lecture pour une même valeur sur le tas. Il tient un compteur : chaque `Rc::clone` l'incrémente, chaque `Rc` qui sort du scope le décrémente. Quand le compteur retombe à zéro, la valeur est libérée.\n\nPoint important : `Rc::clone(&a)` ne copie pas la donnée, il incrémente seulement le compteur et renvoie un nouveau pointeur vers la même valeur. On écrit `Rc::clone(&a)` plutôt que `a.clone()` pour signaler clairement qu'il s'agit d'un partage bon marché, pas d'une copie profonde. Attention : `Rc<T>` est **mono-thread** uniquement (pour le multi-thread, il existe `Arc<T>`)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Plusieurs mains tenant un même objet, image du partage d'une donnée par plusieurs propriétaires avec Rc.",
+          "body": "/images/lessons/rc-et-refcell-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Partager avec Rc et compter les références",
+          "codeLanguage": "rust",
+          "body": "use std::rc::Rc;\n\nfn main() {\n    let origine = Rc::new(String::from(\"données partagées\"));\n    println!(\"compteur = {}\", Rc::strong_count(&origine)); // 1\n\n    let a = Rc::clone(&origine); // incrémente le compteur, ne copie pas la String\n    println!(\"compteur = {}\", Rc::strong_count(&origine)); // 2\n\n    {\n        let b = Rc::clone(&origine);\n        println!(\"compteur = {}\", Rc::strong_count(&origine)); // 3\n    } // `b` sort du scope : le compteur redescend\n\n    println!(\"compteur = {}\", Rc::strong_count(&origine)); // 2\n    println!(\"a lit : {a}\"); // tous pointent vers la même donnée\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "RefCell : mutabilité intérieure, vérifiée à l'exécution",
+          "body": "Jusqu'ici, le *borrow checker* vérifiait les règles d'emprunt à la **compilation** : une référence `&mut` exclusive ou plusieurs `&` partagées, jamais les deux. C'est sûr, mais rigide.\n\n`RefCell<T>` déplace cette vérification à **l'exécution** (runtime). On parle de **mutabilité intérieure** : on peut modifier la valeur contenue même à travers une référence partagée. On ne prend pas de référence directe, on demande un emprunt :\n\n- `borrow()` renvoie un emprunt en lecture (plusieurs autorisés en même temps) ;\n- `borrow_mut()` renvoie un emprunt en écriture (exclusif).\n\nLes mêmes règles s'appliquent, mais si tu les violes (par exemple deux `borrow_mut()` actifs en même temps), le programme ne refuse pas à la compilation : il **panique** à l'exécution. Le marché est clair : plus de souplesse, mais une erreur attrapée plus tard, au prix d'un crash contrôlé plutôt que d'une erreur de compilation."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un cadenas et sa clé évoquant l'emprunt contrôlé et la mutabilité intérieure vérifiée à l'exécution.",
+          "body": "/images/lessons/rc-et-refcell-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Modifier à travers une référence partagée",
+          "codeLanguage": "rust",
+          "body": "use std::cell::RefCell;\n\nfn main() {\n    // `compteur` n'est pas déclaré `mut`, pourtant on va modifier son contenu\n    let compteur = RefCell::new(0);\n\n    *compteur.borrow_mut() += 1; // emprunt mutable, vérifié à l'exécution\n    *compteur.borrow_mut() += 1; // l'emprunt précédent est déjà relâché, donc OK\n\n    println!(\"valeur = {}\", compteur.borrow()); // emprunt en lecture : affiche 2\n\n    // Piège : garder deux emprunts mutables actifs en même temps\n    // let a = compteur.borrow_mut();\n    // let b = compteur.borrow_mut(); // PANIC au runtime : already borrowed\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Le combo Rc<RefCell<T>>",
+          "body": "`Rc<T>` donne **plusieurs propriétaires**, mais en lecture seule. `RefCell<T>` donne la **mutabilité intérieure**, mais un seul propriétaire. En les combinant, `Rc<RefCell<T>>` offre les deux : une donnée **partagée par plusieurs propriétaires** et **modifiable** par chacun d'eux (mono-thread).\n\nC'est un patron très courant, par exemple pour un graphe ou un arbre dont plusieurs nœuds pointent vers un enfant commun qu'ils peuvent mettre à jour. On clone le `Rc` pour partager, et on appelle `borrow_mut()` sur le `RefCell` pour modifier. Le compteur de références gère la durée de vie, le `RefCell` arbitre les emprunts à l'exécution."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un réseau de nœuds connectés comme un graphe dont plusieurs points partagent un enfant commun modifiable.",
+          "body": "/images/lessons/rc-et-refcell-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Plusieurs Rc vers une donnée comptée",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Rc a\"] --> D[\"Donnée sur le tas<br/>strong_count = 3\"]\n  B[\"Rc b (clone de a)\"] --> D\n  C[\"Rc c (clone de a)\"] --> D\n  D --> N[\"Quand strong_count tombe à 0,<br/>la donnée est libérée\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "Partager un compteur modifiable",
+          "body": "Complète ce programme pour que `proprietaire_a` et `proprietaire_b` partagent **le même** entier et puissent l'incrémenter chacun leur tour. Utilise `Rc<RefCell<i32>>`. À la fin, le programme doit afficher `valeur finale = 2`.\n\n```rust\nuse std::rc::Rc;\nuse std::cell::RefCell;\n\nfn main() {\n    let partage = Rc::new(RefCell::new(0));\n\n    let proprietaire_a = // ... partage le même RefCell\n    let proprietaire_b = // ... partage le même RefCell\n\n    // incrémente via proprietaire_a\n    // incrémente via proprietaire_b\n\n    println!(\"valeur finale = {}\", partage.borrow());\n}\n```",
+          "solution": "On clone le `Rc` pour obtenir des propriétaires supplémentaires qui pointent tous vers le même `RefCell`, puis on modifie son contenu avec `borrow_mut()`.\n\n```rust\nuse std::rc::Rc;\nuse std::cell::RefCell;\n\nfn main() {\n    let partage = Rc::new(RefCell::new(0));\n\n    let proprietaire_a = Rc::clone(&partage); // même donnée comptée\n    let proprietaire_b = Rc::clone(&partage);\n\n    *proprietaire_a.borrow_mut() += 1; // emprunt mutable relâché aussitôt\n    *proprietaire_b.borrow_mut() += 1;\n\n    println!(\"valeur finale = {}\", partage.borrow()); // affiche : valeur finale = 2\n}\n```\n\nChaque `borrow_mut()` est relâché à la fin de l'instruction, donc les deux écritures ne se chevauchent pas et aucune panique ne survient."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "rc-et-refcell-check"
+        }
+      ]
+    }
+  ]
+}

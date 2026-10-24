@@ -30,6 +30,24 @@
       "position": 1
     },
     {
+      "slug": "variables-types",
+      "title": "Variables, types scalaires & mutabilité",
+      "summary": "let, mut, shadowing, entiers, flottants, booléens et caractères.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 50,
+      "position": 2
+    },
+    {
+      "slug": "controle-flux",
+      "title": "Fonctions & flux de contrôle",
+      "summary": "Fonctions, expressions, if, loop, while et for.",
+      "phase": "Fondamentaux",
+      "importance": "CORE",
+      "estimatedMinutes": 50,
+      "position": 3
+    },
+    {
       "slug": "ownership",
       "title": "Ownership & emprunts",
       "summary": "Le concept central qui remplace le ramasse-miettes.",
@@ -39,13 +57,58 @@
       "position": 0
     },
     {
+      "slug": "references-emprunts",
+      "title": "Références & emprunts",
+      "summary": "Emprunts partagés et mutables, règles du borrow checker.",
+      "phase": "Ownership & types",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 1
+    },
+    {
+      "slug": "slices-chaines",
+      "title": "Slices & chaînes de caractères",
+      "summary": "String contre &str, slices et vues sans copie.",
+      "phase": "Ownership & types",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 55,
+      "position": 2
+    },
+    {
+      "slug": "lifetimes",
+      "title": "Durées de vie (lifetimes)",
+      "summary": "Pourquoi et quand annoter la durée de vie des références.",
+      "phase": "Ownership & types",
+      "importance": "CORE",
+      "estimatedMinutes": 70,
+      "position": 3
+    },
+    {
+      "slug": "structs",
+      "title": "Structs & méthodes",
+      "summary": "Modéliser des données avec des structures et leurs méthodes.",
+      "phase": "Ownership & types",
+      "importance": "CORE",
+      "estimatedMinutes": 55,
+      "position": 4
+    },
+    {
       "slug": "enums-pattern",
       "title": "Enums & pattern matching",
       "summary": "Types algébriques, Option et match exhaustif.",
       "phase": "Ownership & types",
       "importance": "CORE",
       "estimatedMinutes": 75,
-      "position": 1
+      "position": 5
+    },
+    {
+      "slug": "collections",
+      "title": "Collections : Vec, String, HashMap",
+      "summary": "Les structures de données du quotidien et leur usage idiomatique.",
+      "phase": "Ownership & types",
+      "importance": "CORE",
+      "estimatedMinutes": 60,
+      "position": 6
     },
     {
       "slug": "error-handling",
@@ -66,6 +129,24 @@
       "position": 1
     },
     {
+      "slug": "closures-iterateurs",
+      "title": "Closures & itérateurs",
+      "summary": "Fonctions anonymes et chaînes d'itérateurs paresseuses.",
+      "phase": "Erreurs & abstractions",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 65,
+      "position": 2
+    },
+    {
+      "slug": "modules-crates",
+      "title": "Modules, visibilité & crates",
+      "summary": "Organiser un projet avec mod, pub, use et les crates.",
+      "phase": "Erreurs & abstractions",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 50,
+      "position": 3
+    },
+    {
       "slug": "concurrency",
       "title": "Concurrence sans peur",
       "summary": "Des threads sûrs garantis à la compilation.",
@@ -75,22 +156,62 @@
       "position": 0
     },
     {
+      "slug": "smart-pointers",
+      "title": "Pointeurs intelligents : Box, Rc, RefCell",
+      "summary": "Allocation sur le tas, partage et mutabilité intérieure.",
+      "phase": "Concurrence & écosystème",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 65,
+      "position": 1
+    },
+    {
+      "slug": "async",
+      "title": "async/await & Tokio",
+      "summary": "Programmation asynchrone et introduction au runtime Tokio.",
+      "phase": "Concurrence & écosystème",
+      "importance": "OPTIONAL",
+      "estimatedMinutes": 70,
+      "position": 2
+    },
+    {
       "slug": "testing",
       "title": "Tests intégrés",
       "summary": "Tester avec l'outillage fourni par Cargo.",
       "phase": "Concurrence & écosystème",
       "importance": "RECOMMENDED",
       "estimatedMinutes": 45,
-      "position": 1
+      "position": 3
+    },
+    {
+      "slug": "projet-cli",
+      "title": "Projet guidé : un outil en ligne de commande",
+      "summary": "Assembler ownership, erreurs, structs et tests dans un vrai petit programme.",
+      "phase": "Concurrence & écosystème",
+      "importance": "RECOMMENDED",
+      "estimatedMinutes": 90,
+      "position": 4
     }
   ],
   "edges": [
     { "source": "why-rust", "target": "cargo", "kind": "PREREQ" },
-    { "source": "cargo", "target": "ownership", "kind": "PREREQ" },
-    { "source": "ownership", "target": "enums-pattern", "kind": "PREREQ" },
+    { "source": "cargo", "target": "variables-types", "kind": "PREREQ" },
+    { "source": "variables-types", "target": "controle-flux", "kind": "PREREQ" },
+    { "source": "controle-flux", "target": "ownership", "kind": "PREREQ" },
+    { "source": "ownership", "target": "references-emprunts", "kind": "PREREQ" },
+    { "source": "references-emprunts", "target": "slices-chaines", "kind": "PREREQ" },
+    { "source": "references-emprunts", "target": "lifetimes", "kind": "PREREQ" },
+    { "source": "ownership", "target": "structs", "kind": "PREREQ" },
+    { "source": "structs", "target": "enums-pattern", "kind": "PREREQ" },
+    { "source": "enums-pattern", "target": "collections", "kind": "PREREQ" },
     { "source": "enums-pattern", "target": "error-handling", "kind": "PREREQ" },
     { "source": "ownership", "target": "traits-generics", "kind": "PREREQ" },
+    { "source": "traits-generics", "target": "closures-iterateurs", "kind": "PREREQ" },
+    { "source": "closures-iterateurs", "target": "modules-crates", "kind": "PREREQ" },
     { "source": "error-handling", "target": "concurrency", "kind": "PREREQ" },
-    { "source": "cargo", "target": "testing", "kind": "PREREQ" }
+    { "source": "structs", "target": "smart-pointers", "kind": "PREREQ" },
+    { "source": "concurrency", "target": "async", "kind": "PREREQ" },
+    { "source": "cargo", "target": "testing", "kind": "PREREQ" },
+    { "source": "modules-crates", "target": "projet-cli", "kind": "PREREQ" },
+    { "source": "error-handling", "target": "projet-cli", "kind": "PREREQ" }
   ]
 }

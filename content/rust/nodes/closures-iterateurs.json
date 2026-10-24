@@ -1,0 +1,133 @@
+{
+  "node": "closures-iterateurs",
+  "lessons": [
+    {
+      "slug": "les-closures",
+      "title": "Les closures",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Qu'est-ce qu'une closure",
+          "body": "Une **closure** (en français : fermeture) est une **fonction anonyme**, c'est à dire une fonction qu'on écrit sur place sans lui donner de nom, souvent pour la passer à une autre fonction ou la stocker dans une variable.\n\nSa syntaxe tient en une ligne : les paramètres sont placés entre deux barres verticales, puis vient le corps. Par exemple `|x| x + 1` est une closure qui prend un nombre `x` et renvoie `x + 1`. S'il y a plusieurs paramètres, on les sépare par une virgule : `|a, b| a + b`. Si le corps fait plusieurs lignes, on l'entoure d'accolades : `|x| { let y = x * 2; y + 1 }`.\n\nContrairement à une fonction classique déclarée avec `fn`, une closure peut **capturer** des variables présentes autour d'elle au moment où on l'écrit. C'est là toute sa force."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des engrenages imbriqués formant un petit mécanisme, image d'une fonction anonyme prête à agir sur place.",
+          "body": "/images/lessons/les-closures-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Une closure stockée dans une variable",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    // Une closure qui ajoute 1 à son argument.\n    let ajouter_un = |x| x + 1;\n\n    // On l'appelle comme une fonction normale.\n    let resultat = ajouter_un(41);\n    println!(\"{resultat}\"); // affiche : 42\n\n    // Le type des paramètres est souvent deviné par le compilateur,\n    // mais on peut l'annoter si on veut : |x: i32| -> i32 { x + 1 }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Capturer l'environnement",
+          "body": "La différence clé avec une fonction `fn` : une closure peut **utiliser des variables définies à l'extérieur** d'elle, sans qu'on les lui passe en paramètre. On dit qu'elle **capture** ces variables.\n\nPar défaut, Rust capture de la façon la moins intrusive possible : il **emprunte** la variable (par référence) si cela suffit. Mais parfois on veut que la closure **possède** sa propre copie des variables capturées, par exemple pour l'utiliser plus tard ou dans un autre fil d'exécution. Dans ce cas on ajoute le mot clé `move` devant la closure : `move |x| ...`. Avec `move`, la valeur capturée est **déplacée** (move) dans la closure, qui en devient propriétaire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un filet qui attrape ce qui l'entoure, évoquant la closure qui capture les variables de son environnement.",
+          "body": "/images/lessons/les-closures-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Capture par référence et capture par valeur",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let seuil = 10;\n    // Capture par référence : la closure lit `seuil` depuis l'environnement.\n    let au_dessus = |x| x > seuil;\n    println!(\"{}\", au_dessus(12)); // affiche : true\n\n    let message = String::from(\"Bonjour\");\n    // `move` déplace `message` dans la closure, qui en devient propriétaire.\n    let saluer = move || println!(\"{message}\");\n    saluer(); // affiche : Bonjour\n    // Ici `message` n'est plus utilisable dans main : il appartient à la closure.\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Passer un comportement en argument",
+          "body": "L'usage le plus courant d'une closure est de **passer un comportement** à une fonction, plutôt qu'une simple valeur. La fonction appelée décide *quand* exécuter la closure, et la closure décide *quoi* faire.\n\nBeaucoup de méthodes de la bibliothèque standard fonctionnent ainsi. Par exemple, `unwrap_or_else` prend une closure qui fournit une valeur de repli, et ne l'exécute que si c'est nécessaire. On rencontre aussi énormément de closures avec les itérateurs, le sujet de la leçon suivante."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un colis que l'on tend à quelqu'un, illustration d'un comportement passé en argument à une autre fonction.",
+          "body": "/images/lessons/les-closures-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Une closure comme argument",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let nom: Option<String> = None;\n\n    // `unwrap_or_else` appelle la closure seulement si la valeur est absente.\n    let affichage = nom.unwrap_or_else(|| String::from(\"Anonyme\"));\n    println!(\"{affichage}\"); // affiche : Anonyme\n\n    // Autre exemple : on fournit un comportement à `map` sur une Option.\n    let age: Option<i32> = Some(20);\n    let dans_un_an = age.map(|a| a + 1);\n    println!(\"{dans_un_an:?}\"); // affiche : Some(21)\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "les-closures-check"
+        }
+      ]
+    },
+    {
+      "slug": "chainer-les-iterateurs",
+      "title": "Chaîner les itérateurs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un itérateur, c'est quoi",
+          "body": "Un **itérateur** est un objet qui sait parcourir une suite de valeurs, une par une. En Rust, on en obtient un à partir d'une collection (comme un `Vec`) en appelant `.iter()`, qui produit des références vers chaque élément sans consommer la collection.\n\nL'intérêt des itérateurs est qu'on peut les **chaîner** : enchaîner plusieurs transformations à la suite pour décrire un traitement de façon lisible, sans écrire de boucle `for` à la main. On distingue deux familles de méthodes : les **adaptateurs** (qui transforment l'itérateur en un autre itérateur) et les **consommateurs** (qui parcourent réellement les valeurs pour produire un résultat final)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un tapis roulant qui fait défiler les objets un par un, image d'un itérateur parcourant une suite de valeurs.",
+          "body": "/images/lessons/chainer-les-iterateurs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Adaptateurs paresseux et consommateurs",
+          "body": "Les **adaptateurs** comme `.map()` et `.filter()` sont **paresseux** (en anglais : *lazy*) : ils ne font rien tout seuls. Ils se contentent de décrire la transformation à appliquer.\n\n- `.map(closure)` applique la closure à chaque élément et renvoie le résultat transformé.\n- `.filter(closure)` ne garde que les éléments pour lesquels la closure renvoie `true`.\n\nRien n'est calculé tant qu'un **consommateur** ne déclenche pas le parcours. Les consommateurs courants sont :\n- `.collect()` : rassemble les valeurs dans une collection (par exemple un `Vec`).\n- `.sum()` : additionne toutes les valeurs.\n- `.count()` : compte le nombre de valeurs.\n\nRetiens le point essentiel : **la chaîne ne s'exécute qu'au moment où on appelle le consommateur**. Tant qu'il n'y a que des adaptateurs, aucun calcul n'a lieu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un enchaînement de conduites qui ne s'écoulent qu'au bout, évoquant les adaptateurs paresseux déclenchés par le consommateur.",
+          "body": "/images/lessons/chainer-les-iterateurs-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Une chaîne d'itérateurs",
+          "codeLanguage": "rust",
+          "body": "fn main() {\n    let nombres = vec![1, 2, 3, 4, 5, 6];\n\n    let resultat: Vec<i32> = nombres\n        .iter()               // itérateur sur des références &i32\n        .filter(|&&n| n % 2 == 0) // on ne garde que les nombres pairs\n        .map(|&n| n * 10)     // on multiplie chaque nombre par 10\n        .collect();           // consommateur : déclenche le calcul\n\n    println!(\"{resultat:?}\"); // affiche : [20, 40, 60]\n\n    // Autres consommateurs sur la même idée :\n    let somme: i32 = nombres.iter().sum();\n    let combien = nombres.iter().filter(|&&n| n > 3).count();\n    println!(\"somme = {somme}, au dessus de 3 = {combien}\"); // somme = 21, au dessus de 3 = 3\n}"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 5,
+          "title": "Le pipeline d'un itérateur",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  S[\"Source\\n.iter()\"] --> M[\"map\\n(adaptateur paresseux)\"]\n  M --> F[\"filter\\n(adaptateur paresseux)\"]\n  F --> C[\"collect\\n(consommateur)\"]\n  C --> R[\"Résultat\\n(Vec, somme, compte...)\"]\n  N[\"Aucun calcul\\ntant qu'on reste\\ndans les adaptateurs\"] -.-> M\n  D[\"Le parcours démarre\\nseulement ici\"] -.-> C"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 6,
+          "title": "Somme des carrés des nombres pairs",
+          "body": "On te donne un vecteur de nombres. Écris une chaîne d'itérateurs qui calcule la **somme des carrés des nombres pairs**. Par exemple, pour `[1, 2, 3, 4]`, les nombres pairs sont `2` et `4`, leurs carrés sont `4` et `16`, et la somme attendue est `20`.\n\nUtilise `.iter()`, un `.filter()` pour ne garder que les nombres pairs, un `.map()` pour élever au carré, puis le consommateur `.sum()`.\n\n```rust\nfn main() {\n    let nombres = vec![1, 2, 3, 4];\n    let total: i32 = /* à compléter */;\n    println!(\"{total}\"); // doit afficher : 20\n}\n```",
+          "solution": "On enchaîne `filter` (garder les pairs), `map` (mettre au carré) puis `sum` (consommateur qui déclenche le calcul et additionne) :\n\n```rust\nfn main() {\n    let nombres = vec![1, 2, 3, 4];\n    let total: i32 = nombres\n        .iter()\n        .filter(|&&n| n % 2 == 0) // ne garde que les nombres pairs\n        .map(|&n| n * n)          // élève chaque nombre au carré\n        .sum();                   // additionne le tout\n    println!(\"{total}\"); // affiche : 20\n}\n```\n\nNote le `&&n` dans le filtre : `iter()` donne des `&i32`, et `filter` passe lui même une référence, d'où le double `&` pour récupérer directement la valeur `n`. Le calcul ne se produit qu'à l'appel de `.sum()`."
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "chainer-les-iterateurs-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ref": "executer-avec-tokio-check",
+  "node": "async",
+  "lesson": "executer-avec-tokio",
+  "title": "Quiz : Exécuter avec Tokio",
+  "description": "Vérifie que tu sais démarrer un runtime et lancer des tâches concurrentes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert l'attribut #[tokio::main] placé au dessus de main ?",
+      "justification": "Il démarre le runtime Tokio avant d'exécuter main, ce qui permet d'utiliser .await dans le corps de main.",
+      "position": 0,
+      "options": [
+        { "label": "Il démarre le runtime Tokio pour qu'on puisse faire des .await dans main", "correct": true, "position": 0 },
+        { "label": "Il rend le programme multi-thread sans aucun runtime", "correct": false, "position": 1 },
+        { "label": "Il remplace le mot-clé async sur la fonction", "correct": false, "position": 2 },
+        { "label": "Il compile le programme plus vite", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait tokio::spawn ?",
+      "justification": "tokio::spawn confie un Future au runtime comme une tâche indépendante qui avance en concurrence, et renvoie un handle que l'on peut attendre avec .await.",
+      "position": 1,
+      "options": [
+        { "label": "Il confie un Future au runtime comme tâche concurrente et renvoie un handle", "correct": true, "position": 0 },
+        { "label": "Il exécute le Future tout de suite et bloque jusqu'à la fin", "correct": false, "position": 1 },
+        { "label": "Il crée un nouveau runtime Tokio à chaque appel", "correct": false, "position": 2 },
+        { "label": "Il annule toutes les autres tâches en cours", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le runtime Tokio peut faire progresser plusieurs tâches sur un pool de threads en basculant de l'une à l'autre quand une tâche attend.",
+      "justification": "Vrai : l'ordonnanceur de Tokio répartit les tâches sur un pool de threads et bascule dès qu'une tâche atteint un .await, pour ne laisser aucun thread inactif.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

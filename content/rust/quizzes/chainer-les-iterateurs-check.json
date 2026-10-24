@@ -1,0 +1,43 @@
+{
+  "ref": "chainer-les-iterateurs-check",
+  "node": "closures-iterateurs",
+  "lesson": "chainer-les-iterateurs",
+  "title": "Quiz : Chaîner les itérateurs",
+  "description": "Vérifie que tu distingues adaptateurs et consommateurs, et que tu as compris la paresse des itérateurs.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Dans la chaîne `v.iter().map(|x| x * 2).filter(|x| *x > 3)`, quand les calculs sont ils réellement effectués ?",
+      "justification": "`map` et `filter` sont des adaptateurs paresseux : ils ne décrivent que le traitement. Rien n'est calculé tant qu'un consommateur (comme `collect`, `sum` ou `count`) ne déclenche pas le parcours.",
+      "position": 0,
+      "options": [
+        { "label": "Seulement lorsqu'un consommateur comme collect, sum ou count est appelé", "correct": true, "position": 0 },
+        { "label": "Immédiatement, dès l'appel à .map()", "correct": false, "position": 1 },
+        { "label": "Dès l'appel à .iter()", "correct": false, "position": 2 },
+        { "label": "Jamais, car la chaîne ne compile pas", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quelle méthode est un consommateur qui additionne toutes les valeurs d'un itérateur ?",
+      "justification": "`.sum()` parcourt l'itérateur et additionne les valeurs : c'est un consommateur. `.map()` et `.filter()` sont des adaptateurs paresseux, et `.iter()` crée l'itérateur de départ.",
+      "position": 1,
+      "options": [
+        { "label": ".sum()", "correct": true, "position": 0 },
+        { "label": ".map()", "correct": false, "position": 1 },
+        { "label": ".filter()", "correct": false, "position": 2 },
+        { "label": ".iter()", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La méthode `.filter()` ne conserve que les éléments pour lesquels la closure renvoie `true`.",
+      "justification": "Vrai : `filter` applique la closure à chaque élément et ne garde que ceux pour lesquels elle renvoie `true`.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

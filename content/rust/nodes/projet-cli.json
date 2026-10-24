@@ -1,0 +1,196 @@
+{
+  "node": "projet-cli",
+  "lessons": [
+    {
+      "slug": "lire-les-arguments",
+      "title": "Lire les arguments",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un vrai petit programme",
+          "body": "On va enfin assembler tout ce qu'on a appris (ownership, références, `&str`, structs, `Result`, tests) dans un outil réel : un **grep minimal**. Il cherche un motif dans un fichier texte et affiche chaque ligne qui le contient, comme la commande `grep` sous Linux.\n\nUtilisation visée depuis le terminal : `cargo run -- motif fichier.txt`. Les deux valeurs après `--` (`motif` et `fichier.txt`) sont les **arguments de la ligne de commande**. Première étape de ce projet : les récupérer proprement."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un terminal en ligne de commande évoquant l'outil grep minimal lancé avec ses arguments.",
+          "body": "/images/lessons/lire-les-arguments-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La fonction std::env::args",
+          "body": "La bibliothèque standard fournit `std::env::args()`, qui renvoie un **itérateur** sur les arguments passés au programme. Point important : le **premier** élément (indice 0) est toujours le nom du programme lui-même. Les arguments utiles commencent donc à l'indice 1.\n\nChaque argument est une `String`. On peut rassembler l'itérateur dans un `Vec<String>` avec `.collect()` pour y accéder par indice, ce qui est le plus simple pour débuter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une séquence d'éléments listés illustrant l'itérateur d'arguments rassemblé dans un vecteur.",
+          "body": "/images/lessons/lire-les-arguments-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Collecter les arguments",
+          "codeLanguage": "rust",
+          "body": "use std::env;\n\nfn main() {\n    // On rassemble tous les arguments dans un vecteur de String.\n    let args: Vec<String> = env::args().collect();\n\n    // args[0] est le nom du programme, on l'ignore.\n    println!(\"Nombre d'arguments utiles : {}\", args.len() - 1);\n    for argument in &args[1..] {   // on emprunte, on ne consomme pas le vecteur\n        println!(\"argument : {argument}\");\n    }\n}"
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Récupérer le motif et le chemin",
+          "codeLanguage": "rust",
+          "body": "use std::env;\n\nfn main() {\n    let args: Vec<String> = env::args().collect();\n\n    // On vérifie qu'on a bien reçu deux arguments utiles.\n    if args.len() < 3 {\n        eprintln!(\"Usage : grep-mini <motif> <fichier>\");\n        return;   // on arrête proprement si un argument manque\n    }\n\n    let motif = &args[1];     // le texte à chercher\n    let chemin = &args[2];    // le fichier où chercher\n    println!(\"Recherche de « {motif} » dans « {chemin} »\");\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Afficher les erreurs au bon endroit",
+          "body": "Remarque l'emploi de `eprintln!` (et non `println!`) pour le message d'usage. `eprintln!` écrit sur la **sortie d'erreur standard** (stderr), alors que `println!` écrit sur la **sortie standard** (stdout).\n\nC'est la bonne convention pour un outil en ligne de commande : les résultats vont sur stdout, les messages d'erreur et d'aide vont sur stderr. Ainsi, l'utilisateur peut rediriger les vrais résultats sans mélanger les messages d'alerte."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des flux de données séparés, image des sorties stdout et stderr dirigées vers des canaux distincts.",
+          "body": "/images/lessons/lire-les-arguments-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "lire-les-arguments-check"
+        }
+      ]
+    },
+    {
+      "slug": "structurer-et-gerer-les-erreurs",
+      "title": "Structurer et gérer les erreurs",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Regrouper la configuration",
+          "body": "Plutôt que de trimballer des arguments séparés partout, on regroupe la configuration du programme dans une **struct** `Config`. C'est plus lisible et plus facile à faire évoluer.\n\nPour la construire, on écrit une **fonction associée** `Config::build` qui prend les arguments et renvoie un `Result<Config, String>` : `Ok(config)` si tout va bien, ou `Err(message)` si un argument manque. Le type d'erreur `String` reste volontairement simple pour ce premier projet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des rangements ordonnés symbolisant la configuration regroupée dans une struct Config.",
+          "body": "/images/lessons/structurer-et-gerer-les-erreurs-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "La struct Config et sa fonction build",
+          "codeLanguage": "rust",
+          "body": "struct Config {\n    motif: String,\n    chemin: String,\n}\n\nimpl Config {\n    // Fonction associée : construit un Config ou renvoie un message d'erreur.\n    fn build(args: &[String]) -> Result<Config, String> {\n        if args.len() < 3 {\n            return Err(String::from(\"Usage : grep-mini <motif> <fichier>\"));\n        }\n        // On clone car Config possède ses propres String.\n        let motif = args[1].clone();\n        let chemin = args[2].clone();\n        Ok(Config { motif, chemin })\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Propager les erreurs avec ?",
+          "body": "Lire un fichier peut échouer (fichier absent, droits insuffisants). `std::fs::read_to_string` renvoie donc un `Result<String, std::io::Error>`.\n\nL'opérateur `?` placé après un appel qui renvoie un `Result` fait une chose simple : si c'est `Ok(valeur)`, il extrait `valeur` et continue ; si c'est `Err(e)`, il **sort immédiatement** de la fonction en renvoyant cette erreur. C'est la façon idiomatique de propager une erreur sans écrire un `match` à chaque fois. La fonction qui utilise `?` doit elle-même renvoyer un `Result` compatible."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un panneau d'avertissement évoquant une erreur propagée immédiatement par l'opérateur point d'interrogation.",
+          "body": "/images/lessons/structurer-et-gerer-les-erreurs-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CODE",
+          "position": 5,
+          "title": "Lire le fichier et chercher les lignes",
+          "codeLanguage": "rust",
+          "body": "use std::fs;\n\n// La fonction de recherche travaille avec des &str (emprunts, pas de copie).\n// Elle renvoie les lignes de `contenu` qui contiennent `motif`.\nfn rechercher<'a>(motif: &str, contenu: &'a str) -> Vec<&'a str> {\n    let mut resultats = Vec::new();\n    for ligne in contenu.lines() {\n        if ligne.contains(motif) {\n            resultats.push(ligne);   // on pousse une tranche (slice) du contenu\n        }\n    }\n    resultats\n}\n\n// Renvoie un Result : `?` propage une éventuelle erreur de lecture.\nfn executer(config: &Config) -> Result<(), std::io::Error> {\n    let contenu = fs::read_to_string(&config.chemin)?;   // propage l'erreur si échec\n    for ligne in rechercher(&config.motif, &contenu) {\n        println!(\"{ligne}\");\n    }\n    Ok(())\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "La durée de vie 'a en une phrase",
+          "body": "Dans `rechercher<'a>(motif: &str, contenu: &'a str) -> Vec<&'a str>`, l'annotation `'a` dit au compilateur une chose précise : les tranches renvoyées **pointent dans `contenu`** et ne doivent donc pas lui survivre. On ne copie aucune ligne, on renvoie des références vers le texte original, ce qui est efficace. Tu reverras les durées de vie plus en détail plus tard ; ici, retiens juste qu'elles relient la sortie à l'entrée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une corde qui relie deux points, image de la durée de vie liant les tranches renvoyées au texte source.",
+          "body": "/images/lessons/structurer-et-gerer-les-erreurs-3.jpg",
+          "position": 7
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Le flux du programme",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TD\n  A[\"Arguments de la ligne de commande\"] --> B[\"Config::build -> Result\"]\n  B -->|\"Err\"| E[\"Message d'erreur sur stderr, on arrête\"]\n  B -->|\"Ok(config)\"| C[\"Lecture du fichier avec fs::read_to_string\"]\n  C -->|\"Err\"| E\n  C -->|\"Ok(contenu)\"| D[\"rechercher(motif, contenu)\"]\n  D --> F[\"Affichage des lignes trouvées sur stdout\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "Assembler le main",
+          "body": "Écris la fonction `main` qui relie tout : collecter les arguments, appeler `Config::build`, et en cas de succès appeler `executer`. Les erreurs (argument manquant ou lecture impossible) doivent être affichées sur stderr sans faire planter brutalement le programme. Suppose que `Config`, `Config::build`, `rechercher` et `executer` existent déjà.",
+          "solution": "use std::env;\n\nfn main() {\n    let args: Vec<String> = env::args().collect();\n\n    // Gestion de l'erreur de configuration (argument manquant).\n    let config = match Config::build(&args) {\n        Ok(config) => config,\n        Err(message) => {\n            eprintln!(\"{message}\");\n            return;\n        }\n    };\n\n    // Gestion de l'erreur de lecture du fichier.\n    if let Err(erreur) = executer(&config) {\n        eprintln!(\"Erreur de lecture : {erreur}\");\n    }\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "structurer-et-gerer-les-erreurs-check"
+        }
+      ]
+    },
+    {
+      "slug": "tester-le-projet",
+      "title": "Tester le projet",
+      "position": 2,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi tester rechercher",
+          "body": "La fonction `rechercher` contient la vraie logique du programme : c'est exactement le genre de code qu'on veut **tester automatiquement**. Un test vérifie que, pour une entrée connue, on obtient la sortie attendue, et il nous protège des régressions quand on modifiera le code plus tard.\n\nEn Rust, les tests vivent dans le même fichier que le code, dans un module annoté `#[cfg(test)]` (compilé uniquement pendant les tests). Chaque test est une fonction annotée `#[test]`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une inspection qualité illustrant le test automatique qui vérifie la logique de recherche.",
+          "body": "/images/lessons/tester-le-projet-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un test unitaire avec assert_eq!",
+          "codeLanguage": "rust",
+          "body": "#[cfg(test)]\nmod tests {\n    use super::*;   // on importe rechercher depuis le module parent\n\n    #[test]\n    fn trouve_une_ligne() {\n        let motif = \"duct\";\n        let contenu = \"\\\nRust :\nsûr, rapide, productif.\nTrois lignes.\";\n        // assert_eq! échoue (et fait échouer le test) si les deux valeurs diffèrent.\n        assert_eq!(vec![\"sûr, rapide, productif.\"], rechercher(motif, contenu));\n    }\n}"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Lancer les tests avec cargo test",
+          "body": "On exécute tous les tests du projet avec la commande `cargo test`. Cargo compile le code en mode test, lance chaque fonction `#[test]`, et affiche un résumé : `ok` pour chaque test réussi, et un rapport clair en cas d'échec montrant la valeur attendue et la valeur obtenue.\n\nUn test échoue dès qu'une macro d'assertion (`assert_eq!`, `assert!`) n'est pas satisfaite ou si la fonction panique. Tant que tout passe, tu peux refactorer en confiance."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une liste de contrôle évoquant cargo test qui exécute chaque fonction et affiche un résumé.",
+          "body": "/images/lessons/tester-le-projet-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "Recherche insensible à la casse",
+          "body": "Ajoute une fonction `rechercher_insensible(motif: &str, contenu: &str) -> Vec<&str>` qui trouve les lignes contenant le motif sans tenir compte de la casse (majuscules ou minuscules). Écris ensuite un test `#[test]` qui vérifie que chercher « rUsT » dans un texte contenant « Rust » renvoie bien la ligne. Indice : utilise `.to_lowercase()` pour comparer.",
+          "solution": "// On compare tout en minuscules. `to_lowercase()` crée une String,\n// donc on passe une référence &str à `contains` via &motif_minuscule.\nfn rechercher_insensible<'a>(motif: &str, contenu: &'a str) -> Vec<&'a str> {\n    let motif_minuscule = motif.to_lowercase();\n    let mut resultats = Vec::new();\n    for ligne in contenu.lines() {\n        if ligne.to_lowercase().contains(&motif_minuscule) {\n            resultats.push(ligne);   // on renvoie la ligne d'origine, pas sa version minuscule\n        }\n    }\n    resultats\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn insensible_a_la_casse() {\n        let motif = \"rUsT\";\n        let contenu = \"\\\nJ'apprends Rust.\nDeuxième ligne.\";\n        assert_eq!(vec![\"J'apprends Rust.\"], rechercher_insensible(motif, contenu));\n    }\n}"
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "tester-le-projet-check"
+        }
+      ]
+    }
+  ]
+}

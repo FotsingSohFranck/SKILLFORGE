@@ -1,0 +1,43 @@
+{
+  "ref": "le-vecteur-vec-check",
+  "node": "collections",
+  "lesson": "le-vecteur-vec",
+  "title": "Quiz : Le vecteur Vec",
+  "description": "Vérifie que tu maîtrises la création, l'accès et le parcours d'un Vec.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre `v[10]` et `v.get(10)` quand l'index 10 n'existe pas ?",
+      "justification": "`v[10]` fait paniquer le programme (arrêt brutal) si l'index est hors bornes, tandis que `v.get(10)` renvoie `None` sans paniquer : c'est la voie sûre.",
+      "position": 0,
+      "options": [
+        { "label": "`v[10]` fait paniquer le programme, alors que `v.get(10)` renvoie `None`", "correct": true, "position": 0 },
+        { "label": "Les deux renvoient `None` sans jamais paniquer", "correct": false, "position": 1 },
+        { "label": "Les deux font paniquer le programme de la même façon", "correct": false, "position": 2 },
+        { "label": "`v.get(10)` fait paniquer, alors que `v[10]` renvoie `Some(0)`", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Pourquoi écrit-on souvent `for x in &v` plutôt que `for x in v` pour parcourir un vecteur ?",
+      "justification": "`for x in v` déplacerait (move) le vecteur dans la boucle et le rendrait inutilisable ensuite. `for x in &v` emprunte le vecteur en lecture, qui reste donc disponible après la boucle.",
+      "position": 1,
+      "options": [
+        { "label": "`&v` emprunte le vecteur en lecture, qui reste utilisable après la boucle", "correct": true, "position": 0 },
+        { "label": "`&v` est plus rapide car il copie tout le vecteur", "correct": false, "position": 1 },
+        { "label": "Sans `&`, la boucle ne compile jamais, quel que soit le cas", "correct": false, "position": 2 },
+        { "label": "`&v` permet de modifier les éléments, contrairement à `v`", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "La macro `vec![12, 15, 9]` crée un vecteur déjà rempli avec ces trois valeurs.",
+      "justification": "Vrai : `vec![...]` construit un `Vec` initialisé avec les éléments donnés, contrairement à `Vec::new()` qui crée un vecteur vide.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

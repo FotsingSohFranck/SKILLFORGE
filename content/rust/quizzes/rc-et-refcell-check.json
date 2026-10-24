@@ -1,0 +1,43 @@
+{
+  "ref": "rc-et-refcell-check",
+  "node": "smart-pointers",
+  "lesson": "rc-et-refcell",
+  "title": "Quiz : Rc et RefCell",
+  "description": "Vérifie que tu distingues Rc, RefCell et le moment où les règles d'emprunt sont vérifiées.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Que fait `Rc::clone(&a)` ?",
+      "justification": "`Rc::clone` n'effectue pas de copie profonde : il incrémente le compteur de références et renvoie un nouveau pointeur vers la même donnée partagée sur le tas.",
+      "position": 0,
+      "options": [
+        { "label": "Il incrémente le compteur et renvoie un pointeur vers la même donnée", "correct": true, "position": 0 },
+        { "label": "Il copie en profondeur la donnée pointée", "correct": false, "position": 1 },
+        { "label": "Il transfère définitivement la propriété et invalide `a`", "correct": false, "position": 2 },
+        { "label": "Il rend la donnée modifiable depuis plusieurs threads", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quel moment `RefCell<T>` vérifie-t-il les règles d'emprunt ?",
+      "justification": "Contrairement aux références normales vérifiées par le borrow checker à la compilation, `RefCell` reporte la vérification à l'exécution et panique si les règles sont violées.",
+      "position": 1,
+      "options": [
+        { "label": "À l'exécution, avec une panique en cas de violation", "correct": true, "position": 0 },
+        { "label": "À la compilation, comme les références normales", "correct": false, "position": 1 },
+        { "label": "Jamais : RefCell supprime les règles d'emprunt", "correct": false, "position": 2 },
+        { "label": "Uniquement lors du Drop de la valeur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le combo `Rc<RefCell<T>>` permet d'avoir plusieurs propriétaires d'une donnée tout en pouvant la modifier (en mono-thread).",
+      "justification": "Vrai : `Rc` apporte le partage entre plusieurs propriétaires et `RefCell` la mutabilité intérieure, ce qui combine les deux capacités dans un contexte mono-thread.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

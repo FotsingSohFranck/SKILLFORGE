@@ -1,0 +1,43 @@
+{
+  "ref": "dependances-et-crates-check",
+  "node": "modules-crates",
+  "lesson": "dependances-et-crates",
+  "title": "Quiz : Dépendances et crates",
+  "description": "Vérifie que tu sais distinguer les types de crates et gérer les dépendances.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la différence entre une crate binaire et une crate bibliothèque ?",
+      "justification": "La crate binaire a un `fn main` et produit un exécutable (racine `src/main.rs`). La crate bibliothèque fournit du code réutilisable, sans `main` (racine `src/lib.rs`).",
+      "position": 0,
+      "options": [
+        { "label": "La binaire a un fn main et produit un exécutable ; la bibliothèque fournit du code réutilisable sans main", "correct": true, "position": 0 },
+        { "label": "La bibliothèque a un fn main, pas la binaire", "correct": false, "position": 1 },
+        { "label": "Les deux produisent toujours un exécutable", "correct": false, "position": 2 },
+        { "label": "Il n'y a aucune différence, c'est le même concept", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Où déclare-t-on les dépendances externes d'un paquet ?",
+      "justification": "Les dépendances se listent dans la section `[dependencies]` du fichier `Cargo.toml`, qu'on peut remplir avec `cargo add` ou à la main.",
+      "position": 1,
+      "options": [
+        { "label": "Dans la section [dependencies] du fichier Cargo.toml", "correct": true, "position": 0 },
+        { "label": "Directement dans src/main.rs avec le mot-clé mod", "correct": false, "position": 1 },
+        { "label": "Dans le fichier Cargo.lock que l'on édite à la main", "correct": false, "position": 2 },
+        { "label": "Dans un fichier dependencies.rs à la racine", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Avec `rand = \"0.8.5\"`, Cargo accepte aussi la version 0.9.0 car elle est plus récente.",
+      "justification": "Faux : selon le semver, `0.9.0` incrémente le mineur sur une version 0.x et peut casser la compatibilité. Cargo accepte les versions compatibles comme 0.8.6, mais pas 0.9.0.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}
