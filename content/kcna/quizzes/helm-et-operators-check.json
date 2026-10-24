@@ -1,0 +1,43 @@
+{
+  "ref": "helm-et-operators-check",
+  "node": "gitops-cicd",
+  "lesson": "helm-et-operators",
+  "title": "Quiz : Helm & operators",
+  "description": "Vérifie que tu distingues le rôle de Helm et celui des operators.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel est le rôle principal de Helm dans Kubernetes ?",
+      "justification": "Helm est le gestionnaire de paquets de Kubernetes : il regroupe des manifestes dans un chart paramétrable, qu'on installe, met à jour et dont on peut faire un retour arrière.",
+      "position": 0,
+      "options": [
+        { "label": "C'est le gestionnaire de paquets : il installe des charts paramétrables", "correct": true, "position": 0 },
+        { "label": "C'est le runtime qui exécute les conteneurs sur les nœuds", "correct": false, "position": 1 },
+        { "label": "C'est la base de données qui stocke l'état du cluster", "correct": false, "position": 2 },
+        { "label": "C'est l'agent réseau qui rend les Services joignables", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Sur quelles deux briques repose un operator ?",
+      "justification": "Un operator combine une CRD (nouveau type d'objet ajouté à l'API) et un controller qui réconcilie ces objets personnalisés vers l'état voulu.",
+      "position": 1,
+      "options": [
+        { "label": "Une CRD (ressource personnalisée) et un controller", "correct": true, "position": 0 },
+        { "label": "Un chart et un fichier values", "correct": false, "position": 1 },
+        { "label": "Un pipeline CI et un dépôt Git", "correct": false, "position": 2 },
+        { "label": "Un kube-proxy et un kube-scheduler", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un operator sait gérer en continu une application complexe (sauvegardes, bascule), là où un simple chart Helm se limite surtout à l'installer et à la paramétrer.",
+      "justification": "Vrai : le controller de l'operator reste actif et automatise la gestion opérationnelle dans la durée, tandis que Helm package et installe mais ne pilote pas la vie de l'application.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

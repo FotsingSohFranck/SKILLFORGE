@@ -1,0 +1,124 @@
+{
+  "node": "microservices-patterns",
+  "lessons": [
+    {
+      "slug": "microservices-vs-monolithe",
+      "title": "Microservices et monolithe",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux façons de découper une application",
+          "body": "Une application doit bien être livrée et exécutée quelque part. Deux grandes approches s'opposent.\n\nUn **monolithe** est une application livrée en **un seul bloc** : toutes les fonctions (comptes, paiement, catalogue) vivent dans le même processus et se déploient ensemble.\n\nUne architecture **microservices** découpe l'application en **petits services indépendants**, chacun responsable d'une seule capacité métier, déployable **séparément** et communiquant par le réseau (souvent via des API HTTP ou des messages). Un service qui tourne tout seul, qu'on peut mettre à jour sans toucher aux autres, voilà l'idée clé pour le KCNA."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deux manieres d'assembler une application : un seul bloc ou de petites briques independantes",
+          "body": "/images/lessons/microservices-vs-monolithe-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Avantages et coûts",
+          "body": "Les microservices apportent surtout :\n- une **scalabilité ciblée** : on multiplie seulement le service surchargé (par exemple le paiement) sans dupliquer toute l'application ;\n- des **équipes autonomes** : chaque équipe développe, teste et déploie son service à son rythme.\n\nMais cela a un coût :\n- une **complexité réseau** : des appels qui étaient de simples appels de fonction deviennent des appels réseau, plus lents et faillibles ;\n- une **observabilité** plus difficile : suivre une requête qui traverse dix services demande des outils dédiés (logs centralisés, traçage, métriques).\n\nLe jargon : **observabilité** signifie la capacité à comprendre ce qui se passe dans le système à partir de ce qu'il émet (logs, métriques, traces)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des services relies par le reseau, plus souples mais plus complexes a observer",
+          "body": "/images/lessons/microservices-vs-monolithe-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Quand choisir quoi",
+          "body": "Il n'y a pas de bon choix universel.\n\nLe **monolithe** convient à une petite équipe, à un produit jeune ou à un domaine encore mal compris : il est simple à développer, à tester et à déployer tant qu'il reste de taille raisonnable.\n\nLes **microservices** deviennent intéressants quand l'application grossit, que plusieurs équipes se gênent dans le même code, ou que certaines parties doivent monter en charge indépendamment. Kubernetes est né précisément pour orchestrer beaucoup de petits services conteneurisés, ce qui explique le lien fort entre microservices et cloud native."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Choisir son architecture selon la taille de l'equipe et les besoins de montee en charge",
+          "body": "/images/lessons/microservices-vs-monolithe-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Monolithe face aux microservices",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph MONO[\"Monolithe (un seul deployable)\"]\n    direction TB\n    M1[\"Comptes\"]\n    M2[\"Catalogue\"]\n    M3[\"Paiement\"]\n  end\n  subgraph MICRO[\"Microservices (services independants)\"]\n    direction TB\n    S1[\"Service comptes\"]\n    S2[\"Service catalogue\"]\n    S3[\"Service paiement\"]\n    S1 <--> S2\n    S2 <--> S3\n  end"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "microservices-vs-monolithe-check"
+        }
+      ]
+    },
+    {
+      "slug": "patrons-cloud-native",
+      "title": "Patrons cloud native",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Les 12 facteurs en bref",
+          "body": "Le **cloud native** regroupe des bonnes pratiques pour construire des applications faites pour tourner dans le cloud, souvent en conteneurs. La référence la plus connue est la **12-factor app** (application à douze facteurs), une liste de principes pour des services faciles à déployer et à mettre à l'échelle.\n\nTrois facteurs reviennent tout le temps au KCNA :\n- **configuration externalisée** : les réglages (URL de base de données, clés) sont lus dans l'environnement, pas écrits en dur dans le code ;\n- **processus sans état** (stateless) : le service ne garde rien d'important en mémoire locale ; l'état va dans une base ou un cache externe, ce qui permet de tuer et recréer les instances librement ;\n- **logs comme flux** : l'application écrit ses logs sur la sortie standard, sans gérer de fichiers ; la plateforme se charge de les collecter.\n\nLe jargon : **sans état** veut dire qu'aucune donnée propre à l'utilisateur n'est retenue entre deux requêtes par l'instance qui répond."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des applications pensees pour le cloud, configurables et sans etat",
+          "body": "/images/lessons/patrons-cloud-native-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Découplage, serverless et autoscaling",
+          "body": "Au-delà des douze facteurs, quelques patrons cloud native reviennent souvent :\n- **découplage par messages** : au lieu de s'appeler directement, les services échangent via une file de messages (comme une boîte aux lettres). L'émetteur n'attend pas le destinataire, ce qui rend le système plus résilient aux pannes temporaires.\n- **serverless** (functions as a service, FaaS) : on déploie une simple fonction, et la plateforme l'exécute à la demande, sans que l'on gère de serveur. On ne paie que l'exécution réelle.\n- **autoscaling** : la plateforme ajoute ou retire automatiquement des instances selon la charge (par exemple le nombre de requêtes ou l'usage CPU). Les processus sans état rendent cet autoscaling possible, puisque toute instance en vaut une autre.\n\nLe jargon : **résilience** désigne la capacité du système à continuer de fonctionner, ou à se rétablir vite, malgré des pannes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Decouplage par messages, serverless et montee a l'echelle automatique",
+          "body": "/images/lessons/patrons-cloud-native-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "La résilience via les sondes",
+          "body": "Dans Kubernetes, la résilience passe notamment par deux **sondes** (probes) que kubelet exécute régulièrement sur chaque conteneur :\n- la sonde **liveness** (vivacité) : vérifie que le conteneur est encore vivant. S'il ne répond plus, Kubernetes le redémarre.\n- la sonde **readiness** (disponibilité) : vérifie que le conteneur est prêt à recevoir du trafic. S'il n'est pas prêt, Kubernetes cesse de lui envoyer des requêtes, sans le tuer.\n\nCes sondes concrétisent l'auto-réparation : le cluster détecte un service en difficulté et réagit tout seul."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les sondes verifient en continu la sante des conteneurs pour l'auto-reparation",
+          "body": "/images/lessons/patrons-cloud-native-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Sondes liveness et readiness d'un pod",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\nspec:\n  containers:\n    - name: web\n      image: mon-service:1.0\n      ports:\n        - containerPort: 8080\n      # La sonde de vivacite : si /healthz echoue, le conteneur est redemarre\n      livenessProbe:\n        httpGet:\n          path: /healthz\n          port: 8080\n        initialDelaySeconds: 10   # attendre 10 s avant la premiere verification\n        periodSeconds: 5          # verifier toutes les 5 s\n      # La sonde de disponibilite : si /ready echoue, plus de trafic envoye\n      readinessProbe:\n        httpGet:\n          path: /ready\n          port: 8080\n        periodSeconds: 5"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Un collègue déploie un service, mais il a pris quelques raccourcis contraires au 12-factor :\n1. l'URL de la base de données est écrite en dur dans le code ;\n2. le service enregistre les sessions des utilisateurs dans un fichier local sur l'instance ;\n3. les logs sont écrits dans un fichier `app.log` sur le disque du conteneur.\n\nPour chacun de ces trois points, indique quel facteur est violé et comment rendre le service conforme.",
+          "solution": "1. **Configuration externalisée** violée : l'URL de base de données ne doit pas être en dur. On la lit dans une variable d'environnement (dans Kubernetes, via un ConfigMap pour l'URL et un Secret pour le mot de passe), ce qui permet de changer de base sans reconstruire l'image.\n2. **Processus sans état** violé : stocker les sessions dans un fichier local empêche de tuer ou de recréer l'instance librement, et casse l'autoscaling. Il faut déporter l'état dans un magasin externe (base de données ou cache comme Redis) afin que toute instance puisse servir n'importe quelle requête.\n3. **Logs comme flux** violé : écrire dans `app.log` oblige à gérer le fichier dans le conteneur. Le service doit écrire ses logs sur la sortie standard (stdout), et laisser la plateforme les collecter et les centraliser."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "patrons-cloud-native-check"
+        }
+      ]
+    }
+  ]
+}

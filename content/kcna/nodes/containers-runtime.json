@@ -1,0 +1,131 @@
+{
+  "node": "containers-runtime",
+  "lessons": [
+    {
+      "slug": "conteneurs-et-images",
+      "title": "Conteneurs et images",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Un conteneur, c'est un processus isolé",
+          "body": "Un **conteneur** n'est pas une mini machine virtuelle. C'est simplement un **processus** (un programme en cours d'exécution) qui tourne sur le noyau Linux de la machine, mais que ce noyau **isole** du reste du système.\n\nDeux mécanismes du noyau Linux rendent cette isolation possible :\n\n- Les **namespaces** (espaces de noms) : ils donnent au processus sa propre vue du système. Le conteneur croit avoir ses propres processus, son propre réseau, son propre système de fichiers, sans voir ceux des autres conteneurs.\n- Les **cgroups** (control groups, groupes de contrôle) : ils **limitent** et comptabilisent les ressources (processeur, mémoire) que le conteneur peut consommer.\n\nÀ retenir pour l'examen KCNA : un conteneur partage le noyau de l'hôte, contrairement à une machine virtuelle qui embarque son propre noyau complet. C'est pour cela qu'un conteneur démarre en une fraction de seconde et reste léger."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un conteneur est un processus isolé par les namespaces et les cgroups du noyau",
+          "body": "/images/lessons/conteneurs-et-images-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Une image, c'est un modèle en couches",
+          "body": "Une **image** est le modèle figé à partir duquel on lance un conteneur. Elle contient le système de fichiers de l'application : le code, les librairies et la configuration dont le programme a besoin.\n\nPoint clé : une image est faite de **couches** (layers) empilées. Chaque instruction de construction ajoute une couche en lecture seule. Ces couches sont **partagées** entre images : si deux images reposent sur la même couche de base (par exemple une couche Debian), cette couche n'est stockée qu'une seule fois.\n\nQuand on démarre un conteneur, le runtime empile une fine **couche inscriptible** (writable layer) par-dessus les couches en lecture seule de l'image. Le conteneur écrit dans cette couche ; l'image, elle, ne change jamais.\n\nRésumé de la relation : l'**image** est le modèle, le **conteneur** est une instance vivante de ce modèle."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Une image est un modèle figé fait de couches en lecture seule partagées",
+          "body": "/images/lessons/conteneurs-et-images-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Décrire une petite image avec un Dockerfile",
+          "codeLanguage": "dockerfile",
+          "body": "# Couche de base : un systeme de fichiers minimal\nFROM alpine:3.20\n\n# Chaque instruction ajoute une couche en lecture seule\nRUN apk add --no-cache curl\n\n# Copie du script de l'application dans l'image\nCOPY app.sh /app.sh\n\n# Commande lancee quand un conteneur demarre a partir de l'image\nCMD [\"/app.sh\"]"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Le standard OCI et les registries",
+          "body": "Pour que les images et les conteneurs soient interopérables, l'industrie s'est accordée sur des standards ouverts gérés par l'**OCI** (Open Container Initiative).\n\nL'OCI définit notamment :\n\n- une **spécification d'image** (image-spec) : comment une image est structurée (ses couches, ses métadonnées) ;\n- une **spécification de runtime** (runtime-spec) : comment un conteneur doit être exécuté à partir d'une image.\n\nGrâce à ces standards, une image construite par un outil fonctionne avec n'importe quel runtime conforme à l'OCI. On parle d'**image OCI**.\n\nLes images sont stockées et partagées dans des **registries** (registres), par exemple Docker Hub ou un registre privé. On **pousse** (push) une image vers un registre, et un cluster la **tire** (pull) pour lancer des conteneurs. Une image est désignée par un nom comme `registre/depot:tag`, par exemple `docker.io/library/nginx:1.27`."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le standard OCI rend les images interopérables et les registries les partagent",
+          "body": "/images/lessons/conteneurs-et-images-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "De l'image en couches au conteneur en exécution",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph IMG[\"Image OCI (lecture seule)\"]\n    L1[\"Couche de base : alpine\"]\n    L2[\"Couche : curl installe\"]\n    L3[\"Couche : app.sh copie\"]\n    L1 --> L2 --> L3\n  end\n  subgraph RUN[\"Conteneur en execution\"]\n    RW[\"Couche inscriptible\"]\n  end\n  L3 --> RW\n  REG[\"Registry\"] -. pull .-> IMG"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "conteneurs-et-images-check"
+        }
+      ]
+    },
+    {
+      "slug": "runtimes-et-cri",
+      "title": "Runtimes et CRI",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Kubernetes ne lance pas les conteneurs lui-même",
+          "body": "Un point souvent mal compris, et important pour l'examen KCNA : **Kubernetes n'exécute pas les conteneurs directement**. Sur chaque nœud, l'agent **kubelet** reçoit les specs de pods, mais il ne sait pas lancer un conteneur par ses propres moyens.\n\nLe kubelet **délègue** ce travail à un **runtime de conteneurs** (container runtime) : un programme spécialisé, installé sur le nœud, dont le rôle est de tirer les images et de démarrer, arrêter et surveiller les conteneurs.\n\nCette séparation des rôles permet à Kubernetes de rester indépendant du runtime : on peut changer de runtime sans changer Kubernetes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le kubelet délègue l'exécution des conteneurs à un runtime spécialisé",
+          "body": "/images/lessons/runtimes-et-cri-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "La CRI, le contrat entre kubelet et runtime",
+          "body": "Pour que le kubelet puisse parler à n'importe quel runtime de la même façon, Kubernetes définit une interface standard : la **CRI** (Container Runtime Interface, interface de runtime de conteneurs).\n\nLa CRI est un **contrat** : tant qu'un runtime respecte cette interface, le kubelet sait communiquer avec lui pour lancer des pods. Le kubelet parle CRI, le runtime répond CRI.\n\nDeux runtimes conformes à la CRI, très répandus et à connaître pour l'examen :\n\n- **containerd** : runtime léger et largement utilisé, issu au départ du projet Docker ;\n- **CRI-O** : runtime créé spécifiquement pour Kubernetes.\n\nLes deux savent exécuter des images **OCI**. Le choix du runtime est une décision propre à chaque cluster et reste invisible pour l'utilisateur qui déploie des applications."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La CRI est le contrat commun entre le kubelet et le runtime",
+          "body": "/images/lessons/runtimes-et-cri-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 4,
+          "title": "Le kubelet délègue via la CRI",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  KUBELET[\"kubelet\"] -- \"CRI\" --> RT[\"Runtime (containerd ou CRI-O)\"]\n  RT --> C1[\"Conteneur\"]\n  RT --> C2[\"Conteneur\"]\n  REG[\"Registry\"] -. pull image OCI .-> RT"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Le retrait de Dockershim",
+          "body": "Historiquement, Docker était l'outil le plus connu pour faire tourner des conteneurs, mais **Docker n'a jamais parlé la CRI** nativement. Kubernetes maintenait donc une pièce d'adaptation appelée **Dockershim** pour traduire entre le kubelet et Docker.\n\nMaintenir ce pont représentait une charge supplémentaire. À partir de Kubernetes 1.24, le **Dockershim a été retiré** : Docker n'est plus utilisable comme runtime branché directement sur le kubelet.\n\nAttention à la confusion fréquente, et au piège classique de l'examen : cela **ne veut pas dire que les images Docker cessent de fonctionner**. Les images construites avec Docker sont des **images OCI** standard. Elles tournent donc parfaitement sur un runtime conforme à la CRI comme containerd ou CRI-O. Ce qui disparaît, c'est Docker en tant que runtime direct du nœud, pas le format d'image."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le retrait de Dockershim ne change rien aux images Docker, qui restent OCI",
+          "body": "/images/lessons/runtimes-et-cri-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Une équipe construit ses images avec `docker build` sur son poste, puis les pousse dans un registre. Le cluster de production, lui, utilise **containerd** comme runtime, et non Docker. Les développeurs s'inquiètent : leurs images vont-elles encore fonctionner ? Explique pourquoi oui, en distinguant bien le format d'image et le runtime.",
+          "solution": "Oui, les images fonctionnent sans aucune modification. Il faut distinguer deux choses que l'on confond souvent.\n\n1. Le **format d'image** : `docker build` produit une image conforme au standard **OCI**. Ce format est ouvert et indépendant de Docker.\n\n2. Le **runtime** : c'est le programme qui exécute les conteneurs sur le nœud. containerd est un runtime conforme à la **CRI** côté Kubernetes et sait lire et exécuter des images **OCI**.\n\nComme l'image produite par Docker est une image OCI, containerd peut la tirer depuis le registre et lancer des conteneurs à partir d'elle, exactement comme n'importe quelle autre image OCI. Le retrait de Dockershim a seulement supprimé Docker en tant que runtime branché directement sur le kubelet ; il n'a rien changé au format des images. Docker reste donc un bon outil pour **construire** des images, même si ce n'est plus lui qui les **exécute** sur le cluster."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "runtimes-et-cri-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "node": "gitops-cicd",
+  "lessons": [
+    {
+      "slug": "cicd-et-gitops",
+      "title": "CI/CD et GitOps",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "CI/CD : construire et livrer en continu",
+          "body": "**CI/CD** regroupe deux pratiques qui automatisent le chemin du code jusqu'à son exécution.\n\n- **CI** (continuous integration, intégration continue) : à chaque modification poussée dans le dépôt, un pipeline compile le code, lance les tests et construit une image de conteneur. Les problèmes sont détectés tôt.\n- **CD** (continuous delivery ou continuous deployment, livraison ou déploiement continus) : la suite du pipeline publie l'image, puis la déploie automatiquement vers un environnement (test, préproduction, production).\n\nUn **pipeline** est une suite d'étapes automatisées déclenchées par un évènement, le plus souvent un commit. Le but : passer du code à une version déployée de façon rapide, répétable et fiable, sans étapes manuelles."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un pipeline CI/CD automatise le chemin du code jusqu'au deploiement.",
+          "body": "/images/lessons/cicd-et-gitops-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "GitOps : Git comme source de vérité",
+          "body": "Le **GitOps** est une manière de gérer un cluster Kubernetes où **l'état voulu du cluster est décrit dans un dépôt Git**. Le dépôt devient la **source de vérité** (single source of truth) : tout ce qui doit tourner dans le cluster y est écrit sous forme de manifestes YAML versionnés.\n\nUn **agent GitOps** installé dans le cluster surveille ce dépôt en continu. Dès que l'état voulu dans Git change, l'agent **réconcilie** le cluster : il applique les différences pour que l'état réel corresponde à l'état décrit dans Git. Cette comparaison permanente prolonge le modèle déclaratif de Kubernetes jusqu'au dépôt.\n\nLes deux outils GitOps de référence sont **Argo CD** et **Flux**, tous deux projets de la CNCF (Cloud Native Computing Foundation)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En GitOps, le depot Git versionne devient la source de verite du cluster.",
+          "body": "/images/lessons/cicd-et-gitops-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Pourquoi adopter le GitOps",
+          "body": "Le GitOps apporte des avantages concrets, souvent cités à l'examen KCNA.\n\n- **Traçabilité** : chaque changement du cluster correspond à un commit, avec auteur, date et revue. L'historique Git raconte toute l'évolution du cluster.\n- **Retour arrière simple** : revenir à un état antérieur revient à faire un retour arrière sur un commit (`git revert`), puis l'agent réconcilie le cluster vers cet état.\n- **Pas d'accès manuel direct** : on ne tape plus de commandes à la main sur le cluster ; on modifie Git, et l'agent applique. Cela réduit les erreurs et les écarts non documentés.\n- **Cohérence** : l'état réel ne peut pas dériver durablement de Git, car l'agent corrige en continu tout écart."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'agent reconcilie en continu l'etat reel vers l'etat voulu dans Git.",
+          "body": "/images/lessons/cicd-et-gitops-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Un manifeste versionné dans le dépôt",
+          "codeLanguage": "yaml",
+          "body": "# Fichier deployment.yaml stocke dans le depot Git.\n# C'est l'etat voulu : l'agent GitOps le synchronise vers le cluster.\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 3          # on veut 3 repliques\n  selector:\n    matchLabels: { app: web }\n  template:\n    metadata:\n      labels: { app: web }\n    spec:\n      containers:\n        - name: web\n          image: nginx:1.27   # changer ce tag puis commiter suffit a deployer"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Le flux GitOps de bout en bout",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  DEV[\"Developpeur\"] -->|push commit| GIT[\"Depot Git (etat voulu)\"]\n  GIT -->|surveille et tire| AGENT[\"Agent GitOps (Argo CD / Flux)\"]\n  AGENT -->|applique et reconcilie| CLUSTER[\"Cluster Kubernetes\"]\n  CLUSTER -->|etat reel| AGENT"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "cicd-et-gitops-check"
+        }
+      ]
+    },
+    {
+      "slug": "helm-et-operators",
+      "title": "Helm & operators",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Helm : le gestionnaire de paquets de Kubernetes",
+          "body": "Déployer une application réelle demande souvent beaucoup de manifestes YAML (Deployment, Service, ConfigMap, etc.). **Helm** est le **gestionnaire de paquets** (package manager) de Kubernetes : il regroupe tous ces manifestes dans un paquet réutilisable appelé **chart**.\n\nUn **chart** est un ensemble de modèles de manifestes paramétrables. Les valeurs modifiables sont rassemblées dans un fichier **values** (`values.yaml`) : nom de l'image, nombre de répliques, mot de passe, etc. On installe le même chart avec des valeurs différentes selon l'environnement.\n\nUne installation d'un chart dans un cluster s'appelle une **release**. Helm gère son cycle de vie : **installation**, **mise à jour** (upgrade) et **retour arrière** (rollback) vers une version précédente de la release."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Helm empaquette les manifestes dans un chart reutilisable, comme un gestionnaire de paquets.",
+          "body": "/images/lessons/helm-et-operators-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Commandes Helm du quotidien",
+          "codeLanguage": "bash",
+          "body": "# Installer un chart sous le nom de release \"ma-base\"\nhelm install ma-base bitnami/postgresql\n\n# Mettre a jour la release avec de nouvelles valeurs\nhelm upgrade ma-base bitnami/postgresql --set auth.database=skillforge\n\n# Revenir a la version precedente de la release (retour arriere)\nhelm rollback ma-base\n\n# Lister les releases installees dans le cluster\nhelm list"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Les operators : étendre Kubernetes",
+          "body": "Certaines applications (bases de données, files de messages) sont **complexes à gérer** : sauvegardes, bascule en cas de panne, mises à jour ordonnées. Un **operator** automatise ce savoir-faire opérationnel à l'intérieur du cluster.\n\nUn operator repose sur deux briques.\n\n- Une **CRD** (Custom Resource Definition, définition de ressource personnalisée) : elle ajoute un **nouveau type d'objet** à l'API Kubernetes, par exemple un objet `PostgresCluster`. On déclare alors sa base comme n'importe quel objet Kubernetes.\n- Un **controller** : un programme qui surveille ces objets personnalisés et exécute une **boucle de réconciliation** pour amener l'application à l'état voulu (créer les pods, lancer les sauvegardes, gérer une panne).\n\nUn operator applique donc le modèle déclaratif de Kubernetes à des applications que de simples manifestes ne suffisent pas à piloter."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les commandes Helm gerent le cycle de vie d'une release depuis le terminal.",
+          "body": "/images/lessons/helm-et-operators-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Helm ou operator : quand choisir quoi",
+          "body": "Les deux ne jouent pas le même rôle.\n\n- **Helm** package et installe des manifestes. Il est excellent pour **déployer** une application, mais une fois la release posée, il ne gère pas sa vie opérationnelle (il ne surveille pas la base, ne fait pas de bascule automatique).\n- Un **operator** reste actif en permanence et **gère l'application dans la durée** grâce à son controller : sauvegardes, réparation, mises à jour.\n\nEn résumé : Helm pour installer et paramétrer facilement, un operator quand l'application a besoin d'une gestion continue et automatisée."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un operator automatise la gestion operationnelle d'une application dans la duree.",
+          "body": "/images/lessons/helm-et-operators-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi : quelle approche pour déployer une base de données ?",
+          "body": "Ton équipe doit déployer une base de données PostgreSQL dans le cluster. Trois approches sont proposées :\n\n1. Écrire et appliquer à la main les manifestes YAML (Deployment, Service, PersistentVolumeClaim).\n2. Installer un chart Helm officiel de PostgreSQL.\n3. Installer un operator PostgreSQL et déclarer un objet personnalisé `PostgresCluster`.\n\nPour chacune, indique ce qu'elle apporte et sa limite. Puis choisis l'approche la plus adaptée si l'équipe veut une base **avec sauvegardes automatiques et bascule en cas de panne**, sans gérer ces opérations à la main.",
+          "solution": "1. **Manifestes à la main** : on contrôle tout, mais c'est verbeux, difficile à maintenir et il faut tout gérer soi-même (sauvegardes, pannes). À réserver aux cas simples ou à l'apprentissage.\n\n2. **Chart Helm** : installation rapide et paramétrable (image, taille du disque, mot de passe via values), mise à jour et retour arrière faciles. Limite : une fois installé, Helm ne gère pas la vie opérationnelle de la base ; les sauvegardes et la bascule ne sont pas automatisées.\n\n3. **Operator** : via une CRD, on déclare un objet `PostgresCluster` et le controller gère en continu la base (provisionnement, sauvegardes, bascule, réparation). Limite : il faut installer et comprendre l'operator, ce qui ajoute un peu de complexité initiale.\n\n**Choix** : pour des **sauvegardes automatiques et une bascule en cas de panne sans gestion manuelle**, l'**operator** (approche 3) est le plus adapté, car c'est le seul qui automatise la gestion opérationnelle dans la durée. Le chart Helm conviendrait pour un déploiement simple sans ces exigences."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "helm-et-operators-check"
+        }
+      ]
+    }
+  ]
+}

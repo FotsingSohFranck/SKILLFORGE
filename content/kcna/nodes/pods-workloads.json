@@ -1,0 +1,143 @@
+{
+  "node": "pods-workloads",
+  "lessons": [
+    {
+      "slug": "le-pod-unite-de-base",
+      "title": "Le pod, unité de base",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le pod : la plus petite unité déployable",
+          "body": "Dans Kubernetes, tu ne déploies pas directement un conteneur : tu déploies un **pod**. Le pod est la **plus petite unité déployable** du cluster, c'est l'objet que Kubernetes sait planifier sur un nœud.\n\nUn pod enveloppe **un ou plusieurs conteneurs** qui vont toujours ensemble. La règle à retenir pour l'examen KCNA : le plus souvent **un seul conteneur applicatif par pod**. On n'ajoute un second conteneur que lorsqu'il doit vivre collé au premier (par exemple un conteneur d'assistance, appelé **sidecar**)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le pod : la plus petite unité déployable, souvent un seul conteneur applicatif.",
+          "body": "/images/lessons/le-pod-unite-de-base-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ce que les conteneurs d'un pod partagent",
+          "body": "Les conteneurs d'un même pod sont très proches : ils partagent plusieurs ressources.\n\n- **Le réseau** : tous les conteneurs du pod partagent **une seule adresse IP** et un même espace de ports. Ils se parlent via `localhost`.\n- **Les volumes** : ils peuvent monter les **mêmes volumes** pour s'échanger des fichiers.\n- **Le cycle de vie** : ils sont planifiés ensemble sur **le même nœud** et démarrent ou s'arrêtent ensemble.\n\nC'est cette intimité qui distingue deux conteneurs d'un même pod de deux pods séparés."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les conteneurs d'un pod partagent réseau, volumes et cycle de vie.",
+          "body": "/images/lessons/le-pod-unite-de-base-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Un pod est éphémère",
+          "body": "Point crucial pour le KCNA : un pod est **éphémère** (jetable). Kubernetes ne **répare pas** un pod en panne, il le **remplace** par un nouveau pod.\n\n- Le nouveau pod reçoit un **nouveau nom** et souvent une **nouvelle adresse IP**.\n- On ne compte donc jamais sur l'IP d'un pod précis : c'est le rôle d'un **Service** de fournir une adresse stable.\n\nRetiens la formule : les pods sont traités comme du bétail, pas comme des animaux de compagnie. On les remplace, on ne les soigne pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un pod est éphémère : Kubernetes le remplace plutôt que de le réparer.",
+          "body": "/images/lessons/le-pod-unite-de-base-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Labels et selectors",
+          "body": "Comme les pods vont et viennent, Kubernetes ne les retrouve pas par leur nom mais par leurs **labels**.\n\n- Un **label** est une étiquette `clé: valeur` posée sur un objet, par exemple `app: web` ou `env: prod`.\n- Un **selector** est une requête qui dit : prends tous les objets qui portent tel label.\n\nAinsi un Service ou un controller cible **un groupe de pods** via un selector (par exemple `app: web`), sans connaître leurs noms. C'est le mécanisme de liaison central de Kubernetes."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Labels et selectors relient les objets sans dépendre du nom des pods.",
+          "body": "/images/lessons/le-pod-unite-de-base-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Un pod simple en YAML",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web\n  labels:\n    app: web          # label servant aux selectors\nspec:\n  containers:\n    - name: web       # un seul conteneur applicatif\n      image: nginx:1.27\n      ports:\n        - containerPort: 80"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 9,
+          "title": "Un pod et ses conteneurs",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph POD[\"Pod (une seule IP)\"]\n    C1[\"Conteneur web\"]\n    C2[\"Conteneur sidecar\"]\n    VOL[\"Volume partage\"]\n    C1 --- VOL\n    C2 --- VOL\n  end\n  IP[\"Adresse IP du pod\"] --> POD\n  C1 <-->|localhost| C2"
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "le-pod-unite-de-base-check"
+        }
+      ]
+    },
+    {
+      "slug": "controllers-de-workload",
+      "title": "Les controllers de workload",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Pourquoi ne pas créer les pods à la main",
+          "body": "Créer un pod seul, c'est bien pour apprendre, mais **jamais en production**. Si ce pod tombe ou si son nœud disparaît, **personne ne le recrée** : il est éphémère et sans surveillant.\n\nEn pratique, on confie les pods à un **controller de workload**. Un controller est un objet qui exécute une **boucle de réconciliation** : il compare l'état voulu (par exemple 3 répliques) à l'état réel et agit pour les faire coïncider. C'est lui qui recrée les pods, les met à l'échelle et gère les mises à jour."
+        },
+        {
+          "type": "IMAGE",
+          "title": "En production, on ne crée pas les pods à la main : un controller veille sur eux.",
+          "body": "/images/lessons/controllers-de-workload-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Deployment et ReplicaSet",
+          "body": "Les deux controllers les plus courants vont de pair.\n\n- **ReplicaSet** : son seul rôle est de maintenir **N répliques** identiques d'un pod en permanence. Si une réplique manque, il en recrée une.\n- **Deployment** : le controller que tu utilises réellement pour les **applications sans état** (stateless). Il **gère un ReplicaSet** pour toi et ajoute les **mises à jour progressives** (rolling update) : il remplace les pods petit à petit, sans coupure, et permet de revenir en arrière (rollback).\n\nRègle pratique : tu déclares un **Deployment**, il crée et pilote le **ReplicaSet**, qui lui crée les **pods**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Deployment et ReplicaSet maintiennent N répliques et gèrent les mises à jour progressives.",
+          "body": "/images/lessons/controllers-de-workload-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "DaemonSet, StatefulSet, Job et CronJob",
+          "body": "D'autres controllers répondent à des besoins précis.\n\n- **DaemonSet** : garantit **un pod sur chaque nœud** (ou chaque nœud d'un groupe). Idéal pour les agents présents partout : collecte de logs, métriques, réseau.\n- **StatefulSet** : pour les applications **à état** (stateful) qui ont besoin d'une **identité stable** et d'un stockage persistant par pod, par exemple une base de données. Les pods ont un nom ordonné et prévisible.\n- **Job** : exécute une **tâche ponctuelle** jusqu'à ce qu'elle réussisse, puis s'arrête (par exemple une migration).\n- **CronJob** : crée des **Jobs selon un planning** (par exemple tous les soirs), comme une tâche cron."
+        },
+        {
+          "type": "IMAGE",
+          "title": "DaemonSet, StatefulSet, Job et CronJob répondent chacun à un besoin précis.",
+          "body": "/images/lessons/controllers-de-workload-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Du Deployment aux pods",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  DEP[\"Deployment (etat voulu)\"] --> RS[\"ReplicaSet (maintient N repliques)\"]\n  RS --> P1[\"Pod\"]\n  RS --> P2[\"Pod\"]\n  RS --> P3[\"Pod\"]"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi : choisir le bon controller",
+          "body": "Pour chacun de ces trois besoins, indique le controller de workload le plus adapté et justifie en une phrase :\n\n1. Une **API web** sans état, à faire tourner en 3 répliques et à mettre à jour sans coupure.\n2. Un **agent de collecte de logs** qui doit tourner sur **chaque nœud** du cluster.\n3. Une **sauvegarde de la base** à exécuter **chaque nuit** à 2 h.",
+          "solution": "1. **Deployment** : c'est le controller des applications sans état ; il maintient les 3 répliques via un ReplicaSet et offre les mises à jour progressives (rolling update) sans coupure.\n2. **DaemonSet** : il place exactement un pod sur chaque nœud, ce qui convient parfaitement à un agent qui doit être présent partout. Si un nœud rejoint le cluster, le DaemonSet y ajoute automatiquement le pod.\n3. **CronJob** : il déclenche un Job selon un planning (ici chaque nuit à 2 h) ; le Job exécute la sauvegarde jusqu'à réussite puis s'arrête."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "controllers-de-workload-check"
+        }
+      ]
+    }
+  ]
+}

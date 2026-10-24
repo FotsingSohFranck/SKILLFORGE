@@ -1,0 +1,112 @@
+{
+  "node": "k8s-architecture",
+  "lessons": [
+    {
+      "slug": "plan-de-controle-et-noeuds",
+      "title": "Plan de contrôle et nœuds",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Deux moitiés : décider et exécuter",
+          "body": "Un cluster Kubernetes se divise en deux : le **plan de contrôle** (control plane), qui **décide**, et les **nœuds de travail** (worker nodes), qui **exécutent** les conteneurs.\n\nLe plan de contrôle maintient l'état voulu du cluster et prend les décisions globales (où placer un pod, réagir à une panne). Les nœuds font tourner les charges applicatives. Cette séparation est au cœur de l'examen KCNA."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un cluster en deux moitiés : le plan de contrôle décide, les nœuds de travail exécutent.",
+          "body": "/images/lessons/plan-de-controle-et-noeuds-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Les composants du plan de contrôle",
+          "body": "- **kube-apiserver** : la porte d'entrée du cluster. Tout passe par son API REST, c'est le seul composant qui parle à etcd.\n- **etcd** : la base clé-valeur qui stocke **tout l'état** du cluster. Sa sauvegarde est critique.\n- **kube-scheduler** : choisit sur quel nœud placer chaque nouveau pod.\n- **kube-controller-manager** : fait tourner les boucles de contrôle qui rapprochent l'état réel de l'état voulu."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le plan de contrôle : apiserver, etcd, scheduler et controller-manager maintiennent l'état voulu.",
+          "body": "/images/lessons/plan-de-controle-et-noeuds-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Les composants d'un nœud",
+          "body": "- **kubelet** : l'agent présent sur chaque nœud ; il reçoit les specs de pods et demande au runtime de lancer les conteneurs, puis remonte leur état.\n- **kube-proxy** : gère les règles réseau qui rendent les Services joignables.\n- **le runtime de conteneurs** (par exemple containerd) : exécute réellement les conteneurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Sur chaque nœud : kubelet, kube-proxy et le runtime font tourner les conteneurs.",
+          "body": "/images/lessons/plan-de-controle-et-noeuds-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 6,
+          "title": "Vue d'ensemble du cluster",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  subgraph CP[\"Plan de controle\"]\n    API[\"kube-apiserver\"] --- ETCD[\"etcd\"]\n    API --- SCHED[\"kube-scheduler\"]\n    API --- CM[\"controller-manager\"]\n  end\n  subgraph N1[\"Noeud de travail\"]\n    KUBELET[\"kubelet\"] --> RT[\"runtime (containerd)\"]\n    KPROXY[\"kube-proxy\"]\n  end\n  API <--> KUBELET"
+        },
+        {
+          "type": "QUIZ",
+          "position": 7,
+          "title": "Vérifions",
+          "quizRef": "plan-de-controle-et-noeuds-check"
+        }
+      ]
+    },
+    {
+      "slug": "le-modele-declaratif",
+      "title": "Le modèle déclaratif",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Décrire l'état voulu, pas les étapes",
+          "body": "Avec Kubernetes, tu ne dis pas **comment** faire, tu décris **ce que tu veux** : par exemple, trois répliques de telle application. C'est le modèle **déclaratif**.\n\nKubernetes compare en permanence l'**état voulu** (ce que tu as déclaré) et l'**état réel** (ce qui tourne), et agit pour les faire coïncider. Cette comparaison continue s'appelle une **boucle de réconciliation** (reconciliation loop)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le modèle déclaratif : on décrit l'état voulu, pas la suite des étapes.",
+          "body": "/images/lessons/le-modele-declaratif-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CODE",
+          "position": 2,
+          "title": "Un objet déclaré en YAML",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web\nspec:\n  replicas: 3          # etat voulu : 3 repliques\n  selector:\n    matchLabels: { app: web }\n  template:\n    metadata:\n      labels: { app: web }\n    spec:\n      containers:\n        - name: web\n          image: nginx:1.27"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 3,
+          "title": "Pourquoi c'est puissant",
+          "body": "Si un pod tombe, l'état réel (2 répliques) ne correspond plus à l'état voulu (3) : le controller recrée un pod sans intervention. On applique un fichier avec `kubectl apply`, et le cluster converge.\n\nCe fonctionnement explique la robustesse de Kubernetes : l'auto-réparation et la mise à l'échelle découlent directement du modèle déclaratif."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La boucle de réconciliation ramène sans cesse l'état réel vers l'état voulu.",
+          "body": "/images/lessons/le-modele-declaratif-2.jpg",
+          "position": 4
+        },
+        {
+          "type": "EXERCISE",
+          "position": 5,
+          "title": "À toi",
+          "body": "Un Deployment déclare `replicas: 4`. Un administrateur supprime manuellement un pod avec `kubectl delete pod`. Que se passe-t-il, et quel composant agit ?",
+          "solution": "Après la suppression, l'état réel passe à 3 pods alors que l'état voulu est 4. La boucle de réconciliation du controller (le ReplicaSet géré par le controller-manager) détecte l'écart et recrée immédiatement un pod pour revenir à 4. L'administrateur ne peut pas réduire durablement le nombre de pods en les supprimant un par un : il faut modifier l'état voulu (changer `replicas` ou supprimer le Deployment)."
+        },
+        {
+          "type": "QUIZ",
+          "position": 6,
+          "title": "Vérifions",
+          "quizRef": "le-modele-declaratif-check"
+        }
+      ]
+    }
+  ]
+}

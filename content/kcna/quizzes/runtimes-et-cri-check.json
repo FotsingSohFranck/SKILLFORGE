@@ -1,0 +1,43 @@
+{
+  "ref": "runtimes-et-cri-check",
+  "node": "containers-runtime",
+  "lesson": "runtimes-et-cri",
+  "title": "Quiz : Runtimes et CRI",
+  "description": "Vérifie que tu as compris le rôle du runtime, de la CRI et le retrait de Dockershim.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment le kubelet lance-t-il réellement les conteneurs sur un nœud ?",
+      "justification": "Kubernetes n'exécute pas les conteneurs lui-même : le kubelet délègue à un runtime de conteneurs via l'interface standard CRI.",
+      "position": 0,
+      "options": [
+        { "label": "Il délègue à un runtime de conteneurs via la CRI", "correct": true, "position": 0 },
+        { "label": "Il exécute les conteneurs lui-même, sans aucun autre composant", "correct": false, "position": 1 },
+        { "label": "Il demande à etcd de démarrer les conteneurs", "correct": false, "position": 2 },
+        { "label": "Il passe toujours obligatoirement par Docker", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Parmi ces propositions, lesquelles sont des runtimes de conteneurs conformes à la CRI ?",
+      "justification": "containerd et CRI-O sont deux runtimes conformes à la CRI très répandus. etcd est une base de données et le kube-scheduler est un composant du plan de contrôle, pas des runtimes.",
+      "position": 1,
+      "options": [
+        { "label": "containerd et CRI-O", "correct": true, "position": 0 },
+        { "label": "etcd et kube-scheduler", "correct": false, "position": 1 },
+        { "label": "kube-proxy et kubelet", "correct": false, "position": 2 },
+        { "label": "Flyway et PostgreSQL", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Depuis le retrait de Dockershim, les images construites avec Docker ne fonctionnent plus sur un cluster Kubernetes.",
+      "justification": "Faux : les images construites avec Docker sont des images OCI standard, qui tournent sur tout runtime conforme à la CRI comme containerd. Seul Docker en tant que runtime direct a disparu, pas le format d'image.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": false, "position": 0 },
+        { "label": "Faux", "correct": true, "position": 1 }
+      ]
+    }
+  ]
+}

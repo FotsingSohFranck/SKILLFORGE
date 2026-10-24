@@ -1,0 +1,43 @@
+{
+  "ref": "le-pod-unite-de-base-check",
+  "node": "pods-workloads",
+  "lesson": "le-pod-unite-de-base",
+  "title": "Quiz : Le pod, unité de base",
+  "description": "Vérifie que tu as compris ce qu'est un pod et comment on le cible.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle est la plus petite unité déployable dans Kubernetes ?",
+      "justification": "Le pod est la plus petite unité que Kubernetes sait planifier ; on ne déploie pas un conteneur seul, on déploie toujours un pod qui l'enveloppe.",
+      "position": 0,
+      "options": [
+        { "label": "Le pod", "correct": true, "position": 0 },
+        { "label": "Le conteneur", "correct": false, "position": 1 },
+        { "label": "Le nœud", "correct": false, "position": 2 },
+        { "label": "Le cluster", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Les conteneurs d'un même pod partagent une seule adresse IP et peuvent se parler via localhost.",
+      "justification": "Vrai : les conteneurs d'un pod partagent le réseau du pod, donc une même adresse IP et un même espace de ports, et communiquent entre eux via localhost.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Comment un Service ou un controller cible-t-il un groupe de pods ?",
+      "justification": "Comme les pods sont éphémères et changent de nom et d'IP, on les cible par leurs labels à l'aide d'un selector, jamais par leur nom précis.",
+      "position": 2,
+      "options": [
+        { "label": "Par un selector qui filtre les labels des pods", "correct": true, "position": 0 },
+        { "label": "Par le nom exact de chaque pod", "correct": false, "position": 1 },
+        { "label": "Par l'adresse IP fixe de chaque pod", "correct": false, "position": 2 },
+        { "label": "Par l'identifiant du nœud qui héberge le pod", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

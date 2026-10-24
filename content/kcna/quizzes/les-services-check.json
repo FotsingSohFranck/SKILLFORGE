@@ -1,0 +1,43 @@
+{
+  "ref": "les-services-check",
+  "node": "services-networking",
+  "lesson": "les-services",
+  "title": "Quiz : Les Services",
+  "description": "Vérifie que tu as compris le rôle d'un Service et ses types.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment un Service sait-il vers quels pods envoyer le trafic ?",
+      "justification": "Un Service sélectionne les pods par leurs labels via son selector, jamais par leur IP qui change à chaque recréation.",
+      "position": 0,
+      "options": [
+        { "label": "Grâce aux labels des pods, via son selector", "correct": true, "position": 0 },
+        { "label": "Grâce à l'IP fixe de chaque pod", "correct": false, "position": 1 },
+        { "label": "Grâce au nom du nœud qui héberge le pod", "correct": false, "position": 2 },
+        { "label": "Grâce au code source de l'application", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel type de Service est le type par défaut et n'est joignable que depuis l'intérieur du cluster ?",
+      "justification": "ClusterIP est le type par défaut et fournit une IP interne au cluster ; NodePort et LoadBalancer servent à exposer vers l'extérieur.",
+      "position": 1,
+      "options": [
+        { "label": "ClusterIP", "correct": true, "position": 0 },
+        { "label": "NodePort", "correct": false, "position": 1 },
+        { "label": "LoadBalancer", "correct": false, "position": 2 },
+        { "label": "Ingress", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Sur chaque nœud, kube-proxy applique les règles réseau qui redirigent le trafic visant l'IP du Service vers un pod.",
+      "justification": "Vrai : le Service est une déclaration, et c'est kube-proxy qui programme les règles réseau du nœud pour acheminer concrètement le trafic.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

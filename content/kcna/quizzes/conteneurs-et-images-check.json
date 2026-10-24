@@ -1,0 +1,43 @@
+{
+  "ref": "conteneurs-et-images-check",
+  "node": "containers-runtime",
+  "lesson": "conteneurs-et-images",
+  "title": "Quiz : Conteneurs et images",
+  "description": "Vérifie que tu distingues bien conteneur, image, couches et standard OCI.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quels mécanismes du noyau Linux isolent un conteneur et limitent ses ressources ?",
+      "justification": "Les namespaces donnent au conteneur sa propre vue du système (processus, réseau, fichiers) et les cgroups limitent les ressources (processeur, mémoire) qu'il peut consommer.",
+      "position": 0,
+      "options": [
+        { "label": "Les namespaces et les cgroups", "correct": true, "position": 0 },
+        { "label": "Un hyperviseur et un noyau dédié par conteneur", "correct": false, "position": 1 },
+        { "label": "Le scheduler et etcd", "correct": false, "position": 2 },
+        { "label": "La CRI et le kube-proxy", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Une image est faite de couches en lecture seule, et le conteneur ajoute par-dessus une couche inscriptible.",
+      "justification": "Vrai : les couches de l'image ne changent jamais ; au démarrage, le runtime empile une fine couche inscriptible où le conteneur écrit.",
+      "position": 1,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que définit l'OCI (Open Container Initiative) ?",
+      "justification": "L'OCI définit des standards ouverts pour le format des images (image-spec) et pour l'exécution des conteneurs (runtime-spec), ce qui rend images et runtimes interopérables.",
+      "position": 2,
+      "options": [
+        { "label": "Des standards ouverts pour le format des images et l'exécution des conteneurs", "correct": true, "position": 0 },
+        { "label": "Le langage de programmation obligatoire des applications conteneurisées", "correct": false, "position": 1 },
+        { "label": "Un registre public unique imposé à tous les clusters", "correct": false, "position": 2 },
+        { "label": "Le protocole réseau entre les pods d'un cluster", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

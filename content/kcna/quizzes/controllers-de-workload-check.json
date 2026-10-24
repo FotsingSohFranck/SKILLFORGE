@@ -1,0 +1,43 @@
+{
+  "ref": "controllers-de-workload-check",
+  "node": "pods-workloads",
+  "lesson": "controllers-de-workload",
+  "title": "Quiz : Les controllers de workload",
+  "description": "Vérifie que tu sais associer chaque besoin au bon controller.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel controller utilises-tu pour une application sans état avec mises à jour progressives (rolling update) ?",
+      "justification": "Le Deployment est le controller des applications sans état : il pilote un ReplicaSet et gère les mises à jour progressives ainsi que le retour en arrière.",
+      "position": 0,
+      "options": [
+        { "label": "Deployment", "correct": true, "position": 0 },
+        { "label": "DaemonSet", "correct": false, "position": 1 },
+        { "label": "StatefulSet", "correct": false, "position": 2 },
+        { "label": "CronJob", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Tu veux exactement un pod de collecte de logs sur chaque nœud du cluster. Quel controller choisis-tu ?",
+      "justification": "Le DaemonSet garantit un pod par nœud et ajoute automatiquement le pod aux nouveaux nœuds, ce qui convient aux agents présents partout.",
+      "position": 1,
+      "options": [
+        { "label": "DaemonSet", "correct": true, "position": 0 },
+        { "label": "Deployment", "correct": false, "position": 1 },
+        { "label": "Job", "correct": false, "position": 2 },
+        { "label": "ReplicaSet", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un StatefulSet convient à une application à état comme une base de données, car il donne aux pods une identité stable.",
+      "justification": "Vrai : le StatefulSet est fait pour les applications à état ; il attribue aux pods des noms ordonnés et stables ainsi qu'un stockage persistant par pod.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

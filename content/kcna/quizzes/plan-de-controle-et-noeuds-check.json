@@ -1,0 +1,43 @@
+{
+  "ref": "plan-de-controle-et-noeuds-check",
+  "node": "k8s-architecture",
+  "lesson": "plan-de-controle-et-noeuds",
+  "title": "Quiz : Plan de contrôle et nœuds",
+  "description": "Vérifie que tu situes les composants du cluster.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant stocke l'intégralité de l'état du cluster ?",
+      "justification": "etcd est la base clé-valeur qui conserve tout l'état du cluster ; seul l'API server y accède directement.",
+      "position": 0,
+      "options": [
+        { "label": "etcd", "correct": true, "position": 0 },
+        { "label": "kube-proxy", "correct": false, "position": 1 },
+        { "label": "kubelet", "correct": false, "position": 2 },
+        { "label": "le runtime de conteneurs", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel composant décide sur quel nœud placer un nouveau pod ?",
+      "justification": "Le kube-scheduler sélectionne le nœud adapté pour chaque pod non encore placé, selon les ressources et contraintes.",
+      "position": 1,
+      "options": [
+        { "label": "kube-scheduler", "correct": true, "position": 0 },
+        { "label": "etcd", "correct": false, "position": 1 },
+        { "label": "kube-proxy", "correct": false, "position": 2 },
+        { "label": "kubelet", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le kubelet s'exécute sur chaque nœud de travail et pilote le runtime de conteneurs.",
+      "justification": "Vrai : le kubelet est l'agent de nœud qui reçoit les specs de pods et demande au runtime de lancer les conteneurs.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

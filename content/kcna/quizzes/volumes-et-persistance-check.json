@@ -1,0 +1,43 @@
+{
+  "ref": "volumes-et-persistance-check",
+  "node": "config-storage",
+  "lesson": "volumes-et-persistance",
+  "title": "Quiz : Volumes et persistance",
+  "description": "Vérifie que tu comprends PV, PVC et le provisionnement dynamique.",
+  "questions": [
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Le système de fichiers d'un conteneur est éphémère : ce qui y est écrit disparaît quand le conteneur est supprimé ou redémarré.",
+      "justification": "Vrai : un conteneur est jetable. Pour conserver des données au-delà du conteneur, il faut utiliser un volume.",
+      "position": 0,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel objet représente une DEMANDE de stockage faite par un pod ?",
+      "justification": "Le PersistentVolumeClaim (PVC) est la demande de stockage. Le PersistentVolume (PV) est la ressource de stockage réelle à laquelle le PVC est lié.",
+      "position": 1,
+      "options": [
+        { "label": "PersistentVolumeClaim (PVC)", "correct": true, "position": 0 },
+        { "label": "PersistentVolume (PV)", "correct": false, "position": 1 },
+        { "label": "ConfigMap", "correct": false, "position": 2 },
+        { "label": "kube-scheduler", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "À quoi sert une StorageClass ?",
+      "justification": "La StorageClass permet le provisionnement dynamique : Kubernetes crée automatiquement le PersistentVolume correspondant à un PVC, sans préparer les disques à l'avance.",
+      "position": 2,
+      "options": [
+        { "label": "Permettre le provisionnement dynamique en créant automatiquement le PV à la demande", "correct": true, "position": 0 },
+        { "label": "Chiffrer le contenu des Secrets stockés dans etcd", "correct": false, "position": 1 },
+        { "label": "Décider sur quel nœud placer un pod", "correct": false, "position": 2 },
+        { "label": "Exposer un pod sur le réseau", "correct": false, "position": 3 }
+      ]
+    }
+  ]
+}

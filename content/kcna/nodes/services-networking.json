@@ -1,0 +1,155 @@
+{
+  "node": "services-networking",
+  "lessons": [
+    {
+      "slug": "les-services",
+      "title": "Les Services",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le problème : des pods qui bougent",
+          "body": "Un **pod** (la plus petite unité déployable dans Kubernetes, qui enveloppe un ou plusieurs conteneurs) est **éphémère** : il peut être supprimé, recréé ou déplacé sur un autre nœud à tout moment. À chaque recréation, il reçoit une **nouvelle adresse IP**.\n\nRésultat : impossible de pointer une application vers l'IP d'un pod, car cette IP change sans prévenir. Il faut une adresse **stable** qui ne dépende pas d'un pod précis. C'est le rôle du **Service**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Des pods qui bougent et changent d'IP : il faut une adresse stable.",
+          "body": "/images/lessons/les-services-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Ce qu'est un Service",
+          "body": "Un **Service** est un objet Kubernetes qui fournit une **adresse réseau stable** (une IP et un nom constants) devant un groupe de pods. Il **répartit** le trafic entre ces pods.\n\nUn Service ne connaît pas les pods par leur IP. Il les sélectionne par leurs **labels** (étiquettes clé-valeur posées sur les pods). Le Service déclare un **selector** : tout pod dont les labels correspondent est automatiquement ajouté à la liste des destinations. Quand un pod disparaît, il sort de la liste ; quand un nouveau pod avec les bons labels apparaît, il y entre. L'adresse du Service, elle, ne change pas."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le Service : une adresse réseau stable devant un groupe de pods choisis par labels.",
+          "body": "/images/lessons/les-services-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Les types de Service",
+          "body": "Trois types sont à connaître pour l'examen :\n\n- **ClusterIP** (type par défaut) : donne une IP **interne** au cluster. Le Service n'est joignable que depuis l'intérieur du cluster. C'est le choix pour la communication entre applications internes.\n- **NodePort** : ouvre un **port fixe sur chaque nœud** du cluster. On peut alors joindre le Service de l'extérieur via `IP_du_noeud:port`. Il s'appuie sur un ClusterIP.\n- **LoadBalancer** : demande au fournisseur (souvent un cloud) un **répartiteur de charge externe** avec une IP publique qui redirige vers le Service. C'est la façon standard d'exposer un service vers l'extérieur sur un cloud.\n\nchaque type ajoute une couche au précédent : LoadBalancer s'appuie sur NodePort, qui s'appuie sur ClusterIP."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Trois types de Service : ClusterIP, NodePort et LoadBalancer, empilés l'un sur l'autre.",
+          "body": "/images/lessons/les-services-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Qui applique les règles : kube-proxy",
+          "body": "Le Service est une déclaration ; ce n'est pas lui qui déplace les paquets. Sur chaque nœud, le composant **kube-proxy** lit les Services et les pods correspondants, puis programme les **règles réseau** du nœud (par exemple des règles iptables ou IPVS).\n\nCe sont ces règles qui, quand un paquet vise l'IP du Service, le redirigent vers l'un des pods sélectionnés. C'est ainsi que l'adresse stable du Service se traduit concrètement en trafic vers un pod bien réel."
+        },
+        {
+          "type": "IMAGE",
+          "title": "kube-proxy programme sur chaque nœud les règles réseau qui dirigent le trafic vers les pods.",
+          "body": "/images/lessons/les-services-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Un Service ClusterIP en YAML",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Service\nmetadata:\n  name: web\nspec:\n  type: ClusterIP        # type par defaut : IP interne au cluster\n  selector:\n    app: web             # selectionne les pods portant le label app=web\n  ports:\n    - port: 80           # port expose par le Service\n      targetPort: 8080   # port ecoute par le conteneur dans le pod"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 9,
+          "title": "Du Service aux pods via les labels",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  CLIENT[\"Client interne\"] --> SVC[\"Service web (ClusterIP)\\nselector: app=web\"]\n  SVC -->|label app=web| P1[\"Pod (app=web)\"]\n  SVC -->|label app=web| P2[\"Pod (app=web)\"]\n  SVC -->|label app=web| P3[\"Pod (app=web)\"]\n  PX[\"Pod (app=autre)\"] -. ignore .- SVC"
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "les-services-check"
+        }
+      ]
+    },
+    {
+      "slug": "dns-et-ingress",
+      "title": "DNS interne & Ingress",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le DNS interne du cluster",
+          "body": "Une IP stable, c'est bien ; un **nom** stable, c'est mieux. Kubernetes fait tourner un serveur **DNS interne**, le plus souvent **CoreDNS**, qui attribue à chaque Service un nom.\n\nAinsi, au lieu de retenir une IP, une application appelle simplement un Service par son **nom** (par exemple `web`), et le DNS interne traduit ce nom en l'IP du Service. Le nom complet suit la forme `nom-du-service.nom-du-namespace.svc.cluster.local`, le **namespace** étant le compartiment logique qui isole un groupe d'objets dans le cluster. Dans le même namespace, le nom court `web` suffit."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le DNS interne (CoreDNS) donne à chaque Service un nom stable à appeler.",
+          "body": "/images/lessons/dns-et-ingress-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Exposer du HTTP : l'Ingress",
+          "body": "Un Service de type LoadBalancer expose **une** adresse par service, ce qui devient coûteux et rigide quand on a plusieurs sites ou API.\n\nL'**Ingress** est un objet qui définit des **règles de routage HTTP et HTTPS** vers des Services, en fonction de l'**hôte** (le nom de domaine demandé, par exemple `api.exemple.fr`) et du **chemin** de l'URL (par exemple `/images`). Un seul point d'entrée peut ainsi distribuer le trafic vers plusieurs Services selon l'adresse demandée, et gérer le HTTPS (le chiffrement TLS)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'Ingress route le trafic HTTP et HTTPS selon l'hôte et le chemin de l'URL.",
+          "body": "/images/lessons/dns-et-ingress-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "L'Ingress a besoin d'un controller",
+          "body": "L'objet Ingress n'est **que** un jeu de règles ; il ne fait rien tout seul. Pour qu'il agisse, le cluster doit faire tourner un **Ingress controller** (par exemple ingress-nginx), un composant qui lit les objets Ingress et configure un **reverse proxy** (un serveur qui reçoit les requêtes HTTP de l'extérieur et les transmet au bon Service).\n\nSans Ingress controller installé, créer un objet Ingress n'a aucun effet."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'Ingress n'agit qu'avec un Ingress controller qui configure un reverse proxy.",
+          "body": "/images/lessons/dns-et-ingress-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CONCEPT",
+          "position": 6,
+          "title": "Service ou Ingress : la différence",
+          "body": "- Le **Service** travaille au niveau du transport (couche 4 : TCP et UDP). Il donne une adresse stable et répartit le trafic entre pods, sans comprendre le contenu HTTP.\n- L'**Ingress** travaille au niveau applicatif (couche 7 : HTTP et HTTPS). Il route selon l'hôte et le chemin de l'URL, et se place **devant** des Services.\n\nAutrement dit, l'Ingress ne remplace pas le Service : il s'appuie dessus. Le trafic entrant arrive à l'Ingress controller, qui l'envoie au Service voulu, qui le distribue aux pods."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Service en couche 4 et Ingress en couche 7 : l'Ingress se place devant les Services.",
+          "body": "/images/lessons/dns-et-ingress-4.jpg",
+          "position": 7
+        },
+        {
+          "type": "CODE",
+          "position": 8,
+          "title": "Une règle Ingress en YAML",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: site\nspec:\n  rules:\n    - host: api.exemple.fr     # route selon le nom de domaine demande\n      http:\n        paths:\n          - path: /            # et selon le chemin de l'URL\n            pathType: Prefix\n            backend:\n              service:\n                name: web       # envoie vers le Service web\n                port:\n                  number: 80"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 9,
+          "title": "À toi",
+          "body": "Tu dois exposer une API web (des pods qui servent du HTTP sur le port 8080) vers l'extérieur du cluster, accessible en HTTPS sur le domaine `api.exemple.fr`. Quels objets Kubernetes mets-tu en place, et pourquoi chacun ?",
+          "solution": "Il faut trois éléments, chacun avec un rôle précis.\n\n1. Un **Service** de type ClusterIP devant les pods de l'API. Les pods étant éphémères, le Service fournit l'adresse stable et répartit le trafic entre eux, en les sélectionnant par leurs labels. C'est la cible interne.\n\n2. Un **Ingress controller** installé dans le cluster (par exemple ingress-nginx). Sans lui, les règles Ingress restent lettre morte : c'est le composant qui reçoit réellement le trafic HTTP et HTTPS de l'extérieur et le fait suivre.\n\n3. Un objet **Ingress** qui déclare la règle : l'hôte `api.exemple.fr` pointe vers le Service de l'API, avec le HTTPS (TLS) géré à ce niveau. L'Ingress agit en couche 7 (HTTP) et route selon l'hôte et le chemin, ce qu'un Service seul ne sait pas faire.\n\nLe chemin du trafic est donc : client externe vers Ingress controller (via l'Ingress), puis vers le Service, puis vers un pod. On n'utilise pas un Service LoadBalancer par site, car l'Ingress permet de regrouper plusieurs domaines ou chemins derrière un seul point d'entrée et de centraliser le HTTPS."
+        },
+        {
+          "type": "QUIZ",
+          "position": 10,
+          "title": "Vérifions",
+          "quizRef": "dns-et-ingress-check"
+        }
+      ]
+    }
+  ]
+}

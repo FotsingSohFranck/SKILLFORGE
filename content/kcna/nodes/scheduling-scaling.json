@@ -1,0 +1,131 @@
+{
+  "node": "scheduling-scaling",
+  "lessons": [
+    {
+      "slug": "lordonnancement",
+      "title": "L'ordonnancement",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le scheduler, celui qui place les pods",
+          "body": "Quand tu crées un pod, il n'est pas encore rattaché à un nœud : il est en état **Pending** (en attente). Le **kube-scheduler** (l'ordonnanceur) est le composant du plan de contrôle qui choisit sur quel **nœud de travail** (worker node) ce pod va tourner.\n\nPour décider, le scheduler regarde les **ressources disponibles** sur chaque nœud, principalement le **CPU** (puissance de calcul) et la **mémoire** (RAM). Un nœud qui n'a plus assez de place pour le pod est écarté. Une fois le nœud choisi, le kubelet de ce nœud lance les conteneurs."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le kube-scheduler choisit le nœud où placer chaque pod en attente",
+          "body": "/images/lessons/lordonnancement-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Requests et limits : réserver et plafonner",
+          "body": "Chaque conteneur peut déclarer ses besoins en ressources avec deux valeurs.\n\n- **requests** (demandes) : ce que le conteneur **réserve**. C'est la quantité garantie, et c'est ce que le scheduler utilise pour trouver un nœud qui a assez de place.\n- **limits** (limites) : le **plafond** que le conteneur ne peut pas dépasser. S'il dépasse la limite CPU, il est ralenti (throttling) ; s'il dépasse la limite mémoire, il peut être arrêté (OOMKilled, pour Out Of Memory).\n\nLe CPU se mesure en **millicores** (`m`) : `500m` vaut un demi-cœur. La mémoire se mesure en octets, souvent en **Mi** (mébioctets) ou **Gi** (gibioctets)."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Les requests réservent les ressources, les limits posent le plafond",
+          "body": "/images/lessons/lordonnancement-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CODE",
+          "position": 4,
+          "title": "Déclarer requests et limits dans un pod",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: api\nspec:\n  containers:\n    - name: api\n      image: nginx:1.27\n      resources:\n        requests:          # ce que le conteneur reserve (utilise par le scheduler)\n          cpu: \"250m\"      # 250 millicores, soit un quart de coeur\n          memory: \"128Mi\"  # 128 mebioctets de RAM garantis\n        limits:            # plafond a ne pas depasser\n          cpu: \"500m\"      # au-dela, le conteneur est ralenti\n          memory: \"256Mi\"  # au-dela, le conteneur peut etre arrete (OOMKilled)"
+        },
+        {
+          "type": "CONCEPT",
+          "position": 5,
+          "title": "Comment le scheduler choisit : filtrer puis noter",
+          "body": "Le placement se fait en deux étapes.\n\n1. **Filtrage** (filtering) : le scheduler élimine les nœuds qui ne conviennent pas, par exemple ceux qui n'ont pas assez de CPU ou de mémoire pour couvrir les **requests** du pod. Il reste une liste de nœuds candidats.\n2. **Notation** (scoring) : parmi les nœuds restants, chacun reçoit une note, et le pod est placé sur le nœud au meilleur score.\n\nTu peux aussi influencer ce choix :\n- **nodeSelector** : n'autorise que les nœuds portant un **label** (étiquette) donné, par exemple `disktype: ssd`.\n- **taints et tolerations** : un **taint** (marque) posé sur un nœud **repousse** les pods ; seuls les pods qui portent la **toleration** (tolérance) correspondante peuvent y être placés. C'est utile pour réserver des nœuds à certains usages."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le scheduler filtre les nœuds possibles puis les note pour choisir le meilleur",
+          "body": "/images/lessons/lordonnancement-3.jpg",
+          "position": 6
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 7,
+          "title": "Du pod en attente au nœud choisi",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart TB\n  POD[\"Pod en attente (Pending)\"] --> SCHED[\"kube-scheduler\"]\n  SCHED --> FILTER[\"Filtrage : garder les noeuds qui ont assez de ressources\"]\n  FILTER --> SCORE[\"Notation : donner une note a chaque noeud restant\"]\n  SCORE --> PICK[\"Noeud au meilleur score choisi\"]\n  PICK --> BIND[\"Pod rattache au noeud, kubelet lance les conteneurs\"]"
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "lordonnancement-check"
+        }
+      ]
+    },
+    {
+      "slug": "mise-a-lechelle",
+      "title": "La mise à l'échelle",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Ajuster le nombre de répliques",
+          "body": "La **mise à l'échelle** (scaling) consiste à adapter la capacité de ton application à la charge. La forme la plus courante est la mise à l'échelle **horizontale** : on ajoute ou on retire des **répliques** (des copies du pod) pour absorber plus ou moins de trafic.\n\nLe nombre de répliques voulu est déclaré dans un objet comme un **Deployment**. Changer ce nombre, c'est changer l'**état voulu** : Kubernetes crée ou supprime des pods pour l'atteindre."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Mettre à l'échelle, c'est ajuster le nombre de répliques du pod",
+          "body": "/images/lessons/mise-a-lechelle-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Manuel, automatique, et mise à l'échelle des nœuds",
+          "body": "Trois mécanismes à bien distinguer pour l'examen.\n\n- **Manuelle** : tu fixes toi-même le nombre de répliques avec `kubectl scale`. Simple, mais tu dois réagir à la main.\n- **HorizontalPodAutoscaler (HPA)** : ajuste **automatiquement** le nombre de répliques d'un Deployment selon une **métrique**, par exemple l'utilisation moyenne du **CPU**. Si le CPU monte, le HPA ajoute des répliques ; s'il baisse, il en retire.\n- **Cluster Autoscaler** : agit à un autre niveau. Il n'ajuste pas les pods mais le **nombre de nœuds** du cluster. Quand des pods restent en attente faute de place, il ajoute des nœuds ; quand des nœuds sont inutiles, il en retire.\n\nEn résumé : le HPA ajoute des **pods**, le Cluster Autoscaler ajoute des **nœuds**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "HPA ajoute des pods, Cluster Autoscaler ajoute des nœuds",
+          "body": "/images/lessons/mise-a-lechelle-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "L'auto-réparation vient avec",
+          "body": "La mise à l'échelle et l'**auto-réparation** (self-healing) reposent sur le même principe : le contrôleur compare l'état réel à l'état voulu et agit pour les faire coïncider.\n\nSi un pod tombe ou si un nœud disparaît, le nombre de répliques réelles descend sous l'état voulu : le contrôleur recrée les pods manquants, au besoin sur un autre nœud. Tu n'as rien à faire, le cluster converge de lui-même."
+        },
+        {
+          "type": "IMAGE",
+          "title": "L'auto-réparation recrée les pods manquants pour revenir à l'état voulu",
+          "body": "/images/lessons/mise-a-lechelle-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Mise à l'échelle manuelle puis automatique",
+          "codeLanguage": "bash",
+          "body": "# Mise a l'echelle manuelle : passer le Deployment a 5 repliques\nkubectl scale deployment web --replicas=5\n\n# Mise a l'echelle automatique : creer un HorizontalPodAutoscaler\n# entre 2 et 10 repliques, cible 70% d'utilisation CPU moyenne\nkubectl autoscale deployment web --min=2 --max=10 --cpu-percent=70\n\n# Observer les decisions du HPA au fil du temps\nkubectl get hpa"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi",
+          "body": "Une API subit des pics de trafic imprévisibles : calme la nuit, très sollicitée à des heures variables. On ne veut pas garder en permanence beaucoup de répliques (coûteux), ni intervenir à la main à chaque pic. Quel mécanisme Kubernetes mets-tu en place, sur quelle métrique, et pourquoi faut-il que les pods déclarent des **requests** CPU pour que cela fonctionne ?",
+          "solution": "On met en place un **HorizontalPodAutoscaler (HPA)** sur le Deployment de l'API. On le configure avec un minimum de répliques (par exemple 2) et un maximum (par exemple 10), et une cible d'utilisation CPU, par exemple 70%. Quand le trafic monte, le CPU moyen des pods dépasse la cible et le HPA ajoute des répliques ; quand le trafic retombe, il les retire jusqu'au minimum. C'est adapté aux pics imprévisibles car l'ajustement est automatique, sans intervention et sans surcoût permanent.\n\nPour que le HPA calcule un pourcentage d'utilisation CPU, il a besoin d'une référence : ce sont les **requests** CPU déclarées sur les conteneurs. L'utilisation est mesurée par rapport à cette valeur réservée. Sans requests CPU, le HPA ne peut pas calculer le pourcentage et ne déclenche pas la mise à l'échelle. Il faut aussi qu'un fournisseur de métriques (metrics-server) soit installé dans le cluster."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "mise-a-lechelle-check"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "node": "config-storage",
+  "lessons": [
+    {
+      "slug": "configmaps-et-secrets",
+      "title": "ConfigMaps et Secrets",
+      "position": 0,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Sortir la configuration de l'image",
+          "body": "Une **image** de conteneur devrait rester générique : la même image doit tourner en développement, en test et en production. Si tu codes en dur une URL de base de données ou un mot de passe dans l'image, tu dois reconstruire une image par environnement. Mauvaise pratique.\n\nKubernetes propose donc deux objets pour **externaliser** la configuration, c'est à dire la fournir au conteneur depuis l'extérieur de l'image :\n\n- **ConfigMap** : pour les données **non sensibles** (URL, nom de domaine, niveau de log, options de l'application).\n- **Secret** : pour les données **sensibles** (mots de passe, jetons, clés d'API, certificats).\n\nAinsi une seule image reçoit une configuration différente selon l'endroit où elle tourne."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Externaliser la configuration pour qu'une seule image serve tous les environnements",
+          "body": "/images/lessons/configmaps-et-secrets-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "Secret : encodé, pas chiffré",
+          "body": "Point crucial pour l'examen KCNA : par défaut, un **Secret n'est pas chiffré**. Ses valeurs sont seulement encodées en **base64**.\n\nLe base64 est un simple encodage de texte, réversible par n'importe qui : `echo bW90ZGVwYXNz | base64 -d` redonne la valeur en clair. Ce n'est donc **pas** de la sécurité, juste un format de transport.\n\nUn Secret reste utile car il est traité différemment d'un ConfigMap : il peut être chiffré au repos dans etcd (si l'administrateur active le chiffrement), son accès peut être restreint par les permissions (RBAC), et il n'est pas affiché par défaut dans certaines commandes. Mais il faut le **protéger** activement : ne jamais le committer dans un dépôt Git en clair, limiter qui peut le lire."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Un Secret est seulement encodé en base64, donc à protéger activement",
+          "body": "/images/lessons/configmaps-et-secrets-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "Deux façons d'injecter la configuration",
+          "body": "Un ConfigMap ou un Secret peut être fourni au conteneur de deux manières :\n\n- **Variables d'environnement** : chaque clé devient une variable d'environnement lue par l'application au démarrage. Pratique pour quelques valeurs simples.\n- **Volume monté** : le ConfigMap ou le Secret est exposé comme des **fichiers** dans un répertoire du conteneur (une clé = un fichier). Pratique pour des fichiers de config entiers ou des certificats, et un volume de Secret peut se mettre à jour sans redémarrer le pod.\n\nLe choix dépend du besoin : une poignée de réglages passe bien en variables d'environnement, un fichier de configuration complet passe mieux en volume."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Injecter la configuration par variables d'environnement ou par volume monté",
+          "body": "/images/lessons/configmaps-et-secrets-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Déclarer un ConfigMap, un Secret et les monter",
+          "codeLanguage": "yaml",
+          "body": "# ConfigMap : donnees non sensibles, en clair\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  LOG_LEVEL: \"info\"              # cle = valeur, lisible directement\n  APP_URL: \"https://skillforge.local\"\n---\n# Secret : donnees sensibles, valeurs encodees en base64\napiVersion: v1\nkind: Secret\nmetadata:\n  name: db-secret\ntype: Opaque\ndata:\n  # \"motdepasse\" encode en base64 (echo -n motdepasse | base64)\n  DB_PASSWORD: bW90ZGVwYXNzZQ==\n---\napiVersion: v1\nkind: Pod\nmetadata:\n  name: app\nspec:\n  containers:\n    - name: app\n      image: monapp:1.0\n      env:\n        - name: LOG_LEVEL             # variable d'env depuis le ConfigMap\n          valueFrom:\n            configMapKeyRef:\n              name: app-config\n              key: LOG_LEVEL\n        - name: DB_PASSWORD           # variable d'env depuis le Secret\n          valueFrom:\n            secretKeyRef:\n              name: db-secret\n              key: DB_PASSWORD\n      volumeMounts:\n        - name: config-vol            # le ConfigMap monte comme des fichiers\n          mountPath: /etc/app\n  volumes:\n    - name: config-vol\n      configMap:\n        name: app-config"
+        },
+        {
+          "type": "CODE",
+          "position": 7,
+          "title": "Vérifier les objets côté ligne de commande",
+          "codeLanguage": "bash",
+          "body": "# Creer un ConfigMap rapidement sans ecrire de YAML\nkubectl create configmap app-config \\\n  --from-literal=LOG_LEVEL=info\n\n# Creer un Secret : kubectl encode la valeur en base64 pour toi\nkubectl create secret generic db-secret \\\n  --from-literal=DB_PASSWORD=motdepasse\n\n# Lister et inspecter\nkubectl get configmaps\nkubectl get secrets\n\n# Attention : la valeur affichee reste en base64 (donc lisible apres decodage)\nkubectl get secret db-secret -o yaml"
+        },
+        {
+          "type": "DIAGRAM",
+          "position": 8,
+          "title": "Du ConfigMap/Secret vers le pod",
+          "diagramFormat": "MERMAID",
+          "body": "flowchart LR\n  CM[\"ConfigMap\\n(donnees non sensibles)\"]\n  SEC[\"Secret\\n(base64, a proteger)\"]\n  subgraph POD[\"Pod\"]\n    ENV[\"Variables\\nd'environnement\"]\n    VOL[\"Volume monte\\n(fichiers)\"]\n  end\n  CM -->|env| ENV\n  CM -->|volume| VOL\n  SEC -->|env| ENV\n  SEC -->|volume| VOL"
+        },
+        {
+          "type": "QUIZ",
+          "position": 9,
+          "title": "Vérifions",
+          "quizRef": "configmaps-et-secrets-check"
+        }
+      ]
+    },
+    {
+      "slug": "volumes-et-persistance",
+      "title": "Volumes et persistance",
+      "position": 1,
+      "sections": [
+        {
+          "type": "CONCEPT",
+          "position": 0,
+          "title": "Le conteneur oublie tout",
+          "body": "Le système de fichiers d'un conteneur est **éphémère** : dès que le conteneur est supprimé ou redémarré, tout ce qu'il a écrit dedans **disparaît**. C'est voulu, un conteneur est jetable.\n\nProblème : une base de données, un upload d'utilisateur ou un cache ont besoin de **survivre** au conteneur. C'est le rôle des **volumes**.\n\nUn **volume** est un espace de stockage rattaché au pod, en dehors du système de fichiers du conteneur. Les données qui y sont écrites survivent au redémarrage du conteneur. Certains types de volumes vont plus loin et conservent les données même après la suppression du pod : c'est la **persistance**."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le système de fichiers d'un conteneur est éphémère et tout disparaît à l'arrêt",
+          "body": "/images/lessons/volumes-et-persistance-1.jpg",
+          "position": 1
+        },
+        {
+          "type": "CONCEPT",
+          "position": 2,
+          "title": "PersistentVolume et PersistentVolumeClaim",
+          "body": "Kubernetes sépare deux rôles, ce qui tombe souvent à l'examen :\n\n- **PersistentVolume (PV)** : un morceau de stockage réel dans le cluster (un disque, un partage réseau). C'est la **ressource de stockage** disponible, gérée côté administrateur.\n- **PersistentVolumeClaim (PVC)** : une **demande de stockage** faite par un pod : « j'ai besoin de 5 Gio en lecture/écriture ». C'est le développeur qui l'écrit.\n\nKubernetes associe (il dit **lie**, bind) un PVC à un PV qui satisfait la demande. Le pod référence ensuite le **PVC**, jamais le PV directement. Cette séparation permet au développeur de demander du stockage sans connaître les détails de l'infrastructure."
+        },
+        {
+          "type": "IMAGE",
+          "title": "Le PersistentVolume fournit le stockage, le PersistentVolumeClaim le demande",
+          "body": "/images/lessons/volumes-et-persistance-2.jpg",
+          "position": 3
+        },
+        {
+          "type": "CONCEPT",
+          "position": 4,
+          "title": "StorageClass : le provisionnement dynamique",
+          "body": "Créer un PV à la main avant chaque PVC serait fastidieux. La **StorageClass** résout cela avec le **provisionnement dynamique** : quand un PVC demande du stockage en citant une StorageClass, Kubernetes **crée automatiquement** le PV correspondant à la volée.\n\nUne StorageClass décrit un **type** de stockage (par exemple « disque SSD rapide » ou « disque standard »). L'administrateur en définit plusieurs ; le développeur choisit laquelle utiliser dans son PVC. Résultat : plus besoin de préparer les disques à l'avance, le stockage est fourni à la demande."
+        },
+        {
+          "type": "IMAGE",
+          "title": "La StorageClass provisionne le stockage dynamiquement, à la demande",
+          "body": "/images/lessons/volumes-et-persistance-3.jpg",
+          "position": 5
+        },
+        {
+          "type": "CODE",
+          "position": 6,
+          "title": "Un PVC relié à une StorageClass",
+          "codeLanguage": "yaml",
+          "body": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data-pvc\nspec:\n  accessModes:\n    - ReadWriteOnce            # montable en lecture/ecriture par un seul noeud\n  storageClassName: standard   # provisionnement dynamique via cette StorageClass\n  resources:\n    requests:\n      storage: 5Gi             # on demande 5 Gio"
+        },
+        {
+          "type": "EXERCISE",
+          "position": 7,
+          "title": "À toi : stockage persistant pour une base de données",
+          "body": "Tu déploies une base de données PostgreSQL dans un pod. Ses données vivent dans le conteneur, sous `/var/lib/postgresql/data`. Chaque fois que le pod redémarre, la base repart vide, ce qui est inacceptable.\n\nDécris les objets Kubernetes à créer et écris le YAML du pod (ou du conteneur) pour que les données de la base **survivent** au redémarrage et à la suppression du pod. Explique pourquoi cela fonctionne.",
+          "solution": "Il faut un stockage persistant, donc un PersistentVolumeClaim, et le monter dans le conteneur à l'emplacement des données de PostgreSQL.\n\n1. Créer un PersistentVolumeClaim qui demande du stockage persistant :\n\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: pg-data\nspec:\n  accessModes:\n    - ReadWriteOnce\n  storageClassName: standard\n  resources:\n    requests:\n      storage: 5Gi\n\n2. Dans le pod, déclarer un volume qui pointe vers ce PVC, puis le monter sur le répertoire de données de PostgreSQL :\n\napiVersion: v1\nkind: Pod\nmetadata:\n  name: postgres\nspec:\n  containers:\n    - name: postgres\n      image: postgres:16\n      env:\n        - name: POSTGRES_PASSWORD\n          value: \"motdepasse\"\n      volumeMounts:\n        - name: pg-storage\n          mountPath: /var/lib/postgresql/data\n  volumes:\n    - name: pg-storage\n      persistentVolumeClaim:\n        claimName: pg-data\n\nPourquoi cela marche : les écritures sous /var/lib/postgresql/data ne vont plus dans le système de fichiers éphémère du conteneur, mais dans le PersistentVolume lié au PVC, qui vit en dehors du pod. Si le conteneur redémarre ou si le pod est supprimé puis recréé en référençant le même PVC, il retrouve les mêmes données. La StorageClass standard provisionne dynamiquement le PV, donc aucun disque n'a besoin d'être préparé à l'avance."
+        },
+        {
+          "type": "QUIZ",
+          "position": 8,
+          "title": "Vérifions",
+          "quizRef": "volumes-et-persistance-check"
+        }
+      ]
+    }
+  ]
+}

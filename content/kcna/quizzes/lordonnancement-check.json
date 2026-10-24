@@ -1,0 +1,43 @@
+{
+  "ref": "lordonnancement-check",
+  "node": "scheduling-scaling",
+  "lesson": "lordonnancement",
+  "title": "Quiz : L'ordonnancement",
+  "description": "Vérifie que tu comprends comment le scheduler place les pods.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Quelle valeur le scheduler utilise-t-il pour trouver un nœud ayant assez de place pour un pod ?",
+      "justification": "Les requests représentent les ressources réservées par le conteneur ; le scheduler s'en sert pour écarter les nœuds qui n'ont pas assez de capacité.",
+      "position": 0,
+      "options": [
+        { "label": "Les requests du conteneur", "correct": true, "position": 0 },
+        { "label": "Les limits du conteneur", "correct": false, "position": 1 },
+        { "label": "Le nom du pod", "correct": false, "position": 2 },
+        { "label": "Le label du Service", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Dans quel ordre le scheduler sélectionne-t-il un nœud ?",
+      "justification": "Le scheduler filtre d'abord les nœuds inadaptés, puis note les nœuds candidats restants et choisit celui au meilleur score.",
+      "position": 1,
+      "options": [
+        { "label": "D'abord le filtrage des nœuds, puis la notation", "correct": true, "position": 0 },
+        { "label": "D'abord la notation, puis le filtrage", "correct": false, "position": 1 },
+        { "label": "Il choisit toujours le premier nœud par ordre alphabétique", "correct": false, "position": 2 },
+        { "label": "Il choisit un nœud au hasard", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un taint posé sur un nœud repousse les pods, sauf ceux qui portent la toleration correspondante.",
+      "justification": "Vrai : le taint marque le nœud pour en écarter les pods ; seuls les pods munis de la toleration adaptée peuvent y être placés.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

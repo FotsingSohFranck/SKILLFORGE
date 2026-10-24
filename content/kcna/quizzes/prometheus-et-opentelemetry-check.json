@@ -1,0 +1,43 @@
+{
+  "ref": "prometheus-et-opentelemetry-check",
+  "node": "telemetry-signals",
+  "lesson": "prometheus-et-opentelemetry",
+  "title": "Quiz : Prometheus & OpenTelemetry",
+  "description": "Vérifie que tu connais le rôle de Prometheus et d'OpenTelemetry.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Comment Prometheus récupère-t-il les métriques des applications par défaut ?",
+      "justification": "Prometheus fonctionne en mode pull (scraping) : c'est lui qui va interroger régulièrement une adresse HTTP exposée par chaque application pour tirer les métriques.",
+      "position": 0,
+      "options": [
+        { "label": "Il va les récupérer lui-même en interrogeant les applications (scraping, mode pull)", "correct": true, "position": 0 },
+        { "label": "Chaque application les envoie de force à Prometheus (mode push obligatoire)", "correct": false, "position": 1 },
+        { "label": "Il lit directement la base etcd du cluster", "correct": false, "position": 2 },
+        { "label": "Il demande les métriques au kube-scheduler", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Quel est l'intérêt principal d'OpenTelemetry en tant que standard de la CNCF ?",
+      "justification": "OpenTelemetry couvre les trois signaux et, parce que c'est un standard ouvert, permet d'instrumenter le code une seule fois puis de changer d'outil d'analyse, ce qui évite l'enfermement propriétaire.",
+      "position": 1,
+      "options": [
+        { "label": "Instrumenter une fois et pouvoir changer d'outil, ce qui évite l'enfermement propriétaire", "correct": true, "position": 0 },
+        { "label": "Remplacer complètement Kubernetes", "correct": false, "position": 1 },
+        { "label": "Ne collecter que des métriques, comme Prometheus", "correct": false, "position": 2 },
+        { "label": "Supprimer le besoin de logs et de traces", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "OpenTelemetry couvre les trois signaux : métriques, logs et traces.",
+      "justification": "Vrai : contrairement à Prometheus qui se concentre sur les métriques, OpenTelemetry est un standard qui couvre les métriques, les logs et les traces.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}

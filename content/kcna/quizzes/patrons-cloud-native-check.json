@@ -1,0 +1,43 @@
+{
+  "ref": "patrons-cloud-native-check",
+  "node": "microservices-patterns",
+  "lesson": "patrons-cloud-native",
+  "title": "Quiz : Patrons cloud native",
+  "description": "Vérifie que tu as compris les 12 facteurs, le découplage, le serverless et les sondes.",
+  "questions": [
+    {
+      "type": "MCQ",
+      "prompt": "Selon la 12-factor app, où doit se trouver la configuration d'un service (URL de base, clés) ?",
+      "justification": "Le facteur de configuration externalisée impose de lire les réglages dans l'environnement, jamais de les écrire en dur dans le code, afin de changer de réglage sans reconstruire l'image.",
+      "position": 0,
+      "options": [
+        { "label": "Dans l'environnement, externalisée du code", "correct": true, "position": 0 },
+        { "label": "Écrite en dur directement dans le code source", "correct": false, "position": 1 },
+        { "label": "Dans un fichier local propre à chaque instance", "correct": false, "position": 2 },
+        { "label": "Dans les logs du conteneur", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "MCQ",
+      "prompt": "Que fait Kubernetes quand la sonde readiness (disponibilité) d'un conteneur échoue ?",
+      "justification": "La sonde readiness vérifie que le conteneur est prêt à recevoir du trafic. En cas d'échec, Kubernetes cesse de lui envoyer des requêtes sans le redémarrer ; c'est la sonde liveness qui, elle, provoque un redémarrage.",
+      "position": 1,
+      "options": [
+        { "label": "Il cesse de lui envoyer du trafic, sans le redémarrer", "correct": true, "position": 0 },
+        { "label": "Il redémarre immédiatement le conteneur", "correct": false, "position": 1 },
+        { "label": "Il supprime définitivement le pod", "correct": false, "position": 2 },
+        { "label": "Il double le nombre de répliques", "correct": false, "position": 3 }
+      ]
+    },
+    {
+      "type": "TRUE_FALSE",
+      "prompt": "Un processus sans état (stateless) facilite l'autoscaling, car toute instance en vaut une autre.",
+      "justification": "Vrai : comme aucune donnée propre à l'utilisateur n'est retenue localement, la plateforme peut ajouter ou retirer des instances librement, n'importe laquelle pouvant servir n'importe quelle requête.",
+      "position": 2,
+      "options": [
+        { "label": "Vrai", "correct": true, "position": 0 },
+        { "label": "Faux", "correct": false, "position": 1 }
+      ]
+    }
+  ]
+}
