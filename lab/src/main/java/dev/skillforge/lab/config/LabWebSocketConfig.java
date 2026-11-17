@@ -23,8 +23,12 @@ public class LabWebSocketConfig {
     public static final String TERMINAL_PATH = "/api/v1/lab/terminal";
 
     @Bean
-    public WebSocketHandler labTerminalWebSocketHandler(LabTerminalService terminals, ObjectMapper objectMapper) {
-        return new LabTerminalWebSocketHandler(terminals, objectMapper);
+    public WebSocketHandler labTerminalWebSocketHandler(LabTerminalService terminals) {
+        // Mapper dédié (une seule instance, réutilisée par le handler singleton) : sert uniquement à
+        // parser les petites trames de contrôle JSON (resize). On n'injecte pas le bean ObjectMapper
+        // car Spring Boot 4 autoconfigure un mapper Jackson 3 (tools.jackson.*), pas le Jackson 2
+        // (com.fasterxml.jackson.databind) utilisé ici.
+        return new LabTerminalWebSocketHandler(terminals, new ObjectMapper());
     }
 
     @Bean
