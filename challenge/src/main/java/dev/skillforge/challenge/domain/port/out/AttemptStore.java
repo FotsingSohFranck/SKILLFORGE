@@ -18,6 +18,9 @@ public interface AttemptStore {
     /** Charge une tentative (avec ses décisions) si elle appartient à l'apprenant, sinon vide. */
     Mono<ChallengeAttempt> findOwned(UUID attemptId, UUID learnerId);
 
+    /** Dernière tentative EN COURS de l'apprenant sur ce nœud (reprise), ou vide. */
+    Mono<ChallengeAttempt> findInProgressByLearnerAndNode(UUID learnerId, UUID nodeId);
+
     /** Enregistre la décision, met à jour l'état et le nœud courant (tentative toujours en cours). */
     Mono<Void> advance(UUID attemptId, Decision decision, SimulationState state, String currentNodeId);
 

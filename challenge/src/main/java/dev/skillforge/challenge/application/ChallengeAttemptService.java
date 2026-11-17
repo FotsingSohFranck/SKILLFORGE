@@ -10,6 +10,7 @@ import dev.skillforge.challenge.domain.model.GuidanceLevel;
 import dev.skillforge.challenge.domain.model.ScenarioNode;
 import dev.skillforge.challenge.domain.model.SimulationState;
 import dev.skillforge.challenge.domain.port.in.GetAttemptUseCase;
+import dev.skillforge.challenge.domain.port.in.ResumeAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.StartAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.SubmitDecisionUseCase;
 import dev.skillforge.challenge.domain.port.out.AttemptStore;
@@ -28,7 +29,8 @@ import java.util.UUID;
  * Orchestration des tentatives de Final Challenge : charge le scénario figé, délègue la logique pure
  * au {@link ChallengeEngine} et persiste via les stores. Le serveur fait foi (scoring côté serveur).
  */
-public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecisionUseCase, GetAttemptUseCase {
+public class ChallengeAttemptService
+        implements StartAttemptUseCase, SubmitDecisionUseCase, GetAttemptUseCase, ResumeAttemptUseCase {
 
     private final ScenarioStore scenarioStore;
     private final AttemptStore attemptStore;
@@ -51,7 +53,8 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                             ScenarioNode initial = ChallengeEngine.initialNode(def);
                             return attemptStore.create(ref.scenarioId(), ref.version(), nodeId, learnerId,
                                             initial.id(), SimulationState.empty())
-                                    .map(attempt -> AttemptView.inProgress(attempt.id(), def, initial, null));
+                                    .map(attempt -> AttemptView.inProgress(
+                                            attempt.id(), def, initial, null, List.of()));
                         }));
     }
 
@@ -82,11 +85,13 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                                             : Mono.empty();
                                     return attemptStore.complete(attemptId, decision, outcome.state(), result)
                                             .then(notifyIfPassed)
-                                            .thenReturn(AttemptView.completed(attempt.id(), def, result));
+                                            .thenReturn(AttemptView.completed(
+                                                    attempt.id(), def, result, ChallengeEngine.history(def, all)));
                                 }
                                 GuidanceLevel guidance = ChallengeEngine.guidance(def, all, outcome.state());
                                 return attemptStore.advance(attemptId, decision, outcome.state(), outcome.nextNode().id())
-                                        .thenReturn(AttemptView.inProgress(attempt.id(), def, outcome.nextNode(), guidance));
+                                        .thenReturn(AttemptView.inProgress(attempt.id(), def, outcome.nextNode(),
+                                                guidance, ChallengeEngine.history(def, all)));
                             });
                 });
     }
@@ -98,11 +103,27 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                         .findByRef(attempt.scenario().scenarioId(), attempt.scenario().version())
                         .switchIfEmpty(Mono.error(new NotFoundException(
                                 "SCENARIO_NOT_FOUND", "Scénario de la tentative introuvable.")))
-                        .map(def -> attempt.status() == AttemptStatus.COMPLETED
-                                ? AttemptView.completed(attempt.id(), def, attempt.result())
-                                : AttemptView.inProgress(attempt.id(), def,
-                                        ChallengeEngine.nodeById(def, attempt.currentNodeId()),
-                                        ChallengeEngine.guidance(def, attempt.decisions(), attempt.state()))));
+                        .map(def -> toView(attempt, def)));
+    }
+
+    @Override
+    public Mono<AttemptView> currentForNode(UUID learnerId, UUID nodeId) {
+        return attemptStore.findInProgressByLearnerAndNode(learnerId, nodeId)
+                .flatMap(attempt -> scenarioStore
+                        .findByRef(attempt.scenario().scenarioId(), attempt.scenario().version())
+                        .map(def -> toView(attempt, def)));
+    }
+
+    /** Projette une tentative chargée (en cours ou terminée) en vue, historique inclus. */
+    private AttemptView toView(dev.skillforge.challenge.domain.model.ChallengeAttempt attempt,
+                               dev.skillforge.challenge.domain.model.ScenarioDefinition def) {
+        var history = ChallengeEngine.history(def, attempt.decisions());
+        if (attempt.status() == AttemptStatus.COMPLETED) {
+            return AttemptView.completed(attempt.id(), def, attempt.result(), history);
+        }
+        return AttemptView.inProgress(attempt.id(), def,
+                ChallengeEngine.nodeById(def, attempt.currentNodeId()),
+                ChallengeEngine.guidance(def, attempt.decisions(), attempt.state()), history);
     }
 
     private Mono<dev.skillforge.challenge.domain.model.ChallengeAttempt> ownedAttempt(UUID attemptId, UUID learnerId) {

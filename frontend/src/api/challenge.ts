@@ -44,6 +44,15 @@ export interface ChallengeResultView {
 
 export type AttemptStatus = 'IN_PROGRESS' | 'COMPLETED'
 
+/** Entrée du journal de mission (révision) : décision déjà prise, enrichie des libellés. */
+export interface DecisionReview {
+  seq: number
+  nodeId: string
+  nodeTitle: string
+  choiceId: string
+  choiceLabel: string
+}
+
 /** Vue d'une tentative : nœud courant (en cours) ou rapport (terminée). Jamais de correction. */
 export interface Attempt {
   attemptId: string
@@ -52,6 +61,7 @@ export interface Attempt {
   objective: string | null
   node: NodeView | null
   guidance: GuidanceLevel | null
+  history: DecisionReview[]
   result: ChallengeResultView | null
 }
 
@@ -63,6 +73,11 @@ export function getChallengeInfo(nodeId: string): Promise<ChallengeInfo> {
 /** Démarre une tentative sur le nœud (scénario publié). */
 export function startChallenge(nodeId: string): Promise<Attempt> {
   return apiFetch<Attempt>('POST', '/final-challenges/attempts', { nodeId })
+}
+
+/** Tentative EN COURS de l'apprenant sur ce nœud (reprise), ou null. */
+export function getCurrentAttempt(nodeId: string): Promise<Attempt | null> {
+  return apiFetch<Attempt | null>('GET', `/final-challenges/nodes/${nodeId}/current-attempt`)
 }
 
 /** Lit l'état courant d'une tentative. */

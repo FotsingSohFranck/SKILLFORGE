@@ -6,6 +6,7 @@ import dev.skillforge.challenge.domain.model.CompetencyScore;
 import dev.skillforge.challenge.domain.model.CriticalCondition;
 import dev.skillforge.challenge.domain.model.Decision;
 import dev.skillforge.challenge.domain.model.DecisionOutcome;
+import dev.skillforge.challenge.domain.model.DecisionReview;
 import dev.skillforge.challenge.domain.model.GuidanceLevel;
 import dev.skillforge.challenge.domain.model.ScenarioDefinition;
 import dev.skillforge.challenge.domain.model.ScenarioNode;
@@ -156,6 +157,28 @@ public final class ChallengeEngine {
             return GuidanceLevel.A_SURVEILLER;
         }
         return GuidanceLevel.DEFAVORABLE;
+    }
+
+    /**
+     * Reconstruit l'historique lisible des décisions (révision) : titre du nœud + libellé du choix.
+     * N'expose que des informations déjà choisies par l'apprenant (aucune correction).
+     */
+    public static List<DecisionReview> history(ScenarioDefinition def, List<Decision> decisions) {
+        if (decisions == null || decisions.isEmpty()) {
+            return List.of();
+        }
+        List<DecisionReview> review = new ArrayList<>(decisions.size());
+        for (Decision d : decisions) {
+            String nodeTitle = def.nodes().stream()
+                    .filter(n -> n.id().equals(d.nodeId())).findFirst()
+                    .map(ScenarioNode::title).orElse(d.nodeId());
+            String choiceLabel = def.nodes().stream()
+                    .filter(n -> n.id().equals(d.nodeId())).findFirst()
+                    .flatMap(n -> n.choices().stream().filter(c -> c.id().equals(d.choiceId())).findFirst())
+                    .map(Choice::label).orElse(d.choiceId());
+            review.add(new DecisionReview(d.seq(), d.nodeId(), nodeTitle, d.choiceId(), choiceLabel));
+        }
+        return review;
     }
 
     private static int scoreOf(Choice choice, String competency) {

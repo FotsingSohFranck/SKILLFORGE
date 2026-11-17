@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   type Attempt,
+  type DecisionReview,
   type GuidanceLevel,
+  getCurrentAttempt,
   startChallenge,
   submitDecision,
 } from '../api/challenge'
@@ -11,11 +13,6 @@ import { Button } from '../components/Button'
 import styles from './FinalChallengePage.module.css'
 
 type Phase = 'loading' | 'error' | 'briefing' | 'playing' | 'result'
-
-interface LogEntry {
-  node: string
-  choice: string
-}
 
 const GUIDANCE: Record<GuidanceLevel, { label: string; tone: string }> = {
   FAVORABLE: { label: 'Trajectoire favorable', tone: 'favorable' },
@@ -29,14 +26,37 @@ export function FinalChallengePage() {
   const [phase, setPhase] = useState<Phase>('loading')
   const [attempt, setAttempt] = useState<Attempt | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
-  const [log, setLog] = useState<LogEntry[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const started = useRef(false)
 
   function begin() {
     setPhase('loading')
-    setLog([])
+    setSelected(null)
+    setAttempt(null)
+    setError(null)
+    // Reprise d'une tentative en cours si elle existe ; sinon on en démarre une nouvelle.
+    getCurrentAttempt(nodeId)
+      .then((existing) => {
+        if (existing && existing.status === 'IN_PROGRESS' && existing.node) {
+          setAttempt(existing)
+          setPhase('playing')
+          return
+        }
+        return startChallenge(nodeId).then((a) => {
+          setAttempt(a)
+          setPhase('briefing')
+        })
+      })
+      .catch((e) => {
+        setError(e instanceof ApiError ? e.message : 'Impossible de démarrer le Final Challenge.')
+        setPhase('error')
+      })
+  }
+
+  // On ne rejoue pas la reprise : on force une nouvelle tentative (bouton « Rejouer »).
+  function replay() {
+    setPhase('loading')
     setSelected(null)
     setAttempt(null)
     setError(null)
@@ -46,7 +66,7 @@ export function FinalChallengePage() {
         setPhase('briefing')
       })
       .catch((e) => {
-        setError(e instanceof ApiError ? e.message : 'Impossible de démarrer le Final Challenge.')
+        setError(e instanceof ApiError ? e.message : 'Impossible de relancer le Final Challenge.')
         setPhase('error')
       })
   }
@@ -60,13 +80,10 @@ export function FinalChallengePage() {
 
   async function choose() {
     if (!attempt?.node || !selected || submitting) return
-    const chosen = attempt.node.choices.find((c) => c.id === selected)
-    const nodeTitle = attempt.node.title
     setSubmitting(true)
     setError(null)
     try {
       const next = await submitDecision(attempt.attemptId, selected)
-      setLog((l) => [...l, { node: nodeTitle, choice: chosen?.label ?? selected }])
       setAttempt(next)
       setSelected(null)
       setPhase(next.status === 'COMPLETED' ? 'result' : 'playing')
@@ -85,6 +102,8 @@ export function FinalChallengePage() {
       : attempt?.guidance
         ? GUIDANCE[attempt.guidance].tone
         : 'neutral'
+
+  const history = attempt?.history ?? []
 
   return (
     <div className={styles.stage} data-tone={tone}>
@@ -126,7 +145,7 @@ export function FinalChallengePage() {
                 ← Quitter
               </button>
               <GuidancePill guidance={attempt.guidance} />
-              <span className={styles.counter}>Décision {log.length + 1}</span>
+              <span className={styles.counter}>Décision {history.length + 1}</span>
             </header>
 
             <section className={styles.scene} aria-live="polite">
@@ -164,28 +183,12 @@ export function FinalChallengePage() {
               </div>
             </section>
 
-            {log.length > 0 && (
-              <aside className={styles.journal} aria-label="Journal de mission">
-                <h3 className={styles.journalTitle}>Journal de mission</h3>
-                <ol className={styles.journalList}>
-                  {log.map((e, i) => (
-                    <li key={i} className={styles.journalItem}>
-                      <span className={styles.journalNode}>{e.node}</span>
-                      <span className={styles.journalChoice}>{e.choice}</span>
-                    </li>
-                  ))}
-                </ol>
-              </aside>
-            )}
+            {history.length > 0 && <Journal history={history} />}
           </div>
         )}
 
         {phase === 'result' && attempt?.result && (
-          <Report
-            result={attempt.result}
-            onReplay={begin}
-            onBack={() => navigate(`/nodes/${nodeId}`)}
-          />
+          <Report attempt={attempt} onReplay={replay} onBack={() => navigate(`/nodes/${nodeId}`)} />
         )}
       </div>
     </div>
@@ -202,15 +205,32 @@ function GuidancePill({ guidance }: { guidance: GuidanceLevel | null }) {
   )
 }
 
+function Journal({ history }: { history: DecisionReview[] }) {
+  return (
+    <aside className={styles.journal} aria-label="Journal de mission">
+      <h3 className={styles.journalTitle}>Journal de mission</h3>
+      <ol className={styles.journalList}>
+        {history.map((e) => (
+          <li key={e.seq} className={styles.journalItem}>
+            <span className={styles.journalNode}>{e.nodeTitle}</span>
+            <span className={styles.journalChoice}>{e.choiceLabel}</span>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  )
+}
+
 function Report({
-  result,
+  attempt,
   onReplay,
   onBack,
 }: {
-  result: NonNullable<Attempt['result']>
+  attempt: Attempt
   onReplay: () => void
   onBack: () => void
 }) {
+  const result = attempt.result!
   const verdict = result.eliminated
     ? { label: 'Mission compromise', tone: 'defavorable', note: 'Une condition éliminatoire a été déclenchée.' }
     : result.passed
@@ -246,6 +266,20 @@ function Report({
         <p className={styles.critical}>
           Conditions éliminatoires : {result.triggeredCritical.join(', ')}
         </p>
+      )}
+
+      {attempt.history.length > 0 && (
+        <section className={styles.review}>
+          <h3 className={styles.competenciesTitle}>Révision des décisions</h3>
+          <ol className={styles.journalList}>
+            {attempt.history.map((e) => (
+              <li key={e.seq} className={styles.journalItem}>
+                <span className={styles.journalNode}>{e.nodeTitle}</span>
+                <span className={styles.journalChoice}>{e.choiceLabel}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
       )}
 
       <div className={styles.actions}>

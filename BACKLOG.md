@@ -1700,9 +1700,19 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     - Glass + ambiance teintée par la tendance ; **a11y** : couleur ≠ seul signal (libellé+pastille),
       `prefers-reduced-motion`, boutons au clavier, responsive mobile. Entrée ajoutée sur `NodePage`.
     - Typecheck TS + build Vite verts. (Captures de bout en bout à la présentation finale.)
-  - ⬜ **SF-92d — Révision & reprise** : revenir sur une décision **sans réécrire
-    l'historique**, conséquences persistantes/irréversibles, **reprise de session**
-    interrompue. Couvre **AC-11, AC-12**.
+  - ✅ **SF-92d — Révision & reprise** — **TERMINÉ** (AC-11, AC-12)
+    - **Reprise (AC-12)** : `ResumeAttemptUseCase.currentForNode` +
+      `AttemptStore.findInProgressByLearnerAndNode` (dernière tentative EN COURS, triée par
+      `started_at`). Endpoint apprenant `GET /final-challenges/nodes/{id}/current-attempt`
+      (data null si aucune). La page reprend automatiquement la tentative en cours au montage,
+      sinon en démarre une nouvelle.
+    - **Révision (AC-11)** : historique immuable exposé — `DecisionReview` (seq, nœud, libellé
+      choisi) reconstruit via `ChallengeEngine.history` et porté par `AttemptView.history`
+      dans **toutes** les vues (start/submit/get/resume). Journal de mission + section
+      « Révision des décisions » sur le rapport, alimentés par le serveur (source de vérité).
+      Décisions **irréversibles** : aucun undo/réécriture (conséquences persistantes).
+    - Tests : reprise (en cours → cloturée) + assertion d'historique. Challenge **32 tests**
+      verts ; typecheck TS + build Vite verts.
   - ⬜ **SF-92e — Retour aux cours & modes** : panneau de consultation des cours en gardant
     le contexte ; distinction **mode formatif / certificatif** (règles annoncées avant
     lancement). Couvre **AC-10**.

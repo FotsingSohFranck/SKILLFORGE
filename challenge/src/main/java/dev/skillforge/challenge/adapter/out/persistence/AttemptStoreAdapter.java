@@ -49,33 +49,54 @@ public class AttemptStoreAdapter implements AttemptStore {
                         AttemptStatus.IN_PROGRESS, currentNodeId, initialState, List.of(), null));
     }
 
+    private static final String SELECT_COLUMNS = """
+            SELECT id, scenario_id, scenario_version, node_id, learner_id, status,
+                   current_node_id, state::text AS state, result::text AS result
+            FROM challenge_attempts
+            """;
+
     @Override
     public Mono<ChallengeAttempt> findOwned(UUID attemptId, UUID learnerId) {
-        return db.sql("""
-                        SELECT id, scenario_id, scenario_version, node_id, learner_id, status,
-                               current_node_id, state::text AS state, result::text AS result
-                        FROM challenge_attempts
-                        WHERE id = :id AND learner_id = :learner
-                        """)
+        return db.sql(SELECT_COLUMNS + " WHERE id = :id AND learner_id = :learner")
                 .bind("id", attemptId)
                 .bind("learner", learnerId)
-                .map((row, meta) -> new AttemptRow(
-                        row.get("id", UUID.class),
-                        row.get("scenario_id", UUID.class),
-                        row.get("scenario_version", Integer.class),
-                        row.get("node_id", UUID.class),
-                        row.get("learner_id", UUID.class),
-                        AttemptStatus.valueOf(row.get("status", String.class)),
-                        row.get("current_node_id", String.class),
-                        row.get("state", String.class),
-                        row.get("result", String.class)))
+                .map((row, meta) -> mapRow(row))
                 .one()
-                .flatMap(r -> decisions(attemptId).map(decisions -> new ChallengeAttempt(
-                        r.id(), new ScenarioRef(r.scenarioId(), r.version()), r.nodeId(), r.learnerId(),
-                        r.status(), r.currentNodeId(),
-                        ChallengeJson.read(r.state(), SimulationState.class),
-                        decisions,
-                        r.result() == null ? null : ChallengeJson.read(r.result(), ChallengeResult.class))));
+                .flatMap(this::hydrate);
+    }
+
+    @Override
+    public Mono<ChallengeAttempt> findInProgressByLearnerAndNode(UUID learnerId, UUID nodeId) {
+        return db.sql(SELECT_COLUMNS
+                        + " WHERE learner_id = :learner AND node_id = :node AND status = 'IN_PROGRESS'"
+                        + " ORDER BY started_at DESC LIMIT 1")
+                .bind("learner", learnerId)
+                .bind("node", nodeId)
+                .map((row, meta) -> mapRow(row))
+                .one()
+                .flatMap(this::hydrate);
+    }
+
+    private Mono<ChallengeAttempt> hydrate(AttemptRow r) {
+        return decisions(r.id()).map(decisions -> new ChallengeAttempt(
+                r.id(), new ScenarioRef(r.scenarioId(), r.version()), r.nodeId(), r.learnerId(),
+                r.status(), r.currentNodeId(),
+                ChallengeJson.read(r.state(), SimulationState.class),
+                decisions,
+                r.result() == null ? null : ChallengeJson.read(r.result(), ChallengeResult.class)));
+    }
+
+    private static AttemptRow mapRow(io.r2dbc.spi.Readable row) {
+        return new AttemptRow(
+                row.get("id", UUID.class),
+                row.get("scenario_id", UUID.class),
+                row.get("scenario_version", Integer.class),
+                row.get("node_id", UUID.class),
+                row.get("learner_id", UUID.class),
+                AttemptStatus.valueOf(row.get("status", String.class)),
+                row.get("current_node_id", String.class),
+                row.get("state", String.class),
+                row.get("result", String.class));
     }
 
     private Mono<List<Decision>> decisions(UUID attemptId) {

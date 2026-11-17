@@ -7,6 +7,7 @@ import dev.skillforge.challenge.domain.model.ChallengeInfo;
 import dev.skillforge.challenge.domain.port.in.GetAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.GetChallengeInfoUseCase;
 import dev.skillforge.challenge.domain.port.in.ImportScenarioUseCase;
+import dev.skillforge.challenge.domain.port.in.ResumeAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.StartAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.SubmitDecisionUseCase;
 import dev.skillforge.common.error.BusinessRuleException;
@@ -65,6 +66,8 @@ class ChallengeAttemptIntegrationTest {
     @Autowired
     GetChallengeInfoUseCase challengeInfo;
     @Autowired
+    ResumeAttemptUseCase resumeAttempt;
+    @Autowired
     CapturingChallengeEventListener capturedEvents;
 
     @Test
@@ -88,6 +91,9 @@ class ChallengeAttemptIntegrationTest {
         assertNotNull(done.result());
         assertTrue(done.result().passed());
         assertEquals(100, done.result().globalScore());
+        // Révision : l'historique conserve la décision prise.
+        assertEquals(1, done.history().size());
+        assertEquals("c1", done.history().get(0).choiceId());
 
         AttemptView reread = getAttempt.get(learner, attemptId).block();
         assertEquals(AttemptStatus.COMPLETED, reread.status());
@@ -121,6 +127,23 @@ class ChallengeAttemptIntegrationTest {
 
         assertThrows(NotFoundException.class,
                 () -> getAttempt.get(other, started.attemptId()).block());
+    }
+
+    @Test
+    void reprise_retourne_la_tentative_en_cours_puis_rien_apres_cloture() {
+        UUID node = UUID.randomUUID();
+        importScenario.importScenario(ScenarioFixtures.valid("resume-node", node)).block();
+        UUID learner = UUID.randomUUID();
+
+        AttemptView started = startAttempt.start(learner, node).block();
+        AttemptView current = resumeAttempt.currentForNode(learner, node).block();
+        assertNotNull(current);
+        assertEquals(started.attemptId(), current.attemptId());
+        assertEquals(AttemptStatus.IN_PROGRESS, current.status());
+
+        submitDecision.submit(learner, started.attemptId(), "c1").block();
+        // Terminée : plus rien à reprendre.
+        assertEquals(null, resumeAttempt.currentForNode(learner, node).block());
     }
 
     @Test

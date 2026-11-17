@@ -4,6 +4,7 @@ import dev.skillforge.challenge.domain.model.AttemptView;
 import dev.skillforge.challenge.domain.model.ChallengeResult;
 import dev.skillforge.challenge.domain.model.ChoiceView;
 import dev.skillforge.challenge.domain.model.CompetencyScore;
+import dev.skillforge.challenge.domain.model.DecisionReview;
 import dev.skillforge.challenge.domain.model.NodeView;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public record AttemptDto(
         String objective,
         NodeDto node,
         String guidance,
+        List<DecisionReviewDto> history,
         ResultDto result) {
 
     public static AttemptDto from(AttemptView view) {
@@ -30,7 +32,16 @@ public record AttemptDto(
                 view.objective(),
                 view.node() == null ? null : NodeDto.from(view.node()),
                 view.guidance() == null ? null : view.guidance().name(),
+                (view.history() == null ? List.<DecisionReview>of() : view.history())
+                        .stream().map(DecisionReviewDto::from).toList(),
                 view.result() == null ? null : ResultDto.from(view.result()));
+    }
+
+    public record DecisionReviewDto(int seq, String nodeId, String nodeTitle,
+                                    String choiceId, String choiceLabel) {
+        static DecisionReviewDto from(DecisionReview r) {
+            return new DecisionReviewDto(r.seq(), r.nodeId(), r.nodeTitle(), r.choiceId(), r.choiceLabel());
+        }
     }
 
     public record NodeDto(
