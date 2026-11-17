@@ -6,6 +6,7 @@ import dev.skillforge.challenge.domain.model.CompetencyScore;
 import dev.skillforge.challenge.domain.model.CriticalCondition;
 import dev.skillforge.challenge.domain.model.Decision;
 import dev.skillforge.challenge.domain.model.DecisionOutcome;
+import dev.skillforge.challenge.domain.model.GuidanceLevel;
 import dev.skillforge.challenge.domain.model.ScenarioDefinition;
 import dev.skillforge.challenge.domain.model.ScenarioNode;
 import dev.skillforge.challenge.domain.model.SimulationState;
@@ -132,6 +133,29 @@ public final class ChallengeEngine {
         boolean passed = !eliminated && global >= def.passThreshold();
         boolean reinforce = !passed && !eliminated && global >= def.renforceThreshold();
         return new ChallengeResult(global, passed, reinforce, eliminated, competencyScores, triggered);
+    }
+
+    /**
+     * Indicateur de tendance (SF-92b) calculé sur les décisions déjà prises et l'état courant :
+     * réutilise le scoring partiel et le mappe sur 3 niveaux via les seuils du scénario. Ne révèle
+     * pas la correction du prochain choix. {@code null} tant qu'aucune décision n'a été prise.
+     */
+    public static GuidanceLevel guidance(ScenarioDefinition def, List<Decision> decisionsSoFar,
+                                         SimulationState currentState) {
+        if (decisionsSoFar == null || decisionsSoFar.isEmpty()) {
+            return null;
+        }
+        ChallengeResult running = score(def, decisionsSoFar, currentState);
+        if (running.eliminated()) {
+            return GuidanceLevel.DEFAVORABLE;
+        }
+        if (running.globalScore() >= def.passThreshold()) {
+            return GuidanceLevel.FAVORABLE;
+        }
+        if (running.globalScore() >= def.renforceThreshold()) {
+            return GuidanceLevel.A_SURVEILLER;
+        }
+        return GuidanceLevel.DEFAVORABLE;
     }
 
     private static int scoreOf(Choice choice, String competency) {

@@ -6,6 +6,7 @@ import dev.skillforge.challenge.domain.model.AttemptView;
 import dev.skillforge.challenge.domain.model.ChallengeResult;
 import dev.skillforge.challenge.domain.model.Decision;
 import dev.skillforge.challenge.domain.model.DecisionOutcome;
+import dev.skillforge.challenge.domain.model.GuidanceLevel;
 import dev.skillforge.challenge.domain.model.ScenarioNode;
 import dev.skillforge.challenge.domain.model.SimulationState;
 import dev.skillforge.challenge.domain.port.in.GetAttemptUseCase;
@@ -50,7 +51,7 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                             ScenarioNode initial = ChallengeEngine.initialNode(def);
                             return attemptStore.create(ref.scenarioId(), ref.version(), nodeId, learnerId,
                                             initial.id(), SimulationState.empty())
-                                    .map(attempt -> AttemptView.inProgress(attempt.id(), def, initial));
+                                    .map(attempt -> AttemptView.inProgress(attempt.id(), def, initial, null));
                         }));
     }
 
@@ -70,10 +71,10 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                                         def, attempt.state(), attempt.currentNodeId(), choiceId);
                                 Decision decision = new Decision(
                                         attempt.decisions().size() + 1, attempt.currentNodeId(), choiceId);
+                                List<Decision> all = new ArrayList<>(attempt.decisions());
+                                all.add(decision);
 
                                 if (outcome.terminal()) {
-                                    List<Decision> all = new ArrayList<>(attempt.decisions());
-                                    all.add(decision);
                                     ChallengeResult result = ChallengeEngine.score(def, all, outcome.state());
                                     Mono<Void> notifyIfPassed = result.passed()
                                             ? events.publish(new FinalChallengePassedEvent(
@@ -83,8 +84,9 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                                             .then(notifyIfPassed)
                                             .thenReturn(AttemptView.completed(attempt.id(), def, result));
                                 }
+                                GuidanceLevel guidance = ChallengeEngine.guidance(def, all, outcome.state());
                                 return attemptStore.advance(attemptId, decision, outcome.state(), outcome.nextNode().id())
-                                        .thenReturn(AttemptView.inProgress(attempt.id(), def, outcome.nextNode()));
+                                        .thenReturn(AttemptView.inProgress(attempt.id(), def, outcome.nextNode(), guidance));
                             });
                 });
     }
@@ -99,7 +101,8 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                         .map(def -> attempt.status() == AttemptStatus.COMPLETED
                                 ? AttemptView.completed(attempt.id(), def, attempt.result())
                                 : AttemptView.inProgress(attempt.id(), def,
-                                        ChallengeEngine.nodeById(def, attempt.currentNodeId()))));
+                                        ChallengeEngine.nodeById(def, attempt.currentNodeId()),
+                                        ChallengeEngine.guidance(def, attempt.decisions(), attempt.state()))));
     }
 
     private Mono<dev.skillforge.challenge.domain.model.ChallengeAttempt> ownedAttempt(UUID attemptId, UUID learnerId) {

@@ -7,6 +7,7 @@ import dev.skillforge.challenge.domain.model.Decision;
 import dev.skillforge.challenge.domain.model.DecisionOutcome;
 import dev.skillforge.challenge.domain.model.Effect;
 import dev.skillforge.challenge.domain.model.EffectOp;
+import dev.skillforge.challenge.domain.model.GuidanceLevel;
 import dev.skillforge.challenge.domain.model.InteractionType;
 import dev.skillforge.challenge.domain.model.ScenarioDefinition;
 import dev.skillforge.challenge.domain.model.ScenarioNode;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,6 +79,32 @@ class ChallengeEngineTest {
     }
 
     @Test
+    void guidage_absent_avant_toute_decision() {
+        assertNull(ChallengeEngine.guidance(scenario, List.of(), SimulationState.empty()));
+    }
+
+    @Test
+    void guidage_favorable_sur_un_bon_choix() {
+        DecisionOutcome out = ChallengeEngine.decide(scenario, SimulationState.empty(), "n1", "good");
+        assertEquals(GuidanceLevel.FAVORABLE,
+                ChallengeEngine.guidance(scenario, List.of(new Decision(1, "n1", "good")), out.state()));
+    }
+
+    @Test
+    void guidage_a_surveiller_sur_un_choix_moyen() {
+        DecisionOutcome out = ChallengeEngine.decide(scenario, SimulationState.empty(), "n1", "medium");
+        assertEquals(GuidanceLevel.A_SURVEILLER,
+                ChallengeEngine.guidance(scenario, List.of(new Decision(1, "n1", "medium")), out.state()));
+    }
+
+    @Test
+    void guidage_defavorable_sur_une_condition_eliminatoire() {
+        DecisionOutcome out = ChallengeEngine.decide(scenario, SimulationState.empty(), "n1", "risky");
+        assertEquals(GuidanceLevel.DEFAVORABLE,
+                ChallengeEngine.guidance(scenario, List.of(new Decision(1, "n1", "risky")), out.state()));
+    }
+
+    @Test
     void choix_inexistant_est_rejete() {
         assertThrows(BusinessRuleException.class,
                 () -> ChallengeEngine.decide(scenario, SimulationState.empty(), "n1", "inconnu"));
@@ -90,10 +118,11 @@ class ChallengeEngineTest {
 
     private static ScenarioDefinition scenario() {
         Choice good = new Choice("good", "Choix sûr", Map.of("a", 10), List.of(), "sûr");
+        Choice medium = new Choice("medium", "Choix moyen", Map.of("a", 7), List.of(), "moyen");
         Choice risky = new Choice("risky", "Choix risqué", Map.of("a", 5),
                 List.of(new Effect("danger", EffectOp.SET, 5)), "risqué");
         ScenarioNode n1 = new ScenarioNode("n1", "Décision", "contexte", "événement",
-                InteractionType.SINGLE_CHOICE, List.of("a"), List.of(good, risky),
+                InteractionType.SINGLE_CHOICE, List.of("a"), List.of(good, medium, risky),
                 List.of(new TransitionRule("danger >= 5", "bad-end"),
                         new TransitionRule("default", "good-end")), false);
         ScenarioNode goodEnd = terminal("good-end");

@@ -1686,9 +1686,12 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       - Reprise/rejeu : déjà couverts par a2-1 (chaque `start` crée une tentative ; `GET`+`decisions`
         reprend une tentative en cours ; versions figées => immuabilité).
       - Tests : +4 cas de gating challenge (unitaires) + IT (émission d'événement capturée).
-  - ⬜ **SF-92b — Guidance Engine** : indicateur directionnel 3 états (favorable/à
-    surveiller/défavorable) calculé sur l'**état global**, **sans révéler** la réponse
-    (couleur = tendance, pas correction). Couvre **AC-08, AC-09**.
+  - ✅ **SF-92b — Guidance Engine** — **TERMINÉ** (backend)
+    - `GuidanceLevel` (FAVORABLE / A_SURVEILLER / DEFAVORABLE), `ChallengeEngine.guidance(...)` :
+      réutilise le scoring **partiel** sur les décisions déjà prises + état courant, mappé sur 3
+      niveaux via les seuils ; condition éliminatoire en cours ⇒ DEFAVORABLE ; `null` avant toute
+      décision. Exposé dans `AttemptDto.guidance` (tendance, **jamais** la correction du prochain choix).
+    - Couvre **AC-08, AC-09**. Le rendu couleur/accessibilité relève de l'UI (SF-92c).
   - ⬜ **SF-92c — UI immersive (front)** : écran de simulation (en-tête mission, contexte,
     événement, décision, indicateurs, **journal de mission**), glassmorphism/ambiance
     évolutive, **a11y** (couleur ≠ seul signal, reduced-motion, clavier, mobile).

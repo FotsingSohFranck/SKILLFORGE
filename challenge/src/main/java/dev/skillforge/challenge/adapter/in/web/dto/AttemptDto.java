@@ -19,6 +19,7 @@ public record AttemptDto(
         String briefing,
         String objective,
         NodeDto node,
+        String guidance,
         ResultDto result) {
 
     public static AttemptDto from(AttemptView view) {
@@ -28,6 +29,7 @@ public record AttemptDto(
                 view.briefing(),
                 view.objective(),
                 view.node() == null ? null : NodeDto.from(view.node()),
+                view.guidance() == null ? null : view.guidance().name(),
                 view.result() == null ? null : ResultDto.from(view.result()));
     }
 

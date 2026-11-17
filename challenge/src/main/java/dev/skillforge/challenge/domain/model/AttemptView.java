@@ -12,15 +12,17 @@ public record AttemptView(
         String briefing,
         String objective,
         NodeView node,
+        GuidanceLevel guidance,
         ChallengeResult result) {
 
-    public static AttemptView inProgress(UUID attemptId, ScenarioDefinition def, ScenarioNode node) {
+    public static AttemptView inProgress(UUID attemptId, ScenarioDefinition def, ScenarioNode node,
+                                         GuidanceLevel guidance) {
         return new AttemptView(attemptId, AttemptStatus.IN_PROGRESS,
-                def.briefing(), def.objective(), NodeView.of(node), null);
+                def.briefing(), def.objective(), NodeView.of(node), guidance, null);
     }
 
     public static AttemptView completed(UUID attemptId, ScenarioDefinition def, ChallengeResult result) {
         return new AttemptView(attemptId, AttemptStatus.COMPLETED,
-                def.briefing(), def.objective(), null, result);
+                def.briefing(), def.objective(), null, null, result);
     }
 }
