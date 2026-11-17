@@ -1587,7 +1587,13 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
         Front : `LabTerminal` (xterm.js + addon fit) dans le panneau pratique ; nginx proxifie l'upgrade WS.
       - **Bornage** : plafond de concurrence `skillforge.lab.max-terminals` (défaut 2), conteneur
         arrêté à la fermeture/déconnexion (+ reaper TTL), opt-in Docker via `docker-compose.lab.yml`.
-      - À vérifier bout-en-bout (shell interactif + resize) après rebuild avec l'override lab.
+      - **Vérifié bout-en-bout** en navigateur (shell interactif, I/O, non-root uid 1000, racine
+        read-only, réseau coupé, resize, fermeture propre du conteneur), avec correctifs d'intégration
+        (Jackson 3, transport docker-java `zerodep`, buffer Netty décodé sur le thread d'émission).
+      - **Garde-fou de régression** : `LabTerminalContextIntegrationTest` (Tier A) démarre le contexte
+        `lab` (serveur WebFlux réel, sans Docker ni base) et vérifie le câblage du terminal — aurait
+        bloqué au build le bug « APPLICATION FAILED TO START » (bean `ObjectMapper` absent). Le Tier B
+        (round-trip WS + PTY contre un vrai conteneur) reste à faire, cf. dette docker-java/Testcontainers.
     - ✅ **SF-91g — Contenu pilote** — **TERMINÉ**
       - **Image lab** `lab-images/backend/` → `skillforge-lab-backend:pilot`
         (`maven:3.9-eclipse-temurin-21`, dépôt `.m2` préchauffé pour tourner hors-ligne, grader
@@ -1647,3 +1653,12 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
 - [ ] **Lab (SF-91g)** : images de lab lourdes (Maven/JDK ~560 Mo) et ~12 s par correction ;
       si plus de tâches/concurrence, préchauffer davantage et/ou limiter le nombre de corrections
       simultanées (file d'attente). Les autres familles (infra) = SF-91h.
+- [ ] **Lab (SF-91f)** : **docker-java 3.4.0 ↔ Testcontainers 2.0.5 incompatibles**. Notre pin direct
+      `docker-java-core/zerodep:3.4.0` rabote `docker-java-api` à 3.4.0, qui n'a pas `ImageHistoryCmd`
+      (présent en 3.7.1, version exigée par Testcontainers 2.0.5 tiré par le BOM Spring Boot 4.1).
+      ⇒ impossible d'utiliser Testcontainers dans le module `lab` tant que docker-java n'est pas bumpé
+      à 3.7.1 (et le terminal re-vérifié E2E). Bloquant pour un **Tier B** du test de fumée basé sur
+      Testcontainers (un Tier B pilotant le démon Docker local directement resterait possible).
+- [ ] **Lab (SF-91f)** : bean `webSocketHandlerAdapter` dans `LabWebSocketConfig` **redondant** avec
+      l'autoconfig Spring Boot (`webFluxWebSocketHandlerAdapter`). À supprimer (vérifier que le
+      handshake WS fonctionne toujours via l'adaptateur autoconfiguré).
