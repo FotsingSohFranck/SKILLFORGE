@@ -1713,9 +1713,17 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       Décisions **irréversibles** : aucun undo/réécriture (conséquences persistantes).
     - Tests : reprise (en cours → cloturée) + assertion d'historique. Challenge **32 tests**
       verts ; typecheck TS + build Vite verts.
-  - ⬜ **SF-92e — Retour aux cours & modes** : panneau de consultation des cours en gardant
-    le contexte ; distinction **mode formatif / certificatif** (règles annoncées avant
-    lancement). Couvre **AC-10**.
+  - ✅ **SF-92e — Retour aux cours & modes** — **TERMINÉ** (AC-10)
+    - **Consultation des cours sans perdre le contexte** : panneau (drawer) listant les cours du
+      nœud pendant la mission ; chaque cours s'ouvre dans un **nouvel onglet** → la tentative
+      (serveur = source de vérité) reste intacte. Disponible en mode formatif uniquement.
+    - **Mode formatif / certificatif** : `ChallengeMode` sur `ScenarioDefinition`
+      (défaut FORMATIF ; `mode` optionnel au schéma d'import, round-trip jsonb). Règles
+      **annoncées avant lancement** (`ChallengeInfo.rulesFor`) et portées par la tentative
+      (`AttemptView.mode` + `lessonsAllowed`/`replayAllowed` au DTO). Certificatif : consultation
+      des cours désactivée, pas de rejeu immédiat, le score fait foi (affiché sur le rapport).
+    - Briefing : badge de mode + liste des règles. Tests : annonce certificatif + porté par la
+      tentative + défaut formatif. Challenge **34 tests** verts ; typecheck TS + build Vite verts.
   - 🧊 **SF-92f — Learning Analytics & pilotage** : enregistrement des parcours, indicateurs
     (taux de réussite, score/compétence, abandons, branches, erreurs critiques…) via le
     contexte `analytics`.

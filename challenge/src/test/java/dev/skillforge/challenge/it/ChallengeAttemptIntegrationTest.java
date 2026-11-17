@@ -4,6 +4,7 @@ import dev.skillforge.challenge.ScenarioFixtures;
 import dev.skillforge.challenge.domain.model.AttemptStatus;
 import dev.skillforge.challenge.domain.model.AttemptView;
 import dev.skillforge.challenge.domain.model.ChallengeInfo;
+import dev.skillforge.challenge.domain.model.ChallengeMode;
 import dev.skillforge.challenge.domain.port.in.GetAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.GetChallengeInfoUseCase;
 import dev.skillforge.challenge.domain.port.in.ImportScenarioUseCase;
@@ -114,6 +115,27 @@ class ChallengeAttemptIntegrationTest {
         assertNotNull(info);
         assertTrue(info.available());
         assertEquals("Titre", info.title());
+    }
+
+    @Test
+    void mode_certificatif_est_annonce_et_porte_par_la_tentative() {
+        UUID node = UUID.randomUUID();
+        importScenario.importScenario(ScenarioFixtures.certificatif("certif-node", node)).block();
+
+        ChallengeInfo info = challengeInfo.byNode(node).block();
+        assertNotNull(info);
+        assertEquals("CERTIFICATIF", info.mode());
+        assertTrue(info.rules().stream().anyMatch(r -> r.toLowerCase().contains("certificative")));
+
+        AttemptView started = startAttempt.start(UUID.randomUUID(), node).block();
+        assertEquals(ChallengeMode.CERTIFICATIF, started.mode());
+    }
+
+    @Test
+    void mode_par_defaut_est_formatif() {
+        UUID node = UUID.randomUUID();
+        importScenario.importScenario(ScenarioFixtures.valid("formatif-node", node)).block();
+        assertEquals("FORMATIF", challengeInfo.byNode(node).block().mode());
     }
 
     @Test

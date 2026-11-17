@@ -1,6 +1,8 @@
 package dev.skillforge.challenge.adapter.in.web.dto;
 
 import dev.skillforge.challenge.domain.model.AttemptView;
+import dev.skillforge.challenge.domain.model.ChallengeInfo;
+import dev.skillforge.challenge.domain.model.ChallengeMode;
 import dev.skillforge.challenge.domain.model.ChallengeResult;
 import dev.skillforge.challenge.domain.model.ChoiceView;
 import dev.skillforge.challenge.domain.model.CompetencyScore;
@@ -19,17 +21,26 @@ public record AttemptDto(
         String status,
         String briefing,
         String objective,
+        String mode,
+        List<String> rules,
+        boolean lessonsAllowed,
+        boolean replayAllowed,
         NodeDto node,
         String guidance,
         List<DecisionReviewDto> history,
         ResultDto result) {
 
     public static AttemptDto from(AttemptView view) {
+        ChallengeMode mode = view.mode() == null ? ChallengeMode.FORMATIF : view.mode();
         return new AttemptDto(
                 view.attemptId(),
                 view.status().name(),
                 view.briefing(),
                 view.objective(),
+                mode.name(),
+                ChallengeInfo.rulesFor(mode),
+                mode.allowsLessons(),
+                mode.allowsReplay(),
                 view.node() == null ? null : NodeDto.from(view.node()),
                 view.guidance() == null ? null : view.guidance().name(),
                 (view.history() == null ? List.<DecisionReview>of() : view.history())

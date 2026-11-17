@@ -22,6 +22,7 @@ import java.util.UUID;
  * @param initialNodeId      identifiant du premier nœud présenté
  * @param nodes              situations de la mission
  * @param criticalConditions conditions éliminatoires éventuelles
+ * @param mode               mode d'évaluation (formatif/certificatif) ; {@code null} ⇒ {@link ChallengeMode#FORMATIF}
  */
 public record ScenarioDefinition(
         String scenarioKey,
@@ -35,5 +36,11 @@ public record ScenarioDefinition(
         int renforceThreshold,
         String initialNodeId,
         List<ScenarioNode> nodes,
-        List<CriticalCondition> criticalConditions) {
+        List<CriticalCondition> criticalConditions,
+        ChallengeMode mode) {
+
+    /** Mode effectif : valeur par défaut {@link ChallengeMode#FORMATIF} si non précisé. */
+    public ChallengeMode effectiveMode() {
+        return mode == null ? ChallengeMode.FORMATIF : mode;
+    }
 }

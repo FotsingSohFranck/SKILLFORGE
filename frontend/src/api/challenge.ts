@@ -1,5 +1,7 @@
 import { apiFetch } from './client'
 
+export type ChallengeMode = 'FORMATIF' | 'CERTIFICATIF'
+
 /** Présentation apprenant du Final Challenge d'un nœud (sans correction). */
 export interface ChallengeInfo {
   available: boolean
@@ -7,6 +9,8 @@ export interface ChallengeInfo {
   title: string | null
   objective: string | null
   briefing: string | null
+  mode: ChallengeMode | null
+  rules: string[]
 }
 
 export type GuidanceLevel = 'FAVORABLE' | 'A_SURVEILLER' | 'DEFAVORABLE'
@@ -59,6 +63,10 @@ export interface Attempt {
   status: AttemptStatus
   briefing: string | null
   objective: string | null
+  mode: ChallengeMode
+  rules: string[]
+  lessonsAllowed: boolean
+  replayAllowed: boolean
   node: NodeView | null
   guidance: GuidanceLevel | null
   history: DecisionReview[]

@@ -2,15 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   type Attempt,
+  type ChallengeMode,
   type DecisionReview,
   type GuidanceLevel,
   getCurrentAttempt,
   startChallenge,
   submitDecision,
 } from '../api/challenge'
-import { ApiError } from '../api/types'
+import { listNodeLessons } from '../api/catalogue'
+import { ApiError, type Lesson } from '../api/types'
 import { Button } from '../components/Button'
 import styles from './FinalChallengePage.module.css'
+
+const MODE_LABEL: Record<ChallengeMode, string> = {
+  FORMATIF: 'Mode formatif',
+  CERTIFICATIF: 'Mode certificatif',
+}
 
 type Phase = 'loading' | 'error' | 'briefing' | 'playing' | 'result'
 
@@ -28,7 +35,18 @@ export function FinalChallengePage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lessons, setLessons] = useState<Lesson[] | null>(null)
+  const [showLessons, setShowLessons] = useState(false)
   const started = useRef(false)
+
+  function openLessons() {
+    setShowLessons(true)
+    if (lessons === null) {
+      listNodeLessons(nodeId)
+        .then(setLessons)
+        .catch(() => setLessons([]))
+    }
+  }
 
   function begin() {
     setPhase('loading')
@@ -124,7 +142,23 @@ export function FinalChallengePage() {
           <div className={styles.panel}>
             <p className={styles.kicker}>Final Challenge</p>
             <h1 className={styles.missionTitle}>{attempt.objective ?? 'Mission'}</h1>
+            <span
+              className={styles.modeBadge}
+              data-mode={attempt.mode === 'CERTIFICATIF' ? 'certif' : 'formatif'}
+            >
+              {MODE_LABEL[attempt.mode]}
+            </span>
             {attempt.briefing && <p className={styles.briefing}>{attempt.briefing}</p>}
+            {attempt.rules.length > 0 && (
+              <div className={styles.rules}>
+                <p className={styles.rulesTitle}>Règles de l'épreuve</p>
+                <ul className={styles.rulesList}>
+                  {attempt.rules.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className={styles.actions}>
               <Button onClick={() => setPhase('playing')}>Commencer la mission</Button>
               <Button variant="ghost" onClick={() => navigate(`/nodes/${nodeId}`)}>
@@ -145,7 +179,14 @@ export function FinalChallengePage() {
                 ← Quitter
               </button>
               <GuidancePill guidance={attempt.guidance} />
-              <span className={styles.counter}>Décision {history.length + 1}</span>
+              <div className={styles.topRight}>
+                {attempt.lessonsAllowed && (
+                  <button type="button" className={styles.lessonsBtn} onClick={openLessons}>
+                    Consulter les cours
+                  </button>
+                )}
+                <span className={styles.counter}>Décision {history.length + 1}</span>
+              </div>
             </header>
 
             <section className={styles.scene} aria-live="polite">
@@ -184,6 +225,10 @@ export function FinalChallengePage() {
             </section>
 
             {history.length > 0 && <Journal history={history} />}
+
+            {showLessons && (
+              <LessonsDrawer lessons={lessons} onClose={() => setShowLessons(false)} />
+            )}
           </div>
         )}
 
@@ -284,10 +329,56 @@ function Report({
 
       <div className={styles.actions}>
         <Button onClick={onBack}>Revenir au nœud</Button>
-        <Button variant="secondary" onClick={onReplay}>
-          Rejouer
-        </Button>
+        {attempt.replayAllowed && (
+          <Button variant="secondary" onClick={onReplay}>
+            Rejouer
+          </Button>
+        )}
       </div>
+      {!attempt.replayAllowed && (
+        <p className={styles.verdictNote}>
+          Rejeu non disponible : épreuve certificative (le score fait foi).
+        </p>
+      )}
+    </div>
+  )
+}
+
+function LessonsDrawer({ lessons, onClose }: { lessons: Lesson[] | null; onClose: () => void }) {
+  return (
+    <div className={styles.drawerOverlay} role="dialog" aria-label="Consultation des cours" aria-modal="true">
+      <button type="button" className={styles.drawerScrim} aria-label="Fermer" onClick={onClose} />
+      <aside className={styles.drawer}>
+        <header className={styles.drawerHead}>
+          <h3 className={styles.drawerTitle}>Cours du nœud</h3>
+          <button type="button" className={styles.quit} onClick={onClose}>
+            Fermer
+          </button>
+        </header>
+        <p className={styles.drawerHint}>
+          Les cours s'ouvrent dans un nouvel onglet — ta mission reste en place.
+        </p>
+        {lessons === null ? (
+          <p className={styles.loading}>Chargement…</p>
+        ) : lessons.length === 0 ? (
+          <p className={styles.drawerHint}>Aucun cours rattaché à ce nœud.</p>
+        ) : (
+          <ol className={styles.drawerList}>
+            {lessons.map((l) => (
+              <li key={l.id}>
+                <a
+                  className={styles.drawerLink}
+                  href={`/lessons/${l.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {l.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        )}
+      </aside>
     </div>
   )
 }

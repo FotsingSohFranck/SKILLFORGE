@@ -12,6 +12,7 @@ public record AttemptView(
         AttemptStatus status,
         String briefing,
         String objective,
+        ChallengeMode mode,
         NodeView node,
         GuidanceLevel guidance,
         List<DecisionReview> history,
@@ -20,12 +21,12 @@ public record AttemptView(
     public static AttemptView inProgress(UUID attemptId, ScenarioDefinition def, ScenarioNode node,
                                          GuidanceLevel guidance, List<DecisionReview> history) {
         return new AttemptView(attemptId, AttemptStatus.IN_PROGRESS,
-                def.briefing(), def.objective(), NodeView.of(node), guidance, history, null);
+                def.briefing(), def.objective(), def.effectiveMode(), NodeView.of(node), guidance, history, null);
     }
 
     public static AttemptView completed(UUID attemptId, ScenarioDefinition def, ChallengeResult result,
                                         List<DecisionReview> history) {
         return new AttemptView(attemptId, AttemptStatus.COMPLETED,
-                def.briefing(), def.objective(), null, null, history, result);
+                def.briefing(), def.objective(), def.effectiveMode(), null, null, history, result);
     }
 }

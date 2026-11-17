@@ -130,7 +130,7 @@ class ChallengeEngineTest {
         CriticalCondition crit = new CriticalCondition("crit", "Danger critique atteint", "danger >= 5");
         return new ScenarioDefinition("k", UUID.randomUUID(), "Titre", "Objectif", "Briefing",
                 List.of("a"), Map.of("a", 100), 80, 50, "n1",
-                List.of(n1, goodEnd, badEnd), List.of(crit));
+                List.of(n1, goodEnd, badEnd), List.of(crit), null);
     }
 
     private static ScenarioNode terminal(String id) {

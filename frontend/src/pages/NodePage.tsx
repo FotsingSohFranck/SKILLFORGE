@@ -45,6 +45,8 @@ const CHALLENGE_ABSENT: ChallengeInfo = {
   title: null,
   objective: null,
   briefing: null,
+  mode: null,
+  rules: [],
 }
 
 const IMPORTANCE_LABEL: Record<string, string> = {

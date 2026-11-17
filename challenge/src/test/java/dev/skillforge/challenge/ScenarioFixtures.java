@@ -1,5 +1,6 @@
 package dev.skillforge.challenge;
 
+import dev.skillforge.challenge.domain.model.ChallengeMode;
 import dev.skillforge.challenge.domain.model.Choice;
 import dev.skillforge.challenge.domain.model.Effect;
 import dev.skillforge.challenge.domain.model.EffectOp;
@@ -36,13 +37,24 @@ public final class ScenarioFixtures {
     public static ScenarioDefinition def(String key, UUID node, List<String> comps,
                                          Map<String, Integer> weights, int pass, int renforce,
                                          String initial, List<ScenarioNode> nodes) {
+        return def(key, node, comps, weights, pass, renforce, initial, nodes, ChallengeMode.FORMATIF);
+    }
+
+    public static ScenarioDefinition def(String key, UUID node, List<String> comps,
+                                         Map<String, Integer> weights, int pass, int renforce,
+                                         String initial, List<ScenarioNode> nodes, ChallengeMode mode) {
         return new ScenarioDefinition(key, node, "Titre", "Objectif", "Briefing",
-                comps, weights, pass, renforce, initial, nodes, List.of());
+                comps, weights, pass, renforce, initial, nodes, List.of(), mode);
     }
 
     public static ScenarioDefinition valid(String key, UUID node) {
         return def(key, node, List.of("a", "b"), Map.of("a", 60, "b", 40), 80, 60, "n1",
                 List.of(choiceNode("n1", "n2"), terminal("n2")));
+    }
+
+    public static ScenarioDefinition certificatif(String key, UUID node) {
+        return def(key, node, List.of("a", "b"), Map.of("a", 60, "b", 40), 80, 60, "n1",
+                List.of(choiceNode("n1", "n2"), terminal("n2")), ChallengeMode.CERTIFICATIF);
     }
 
     public static ScenarioDefinition valid() {
