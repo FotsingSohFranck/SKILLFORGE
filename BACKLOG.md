@@ -1650,21 +1650,29 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
     en SF-92g) · v1 **mode formatif** + **choix discrets** auto-notables · **pas d'IA, pas de
     chrono** en v1.
 
-  - ⬜ **SF-92a — Socle moteur déterministe (fin de nœud)** ← *prochain item*
-    - Modèle domaine (`ChallengeScenario`, `ScenarioVersion` immuable, `ScenarioNode`,
-      `ScenarioChoice`, `EvaluationCriterion`, `TransitionRule`, `ConsequenceRule`,
-      `SimulationSession`, `SimulationState`, `DecisionRecord`, `TriggeredEvent`,
-      `CompetencyResult`, `ChallengeResult`) + **migration Flyway**.
-    - **Import JSON pivot versionné** (schéma + endpoint admin, calqué sur l'import
-      quiz/examens de `evaluation`) + **1 scénario écrit à la main** (fin de nœud backend).
-    - Cycle serveur complet : briefing → nœud → décision → `evaluation_rules` → `effects`
-      sur l'état → `transition_rules` → terminal → **scoring par compétence** + conditions
-      éliminatoires → **rapport**. Déterministe (même version+état+décision ⇒ même résultat).
-    - API : démarrer une tentative, nœud courant, soumettre une décision, rapport final.
-    - Gating fin de nœud (réutilise le patron de l'épreuve pratique).
-    - **Tests** : moteur unitaire (effets, transitions, fins, score, conditions critiques) +
-      intégration. **Pas** d'UI immersive, de guidage couleur, d'IA, de chrono.
-    - Couvre **AC-01..AC-07, AC-13..AC-18**.
+  - 🚧 **SF-92a — Socle moteur déterministe (fin de nœud)** — découpé en a1 (fait) / a2 (en cours)
+    - ✅ **SF-92a-1 — Modèle + import versionné (authoring)** — **TERMINÉ**
+      - Module `challenge` (enregistré parent + `app`) + migration **V15** : `challenge_scenarios`
+        + `challenge_scenario_versions` (versions **immuables**, définition en `jsonb`).
+      - Modèle de définition (pivot : `ScenarioDefinition`/`ScenarioNode`/`Choice`/`Effect`/
+        `TransitionRule`/`CriticalCondition`) + `ScenarioValidator` (domaine pur : champs requis,
+        pondérations = 100, seuils, intégrité du graphe, terminal atteignable, nœuds inatteignables).
+      - Import `POST /api/v1/final-challenges/scenarios/import` (INSTRUCTOR/ADMIN, crée une nouvelle
+        version, rejet **422** des invalides) + relecture `GET …/scenarios/by-node/{id}`.
+      - Schéma pivot `content/challenge/challenge.schema.json` + 1 scénario `backend-caching.json`.
+      - **11 tests** (validateur unitaire + IT Testcontainers : round-trip `jsonb`, versionnement).
+      - Note : Jackson **3** (`tools.jackson`) pour le `jsonb` (Jackson 2 absent du classpath de ce module).
+      - Couvre **AC-16** (scénario versionné & testé avant publication) et la base d'**AC-17** (réimport = nouvelle version).
+    - ⬜ **SF-92a-2 — Moteur d'exécution** ← *prochain item*
+      - Migration (sessions, état de simulation, décisions, résultats) ; cycle serveur : start
+        (briefing + 1er nœud) → décision → `effects` sur l'état → `transition_rules` → terminal →
+        **scoring par compétence** + conditions éliminatoires → **rapport**. Déterministe
+        (même version + état + décision ⇒ même résultat).
+      - API : démarrer une tentative, nœud courant, soumettre une décision, rapport final.
+      - Gating fin de nœud (réutilise le patron de l'épreuve pratique).
+      - Tests déterministes (moteur unitaire : effets, transitions, fins, score, conditions
+        critiques + IT). **Pas** d'UI immersive, de guidage couleur, d'IA, de chrono.
+      - Couvre **AC-01..AC-07, AC-13..AC-15, AC-18**.
   - ⬜ **SF-92b — Guidance Engine** : indicateur directionnel 3 états (favorable/à
     surveiller/défavorable) calculé sur l'**état global**, **sans révéler** la réponse
     (couleur = tendance, pas correction). Couvre **AC-08, AC-09**.

@@ -93,6 +93,9 @@ public class IamSecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/v1/exams/import").hasAnyRole("INSTRUCTOR", "ADMIN")
                         .pathMatchers(HttpMethod.POST, "/api/v1/lab/nodes/*/practical/import")
                         .hasAnyRole("INSTRUCTOR", "ADMIN")
+                        // Ingestion des scénarios de Final Challenge (contexte challenge, SF-92).
+                        .pathMatchers(HttpMethod.POST, "/api/v1/final-challenges/scenarios/import")
+                        .hasAnyRole("INSTRUCTOR", "ADMIN")
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtDecoder(jwtDecoder)
