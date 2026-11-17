@@ -1573,8 +1573,21 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
         valider » / « Réussie », erreur propre si l'environnement est indisponible.
       - Vérifs : module `lab` compile + tests ; **`npm run build` (tsc + vite) OK**. Pour
         l'essayer visuellement de bout en bout, il faut SF-91g (tâche seedée) + activation Docker.
-    - ⬜ **SF-91f — Terminal navigateur (optionnel pilote)** : xterm.js ↔ websocket ↔ shell
-      du conteneur, pour une vraie manipulation interactive. CA : terminal fonctionnel et borné.
+    - ✅ **SF-91f — Terminal navigateur** — **TERMINÉ**
+      - **Vrai PTY interactif** : shell `bash -l` ouvert via l'**API Docker** (`exec` avec `Tty:true`,
+        PTY alloué côté démon, pas de PTY client) dans un conteneur durci (`SandboxPolicy` : réseau
+        none, cap-drop, read-only, user 1000, quotas, auto-extinction TTL). Dépendance `docker-java`
+        (Maven Central) — le grading reste en CLI.
+      - **Auth par ticket court** : `POST /api/v1/lab/nodes/{id}/terminal/ticket` (authentifié) émet
+        un ticket opaque usage unique (~30 s) ; le WebSocket `/api/v1/lab/terminal?ticket=…` le présente
+        au handshake (le JWT ne circule pas dans l'URL). Chemin WS en accès libre côté filtre, gated
+        par le ticket.
+      - **Pont WebSocket WebFlux** (`LabTerminalWebSocketHandler` + `HandlerMapping`) : trames binaires =
+        frappes, trames texte JSON = redimensionnement (`stty`/SIGWINCH), sortie du shell en binaire.
+        Front : `LabTerminal` (xterm.js + addon fit) dans le panneau pratique ; nginx proxifie l'upgrade WS.
+      - **Bornage** : plafond de concurrence `skillforge.lab.max-terminals` (défaut 2), conteneur
+        arrêté à la fermeture/déconnexion (+ reaper TTL), opt-in Docker via `docker-compose.lab.yml`.
+      - À vérifier bout-en-bout (shell interactif + resize) après rebuild avec l'override lab.
     - ✅ **SF-91g — Contenu pilote** — **TERMINÉ**
       - **Image lab** `lab-images/backend/` → `skillforge-lab-backend:pilot`
         (`maven:3.9-eclipse-temurin-21`, dépôt `.m2` préchauffé pour tourner hors-ligne, grader

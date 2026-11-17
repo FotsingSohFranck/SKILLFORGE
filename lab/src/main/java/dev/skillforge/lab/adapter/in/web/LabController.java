@@ -5,9 +5,12 @@ import dev.skillforge.lab.adapter.in.web.dto.LabPracticalDto;
 import dev.skillforge.lab.adapter.in.web.dto.LabPracticalImportRequest;
 import dev.skillforge.lab.adapter.in.web.dto.LabSubmitRequest;
 import dev.skillforge.lab.adapter.in.web.dto.LabVerdictDto;
+import dev.skillforge.lab.adapter.in.web.dto.TerminalTicketDto;
+import dev.skillforge.lab.adapter.in.web.dto.TerminalTicketRequest;
 import dev.skillforge.lab.domain.model.LearnerId;
 import dev.skillforge.lab.domain.port.in.GetPracticalUseCase;
 import dev.skillforge.lab.domain.port.in.ImportPracticalTaskUseCase;
+import dev.skillforge.lab.domain.port.in.IssueTerminalTicketUseCase;
 import dev.skillforge.lab.domain.port.in.PracticalTaskImport;
 import dev.skillforge.lab.domain.port.in.SubmitPracticalUseCase;
 import dev.skillforge.lab.domain.port.in.SubmittedFile;
@@ -34,12 +37,15 @@ public class LabController {
     private final SubmitPracticalUseCase submitPractical;
     private final GetPracticalUseCase getPractical;
     private final ImportPracticalTaskUseCase importPractical;
+    private final IssueTerminalTicketUseCase issueTerminalTicket;
 
     public LabController(SubmitPracticalUseCase submitPractical, GetPracticalUseCase getPractical,
-                         ImportPracticalTaskUseCase importPractical) {
+                         ImportPracticalTaskUseCase importPractical,
+                         IssueTerminalTicketUseCase issueTerminalTicket) {
         this.submitPractical = submitPractical;
         this.getPractical = getPractical;
         this.importPractical = importPractical;
+        this.issueTerminalTicket = issueTerminalTicket;
     }
 
     @GetMapping("/nodes/{nodeId}/practical")
@@ -79,6 +85,19 @@ public class LabController {
                 request.requiresPracticalOrDefault(),
                 request.expectedPath());
         return importPractical.importTask(command);
+    }
+
+    /**
+     * Émet un ticket court (usage unique) pour ouvrir un terminal interactif sur ce nœud.
+     * Le JWT ne circule pas dans l'URL du WebSocket : le client présente ce ticket au handshake.
+     */
+    @PostMapping("/nodes/{nodeId}/terminal/ticket")
+    public Mono<ApiResponse<TerminalTicketDto>> terminalTicket(
+            Principal principal, @PathVariable UUID nodeId, @RequestBody(required = false) TerminalTicketRequest request) {
+        TerminalTicketRequest req = request == null ? new TerminalTicketRequest(null, null) : request;
+        return issueTerminalTicket.issue(learner(principal).value(), nodeId, req.colsOrDefault(), req.rowsOrDefault())
+                .map(TerminalTicketDto::from)
+                .map(ApiResponse::ok);
     }
 
     private static LearnerId learner(Principal principal) {

@@ -5,6 +5,7 @@ import { useToasts } from './toast/toastStore'
 import { Badge } from './Badge'
 import { Button } from './Button'
 import { Card } from './Card'
+import { LabTerminal } from './LabTerminal'
 import { RichText } from './RichText'
 import styles from './PracticalPanel.module.css'
 
@@ -131,6 +132,8 @@ export function PracticalPanel({ nodeId, practical }: Props) {
           Épreuve réussie. Termine aussi toutes les leçons de ce nœud pour le valider entièrement.
         </p>
       )}
+
+      <LabTerminal nodeId={nodeId} />
     </Card>
   )
 }

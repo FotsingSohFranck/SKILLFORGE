@@ -42,7 +42,10 @@ public class IamSecurityConfig {
             // connecté (/api/v1/auth/password en PATCH) reste protégé par anyExchange().
             "/api/v1/auth/password/forgot", "/api/v1/auth/password/reset",
             "/actuator/health", "/actuator/info",
-            "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/webjars/**"
+            "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/webjars/**",
+            // Terminal de lab (SF-91f) : handshake WebSocket authentifié par ticket court (pas de JWT
+            // dans l'URL). Le ticket est émis par un appel authentifié (/nodes/*/terminal/ticket).
+            "/api/v1/lab/terminal"
     };
 
     private SecretKeySpec secretKey(SecurityJwtProperties props) {
