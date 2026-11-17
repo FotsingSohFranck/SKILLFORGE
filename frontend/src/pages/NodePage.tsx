@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { getNode, listNodeLessons, listRoadmaps } from '../api/catalogue'
+import { getChallengeInfo, type ChallengeInfo } from '../api/challenge'
 import { listNodeChallenges } from '../api/evaluation'
 import { getPractical, type LabPractical } from '../api/lab'
 import { getNodeLessonProgress, listBookmarks, toggleBookmark } from '../api/learning'
@@ -23,6 +24,7 @@ interface NodeData {
   completedIds: string[]
   challenges: ChallengeSummary[]
   practical: LabPractical
+  challenge: ChallengeInfo
   bookmarked: boolean
   roadmapSlug: string | null
 }
@@ -37,6 +39,14 @@ const PRACTICAL_ABSENT: LabPractical = {
   latestPassed: false,
 }
 
+const CHALLENGE_ABSENT: ChallengeInfo = {
+  available: false,
+  scenarioKey: null,
+  title: null,
+  objective: null,
+  briefing: null,
+}
+
 const IMPORTANCE_LABEL: Record<string, string> = {
   CORE: 'Essentiel',
   RECOMMENDED: 'Recommandé',
@@ -44,13 +54,14 @@ const IMPORTANCE_LABEL: Record<string, string> = {
 }
 
 async function loadNode(id: string): Promise<NodeData> {
-  const [node, lessons, progress, challenges, roadmaps, practical] = await Promise.all([
+  const [node, lessons, progress, challenges, roadmaps, practical, challenge] = await Promise.all([
     getNode(id),
     listNodeLessons(id),
     getNodeLessonProgress(id),
     listNodeChallenges(id),
     listRoadmaps().catch(() => []),
     getPractical(id).catch(() => PRACTICAL_ABSENT),
+    getChallengeInfo(id).catch(() => CHALLENGE_ABSENT),
   ])
   let bookmarked = false
   try {
@@ -59,7 +70,16 @@ async function loadNode(id: string): Promise<NodeData> {
     // favoris secondaires
   }
   const roadmapSlug = roadmaps.find((r) => r.id === node.roadmapId)?.slug ?? null
-  return { node, lessons, completedIds: progress.completedLessonIds, challenges, practical, bookmarked, roadmapSlug }
+  return {
+    node,
+    lessons,
+    completedIds: progress.completedLessonIds,
+    challenges,
+    practical,
+    challenge,
+    bookmarked,
+    roadmapSlug,
+  }
 }
 
 export function NodePage() {
@@ -88,7 +108,7 @@ export function NodePage() {
   return (
     <div className={styles.page}>
       <AsyncSection state={state}>
-        {({ node, lessons, completedIds, challenges, practical, roadmapSlug }) => {
+        {({ node, lessons, completedIds, challenges, practical, challenge, roadmapSlug }) => {
           const completed = new Set(completedIds)
           const ordered = [...lessons].sort((a, b) => a.position - b.position)
           const percent = ordered.length === 0 ? 0 : (completed.size / ordered.length) * 100
@@ -191,6 +211,20 @@ export function NodePage() {
               )}
 
               {practical.exists && <PracticalPanel nodeId={node.id} practical={practical} />}
+
+              {challenge.available && (
+                <Card title="Final Challenge">
+                  <p className={styles.summary}>
+                    {challenge.objective ??
+                      'Mets tes compétences à l’épreuve dans une simulation immersive de fin de nœud.'}
+                  </p>
+                  <div className={styles.actions}>
+                    <Button onClick={() => navigate(`/final-challenge/${node.id}`)}>
+                      Lancer le Final Challenge
+                    </Button>
+                  </div>
+                </Card>
+              )}
             </>
           )
         }}

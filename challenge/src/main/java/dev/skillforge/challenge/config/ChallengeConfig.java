@@ -1,8 +1,10 @@
 package dev.skillforge.challenge.config;
 
 import dev.skillforge.challenge.application.ChallengeAttemptService;
+import dev.skillforge.challenge.application.GetChallengeInfoService;
 import dev.skillforge.challenge.application.GetScenarioService;
 import dev.skillforge.challenge.application.ImportScenarioService;
+import dev.skillforge.challenge.domain.port.in.GetChallengeInfoUseCase;
 import dev.skillforge.challenge.domain.port.in.GetScenarioUseCase;
 import dev.skillforge.challenge.domain.port.in.ImportScenarioUseCase;
 import dev.skillforge.challenge.domain.port.out.AttemptStore;
@@ -26,6 +28,11 @@ public class ChallengeConfig {
     @Bean
     GetScenarioUseCase getScenarioUseCase(ScenarioStore store) {
         return new GetScenarioService(store);
+    }
+
+    @Bean
+    GetChallengeInfoUseCase getChallengeInfoUseCase(ScenarioStore store) {
+        return new GetChallengeInfoService(store);
     }
 
     /**

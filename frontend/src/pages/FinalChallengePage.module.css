@@ -1,0 +1,327 @@
+.stage {
+  position: relative;
+  min-height: calc(100vh - var(--header-h) - var(--space-6));
+  display: flex;
+  justify-content: center;
+  padding: var(--space-5) var(--space-4);
+  overflow: hidden;
+  --tone: var(--color-text-muted);
+}
+.stage[data-tone='favorable'] { --tone: var(--color-success); }
+.stage[data-tone='surveiller'] { --tone: var(--color-warning); }
+.stage[data-tone='defavorable'] { --tone: var(--color-danger); }
+.stage[data-tone='neutral'] { --tone: var(--color-text-muted); }
+
+/* Ambiance : halo coloré par la tendance, derrière le verre. */
+.ambient {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  background:
+    radial-gradient(60% 80% at 30% 10%, color-mix(in srgb, var(--tone) 22%, transparent), transparent 70%),
+    radial-gradient(50% 70% at 85% 0%, color-mix(in srgb, var(--tone) 14%, transparent), transparent 70%);
+  filter: blur(40px);
+  opacity: 0.9;
+  transition: background var(--dur-slow) var(--ease-standard);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.frame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-8) 0;
+}
+
+/* --- Cartes en verre --- */
+.panel,
+.report {
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-6);
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: var(--text-xs);
+  color: var(--tone);
+  font-weight: 700;
+  margin: 0 0 var(--space-2);
+}
+.missionTitle {
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--space-4);
+}
+.briefing {
+  color: var(--color-text);
+  line-height: var(--leading);
+  white-space: pre-line;
+  margin: 0 0 var(--space-5);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+/* --- Phase de jeu --- */
+.play {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-areas: 'top top' 'scene journal';
+  gap: var(--space-4);
+}
+.topbar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.quit {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.quit:hover { color: var(--color-text); }
+.counter {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.scene {
+  grid-area: scene;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-5);
+}
+.sceneTitle {
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-3);
+  letter-spacing: var(--tracking-snug);
+}
+.context {
+  color: var(--color-text-muted);
+  line-height: var(--leading);
+  margin: 0 0 var(--space-3);
+}
+.event {
+  font-weight: 600;
+  margin: 0 0 var(--space-4);
+}
+
+.choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.choice {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: var(--text-base);
+  transition: border-color var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+.choice:hover { border-color: var(--color-text-muted); }
+.choice:active { transform: scale(0.99); }
+.choiceActive {
+  border-color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 10%, var(--color-surface));
+}
+.choiceDot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  transition: border-color var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard);
+}
+.choiceActive .choiceDot {
+  border-color: var(--tone);
+  background: var(--tone);
+  box-shadow: inset 0 0 0 2px var(--color-surface);
+}
+
+/* --- Pastille de guidage --- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 35%, transparent);
+}
+.pill[data-tone='favorable'] { --tone: var(--color-success); }
+.pill[data-tone='surveiller'] { --tone: var(--color-warning); }
+.pill[data-tone='defavorable'] { --tone: var(--color-danger); }
+.pill[data-tone='neutral'] { --tone: var(--color-text-muted); }
+.pillDot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  background: var(--tone);
+}
+
+/* --- Journal de mission --- */
+.journal {
+  grid-area: journal;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  align-self: start;
+}
+.journalTitle {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+.journalList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.journalItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-05);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-border);
+}
+.journalNode {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.journalChoice {
+  font-size: var(--text-sm);
+}
+
+.errorText {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: var(--space-3) 0 0;
+}
+
+/* --- Rapport --- */
+.report { display: flex; flex-direction: column; gap: var(--space-5); }
+.verdict {
+  text-align: center;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--tone) 12%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  --tone: var(--color-text-muted);
+}
+.verdict[data-tone='favorable'] { --tone: var(--color-success); }
+.verdict[data-tone='surveiller'] { --tone: var(--color-warning); }
+.verdict[data-tone='defavorable'] { --tone: var(--color-danger); }
+.verdictLabel {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--tone);
+  margin: 0;
+}
+.score {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  margin: var(--space-2) 0;
+  font-variant-numeric: tabular-nums;
+}
+.verdictNote { color: var(--color-text-muted); margin: 0; }
+
+.competenciesTitle {
+  font-size: var(--text-base);
+  margin: 0 0 var(--space-3);
+}
+.comp { margin-bottom: var(--space-3); }
+.compHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-1);
+}
+.compPct { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.bar {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  transition: width var(--dur-slow) var(--ease-standard);
+}
+.critical {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .play {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'top' 'scene' 'journal';
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient,
+  .choice,
+  .barFill {
+    transition: none;
+  }
+}

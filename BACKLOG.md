@@ -1692,9 +1692,14 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       niveaux via les seuils ; condition éliminatoire en cours ⇒ DEFAVORABLE ; `null` avant toute
       décision. Exposé dans `AttemptDto.guidance` (tendance, **jamais** la correction du prochain choix).
     - Couvre **AC-08, AC-09**. Le rendu couleur/accessibilité relève de l'UI (SF-92c).
-  - ⬜ **SF-92c — UI immersive (front)** : écran de simulation (en-tête mission, contexte,
-    événement, décision, indicateurs, **journal de mission**), glassmorphism/ambiance
-    évolutive, **a11y** (couleur ≠ seul signal, reduced-motion, clavier, mobile).
+  - ✅ **SF-92c — UI immersive (front)** — **TERMINÉ** (démo live à la revue finale)
+    - Endpoint apprenant `GET /final-challenges/nodes/{id}` (dispo + briefing/objectif, sans correction).
+    - `api/challenge.ts` + `FinalChallengePage` (route `/final-challenge/:nodeId`) : briefing →
+      scène (contexte/événement/choix) → **journal de mission** → rapport (score, barres par
+      compétence, verdict, conditions éliminatoires). Pastille de **guidage 3 états**.
+    - Glass + ambiance teintée par la tendance ; **a11y** : couleur ≠ seul signal (libellé+pastille),
+      `prefers-reduced-motion`, boutons au clavier, responsive mobile. Entrée ajoutée sur `NodePage`.
+    - Typecheck TS + build Vite verts. (Captures de bout en bout à la présentation finale.)
   - ⬜ **SF-92d — Révision & reprise** : revenir sur une décision **sans réécrire
     l'historique**, conséquences persistantes/irréversibles, **reprise de session**
     interrompue. Couvre **AC-11, AC-12**.

@@ -19,6 +19,7 @@ import { CertificatePage } from './pages/CertificatePage'
 import { ChallengePage } from './pages/ChallengePage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ExamPage } from './pages/ExamPage'
+import { FinalChallengePage } from './pages/FinalChallengePage'
 import { LessonPage } from './pages/LessonPage'
 import { MyPathsPage } from './pages/MyPathsPage'
 import { NodePage } from './pages/NodePage'
@@ -39,6 +40,7 @@ function routeDepth(path: string): number {
   if (
     path.startsWith('/lessons/') ||
     path.startsWith('/challenges/') ||
+    path.startsWith('/final-challenge/') ||
     path.startsWith('/exams/')
   ) {
     return 3
@@ -128,6 +130,7 @@ function AnimatedRoutes() {
           <Route path="nodes/:id" element={<NodePage />} />
           <Route path="lessons/:id" element={<LessonPage />} />
           <Route path="challenges/:id" element={<ChallengePage />} />
+          <Route path="final-challenge/:nodeId" element={<FinalChallengePage />} />
           <Route path="certificate/:slug" element={<CertificatePage />} />
           <Route path="exams/:id" element={<ExamPage />} />
           <Route path="profile" element={<ProfilePage />} />

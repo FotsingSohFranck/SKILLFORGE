@@ -3,7 +3,9 @@ package dev.skillforge.challenge.it;
 import dev.skillforge.challenge.ScenarioFixtures;
 import dev.skillforge.challenge.domain.model.AttemptStatus;
 import dev.skillforge.challenge.domain.model.AttemptView;
+import dev.skillforge.challenge.domain.model.ChallengeInfo;
 import dev.skillforge.challenge.domain.port.in.GetAttemptUseCase;
+import dev.skillforge.challenge.domain.port.in.GetChallengeInfoUseCase;
 import dev.skillforge.challenge.domain.port.in.ImportScenarioUseCase;
 import dev.skillforge.challenge.domain.port.in.StartAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.SubmitDecisionUseCase;
@@ -61,6 +63,8 @@ class ChallengeAttemptIntegrationTest {
     @Autowired
     GetAttemptUseCase getAttempt;
     @Autowired
+    GetChallengeInfoUseCase challengeInfo;
+    @Autowired
     CapturingChallengeEventListener capturedEvents;
 
     @Test
@@ -92,6 +96,18 @@ class ChallengeAttemptIntegrationTest {
         // La réussite émet un FinalChallengePassedEvent (consommé par apprentissage pour le gating).
         assertTrue(capturedEvents.events().stream().anyMatch(
                 e -> e.nodeId().equals(node) && e.learnerId().equals(learner)));
+    }
+
+    @Test
+    void l_info_indique_la_disponibilite_sans_correction() {
+        UUID node = UUID.randomUUID();
+        assertEquals(false, challengeInfo.byNode(node).block().available());
+
+        importScenario.importScenario(ScenarioFixtures.valid("info-node", node)).block();
+        ChallengeInfo info = challengeInfo.byNode(node).block();
+        assertNotNull(info);
+        assertTrue(info.available());
+        assertEquals("Titre", info.title());
     }
 
     @Test
