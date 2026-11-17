@@ -18,4 +18,10 @@ public interface ScenarioStore {
 
     /** Dernière version publiée du scénario rattaché à ce nœud, ou vide. */
     Mono<ScenarioDefinition> findLatestPublishedByNode(UUID nodeId);
+
+    /** Référence (scénario + version) de la dernière version publiée pour ce nœud, ou vide. */
+    Mono<ScenarioRef> findLatestPublishedRefByNode(UUID nodeId);
+
+    /** Définition d'une version précise (figée dans une tentative), ou vide. */
+    Mono<ScenarioDefinition> findByRef(UUID scenarioId, int version);
 }

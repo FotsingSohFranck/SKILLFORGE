@@ -1663,16 +1663,22 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
       - **11 tests** (validateur unitaire + IT Testcontainers : round-trip `jsonb`, versionnement).
       - Note : Jackson **3** (`tools.jackson`) pour le `jsonb` (Jackson 2 absent du classpath de ce module).
       - Couvre **AC-16** (scénario versionné & testé avant publication) et la base d'**AC-17** (réimport = nouvelle version).
-    - ⬜ **SF-92a-2 — Moteur d'exécution** ← *prochain item*
-      - Migration (sessions, état de simulation, décisions, résultats) ; cycle serveur : start
-        (briefing + 1er nœud) → décision → `effects` sur l'état → `transition_rules` → terminal →
-        **scoring par compétence** + conditions éliminatoires → **rapport**. Déterministe
-        (même version + état + décision ⇒ même résultat).
-      - API : démarrer une tentative, nœud courant, soumettre une décision, rapport final.
-      - Gating fin de nœud (réutilise le patron de l'épreuve pratique).
-      - Tests déterministes (moteur unitaire : effets, transitions, fins, score, conditions
-        critiques + IT). **Pas** d'UI immersive, de guidage couleur, d'IA, de chrono.
+    - ✅ **SF-92a-2-1 — Moteur déterministe + session + API de tentative** — **TERMINÉ**
+      - Migration **V16** : `challenge_attempts` (scénario+version figés, `state` jsonb, `result` jsonb)
+        + `challenge_decisions` (journal ordonné append-only).
+      - Domaine pur : `SimulationState` (effets SET/INCREASE/DECREASE), `StateExpression` (grammaire
+        `<var> <op> <int>`, repli `default`), `ChallengeEngine` : `start` → nœud initial ; `decide` →
+        effets + transition (1re condition vraie, sinon repli) ; `score` → % par compétence
+        (obtenu/atteignable sur le chemin), global pondéré, `passed`/`reinforce`/`eliminated`.
+      - API apprenant : `POST …/attempts` `{nodeId}` · `GET …/attempts/{id}` · `POST …/attempts/{id}/decisions`
+        `{choiceId}`. Vues **sans fuite de correction** (choix = id+libellé). Scoring **côté serveur**.
+      - Sécurité : lecture de la définition (`GET …/scenarios/**`) restreinte INSTRUCTOR/ADMIN
+        (contient la correction) ; tentatives ouvertes à tout apprenant authentifié.
+      - **26 tests** verts (moteur, expression, validateur + 2 IT : import et cycle de tentative).
       - Couvre **AC-01..AC-07, AC-13..AC-15, AC-18**.
+    - ⬜ **SF-92a-2-2 — Gating fin de nœud + intégration** ← *prochain item*
+      - Marquer le nœud validé quand `passed` ; câblage avec `apprentissage`/progression (patron de
+        l'épreuve pratique) ; politique de reprise/rejeu. **Pas** d'UI immersive, de guidage, d'IA.
   - ⬜ **SF-92b — Guidance Engine** : indicateur directionnel 3 états (favorable/à
     surveiller/défavorable) calculé sur l'**état global**, **sans révéler** la réponse
     (couleur = tendance, pas correction). Couvre **AC-08, AC-09**.

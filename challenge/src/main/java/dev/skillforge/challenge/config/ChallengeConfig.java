@@ -1,16 +1,18 @@
 package dev.skillforge.challenge.config;
 
+import dev.skillforge.challenge.application.ChallengeAttemptService;
 import dev.skillforge.challenge.application.GetScenarioService;
 import dev.skillforge.challenge.application.ImportScenarioService;
 import dev.skillforge.challenge.domain.port.in.GetScenarioUseCase;
 import dev.skillforge.challenge.domain.port.in.ImportScenarioUseCase;
+import dev.skillforge.challenge.domain.port.out.AttemptStore;
 import dev.skillforge.challenge.domain.port.out.ScenarioStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Câblage du contexte Final Challenge (SF-92a-1) : services applicatifs purs exposés en beans.
- * L'adaptateur de persistance ({@code ScenarioStoreAdapter}) est un {@code @Component} scanné.
+ * Câblage du contexte Final Challenge : services applicatifs purs exposés en beans. Les adaptateurs
+ * de persistance ({@code ScenarioStoreAdapter}, {@code AttemptStoreAdapter}) sont des composants scannés.
  */
 @Configuration
 public class ChallengeConfig {
@@ -23,5 +25,14 @@ public class ChallengeConfig {
     @Bean
     GetScenarioUseCase getScenarioUseCase(ScenarioStore store) {
         return new GetScenarioService(store);
+    }
+
+    /**
+     * Expose le moteur de tentative. Un seul bean implémente les trois use cases (start / submit /
+     * get), injecté par type pour chacun.
+     */
+    @Bean
+    ChallengeAttemptService challengeAttemptService(ScenarioStore scenarioStore, AttemptStore attemptStore) {
+        return new ChallengeAttemptService(scenarioStore, attemptStore);
     }
 }

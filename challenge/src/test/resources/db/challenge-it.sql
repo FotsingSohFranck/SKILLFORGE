@@ -22,3 +22,30 @@ CREATE TABLE challenge_scenario_versions (
     CONSTRAINT chk_challenge_version_status CHECK (status IN ('DRAFT', 'PUBLISHED')),
     CONSTRAINT chk_challenge_version_positive CHECK (version > 0)
 );
+
+CREATE TABLE challenge_attempts (
+    id                uuid PRIMARY KEY DEFAULT uuidv7(),
+    scenario_id       uuid         NOT NULL REFERENCES challenge_scenarios(id),
+    scenario_version  int          NOT NULL,
+    node_id           uuid         NOT NULL,
+    learner_id        uuid         NOT NULL,
+    status            varchar(16)  NOT NULL DEFAULT 'IN_PROGRESS',
+    current_node_id   varchar(120) NOT NULL,
+    state             jsonb        NOT NULL DEFAULT '{}'::jsonb,
+    global_score      int,
+    passed            boolean,
+    result            jsonb,
+    started_at        timestamptz  NOT NULL DEFAULT now(),
+    completed_at      timestamptz,
+    CONSTRAINT chk_challenge_attempt_status CHECK (status IN ('IN_PROGRESS', 'COMPLETED'))
+);
+
+CREATE TABLE challenge_decisions (
+    id          uuid PRIMARY KEY DEFAULT uuidv7(),
+    attempt_id  uuid         NOT NULL REFERENCES challenge_attempts(id) ON DELETE CASCADE,
+    seq         int          NOT NULL,
+    node_id     varchar(120) NOT NULL,
+    choice_id   varchar(120) NOT NULL,
+    decided_at  timestamptz  NOT NULL DEFAULT now(),
+    UNIQUE (attempt_id, seq)
+);

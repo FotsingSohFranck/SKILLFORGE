@@ -68,4 +68,34 @@ public class ScenarioStoreAdapter implements ScenarioStore {
                 .one()
                 .map(ScenarioDefinitionJson::fromJson);
     }
+
+    @Override
+    public Mono<ScenarioRef> findLatestPublishedRefByNode(UUID nodeId) {
+        return db.sql("""
+                        SELECT v.scenario_id AS scenario_id, v.version AS version
+                        FROM challenge_scenarios s
+                        JOIN challenge_scenario_versions v ON v.scenario_id = s.id
+                        WHERE s.node_id = :node AND v.status = 'PUBLISHED'
+                        ORDER BY v.version DESC
+                        LIMIT 1
+                        """)
+                .bind("node", nodeId)
+                .map((row, meta) -> new ScenarioRef(
+                        row.get("scenario_id", UUID.class), row.get("version", Integer.class)))
+                .one();
+    }
+
+    @Override
+    public Mono<ScenarioDefinition> findByRef(UUID scenarioId, int version) {
+        return db.sql("""
+                        SELECT definition::text AS definition
+                        FROM challenge_scenario_versions
+                        WHERE scenario_id = :sid AND version = :ver
+                        """)
+                .bind("sid", scenarioId)
+                .bind("ver", version)
+                .map((row, meta) -> row.get("definition", String.class))
+                .one()
+                .map(ScenarioDefinitionJson::fromJson);
+    }
 }
