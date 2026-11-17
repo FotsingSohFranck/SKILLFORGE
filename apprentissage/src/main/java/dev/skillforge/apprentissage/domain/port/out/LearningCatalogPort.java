@@ -20,6 +20,9 @@ public interface LearningCatalogPort {
     /** Politique de validation du nœud (défaut LESSONS_ONLY si inconnue). */
     Mono<CompletionPolicy> completionPolicy(NodeId node);
 
+    /** Vrai si la validation du nœud exige la réussite de son Final Challenge (défaut false). */
+    Mono<Boolean> requiresChallenge(NodeId node);
+
     /** Parcours auquel appartient le nœud (pour résoudre l'inscription depuis un événement). */
     Mono<RoadmapId> roadmapOfNode(NodeId node);
 }

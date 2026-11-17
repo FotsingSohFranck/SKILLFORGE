@@ -2,6 +2,7 @@ package dev.skillforge.apprentissage.application;
 
 import dev.skillforge.apprentissage.domain.model.Enrollment;
 import dev.skillforge.apprentissage.domain.model.LessonId;
+import dev.skillforge.apprentissage.domain.model.NodeCompletion;
 import dev.skillforge.apprentissage.domain.model.NodeId;
 import dev.skillforge.apprentissage.domain.model.ProgressStatus;
 import dev.skillforge.apprentissage.domain.port.out.EnrollmentStore;
@@ -37,14 +38,16 @@ public class ProgressRecalculator {
                         lessonProgress.countCompletedInNode(enrollment.id(), node),
                         catalog.countLessonsInNode(node),
                         catalog.completionPolicy(node),
-                        nodeProgress.isPracticalPassed(enrollment.id(), node))
+                        nodeProgress.isPracticalPassed(enrollment.id(), node),
+                        catalog.requiresChallenge(node),
+                        nodeProgress.isChallengePassed(enrollment.id(), node))
                 .flatMap(t -> {
                     long done = t.getT1();
                     long total = t.getT2();
-                    boolean practicalOk = !t.getT3().requiresPractical() || t.getT4();
                     double nodePercent = total == 0 ? 0.0 : Math.min(100.0, done * 100.0 / total);
-                    ProgressStatus status = (total > 0 && done >= total && practicalOk)
-                            ? ProgressStatus.COMPLETED : ProgressStatus.IN_PROGRESS;
+                    boolean complete = NodeCompletion.isComplete(done, total,
+                            t.getT3().requiresPractical(), t.getT4(), t.getT5(), t.getT6());
+                    ProgressStatus status = complete ? ProgressStatus.COMPLETED : ProgressStatus.IN_PROGRESS;
                     return nodeProgress.upsert(enrollment.id(), node, status, nodePercent, lesson, at)
                             .then(updateRoadmap(enrollment, node, lesson, at))
                             .map(roadmapPercent -> new ProgressOutcome(status, roadmapPercent));

@@ -60,6 +60,8 @@ class ChallengeAttemptIntegrationTest {
     SubmitDecisionUseCase submitDecision;
     @Autowired
     GetAttemptUseCase getAttempt;
+    @Autowired
+    CapturingChallengeEventListener capturedEvents;
 
     @Test
     void cycle_complet_demarrer_decider_rapport_puis_relecture() {
@@ -86,6 +88,10 @@ class ChallengeAttemptIntegrationTest {
         AttemptView reread = getAttempt.get(learner, attemptId).block();
         assertEquals(AttemptStatus.COMPLETED, reread.status());
         assertEquals(100, reread.result().globalScore());
+
+        // La réussite émet un FinalChallengePassedEvent (consommé par apprentissage pour le gating).
+        assertTrue(capturedEvents.events().stream().anyMatch(
+                e -> e.nodeId().equals(node) && e.learnerId().equals(learner)));
     }
 
     @Test

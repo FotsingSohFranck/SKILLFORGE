@@ -12,9 +12,11 @@ import dev.skillforge.challenge.domain.port.in.GetAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.StartAttemptUseCase;
 import dev.skillforge.challenge.domain.port.in.SubmitDecisionUseCase;
 import dev.skillforge.challenge.domain.port.out.AttemptStore;
+import dev.skillforge.challenge.domain.port.out.ChallengeEventPublisher;
 import dev.skillforge.challenge.domain.port.out.ScenarioStore;
 import dev.skillforge.common.error.BusinessRuleException;
 import dev.skillforge.common.error.NotFoundException;
+import dev.skillforge.common.event.FinalChallengePassedEvent;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -29,10 +31,13 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
 
     private final ScenarioStore scenarioStore;
     private final AttemptStore attemptStore;
+    private final ChallengeEventPublisher events;
 
-    public ChallengeAttemptService(ScenarioStore scenarioStore, AttemptStore attemptStore) {
+    public ChallengeAttemptService(ScenarioStore scenarioStore, AttemptStore attemptStore,
+                                   ChallengeEventPublisher events) {
         this.scenarioStore = scenarioStore;
         this.attemptStore = attemptStore;
+        this.events = events;
     }
 
     @Override
@@ -70,7 +75,12 @@ public class ChallengeAttemptService implements StartAttemptUseCase, SubmitDecis
                                     List<Decision> all = new ArrayList<>(attempt.decisions());
                                     all.add(decision);
                                     ChallengeResult result = ChallengeEngine.score(def, all, outcome.state());
+                                    Mono<Void> notifyIfPassed = result.passed()
+                                            ? events.publish(new FinalChallengePassedEvent(
+                                                    learnerId, attempt.nodeId(), attempt.scenario().scenarioId()))
+                                            : Mono.empty();
                                     return attemptStore.complete(attemptId, decision, outcome.state(), result)
+                                            .then(notifyIfPassed)
                                             .thenReturn(AttemptView.completed(attempt.id(), def, result));
                                 }
                                 return attemptStore.advance(attemptId, decision, outcome.state(), outcome.nextNode().id())

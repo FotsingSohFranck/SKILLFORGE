@@ -8,6 +8,7 @@ import dev.skillforge.apprentissage.application.GetStreakService;
 import dev.skillforge.apprentissage.application.ListBookmarksService;
 import dev.skillforge.apprentissage.application.ListEnrollmentsService;
 import dev.skillforge.apprentissage.application.MarkLessonViewedService;
+import dev.skillforge.apprentissage.application.MarkNodeChallengePassedService;
 import dev.skillforge.apprentissage.application.MarkNodePracticalPassedService;
 import dev.skillforge.apprentissage.application.ProgressRecalculator;
 import dev.skillforge.apprentissage.application.ResumeLastService;
@@ -21,6 +22,7 @@ import dev.skillforge.apprentissage.domain.port.in.GetStreakUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ListBookmarksUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ListEnrollmentsUseCase;
 import dev.skillforge.apprentissage.domain.port.in.MarkLessonViewedUseCase;
+import dev.skillforge.apprentissage.domain.port.in.MarkNodeChallengePassedUseCase;
 import dev.skillforge.apprentissage.domain.port.in.MarkNodePracticalPassedUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ResumeLastUseCase;
 import dev.skillforge.apprentissage.domain.port.in.ToggleBookmarkUseCase;
@@ -78,6 +80,15 @@ public class LearningConfig {
                                                                   LearningCatalogPort catalog,
                                                                   LearningEventPublisher events) {
         return new MarkNodePracticalPassedService(enrollments, nodeProgress, lessonProgress, catalog, events);
+    }
+
+    @Bean
+    MarkNodeChallengePassedUseCase markNodeChallengePassedUseCase(EnrollmentStore enrollments,
+                                                                 NodeProgressStore nodeProgress,
+                                                                 LessonProgressStore lessonProgress,
+                                                                 LearningCatalogPort catalog,
+                                                                 LearningEventPublisher events) {
+        return new MarkNodeChallengePassedService(enrollments, nodeProgress, lessonProgress, catalog, events);
     }
 
     @Bean

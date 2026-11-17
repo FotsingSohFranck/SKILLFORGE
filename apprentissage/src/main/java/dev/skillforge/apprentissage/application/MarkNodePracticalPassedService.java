@@ -2,6 +2,7 @@ package dev.skillforge.apprentissage.application;
 
 import dev.skillforge.apprentissage.domain.model.Enrollment;
 import dev.skillforge.apprentissage.domain.model.LearnerId;
+import dev.skillforge.apprentissage.domain.model.NodeCompletion;
 import dev.skillforge.apprentissage.domain.model.NodeId;
 import dev.skillforge.apprentissage.domain.model.ProgressStatus;
 import dev.skillforge.apprentissage.domain.model.RoadmapId;
@@ -56,13 +57,18 @@ public class MarkNodePracticalPassedService implements MarkNodePracticalPassedUs
                 .flatMap(previous -> nodeProgress.markPracticalPassed(enr.id(), node, now)
                         .then(Mono.zip(
                                 lessonProgress.countCompletedInNode(enr.id(), node),
-                                catalog.countLessonsInNode(node)))
+                                catalog.countLessonsInNode(node),
+                                catalog.requiresChallenge(node),
+                                nodeProgress.isChallengePassed(enr.id(), node)))
                         .flatMap(counts -> {
                             long done = counts.getT1();
                             long total = counts.getT2();
                             double percent = total == 0 ? 0.0 : Math.min(100.0, done * 100.0 / total);
-                            // La pratique vient d'être réussie : ne reste que la condition « leçons terminées ».
-                            ProgressStatus status = (total > 0 && done >= total)
+                            // La pratique vient d'être réussie ; restent « leçons terminées » et un
+                            // éventuel Final Challenge requis.
+                            boolean complete = NodeCompletion.isComplete(done, total,
+                                    false, true, counts.getT3(), counts.getT4());
+                            ProgressStatus status = complete
                                     ? ProgressStatus.COMPLETED : ProgressStatus.IN_PROGRESS;
                             boolean newlyCompleted = status == ProgressStatus.COMPLETED
                                     && previous != ProgressStatus.COMPLETED;

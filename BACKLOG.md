@@ -1676,9 +1676,16 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
         (contient la correction) ; tentatives ouvertes à tout apprenant authentifié.
       - **26 tests** verts (moteur, expression, validateur + 2 IT : import et cycle de tentative).
       - Couvre **AC-01..AC-07, AC-13..AC-15, AC-18**.
-    - ⬜ **SF-92a-2-2 — Gating fin de nœud + intégration** ← *prochain item*
-      - Marquer le nœud validé quand `passed` ; câblage avec `apprentissage`/progression (patron de
-        l'épreuve pratique) ; politique de reprise/rejeu. **Pas** d'UI immersive, de guidage, d'IA.
+    - ✅ **SF-92a-2-2 — Gating fin de nœud + intégration** — **TERMINÉ**
+      - Événement `FinalChallengePassedEvent` (common) émis par `challenge` à la réussite (publisher
+        + adaptateur Spring) ; consommé par `apprentissage` (`ChallengeProgressListener`).
+      - Migration **V17** : `nodes.requires_challenge` + `node_progress.challenge_passed` (flags
+        indépendants, défauts false, rétrocompatibles). Helper pur `NodeCompletion` centralisant la
+        règle (leçons + pratique éventuelle + challenge éventuel) ; `ProgressRecalculator` et
+        `MarkNodePracticalPassedService` mis à jour ; nouveau `MarkNodeChallengePassedService`.
+      - Reprise/rejeu : déjà couverts par a2-1 (chaque `start` crée une tentative ; `GET`+`decisions`
+        reprend une tentative en cours ; versions figées => immuabilité).
+      - Tests : +4 cas de gating challenge (unitaires) + IT (émission d'événement capturée).
   - ⬜ **SF-92b — Guidance Engine** : indicateur directionnel 3 états (favorable/à
     surveiller/défavorable) calculé sur l'**état global**, **sans révéler** la réponse
     (couleur = tendance, pas correction). Couvre **AC-08, AC-09**.

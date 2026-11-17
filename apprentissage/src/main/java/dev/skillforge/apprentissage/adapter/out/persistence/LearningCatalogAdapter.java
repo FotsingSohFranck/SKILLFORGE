@@ -46,6 +46,15 @@ public class LearningCatalogAdapter implements LearningCatalogPort {
     }
 
     @Override
+    public Mono<Boolean> requiresChallenge(NodeId node) {
+        return db.sql("SELECT requires_challenge FROM nodes WHERE id = :nid")
+                .bind("nid", node.value())
+                .map((row, meta) -> Boolean.TRUE.equals(row.get(0, Boolean.class)))
+                .one()
+                .defaultIfEmpty(false);
+    }
+
+    @Override
     public Mono<RoadmapId> roadmapOfNode(NodeId node) {
         return db.sql("SELECT roadmap_id FROM nodes WHERE id = :nid")
                 .bind("nid", node.value())

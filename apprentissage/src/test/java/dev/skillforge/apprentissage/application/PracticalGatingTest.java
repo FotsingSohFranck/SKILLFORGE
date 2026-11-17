@@ -96,6 +96,50 @@ class PracticalGatingTest {
         assertFalse(events.published.stream().anyMatch(e -> e instanceof NodeCompletedEvent));
     }
 
+    // --- gating Final Challenge ---
+
+    private ProgressStatus recalcChallenge(long done, long total, boolean challengePassed) {
+        FakeCatalog catalog = new FakeCatalog(CompletionPolicy.LESSONS_ONLY, total, 10, roadmap, true);
+        FakeNodeProgress np = new FakeNodeProgress(false, challengePassed, ProgressStatus.IN_PROGRESS);
+        var recalc = new ProgressRecalculator(new FakeEnrollments(), np, new FakeLessons(done), catalog);
+        return recalc.recalculate(enrollment, node, lesson, Instant.now()).block().nodeStatus();
+    }
+
+    @Test
+    void challenge_requis_non_reussi_bloque_la_validation_du_noeud() {
+        assertEquals(ProgressStatus.IN_PROGRESS, recalcChallenge(2, 2, false));
+    }
+
+    @Test
+    void challenge_requis_et_reussi_valide_le_noeud() {
+        assertEquals(ProgressStatus.COMPLETED, recalcChallenge(2, 2, true));
+    }
+
+    @Test
+    void pratique_reussie_mais_challenge_requis_manquant_ne_valide_pas() {
+        FakeCatalog catalog = new FakeCatalog(CompletionPolicy.LESSONS_AND_PRACTICAL, 2, 10, roadmap, true);
+        FakeNodeProgress np = new FakeNodeProgress(true, false, ProgressStatus.IN_PROGRESS);
+        var recalc = new ProgressRecalculator(new FakeEnrollments(), np, new FakeLessons(2), catalog);
+        assertEquals(ProgressStatus.IN_PROGRESS,
+                recalc.recalculate(enrollment, node, lesson, Instant.now()).block().nodeStatus());
+    }
+
+    @Test
+    void reussir_le_challenge_quand_les_lecons_sont_finies_complete_le_noeud_et_emet_l_evenement() {
+        FakeCatalog catalog = new FakeCatalog(CompletionPolicy.LESSONS_ONLY, 2, 10, roadmap, true);
+        FakeNodeProgress np = new FakeNodeProgress(false, false, ProgressStatus.IN_PROGRESS);
+        FakeEnrollments enr = new FakeEnrollments();
+        enr.fixed = enrollment;
+        FakeEvents events = new FakeEvents();
+        var service = new MarkNodeChallengePassedService(enr, np, new FakeLessons(2), catalog, events);
+
+        service.markPassed(learner.value(), node.value()).block();
+
+        assertTrue(np.markedChallenge);
+        assertEquals(ProgressStatus.COMPLETED, np.lastUpdatedStatus);
+        assertTrue(events.published.stream().anyMatch(e -> e instanceof NodeCompletedEvent));
+    }
+
     // --- doubles ---
 
     final class FakeCatalog implements LearningCatalogPort {
@@ -103,12 +147,18 @@ class PracticalGatingTest {
         private final long lessonsInNode;
         private final long nodesInRoadmap;
         private final RoadmapId roadmapId;
+        private final boolean requiresChallenge;
         FakeCatalog(CompletionPolicy p, long lessons, long nodes, RoadmapId r) {
+            this(p, lessons, nodes, r, false);
+        }
+        FakeCatalog(CompletionPolicy p, long lessons, long nodes, RoadmapId r, boolean requiresChallenge) {
             this.policy = p; this.lessonsInNode = lessons; this.nodesInRoadmap = nodes; this.roadmapId = r;
+            this.requiresChallenge = requiresChallenge;
         }
         public Mono<Long> countLessonsInNode(NodeId n) { return Mono.just(lessonsInNode); }
         public Mono<Long> countNodesInRoadmap(RoadmapId r) { return Mono.just(nodesInRoadmap); }
         public Mono<CompletionPolicy> completionPolicy(NodeId n) { return Mono.just(policy); }
+        public Mono<Boolean> requiresChallenge(NodeId n) { return Mono.just(requiresChallenge); }
         public Mono<RoadmapId> roadmapOfNode(NodeId n) { return Mono.just(roadmapId); }
     }
 
@@ -123,11 +173,16 @@ class PracticalGatingTest {
 
     static final class FakeNodeProgress implements NodeProgressStore {
         private final boolean practicalPassed;
+        private final boolean challengePassed;
         private final ProgressStatus current;
         boolean markedPractical = false;
+        boolean markedChallenge = false;
         ProgressStatus lastUpdatedStatus;
         FakeNodeProgress(boolean practicalPassed, ProgressStatus current) {
-            this.practicalPassed = practicalPassed; this.current = current;
+            this(practicalPassed, false, current);
+        }
+        FakeNodeProgress(boolean practicalPassed, boolean challengePassed, ProgressStatus current) {
+            this.practicalPassed = practicalPassed; this.challengePassed = challengePassed; this.current = current;
         }
         public Mono<Void> upsert(EnrollmentId e, NodeId n, ProgressStatus s, double p, LessonId l, Instant at) {
             lastUpdatedStatus = s; return Mono.empty();
@@ -138,6 +193,10 @@ class PracticalGatingTest {
         public Mono<Boolean> isPracticalPassed(EnrollmentId e, NodeId n) { return Mono.just(practicalPassed); }
         public Mono<Void> markPracticalPassed(EnrollmentId e, NodeId n, Instant at) {
             markedPractical = true; return Mono.empty();
+        }
+        public Mono<Boolean> isChallengePassed(EnrollmentId e, NodeId n) { return Mono.just(challengePassed); }
+        public Mono<Void> markChallengePassed(EnrollmentId e, NodeId n, Instant at) {
+            markedChallenge = true; return Mono.empty();
         }
         public Mono<Void> updateStatus(EnrollmentId e, NodeId n, ProgressStatus s, double p, Instant at) {
             lastUpdatedStatus = s; return Mono.empty();

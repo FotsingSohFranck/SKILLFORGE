@@ -6,6 +6,7 @@ import dev.skillforge.challenge.application.ImportScenarioService;
 import dev.skillforge.challenge.domain.port.in.GetScenarioUseCase;
 import dev.skillforge.challenge.domain.port.in.ImportScenarioUseCase;
 import dev.skillforge.challenge.domain.port.out.AttemptStore;
+import dev.skillforge.challenge.domain.port.out.ChallengeEventPublisher;
 import dev.skillforge.challenge.domain.port.out.ScenarioStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +33,8 @@ public class ChallengeConfig {
      * get), injecté par type pour chacun.
      */
     @Bean
-    ChallengeAttemptService challengeAttemptService(ScenarioStore scenarioStore, AttemptStore attemptStore) {
-        return new ChallengeAttemptService(scenarioStore, attemptStore);
+    ChallengeAttemptService challengeAttemptService(ScenarioStore scenarioStore, AttemptStore attemptStore,
+                                                    ChallengeEventPublisher events) {
+        return new ChallengeAttemptService(scenarioStore, attemptStore, events);
     }
 }

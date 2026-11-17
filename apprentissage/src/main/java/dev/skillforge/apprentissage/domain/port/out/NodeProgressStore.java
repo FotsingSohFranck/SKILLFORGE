@@ -31,6 +31,12 @@ public interface NodeProgressStore {
     /** Marque l'épreuve pratique réussie (crée la ligne si besoin), sans toucher au reste. */
     Mono<Void> markPracticalPassed(EnrollmentId enrollment, NodeId node, Instant at);
 
+    /** Vrai si le Final Challenge du nœud a été réussi par cette inscription. */
+    Mono<Boolean> isChallengePassed(EnrollmentId enrollment, NodeId node);
+
+    /** Marque le Final Challenge réussi (crée la ligne si besoin), sans toucher au reste. */
+    Mono<Void> markChallengePassed(EnrollmentId enrollment, NodeId node, Instant at);
+
     /** Met à jour uniquement statut et pourcentage (sans toucher à la reprise ni à la pratique). */
     Mono<Void> updateStatus(EnrollmentId enrollment, NodeId node, ProgressStatus status,
                             double percent, Instant at);
