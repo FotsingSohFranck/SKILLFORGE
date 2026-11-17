@@ -19,8 +19,10 @@
 | **Lot 0** | Cadrage & architecture | P0, P1 | ✅ terminé |
 | **Lot 1** | Socle backend (données, squelette, IAM) | P2–P4 | ✅ terminé |
 | **Lot 2** | Contextes métier | P5–P9 | ✅ terminé |
-| **Lot 3** | Frontend React | P10–P13 | ⬜ en cours |
-| **Lot 4** | Contenu, déploiement & qualité | P14–P16 | ⬜ à faire |
+| **Lot 3** | Frontend React | P10–P13 | ✅ terminé |
+| **Lot 4** | Contenu, déploiement & qualité | P14–P16 | 🚧 déploiement + contenu faits ; **CI (SF-42)** à faire |
+| **Lot 5** | Lab exécutable (évaluation pratique par conteneur) | SF-91 | 🚧 SF-91a→g faits ; SF-91h gelé |
+| **Lot 6** | Final Challenge (évaluation finale immersive) | SF-92 | ⬜ à faire (socle SF-92a = prochain) |
 
 ---
 
@@ -1633,6 +1635,66 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
 
 ---
 
+## Lot 6 — Final Challenge : évaluation finale immersive
+
+> Spec de référence : `docs/FINAL-CHALLENGE.md`. Décision de placement : **ADR-0009**
+> (nouveau contexte borné `challenge`, moteur de simulation **déterministe/versionné**,
+> serveur fait foi ; immersion et IA en renfort, jamais autorité de notation).
+> Les critères AC-01→AC-18 de la spec §20 sont répartis par tranche ci-dessous.
+
+- ⬜ **SF-92 — Épic : Final Challenge (mission simulée à parcours dynamique)**
+  - **Objectif** : vérifier que l'apprenant **mobilise** ses acquis dans une situation
+    globale et évolutive (décisions successives → état de simulation → conséquences →
+    transition), avec score par compétence, conditions éliminatoires et bilan.
+  - **Arbitrages PO actés** : contexte `challenge` dédié · **fin de nœud d'abord** (roadmap
+    en SF-92g) · v1 **mode formatif** + **choix discrets** auto-notables · **pas d'IA, pas de
+    chrono** en v1.
+
+  - ⬜ **SF-92a — Socle moteur déterministe (fin de nœud)** ← *prochain item*
+    - Modèle domaine (`ChallengeScenario`, `ScenarioVersion` immuable, `ScenarioNode`,
+      `ScenarioChoice`, `EvaluationCriterion`, `TransitionRule`, `ConsequenceRule`,
+      `SimulationSession`, `SimulationState`, `DecisionRecord`, `TriggeredEvent`,
+      `CompetencyResult`, `ChallengeResult`) + **migration Flyway**.
+    - **Import JSON pivot versionné** (schéma + endpoint admin, calqué sur l'import
+      quiz/examens de `evaluation`) + **1 scénario écrit à la main** (fin de nœud backend).
+    - Cycle serveur complet : briefing → nœud → décision → `evaluation_rules` → `effects`
+      sur l'état → `transition_rules` → terminal → **scoring par compétence** + conditions
+      éliminatoires → **rapport**. Déterministe (même version+état+décision ⇒ même résultat).
+    - API : démarrer une tentative, nœud courant, soumettre une décision, rapport final.
+    - Gating fin de nœud (réutilise le patron de l'épreuve pratique).
+    - **Tests** : moteur unitaire (effets, transitions, fins, score, conditions critiques) +
+      intégration. **Pas** d'UI immersive, de guidage couleur, d'IA, de chrono.
+    - Couvre **AC-01..AC-07, AC-13..AC-18**.
+  - ⬜ **SF-92b — Guidance Engine** : indicateur directionnel 3 états (favorable/à
+    surveiller/défavorable) calculé sur l'**état global**, **sans révéler** la réponse
+    (couleur = tendance, pas correction). Couvre **AC-08, AC-09**.
+  - ⬜ **SF-92c — UI immersive (front)** : écran de simulation (en-tête mission, contexte,
+    événement, décision, indicateurs, **journal de mission**), glassmorphism/ambiance
+    évolutive, **a11y** (couleur ≠ seul signal, reduced-motion, clavier, mobile).
+  - ⬜ **SF-92d — Révision & reprise** : revenir sur une décision **sans réécrire
+    l'historique**, conséquences persistantes/irréversibles, **reprise de session**
+    interrompue. Couvre **AC-11, AC-12**.
+  - ⬜ **SF-92e — Retour aux cours & modes** : panneau de consultation des cours en gardant
+    le contexte ; distinction **mode formatif / certificatif** (règles annoncées avant
+    lancement). Couvre **AC-10**.
+  - 🧊 **SF-92f — Learning Analytics & pilotage** : enregistrement des parcours, indicateurs
+    (taux de réussite, score/compétence, abandons, branches, erreurs critiques…) via le
+    contexte `analytics`.
+  - 🧊 **SF-92g — Final Challenge de fin de ROADMAP** : généralisation du moteur à l'échelle
+    roadmap (agrégation multi-nœuds, équité entre branches §7.7).
+  - 🧊 **SF-92h — Variantes assistées par IA** : génération **encadrée** de variantes de
+    situations/formulations/événements, **jamais** autorité sur la notation ou les conditions
+    de validation (spec §6.5, §17.12).
+  - **Risques connus** (cf. ADR-0009) : conception de scénarios exigeante (pas de boucle,
+    branches avec fin, compétences obligatoires couvertes → validations avant publication) ;
+    accessibilité de l'UI immersive ; dépend de l'effort de tests front (SF-42).
+
+**Revue de lot 6 (à faire en fin de lot) :** un apprenant termine un nœud, lance une mission
+simulée, prend des décisions qui font évoluer l'état, et obtient un bilan par compétence —
+le tout déterministe, versionné et rejouable.
+
+---
+
 ## Dette & items découverts en cours de route
 
 > À alimenter au fil de l'eau (cf. `CLAUDE.md` §4/§5 : tout reste non fait est noté ici).
@@ -1662,3 +1724,15 @@ Backend fonctionnel de bout en bout (auth JWT, progression/reprise, évaluations
 - [ ] **Lab (SF-91f)** : bean `webSocketHandlerAdapter` dans `LabWebSocketConfig` **redondant** avec
       l'autoconfig Spring Boot (`webFluxWebSocketHandlerAdapter`). À supprimer (vérifier que le
       handshake WS fonctionne toujours via l'adaptateur autoconfiguré).
+- [ ] **Build/env** : les tests s'exécutent sur **JDK 23** alors que la stack est figée à **Java 21**
+      (`<java.version>21</java.version>`, compilation en `--release 21` mais exécution sur la JVM 23,
+      aucune toolchain Maven). Risque de divergence compile/runtime. Pin via `maven-toolchains-plugin`
+      (ou au minimum documenter l'exigence JDK 21 dans le README).
+- [ ] **Build/env** : un `mvn install` interrompu (p. ex. tué par la mémoire) laisse des jars amont
+      **périmés** dans `~/.m2` → un `mvn -pl <module> test` sans `-am` échoue de façon opaque
+      (`NoClassDefFoundError` droppé par Reactor → `.block()` qui gèle). Réflexe : réinstaller les
+      modules amont (`mvn -pl common install`) après un build interrompu, ou tester avec `-am`.
+- [ ] **Lab (SF-91f)** : **couverture de test du runtime terminal insuffisante**. Seul le câblage est
+      testé (Tier A, boot du contexte). Le vrai round-trip WS + PTY (`DockerJavaTerminalRuntime`,
+      `DockerCliLabRuntime`) n'est **pas** testé automatiquement — c'est la vérif navigateur manuelle
+      qui a attrapé les 3 bugs d'intégration. Prévoir un **Tier B** (dépend de la dette docker-java).
