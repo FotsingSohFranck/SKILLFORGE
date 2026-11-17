@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.skillforge.lab.application.LabTerminalService;
 import dev.skillforge.lab.domain.port.out.TerminalChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.web.reactive.socket.CloseStatus;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -25,6 +27,8 @@ import java.time.Duration;
  * des contrôles JSON (redimensionnement). La sortie du shell est renvoyée en trames binaires.
  */
 public class LabTerminalWebSocketHandler implements WebSocketHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(LabTerminalWebSocketHandler.class);
 
     private final LabTerminalService terminals;
     private final ObjectMapper json;
@@ -50,8 +54,12 @@ public class LabTerminalWebSocketHandler implements WebSocketHandler {
                             output.asFlux().map(b -> session.binaryMessage(f -> f.wrap(b))));
 
                     Mono<Void> receive = session.receive()
+                            // Décodage synchrone sur le thread d'émission : le DataBuffer Netty y est
+                            // encore valide (libéré juste après l'onNext). On copie les octets ici avant
+                            // de basculer sur boundedElastic pour l'écriture bloquante (sinon refCnt=0).
+                            .map(this::decode)
                             .publishOn(Schedulers.boundedElastic())
-                            .doOnNext(msg -> handleInbound(msg, opened.channel()))
+                            .doOnNext(in -> apply(in, opened.channel()))
                             .then();
 
                     return Mono.firstWithSignal(send, receive)
@@ -61,24 +69,40 @@ public class LabTerminalWebSocketHandler implements WebSocketHandler {
                             })
                             .then();
                 })
-                .onErrorResume(err -> session
-                        .close(CloseStatus.POLICY_VIOLATION.withReason(shortReason(err))));
+                .onErrorResume(err -> {
+                    log.warn("Ouverture du terminal echouee (ticket={})", ticket, err);
+                    return session.close(CloseStatus.POLICY_VIOLATION.withReason(shortReason(err)));
+                });
     }
 
-    private void handleInbound(WebSocketMessage message, TerminalChannel channel) {
-        if (message.getType() == WebSocketMessage.Type.TEXT) {
-            tryResize(message.getPayloadAsText(), channel);
-            return;
-        }
+    /**
+     * Décode une trame entrante <em>sur le thread d'émission</em> (le {@link DataBuffer} y est encore
+     * valide). Binaire = frappes clavier ; texte = contrôle JSON (resize). Les octets sont copiés ici
+     * pour pouvoir appliquer l'action plus tard sur un autre scheduler sans toucher au buffer libéré.
+     */
+    private Inbound decode(WebSocketMessage message) {
         if (message.getType() == WebSocketMessage.Type.BINARY) {
             DataBuffer buffer = message.getPayload();
             byte[] bytes = new byte[buffer.readableByteCount()];
             buffer.read(bytes);
-            channel.write(bytes);
+            return Inbound.keys(bytes);
+        }
+        if (message.getType() == WebSocketMessage.Type.TEXT) {
+            return parseResize(message.getPayloadAsText());
+        }
+        return Inbound.NONE;
+    }
+
+    /** Applique l'action décodée (écriture bloquante / resize), hors du thread d'émission. */
+    private void apply(Inbound in, TerminalChannel channel) {
+        if (in.keystrokes() != null) {
+            channel.write(in.keystrokes());
+        } else if (in.cols() > 0 && in.rows() > 0) {
+            channel.resize(in.cols(), in.rows());
         }
     }
 
-    private void tryResize(String text, TerminalChannel channel) {
+    private Inbound parseResize(String text) {
         try {
             JsonNode node = json.readTree(text);
             JsonNode resize = node.get("resize");
@@ -86,11 +110,25 @@ public class LabTerminalWebSocketHandler implements WebSocketHandler {
                 int cols = resize.path("cols").asInt(0);
                 int rows = resize.path("rows").asInt(0);
                 if (cols > 0 && rows > 0) {
-                    channel.resize(cols, rows);
+                    return Inbound.resize(cols, rows);
                 }
             }
         } catch (Exception ignored) {
             // trame de contrôle invalide : ignorée
+        }
+        return Inbound.NONE;
+    }
+
+    /** Trame entrante décodée : soit des frappes clavier, soit un resize, soit rien. */
+    private record Inbound(byte[] keystrokes, int cols, int rows) {
+        private static final Inbound NONE = new Inbound(null, 0, 0);
+
+        private static Inbound keys(byte[] bytes) {
+            return new Inbound(bytes, 0, 0);
+        }
+
+        private static Inbound resize(int cols, int rows) {
+            return new Inbound(null, cols, rows);
         }
     }
 
