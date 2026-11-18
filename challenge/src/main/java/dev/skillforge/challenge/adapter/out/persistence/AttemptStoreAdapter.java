@@ -19,7 +19,9 @@ import java.util.UUID;
  * des décisions append-only. L'écriture de la décision et la mise à jour de la tentative sont
  * enchaînées (une décision par appel ; file formatif mono-apprenant).
  */
-@Component
+// Nom de bean explicite : évite la collision avec evaluation...AttemptStoreAdapter
+// (même nom simple) lors du scan du contexte applicatif complet.
+@Component("challengeAttemptStoreAdapter")
 public class AttemptStoreAdapter implements AttemptStore {
 
     private final DatabaseClient db;
