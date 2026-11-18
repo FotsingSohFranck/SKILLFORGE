@@ -15,6 +15,9 @@ spring:
     password: ${SF_DB_PASSWORD:skillforge}
     locations: classpath:db/migration
     baseline-on-migrate: true
+    # Les migrations n'utilisent pas de placeholders Flyway ; désactivé pour que les seeds JSON
+    # (dollar-quoting PostgreSQL, séquences ${...}) ne soient jamais interprétés.
+    placeholder-replacement: false
 
   # --- E-mail (réinitialisation de mot de passe). En local : conteneur Mailpit (SMTP 1025). ---
   mail:

@@ -15,7 +15,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO challenge_scenario_versions(id, scenario_id, version, status, definition, published_at) VALUES
     ('01920000-0000-7000-8000-00000000c002', '01920000-0000-7000-8000-00000000c001', 1, 'PUBLISHED',
-$challenge${
+$challenge$
+{
   "scenarioKey": "backend-caching-resilience",
   "nodeId": "01920000-0000-7000-8000-0000000000d4",
   "title": "Tenir la charge sans servir de données périmées",
